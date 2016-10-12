@@ -1,0 +1,1 @@
+../../../../mediawiki/trackback.php

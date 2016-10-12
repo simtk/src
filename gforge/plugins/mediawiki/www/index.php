@@ -1,0 +1,1 @@
+../../../../mediawiki/index.php

@@ -1,0 +1,9 @@
+Install Apache 2.2.22, Postgres 9.1, and PHP 5.4
+================================================
+As root:
+apt-get install apache2
+apt-get install postgresql postgresql-contrib
+apt-get install php5 libapache2-mod-php5 php5-mcrypt
+apt-get install php5-pgsql
+apt-get install unzip
+/etc/init.d/apache2 restart
