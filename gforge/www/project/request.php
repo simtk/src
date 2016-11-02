@@ -4,6 +4,7 @@
  *
  * Copyright 2005 (c) GForge, L.L.C.
  * Copyright 2012, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -67,7 +68,7 @@ echo ngettext('You can request to join a project by clicking the submit button. 
 </p>
 <textarea name="comments" required="required" rows="15" cols="60"><?php echo $comments ?></textarea>
 <p>
-	<input type="submit" name="submit" value="<?php echo _('Submit'); ?>" />
+	<input type="submit" name="submit" value="<?php echo _('Submit'); ?>" class="btn-cta" />
 </p>
 </form>
 <?php

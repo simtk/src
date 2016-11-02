@@ -1,10 +1,11 @@
 <?php
 /**
- * Project Admin: Edit Packages
+ * Project Admin: Delete a release
  *
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2002-2004 (c) GForge Team
  * http://fusionforge.org/
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -39,41 +40,49 @@ if (!$group_id) {
 $project = group_get_object($group_id);
 if (!$project || !is_object($project)) {
     exit_no_group();
-} elseif ($project->isError()) {
+}
+elseif ($project->isError()) {
 	exit_error($project->getErrorMessage(),'frs');
 }
 
 session_require_perm ('frs', $group_id, 'write') ;
 
-$frsp = new FRSPackage($project,$package_id);
+// Get package.
+$frsp = new FRSPackage($project, $package_id);
 if (!$frsp || !is_object($frsp)) {
 	exit_error(_('Could Not Get FRS Package'),'frs');
-} elseif ($frsp->isError()) {
+}
+elseif ($frsp->isError()) {
 	exit_error($frsp->getErrorMessage(),'frs');
 }
 
+// Get release.
 $frsr = new FRSRelease($frsp,$release_id);
 if (!$frsr || !is_object($frsr)) {
 	exit_error(_('Could Not Get FRS Release'),'frs');
-} elseif ($frsr->isError()) {
+}
+elseif ($frsr->isError()) {
 	exit_error($frsr->getErrorMessage(),'frs');
 }
 
 /*
-	Relatively simple form to delete packages of releases
+	Relatively simple form to delete a release from package.
 */
 
-frs_admin_header(array('title'=>_('Release Edit/File Releases'),'group'=>$group_id));
+frs_admin_header(array('title'=>'Delete Release','group'=>$group_id));
+
+echo '<div><h3>Delete Release ' . $frsr->getName() . ' from Package ' . $frsp->getName() . '</h3></div>';
 
 	echo '
-	<form action="/frs/admin/showreleases.php?group_id='.$group_id.'&amp;package_id='.$package_id.'" method="post">
+	<form action="/frs/admin/?group_id='.$group_id.'" method="post">
 	<input type="hidden" name="func" value="delete_release" />
+	<input type="hidden" name="package_id" value="'. $package_id .'" />
 	<input type="hidden" name="release_id" value="'. $release_id .'" />
 	'._('You are about to permanently and irretrievably delete this release and its files!').'
 	<p>
-	<input type="checkbox" name="sure" value="1" />'._('I am Sure').'<br />
-	<input type="checkbox" name="really_sure" value="1" />'._('I am Really Sure').'<br />
-	<input type="submit" name="submit" value="'._('Delete').'" />
+	<input type="checkbox" name="sure" value="1" />&nbsp;'._('I am Sure').'<br />
+	<input type="checkbox" name="really_sure" value="1" />&nbsp;'._('I am Really Sure').'<br />
+	<input type="submit" name="submit" value="'._('Delete').'" class="btn-cta" />
 	</p>
 	</form>';
 

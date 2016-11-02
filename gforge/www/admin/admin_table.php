@@ -4,7 +4,8 @@
  *
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2010 (c) Franck Villaume - Capgemini
- * Copyright 2012,2014 Franck Villaume - TrivialDev
+ * Copyright 2012, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -47,11 +48,10 @@ function admin_table_add($table, $unit, $primary_key) {
 
 		for ($i = 0; $i < $cols; $i++) {
 			$fieldname = db_fieldname($result, $i);
-			if ($fieldname != $primary_key) {
-				$fields[] = $fieldname;
-				echo '<tr><td><strong>'.$fieldname.'</strong></td>';
-				echo '<td><input type="text" name="'.$fieldname.'" value="" required="required" /></td></tr>';
-			}
+			$fields[] = $fieldname;
+
+			echo '<tr><td><strong>'.$fieldname.'</strong></td>';
+			echo '<td><input type="text" name="'.$fieldname.'" value="" /></td></tr>';
 		}
 		echo '</table><input type="submit" value="'._('Add').'" />
 			<input type="hidden" name="__fields__" value="'.implode(',',$fields).'" />
@@ -91,7 +91,8 @@ function admin_table_postadd($table, $unit) {
 	$qpa = db_construct_qpa ($qpa, implode (',', $v).')', $values) ;
 
 	if (db_query_qpa($qpa)) {
-		print('<p class="feedback">');
+//		print('<p class="feedback">');
+		print('<p class="warning_msg">');
 		printf(_('%s successfully added.'), ucfirst(getUnitLabel($unit)));
 		print('</p>');
 	} else {
@@ -182,7 +183,8 @@ function admin_table_confirmdelete($table, $unit, $primary_key, $id) {
  */
 function admin_table_delete($table, $unit, $primary_key, $id) {
 	if (db_query_params("DELETE FROM $table WHERE $primary_key=$1", array($id))) {
-                print('<p class="feedback">');
+//                print('<p class="feedback">');
+                print('<p class="warning_msg">');
 		printf(_('%s successfully deleted.'), ucfirst(getUnitLabel($unit)));
                 print('</p>');
 	} else {
@@ -260,7 +262,8 @@ function admin_table_postedit($table, $unit, $primary_key, $id) {
 				 array ($id)) ;
 
 	if (db_query_qpa($qpa)) {
-		print('<p class="feedback">');
+//		print('<p class="feedback">');
+		print('<p class="warning_msg">');
 		printf(_('%s successfully modified.'), ucfirst(getUnitLabel($unit)));
 		print('</p>');
 	} else {
@@ -283,7 +286,8 @@ function admin_table_postedit($table, $unit, $primary_key, $id) {
 		$qpa = db_construct_qpa ($qpa, implode (',', $v).')', $values) ;
 
 		if (db_query_qpa($qpa)) {
-		print('<p class="feedback">');
+//		print('<p class="feedback">');
+		print('<p class="warning_msg">');
 			printf(_('%s successfully added.'), ucfirst(getUnitLabel($unit)));
 		print('</p>');
 		} else {

@@ -12,6 +12,7 @@
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2011, Franck Villaume - Capgemini
  * Copyright 2013, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -186,14 +187,19 @@ $abc_array = array('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','
 ?>
 </div>
 
-<?php if(forge_get_config('use_news')) {?>
 <div class="info-box">
 <h2><?php echo _('News'); ?></h2>
 <ul>
-	<li><?php echo util_make_link ('/admin/pending-news.php',_('Pending news (moderation for front-page)')); ?></li>
+    <li><?php echo util_make_link ('/admin/pending-simtk-news.php',_('Pending SimTK news (moderation for front-page)')); ?></li>
 </ul>
 </div>
-<?php } ?>
+
+<div class="info-box">
+<h2><?php echo _('Downloads'); ?></h2>
+<ul>
+    <li><?php echo util_make_link ('/admin/downloads-doi.php',_('Downloads DOI')); ?></li>
+</ul>
+</div>
 
 <div class="info-box">
 <h2><?php echo _('Stats'); ?></h2>

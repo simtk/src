@@ -6,6 +6,7 @@
  *
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2010 (c) Franck Villaume
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -57,6 +58,15 @@ if (!$u || !is_object($u)) {
 if (!$u->setEmail($u->getNewEmail())) {
 	exit_error($u->getErrorMessage(),'my');
 }
+
+// Synchronize data with phpBB forum.
+$urlUserUpdate = "https://".
+	getStringFromServer('HTTP_HOST') .
+	"/plugins/phpBB/sync_user.php?" .
+	"userName=" . $u->getUnixName();
+
+// Invoke URL access to add the user to phpbb_users.
+$resStr = file_get_contents($urlUserUpdate);
 
 site_user_header(array('title'=>_('Email Change Complete')));
 ?>

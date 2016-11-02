@@ -5,6 +5,7 @@
  * Copyright 2002 GForge, LLC
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -34,6 +35,9 @@ $ath->header(array ('title'=>_('Delete artifact').': [#'. $ah->getID(). '] ' . $
 
 // $atid, $aid and $group_id are set in tracker.php
 
+// Update page title identified by the class "project_submenu".
+echo '<script>$(".project_submenu").html("Tracker: ' . $ath->getName() . '");</script>';
+
 ?>
 
 <table class="centered">
@@ -46,15 +50,20 @@ $ath->header(array ('title'=>_('Delete artifact').': [#'. $ah->getID(). '] ' . $
 <input type="hidden" name="func" value="postdeleteartifact" />
 <input type="hidden" name="atid" value="<?php echo $atid; ?>" />
 <p class="important">
-<?php echo _('Are you sure you want to delete this artifact?'); ?>
+<?php echo 'You are about to permanently and irretrievably delete this artifact!'; ?>
 </p>
-<p class="align-center">
-<input id="confirm_delete" type="checkbox" value="1" name="confirm_delete" />
-<label for="confirm_delete">
-<?php echo _('I am Sure'); ?>
+<p>
+<input id="sure" type="checkbox" value="1" name="sure" />
+<label for="sure">
+<?php echo _('I am Sure'); ?><br />
+</label>
+<input id="really_sure" type="checkbox" value="1" name="really_sure" />
+<label for="really_sure">
+<?php echo _('I am Really Sure'); ?><br />
 </label>
 </p>
-<p class="align-center"><input type="submit" value="<?php echo _('Delete'); ?>" name="submit" />
+<p>
+<input type="submit" value="<?php echo _('Delete'); ?>" name="submit" class="btn-cta" />
 </p>
 </form>
 </fieldset>

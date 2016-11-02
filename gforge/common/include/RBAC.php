@@ -1,5 +1,7 @@
 <?php
 /**
+ * RBAC.php
+ *
  * FusionForge role-based access control
  *
  * Copyright 2004, GForge, LLC
@@ -8,6 +10,7 @@
  * Copyright 2012, Thorsten “mirabilos” Glaser <t.glaser@tarent.de>
  * Copyright 2013, French Ministry of National Education
  * Copyright 2014, Inria (Sylvain Beucler)
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -81,6 +84,7 @@ abstract class BaseRole extends Error {
 			'scm' => array (0, 1, 2),
 			'docman' => array (0, 1, 2, 3, 4),
 			'frs' => array (0, 1, 2, 3),
+			'pubs' => array (0, 1),
 
 			);
 
@@ -105,6 +109,7 @@ abstract class BaseRole extends Error {
 						     'new_tracker' => 15,
 						     'pm_admin' => 1,
 						     'new_pm' => 7,
+						     'pubs' => 1,
 				),
 			'Senior Developer' => array( 'project_read' => 1,
 						     'frs' => 2,
@@ -116,6 +121,7 @@ abstract class BaseRole extends Error {
 						     'new_tracker' => 15,
 						     'pm_admin' => 1,
 						     'new_pm' => 7,
+						     'pubs' => 1,
 				),
 			'Junior Developer' => array( 'project_read' => 1,
 						     'frs' => 2,
@@ -124,6 +130,7 @@ abstract class BaseRole extends Error {
 						     'new_forum' => 3,
 						     'new_tracker' => 11,
 						     'new_pm' => 3,
+						     'pubs' => 0,
 				),
 			'Doc Writer' => array(       'project_read' => 1,
 						     'frs' => 2,
@@ -131,6 +138,7 @@ abstract class BaseRole extends Error {
 						     'new_forum' => 3,
 						     'new_tracker' => 9,
 						     'new_pm' => 1,
+						     'pubs' => 0,
 				),
 			'Support Tech' => array(     'project_read' => 1,
 						     'frs' => 2,
@@ -140,6 +148,7 @@ abstract class BaseRole extends Error {
 						     'new_tracker' => 11,
 						     'pm_admin' => 1,
 						     'new_pm' => 7,
+						     'pubs' => 0,
 				),
 			);
 	}
@@ -248,11 +257,6 @@ abstract class BaseRole extends Error {
 				return false;
 			}
 		}
-		
-		$hook_params = array();
-		$hook_params['role'] =& $this;
-		$hook_params['project'] =& $project;
-		plugin_hook ("role_unlink_project", $hook_params);
 
 		return true ;
 	}
@@ -322,7 +326,7 @@ abstract class BaseRole extends Error {
 		$result = array();
 		$group_id = $project->getID();
 
-		$sections = array ('project_read', 'project_admin', 'frs', 'scm', 'docman', 'tracker_admin', 'new_tracker') ;
+		$sections = array ('project_read', 'project_admin', 'frs', 'scm', 'pubs', 'docman', 'tracker_admin', 'new_tracker') ;
 		foreach ($sections as $section) {
 			$result[$section][$group_id] = $this->getVal ($section, $group_id) ;
 		}
@@ -506,6 +510,19 @@ abstract class BaseRole extends Error {
 			return $value ;
 			break ;
 
+		case 'simulations':
+			return $value ;
+			break ;
+
+		case 'pubs':
+			if ($this->hasPermission('project_admin', $reference)) {
+				return 1 ;
+			} elseif (!$this->hasPermission('project_read', $reference)) {
+				return 0;
+			}
+			return $value ;
+			break ;
+
 		case 'forum':
 			if ($this->hasPermission('forum_admin', forum_get_groupid($reference))) {
 				return 4 ;
@@ -633,6 +650,7 @@ abstract class BaseRole extends Error {
 		case 'tracker_admin':
 		case 'pm_admin':
 		case 'forum_admin':
+		case 'pubs':
 			return ($value >= 1) ;
 			break ;
 
@@ -676,6 +694,20 @@ abstract class BaseRole extends Error {
 			break ;
 
 		case 'frs':
+			switch ($action) {
+			case 'read_public':
+				return ($value >= 1) ;
+				break ;
+			case 'read_private':
+				return ($value >= 2) ;
+				break ;
+			case 'write':
+				return ($value >= 3) ;
+				break ;
+			}
+			break ;
+
+		case 'simulations':
 			switch ($action) {
 			case 'read_public':
 				return ($value >= 1) ;
@@ -901,7 +933,7 @@ abstract class BaseRole extends Error {
 
 		// Add missing settings
 		// ...project-wide settings
-		$arr = array ('project_read', 'project_admin', 'frs', 'scm', 'docman', 'tracker_admin', 'new_tracker', 'forum_admin', 'new_forum', 'pm_admin', 'new_pm') ;
+		$arr = array ('project_read', 'project_admin', 'frs', 'scm', 'pubs', 'docman', 'tracker_admin', 'new_tracker', 'forum_admin', 'new_forum', 'pm_admin', 'new_pm',) ;
 		foreach ($projects as $p) {
 			foreach ($arr as $section) {
 				$this->normalizePermsForSection ($new_pa, $section, $p->getID()) ;

@@ -8,6 +8,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2010, Franck Villaume - Capgemini
  * Copyright 2012, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -57,6 +58,18 @@ if (getStringFromRequest('submit')) {
 	} elseif (!$u->setStatus('A')) {
 		$error_msg = _('Error while activating account')._(': ').$u->getErrorMessage();
 	} else {
+		// Success.
+
+		// Add user to phpbb_users.
+		$theUserName = $u->getUnixName();
+		$urlUserUpdate = "http". (($_SERVER["HTTPS"] == "on") ? 's' : '') . "://" .
+			$_SERVER["SERVER_NAME"] .
+			"/plugins/phpBB/sync_user.php?" .
+			"userName=" . $theUserName;
+
+		// Invoke URL access to add the user to phpbb_users.
+		$resStr = file_get_contents($urlUserUpdate);
+
 		if (forge_get_config('user_notification_on_activation')) {
 			$u->setAdminNotification();
 		}
@@ -64,9 +77,12 @@ if (getStringFromRequest('submit')) {
 	}
 }
 
+// Always log out first!
+session_logout();
+
 $HTML->header(array('title'=>_('Verify')));
 
-echo '<p>' . _('In order to complete your registration, login now. Your account will then be activated for normal logins.') . '</p>';
+echo '<p><br/><br/>To complete your registration and activate your account, log in below.</p>';
 
 ?>
 
@@ -79,6 +95,13 @@ if (forge_get_config('require_unique_email')) {
 	echo _('Login Name')._(':');
 }
 ?>
+
+<script>
+$(document).ready(function () {
+	$("#loginname").focus();
+});
+</script>
+
 <br />
 <label for="loginname">
 	<input id="loginname" type="text" name="loginname"/>
@@ -91,7 +114,7 @@ if (forge_get_config('require_unique_email')) {
 </label>
 </p>
 <input type="hidden" name="confirm_hash" value="<?php print htmlentities($confirm_hash); ?>" />
-<p><input type="submit" name="submit" value="<?php echo _('Login'); ?>" /></p>
+<p><input type="submit" name="submit" value="<?php echo _('Login'); ?>" class="btn-cta" /></p>
 </form>
 
 <?php

@@ -2,6 +2,7 @@
 /**
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright (C) 2011-2012 Alain Peyrat - Alcatel-Lucent
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -131,15 +132,29 @@ if (isset($group_id) && is_numeric($group_id) && $group_id) {
 
 }
 
+// Includes activity_log INSERT of ip_addr, host_name, and user_name.
+$user_name = '';
+if (session_get_user()) {
+	$user_name = session_get_user()->getUnixName();
+}
 $res_logger = db_query_params ('INSERT INTO activity_log
-	(day,hour,group_id,browser,ver,platform,time,page,type)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+	(day,hour,group_id,browser,ver,platform,time,page,type,simtk_ip_addr,simtk_host_name,simtk_user_name)
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)',
 	array(date('Ymd'), date('H'),
 		$log_group, browser_get_agent(), browser_get_version(), browser_get_platform(),
-		time(), getStringFromServer('PHP_SELF'), '0'));
+		time(), getStringFromServer('PHP_SELF'), '0',
+		browser_get_address(),
+		browser_get_host(),
+		$user_name));
 
 if (!$res_logger) {
 	echo "An error occured in the logger.\n";
 	echo htmlspecialchars(db_error());
 	exit;
 }
+
+// Log to user_group_log to track user-group access.
+log_user_group($log_group);
+
+
+

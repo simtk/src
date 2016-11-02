@@ -1,5 +1,7 @@
 <?php
 /**
+ * view.php
+ *
  * FusionForge Documentation Manager
  *
  * Copyright 2000, Quentin Cregan/Sourceforge
@@ -7,6 +9,7 @@
  * Copyright 2010-2011, Franck Villaume - Capgemini
  * Copyright (C) 2010-2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012,2014, Franck Villaume - TrivialDev
+ * Copyright 2016, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -51,7 +54,7 @@ if (!$g || !is_object($g)) {
 }
 
 if (is_numeric($docid)) {
-	session_require_perm('docman', $group_id, 'read');
+	//session_require_perm('docman', $group_id, 'read');
 	$docname = urldecode($arr[5]);
 
 	$d = new Document($g, $docid);
@@ -92,8 +95,8 @@ if (is_numeric($docid)) {
 
 	$file_path = $d->getFilePath();
 	$length = filesize($file_path);
-	$d->downloadUp();
 	header("Content-length: $length");
+
 	readfile_chunked($file_path);
 
 } elseif ($docid === 'backup') {
@@ -171,7 +174,7 @@ if (is_numeric($docid)) {
 		session_redirect('/docman/?group_id='.$group_id.'&warning_msg='.urlencode($warning_msg));
 	}
 } elseif ($docid === 'zip') {
-	session_require_perm('docman', $group_id, 'read');
+	//session_require_perm('docman', $group_id, 'read');
 	if (extension_loaded('zip')) {
 		if ( $arr[5] === 'full' ) {
 			$dirid = $arr[6];

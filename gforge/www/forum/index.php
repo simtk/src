@@ -7,6 +7,7 @@
  * Copyright 2010 (c) Franck Villaume - Capgemini
  * Copyright (C) 2011-2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2013,2014 Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -48,7 +49,7 @@ if ($group_id) {
 		session_redirect('/forum/forum.php?forum_id='.$farr[0]->getID());
 	}
 
-	forum_header(array('title'=>sprintf(_('Forums for %s'), $g->getPublicName()) ));
+	forum_header(array('title'=>sprintf(_('Forums'))));
 
 	if ($ff->isError()) {
 		echo '<p class="error">'. $ff->getErrorMessage().'</p>';

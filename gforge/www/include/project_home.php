@@ -1,11 +1,14 @@
 <?php
 /**
+ * project_home.php
+ *
  * FusionForge Project Home
  *
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2010, FusionForge Team
  * Copyright (C) 2011-2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2013, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -24,65 +27,259 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-require_once $gfwww.'news/news_utils.php';
+require_once $gfwww.'project/project_utils.php';
+require_once $gfplugins.'simtk_news/www/simtk_news_utils.php';
 require_once $gfwww.'include/trove.php';
 require_once $gfwww.'include/project_summary.php';
+require_once $gfwww.'include/forum_db_utils.php';
 require_once $gfcommon.'include/tag_cloud.php';
 require_once $gfcommon.'include/HTTPRequest.class.php';
 require_once $gfcommon.'widget/WidgetLayoutManager.class.php';
-
-session_require_perm ('project_read', $group_id) ;
-
-$title = _('Project Home');
+require_once $gfplugins.'following/include/Following.class.php';
+require_once $gfcommon.'frs/include/frs_utils.php';
+require_once $gfcommon.'frs/FRSPackage.class.php';
+require_once $gfplugins.'publications/include/Publications.class.php';
+//require_once $gfcommon.'include/utils.php';
 
 $request =& HTTPRequest::instance();
 $request->set('group_id', $group_id);
 
+
+
+// *** Disabled here. Otherwise, project description will not be displayed.
+// and user login will be prompted.
+//session_require_perm ('project_read', $group_id) ;
+
+$title = _('Project Home');
+
+
 $params['submenu'] = '';
 
-if (session_loggedin()) {
-	$group = group_get_object($group_id);
-	if (!$group || !is_object($group)) {
-		exit_no_group();
-	} elseif ($group->isError()) {
-		exit_error($group->getErrorMessage(), 'home');
-	}
+html_use_jqueryui();
+site_project_header(array('title'=>$title, 'h1' => '', 'group'=>$group_id, 'toptab' => 'home' ));
 
-	// Display with the preferred layout/theme of the user (if logged-in)
-	$perm =& $group->getPermission();
-	if ($perm && is_object($perm) && $perm->isAdmin()) {
-		$sql = "SELECT l.*
-				FROM layouts AS l INNER JOIN owner_layouts AS o ON(l.id = o.layout_id)
-				WHERE o.owner_type = $1
-				AND o.owner_id = $2
-				AND o.is_default = 1
-				";
-		$res = db_query_params($sql,array('g', $group_id));
-		if($res && db_numrows($res)<1) {
-			$lm = new WidgetLayoutManager();
-			$lm->createDefaultLayoutForProject($group_id,1);
-			$res = db_query_params($sql,array('g', $group_id));
-		}
-		$id = db_result($res, 0 , 'id');
-		$params['submenu'] = $HTML->subMenu(
-			array(_("Add widgets"),
-				_("Customize Layout")),
-			array('/widgets/widgets.php?owner=g'. $group_id .'&amp;layout_id='. $id,
-				'/widgets/widgets.php?owner=g'. $group_id .'&amp;layout_id='. $id.'&amp;update=layout'),
-			array(array('class' => 'tabtitle-nw', 'title' => _('Select new widgets to display on the project home page.')),
-				array('class' => 'tabtitle', 'title' => _('Modify the layout: one column, multiple columns or build your own layout.'))));
-	}
+$group = group_get_object($group_id);
+if (!$group || !is_object($group)) {
+        exit_no_group();
 }
 
-html_use_jqueryui();
-site_project_header(array('title'=>$title, 'h1' => '', 'group'=>$group_id, 'toptab' => 'home',
-	'submenu' => $params['submenu']));
+// get project leads 
 
-$params = array('group_id' => $group_id);
-plugin_hook('project_before_widgets', $params);
+$project_admins = $group->getLeads();
 
-$lm = new WidgetLayoutManager();
-$lm->displayLayout($group_id, WidgetLayoutManager::OWNER_TYPE_GROUP);
+?>
+<script type="text/javascript">
+	$(function() {
+		$('.expander').simpleexpand();
+	});
+</script>
+
+<div class="project_overview_main">
+    <div style="display: table; width: 100%;"> 
+        <div class="main_col">
+
+            <?php 
+			      if ($group->isPublicationProject()) { 
+				     $pub = New Publication($group);
+					 if (!$pub || !is_object($pub)) {
+                          exit_error('Error','Could Not Create Publication Object');
+                     } elseif ($pub->isError()) {
+                          exit_error('Error',$pub->getErrorMessage());
+                     }
+					 $res = $pub->getPrimary();
+				     echo "<i>" . $res['publication'] . " " . " (" . $res['publication_year'] . ")</i>";
+					
+                     if ($res['abstract'] != "") {
+					    echo "<div class=\"expand_content\">\n";
+                        echo "<div id='pub".$res['pub_id']."'>";
+					    echo "<a id=\"expander\" class=\"expander toggle\" href=\"#\">Abstract</a>";
+						if ($res['url'] != "") {
+                        echo "&nbsp;&nbsp;&nbsp;&nbsp;<a href='" . $res['url'] . "' target='_blank'>View</a>";			 
+					    } 
+						echo "<div class='content'><p>".$res['abstract']."</p></div></div></div><br />";
+                     } else if ($res['url'] != "") {
+                        echo "&nbsp;&nbsp;&nbsp;&nbsp;<a href='" . $res['url'] . "' target='_blank'>View</a>";			 
+                        echo '<br /><br />';
+					 } else {
+					    echo '<br /><br />';
+					 }
+				  }
+				  
+			?>
+				
+            <?php 
+/*
+              $logofile =  $group->getLogoFile(); 
+              if (!empty($logofile)) { 
+                echo "<img class='project_icon' src='/logos/$logofile' alt='big logo'/>";
+              } 
+*/
+            ?>
+
+            <div class="project_description">
+						
+                <p><?php echo html_entity_decode(nl2br(util_whitelist_tags($group->getSummary()))); ?></p></div>
+
+<?php if (forge_check_perm('project_read', $group_id)) { ?>
+            <?php 
+              $pulldown_menu = frs_download_files_pulldown($group, $group_id);
+              if ($group->getDisplayDownloadPulldown() && !empty($pulldown_menu)) { ?>
+
+            <div class="download_widget">
+                <div class="dropdown">
+                    <a class="btn-download dropdown-toggle" data-toggle="dropdown" >
+                        Download Latest Releases
+                        <span class="arrow_icon"></span>
+                    </a>
+                    <ul class="dropdown-menu" role="menu" >
+                      <?php foreach ($pulldown_menu as $menu_items) { ?>
+                        <li><a role="menuitem" tabindex="-1" href="<?php echo $menu_items['url']; ?>"><?php echo $menu_items['name']; ?></a></li>
+                      <?php } ?>
+                    </ul> 
+                </div>
+            </div>
+
+                <?php $result_use_agreement = frs_package_use_agreement($group_id); ?>
+
+            <?php } ?>
+<?php } ?>
+
+            <div class="project_section">
+		<hr/>
+                <p>
+                <?php echo html_entity_decode(nl2br(util_make_clickable_links(util_whitelist_tags($group->getDescription())))); ?>
+                </p>
+            </div>
+            <div style="clear: both;"></div> 
+        </div>
+        <div class="side_bar">
+
+           <?php if (forge_check_perm('project_read', $group_id)) displayStatsBlock($group); ?>
+           <?php displayCarouselProjectLeads($project_admins); ?>
+
+        </div> <!-- /.side-bar -->
+    </div>
+</div>
+
+
+
+<?php if (forge_check_perm('project_read', $group_id)) { ?>
+   <?php 
+     $displayDownloads = false;
+     // Only show Downloads section if the description is present.
+     $strDownloadDescription = $group->getDownloadDescription();
+     if ($group->getDisplayDownloads() &&
+	$strDownloadDescription != null && trim($strDownloadDescription) != "") {
+	$displayDownloads = true;
+     }
+
+     $displayRelated = false;
+     if ($group->getDisplayRelated()) {
+	$related_projects = $group->getRelatedProjects();
+	if (db_numrows($related_projects) > 0) {
+		$displayRelated = true;
+	}
+     }
+
+     $num_columns = 0;
+	 //echo "display: " . $group->getDisplayNews() . "<br />";
+	 //echo "simtk news: " . $group->usesPlugin("simtk_news") . "<br />";
+     if ($group->usesPlugin("simtk_news") && $group->getDisplayNews() && ($news_return = news_show_project_overview($group_id))) {    
+	 $num_columns += 1;
+     }
+     if ($group->usesFRS() && $displayDownloads === true) {
+        $num_columns += 1;
+     }
+     if ($displayRelated === true) {
+        $num_columns += 1;
+     }
+
+   if ($num_columns) { ?>
+
+   <div class="three_cols">
+
+    <?php 
+	  if ($group->usesPlugin("simtk_news") && $group->getDisplayNews() && $news_return) {
+        if ($num_columns == 1) {
+          echo "<div>";
+        } else if ($num_columns == 2) {
+          // Let news use a wider column.
+          echo "<div class='two_third_col'>";
+        } else if ($num_columns == 3) {
+          echo "<div class='one_third_col'>";
+        }
+    ?>
+        <div class="module_news">
+            <h2 id="news">News</h2>
+			<p>
+            <?php echo news_show_project_overview($group_id); ?>
+            </p>
+			<a href="/plugins/simtk_news/?group_id=<?php echo $group_id; ?>"> See all News</a>
+        </div>
+    </div>
+    <?php } ?>
+
+    <?php 
+      if ($group->usesFRS() && $displayDownloads === true) { 
+        if ($num_columns == 1) {
+          echo "<div>";
+        } else if ($num_columns == 2 && $group->usesPlugin("simtk_news") && $group->getDisplayNews() && $news_return) {
+          echo "<div class='one_third_col'>";
+        } else if ($num_columns == 2) {
+          echo "<div class='two_third_col'>";
+        } else if ($num_columns == 3) {
+          echo "<div class='one_third_col'>";
+        }
+    ?>
+    <?php 
+/*
+	// Only show Downloads section if the description is present.
+	$strDownloadDescription = $group->getDownloadDescription();
+	if ($strDownloadDescription != null && trim($strDownloadDescription) != "") {
+*/
+	if ($displayDownloads === true) {
+    ?>
+        <div class="module_downloads">
+            <h2>Downloads</h2>
+            <p>
+            <?php echo html_entity_decode(nl2br(util_make_clickable_links(util_whitelist_tags($group->getDownloadDescription())))); ?>
+            </p>
+            <a href="/frs/?group_id=<?php echo $group_id; ?>"> See all Downloads</a>
+        </div>
+    <?php 
+	}
+    ?>
+    </div>
+    <?php } ?>
+
+    <?php 
+      if ($displayRelated === true) { 
+        if ($num_columns == 1) {
+          echo "<div>";
+        } else {
+          echo "<div class='one_third_col'>";
+        }
+    ?>
+        <div class="module_recommeded">
+            <?php
+            displayRelatedProjects($related_projects);
+            ?>
+        </div>
+    </div>
+    <?php } ?>
+
+   </div> 
+
+   <?php } ?>
+
+
+<?php } ?>
+
+<?php
+
+$rec_projects = $group->getRecommendedProjects(15);
+displayRecommendedProjects($group, $rec_projects);
+
 
 site_project_footer(array());
 

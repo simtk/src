@@ -1,5 +1,7 @@
 <?php
 /**
+ * Plugin.class.php
+ *
  * FusionForge plugin system
  *
  * Copyright 2002, Roland Mas
@@ -8,6 +10,7 @@
  * Copyright 2010, Mélanie Le Bail
  * Copyright 2011, Alain Peyrat - Alcatel-Lucent
  * Copyright 2013, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -281,7 +284,8 @@ class Plugin extends Error {
 			printf(_("Use %s"), $this->text);
 			echo "</strong>";
 			echo " ";
-			echo html_image($imgStatus, '16', '16',array('alt'=>$title, 'title'=>$title, 'class'=>'tabtitle-sw'));
+			// request to not display plugin image - tod hing 11/2/2015
+			//echo html_image($imgStatus, '16', '16',array('alt'=>$title, 'title'=>$title, 'class'=>'tabtitle-sw'));
 			echo "</td>\n";
 			echo "</tr>\n";
 		}

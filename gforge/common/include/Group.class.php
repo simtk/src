@@ -1,5 +1,7 @@
 <?php
 /**
+ * Group.class.php
+ *
  * FusionForge groups
  *
  * Copyright 1999-2001, VA Linux Systems, Inc.
@@ -8,6 +10,7 @@
  * Copyright 2010-2012, Alain Peyrat - Alcatel-Lucent
  * Copyright 2012-2013, Franck Villaume - TrivialDev
  * Copyright 2013, French Ministry of National Education
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -42,6 +45,8 @@ require_once $gfcommon.'survey/SurveyFactory.class.php';
 require_once $gfcommon.'survey/SurveyQuestionFactory.class.php';
 require_once $gfcommon.'include/gettext.php';
 require_once $gfcommon.'include/GroupJoinRequest.class.php';
+require_once $gfcommon.'include/image.php';
+require_once $gfcommon.'include/roleUtils.php';
 
 $GROUP_OBJ=array();
 
@@ -121,6 +126,17 @@ function &group_get_objects($id_arr) {
 	return $return;
 }
 
+function group_get_objects_keys($id_arr)
+{
+        $groups = group_get_objects($id_arr);
+        if (!$groups)
+                return false;
+        $swap = array();
+        foreach ( $groups as $group )
+                $swap[ $group->getId() ] = $group;
+        return $swap;
+}
+
 function &group_get_active_projects() {
 	$res = db_query_params('SELECT group_id FROM groups WHERE status=$1',
 				array('A'));
@@ -153,7 +169,7 @@ function &group_get_objects_by_name($groupname_arr) {
 
 function group_get_object_by_publicname($groupname) {
 	$res = db_query_params('SELECT * FROM groups WHERE lower(group_name) LIKE $1',
-				array(htmlspecialchars(html_entity_decode(strtolower($groupname)))));
+				array(htmlspecialchars(strtolower($groupname))));
 	return group_get_object(db_result($res, 0, 'group_id'), $res);
 }
 
@@ -254,7 +270,7 @@ class Group extends Error {
 			} else {
 				if (db_numrows($res) < 1) {
 					//function in class we extended
-					$this->setError(_('Group Not Found'));
+					$this->setError('Project not found');
 					$this->data_array=array();
 					return;
 				} else {
@@ -277,6 +293,7 @@ class Group extends Error {
 					array($group_id));
 		if (!$res || db_numrows($res) < 1) {
 			$this->setError(sprintf('fetchData():: %s', db_error()));
+                        //echo "<br />db_error: " . db_error();
 			return false;
 		}
 		$this->data_array = db_fetch_array($res);
@@ -296,30 +313,30 @@ class Group extends Error {
 	 * @param	string	$purpose		The purpose of the group.
 	 * @param	string	$unix_box
 	 * @param	string	$scm_box
-	 * @param	bool	$is_public
+	 * @param	bool	$private
 	 * @param	bool	$send_mail		Whether to send an email or not
 	 * @param	int	$built_from_template	The id of the project this new project is based on
 	 * @return	boolean	success or not
 	 */
 	function create(&$user, $group_name, $unix_name, $description, $purpose, $unix_box = 'shell1',
-			$scm_box = 'cvs1', $is_public = true, $send_mail = true, $built_from_template = 0) {
+			$scm_box = 'cvs1', $private = 0, $send_mail = true, $built_from_template = 0, $summary, $download_description, $logo_tmpfile, $logo_type) {
 		// $user is ignored - anyone can create pending group
 
 		global $SYS;
 		if ($this->getID()!=0) {
-			$this->setError(_('Group object already exists.'));
+			$this->setError('Project already exists.');
 			return false;
 		} elseif (!$this->validateGroupName($group_name)) {
 			return false;
 		} elseif (!account_groupnamevalid($unix_name)) {
-			$this->setError(_('Invalid Unix Name.'));
+			$this->setError('Invalid project identifier.');
 			return false;
 		} elseif (!$SYS->sysUseUnixName($unix_name)) {
-			$this->setError(_('Unix name already taken.'));
+			$this->setError('Project identifier is already taken.');
 			return false;
 		} elseif (db_numrows(db_query_params('SELECT group_id FROM groups WHERE unix_group_name=$1',
 							array($unix_name))) > 0) {
-			$this->setError(_('Unix name already taken.'));
+			$this->setError('Project identifier already taken.');
 			return false;
 		} elseif (strlen($purpose)<10) {
 			$this->setError(_('Please describe your Registration Project Purpose and Summarization in a more comprehensive manner.'));
@@ -339,8 +356,26 @@ class Group extends Error {
 				$homepage = forge_get_config('web_host')."/www/".$unix_name."/";
 			}
 
+                //put the logo someplace permanent
+		$logo_file = "";
+                if (!empty($logo_tmpfile)) {
+                        $logo_file = $unix_name;
+                        //$abs_logo_file = $GLOBALS["sys_logo_dir"].$logo_file;
+                        $abs_logo_file = "/var/lib/gforge/project/".$logo_file;
+                        //echo "abs: " . $abs_logo_file;
+                        //echo "logo file: " . $logo_file . "<br>";
+                        //echo "logo type: " . $logo_type . "<br>";
+                        //exit;
+
+                        if (!imageUploaded($logo_tmpfile, $abs_logo_file)) {
+                                $this->setError(_('ERROR: Could not save logo file'));
+                                return false;
+                        }
+                }
+
 			db_begin();
 
+			// NOTE: simtk_is_public is set here for privacy setting later.
 			$res = db_query_params('
 				INSERT INTO groups(
 					group_name,
@@ -354,9 +389,20 @@ class Group extends Error {
 					register_purpose,
 					register_time,
 					rand_hash,
-					built_from_template
+					built_from_template,
+					simtk_summary,
+					simtk_download_description,
+					simtk_logo_file,
+					simtk_logo_type,
+					use_mail,
+					use_scm,
+					use_docman,
+					use_tracker,
+					use_frs,
+					simtk_is_system,
+					simtk_is_public
 				)
-				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)',
+				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)',
 						array(htmlspecialchars($group_name),
 							$unix_name,
 							htmlspecialchars($description),
@@ -368,7 +414,18 @@ class Group extends Error {
 							htmlspecialchars($purpose),
 							time(),
 							md5(util_randbytes()),
-							$built_from_template));
+							$built_from_template,
+							$summary,
+							$download_description,
+							$logo_file,
+							$logo_type,
+							1,
+							1,
+							1,
+							1,
+							1,
+							0,
+							$private));
 			if (!$res || db_affected_rows($res) < 1) {
 				$this->setError(sprintf(_('Error: Cannot create group: %s'),db_error()));
 				db_rollback();
@@ -400,6 +457,19 @@ class Group extends Error {
 			plugin_hook("group_create", $hook_params);
 
 			db_commit();
+
+			// Insert roles for this project.
+			insertRole($this->getID(), "Developer");
+			insertRole($this->getID(), "Read-Only Member");
+			insertRole($this->getID(), "Read-Write Member");
+			insertRole($this->getID(), "Senior Developer");
+
+			// Turn on these plugins by default
+			$this->setPluginUse("publications");
+			$this->setPluginUse("simtk_news");
+			$this->setPluginUse("phpBB");
+			
+			
 			if ($send_mail) {
 				$this->sendNewProjectNotificationEmail();
 			}
@@ -495,14 +565,16 @@ class Group extends Error {
 	 * @param	bool	$use_stats
 	 * @param	string	$tags
 	 * @param	bool	$use_activity
+	 * @param	string	$logo_tmpfile
+	 * @param	string	$logo_type
 	 * @param	bool	$is_public		group is publicly accessible
 	 * @return	int    status.
 	 * @access    public
 	 */
-	function update(&$user, $group_name, $homepage, $short_description, $use_mail, $use_survey, $use_forum,
+	function update(&$user, $group_name, $homepage, $short_description, $simtk_summary, $simtk_download_description, $use_mail, $use_survey, $use_forum,
 		$use_pm, $use_pm_depend_box, $use_scm, $use_news, $use_docman,
 		$new_doc_address, $send_all_docs, $logo_image_id,
-		$use_ftp, $use_tracker, $use_frs, $use_stats, $tags, $use_activity, $is_public) {
+		$use_ftp, $use_tracker, $use_frs, $use_stats, $tags, $use_activity, $logo_tmpfile, $logo_type, $is_public) {
 
 		$perm =& $this->getPermission();
 
@@ -517,7 +589,7 @@ class Group extends Error {
 		}
 
 		// Validate some values
-		if ($this->getPublicName() != htmlspecialchars($group_name)) {
+		if ($this->getPublicName() != $group_name) {
 			if (!$this->validateGroupName($group_name)) {
 				return false;
 			}
@@ -586,9 +658,25 @@ class Group extends Error {
 			return false;
 		}
 
+                //put the logo someplace permanent
+                if (!empty($logo_tmpfile)) {
+                        $logo_file = $this->getUnixName();
+                        //$abs_logo_file = $GLOBALS["sys_logo_dir"].$logo_file;
+                        $abs_logo_file = "/var/lib/gforge/project/".$logo_file;
+                        echo "abs: " . $abs_logo_file;
+                     
+
+                        if (!imageUploaded($logo_tmpfile, $abs_logo_file)) {
+                                $this->setError(_('ERROR: Could not save logo file'));
+                                return false;
+                        }
+                }
+
 		db_begin();
 
 		//XXX not yet actived logo_image_id='$logo_image_id',
+                if (!empty($logo_file)) {
+
 		$res = db_query_params('UPDATE groups
 			SET group_name=$1,
 				homepage=$2,
@@ -606,8 +694,12 @@ class Group extends Error {
 				use_tracker=$14,
 				use_frs=$15,
 				use_stats=$16,
-				use_activity=$17
-			WHERE group_id=$18',
+				use_activity=$17,
+                                simtk_summary = $18,
+                                simtk_download_description = $19,
+                                simtk_logo_file = $20,
+                                simtk_logo_type = $21
+			WHERE group_id=$22',
 					array(htmlspecialchars($group_name),
 						$homepage,
 						htmlspecialchars($short_description),
@@ -625,7 +717,60 @@ class Group extends Error {
 						$use_frs,
 						$use_stats,
 						$use_activity,
+                                                $simtk_summary,
+                                                $simtk_download_description,
+                                                $logo_file,
+                                                $logo_type,      
 						$this->getID()));
+                }
+                else {
+
+		$res = db_query_params('UPDATE groups
+			SET group_name=$1,
+				homepage=$2,
+				short_description=$3,
+				use_mail=$4,
+				use_survey=$5,
+				use_forum=$6,
+				use_pm=$7,
+				use_pm_depend_box=$8,
+				use_scm=$9,
+				use_news=$10,
+				new_doc_address=$11,
+				send_all_docs=$12,
+				use_ftp=$13,
+				use_tracker=$14,
+				use_frs=$15,
+				use_stats=$16,
+				use_activity=$17,
+                                simtk_summary = $18,
+                                simtk_download_description = $19
+			WHERE group_id=$20',
+					array(htmlspecialchars($group_name),
+						$homepage,
+						htmlspecialchars($short_description),
+						$use_mail,
+						$use_survey,
+						$use_forum,
+						$use_pm,
+						$use_pm_depend_box,
+						$use_scm,
+						$use_news,
+						$new_doc_address,
+						$send_all_docs,
+						$use_ftp,
+						$use_tracker,
+						$use_frs,
+						$use_stats,
+						$use_activity,
+                                                $simtk_summary,
+                                                $simtk_download_description,
+						$this->getID()));
+
+
+                }
+
+
 
 		if (!$res || db_affected_rows($res) < 1) {
 			$this->setError(sprintf(_('Error updating project information: %s'), db_error()));
@@ -670,6 +815,1083 @@ class Group extends Error {
 		db_commit();
 		return true;
 	}
+
+	/**
+	 * updateOverviewNotes update download overview and notes.
+	 *
+	*/
+	function updateOverviewNotes(&$user, $notes, $preformatted, $overview) {
+
+		$perm =& $this->getPermission();
+
+		if (!$perm || !is_object($perm)) {
+			$this->setError(_('Could not get permission.'));
+			return false;
+		}
+
+		if (!$perm->isAdmin()) {
+			$this->setError(_('Permission denied.'));
+			return false;
+		}
+
+		db_begin();
+
+		$res = db_query_params('UPDATE groups SET ' .
+			'simtk_download_notes=$1, ' .
+			'simtk_preformatted_download_notes=$2, ' .
+			'simtk_download_overview=$3 ' .
+			'WHERE group_id=$4', 
+			array(
+				$notes, 
+				$preformatted, 
+				$overview, 
+				$this->getID()
+			)
+		); 
+
+		if (!$res || db_affected_rows($res) < 1) {
+			$this->setError(sprintf(_('Error updating download overview and notes: %s'), 
+				db_error()));
+			db_rollback();
+			return false;
+		}
+
+		// Log the audit trail
+		$this->addHistory('Changed Download Overview and Notes', '');
+
+		if (!$this->fetchData($this->getID())) {
+			db_rollback();
+			return false;
+		}
+
+		db_commit();
+
+		return true;
+	}
+
+	/**
+	 * update - Update number of common properties.
+	 *
+     */
+	function updateLayout(&$user, $display_news, $display_related, $display_downloads, $display_download_pulldown, $download_description, $layout) {
+
+		$perm =& $this->getPermission();
+
+		if (!$perm || !is_object($perm)) {
+			$this->setError(_('Could not get permission.'));
+			return false;
+		}
+
+		if (!$perm->isAdmin()) {
+			$this->setError(_('Permission denied.'));
+			return false;
+		}
+
+		if ($layout == 1) {
+		  // Turn Publication Layout on
+		  // confirm publication plugin is on and primary exist
+		  if (!$this->usesPlugin ( "publications" )) { 
+		     $this->setError(_('Publications Plugin must be enabled in the Tools Section.'));		 
+			 return false;
+		  } else {
+		     // check if primary exist
+			 $res = db_query_params("SELECT * FROM plugin_publications WHERE group_id='". $this->getID() ."' AND is_primary = 1",array());
+
+		     if (!$res || db_numrows($res) < 1) {
+			    $this->setError(_('A primary publication must exist.  See About->Publications section.'));
+		     	return false;
+			 }
+		  }
+		  
+		  if ($this->getDownloadDescription() == "" && empty($download_description)) {
+		     $this->setError(_('Download Description must be completed for Publication Layout.'));
+			 return false;
+		  }
+		}
+		
+		// if publication project type is set then cannot disable download option
+		if ($this->isPublicationProject() && $layout && !$display_downloads) {
+		  $this->setError(_('Since this is a Publication Type Project, you cannot disable the Display Download Section'));
+		  return false;
+		}
+		if ($layout) {
+		  // set display_downloads on
+		  $display_downloads = 1;
+		}
+		
+		if (($this->getDisplayDownloads() || $display_downloads) && empty($download_description)) {
+		   if ($layout) {
+		     $this->setError(_('Download Description field must be complete when Display Downloads Section and Publication Layout is enabled.'));
+		   } else {
+		     $this->setError(_('Download Description field must be complete when Display Downloads Section is enabled.'));	
+    	   }	 
+		   return false;
+		}
+		
+		// if publication project type is set then cannot change display_downloads
+		if ($this->isPublicationProject() && empty($download_description)) {
+		  $this->setError(_('Since this is a Publication Type Project, the download description field must be completed'));
+		  return false;
+		}
+		
+		
+		
+		// update db
+		db_begin();
+
+		$res = db_query_params('UPDATE groups SET simtk_display_news=$1, simtk_display_related=$2, simtk_display_downloads=$3, simtk_display_download_pulldown=$4, simtk_download_description=$5, simtk_project_type=$6 WHERE group_id=$7', array($display_news, $display_related, $display_downloads, $display_download_pulldown, htmlspecialchars($download_description), $layout, $this->getID())); 
+
+		if (!$res || db_affected_rows($res) < 1) {
+			  $this->setError(sprintf(_('Error updating project information: %s'), db_error()));
+			  db_rollback();
+			  return false;
+		}
+
+		// Log the audit trail
+		$this->addHistory('Changed Admin Layout Info', '');
+
+		if (!$this->fetchData($this->getID())) {
+			  db_rollback();
+			  return false;
+		}
+
+		db_commit();
+						
+		return true;		
+    }
+
+
+	// Update privacy of project.
+	// NOTE: This method is invoked after project approval.
+	function updatePrivacy(&$user, $private) {
+
+		$perm =& $this->getPermission();
+		if (!$perm || !is_object($perm)) {
+			$this->setError(_('Could not get permission.'));
+			return false;
+		}
+
+		if (!$perm->isAdmin()) {
+			$this->setError(_('Permission denied.'));
+			return false;
+		}
+
+		$result_private = $this->setProjectPublic($private);
+		if ($private == 0) {
+			// NOTE: $private = 0 means "Private Project".
+			// Unset anonymous user privileges.
+			unsetAnonymousAccessForProject($this->getID());
+		}
+		else {
+			// NOTE: $private = 1 means "Public Project".
+			// Set anonymous user privileges.
+			setAnonymousAccessForProject($this->getID());
+		}
+		
+		// Log the audit trail
+		$this->addHistory('Updated Privacy', '');
+		if (!$this->fetchData($this->getID())) {
+			return false;
+		}
+
+		return true;
+	}
+
+    /**
+	 * update - Update number of common properties.
+	 *
+     */
+	function updateSettings(&$user, $layout, $private) {
+
+		$perm =& $this->getPermission();
+
+		if (!$perm || !is_object($perm)) {
+			$this->setError(_('Could not get permission.'));
+			return false;
+		}
+
+		if (!$perm->isAdmin()) {
+			$this->setError(_('Permission denied.'));
+			return false;
+		}
+
+        if ($layout == 1) {
+		  // confirm publication plugin is on and primary exist
+		  if (!$this->usesPlugin ( "publications" )) { 
+		     $this->setError(_('Publications Plugin must be enabled.  See Tools section.'));		 
+			 return false;
+		  } else {
+		     // check if primary exist
+			 $res = db_query_params("SELECT * FROM plugin_publications WHERE group_id='". $this->getID() ."' AND is_primary = 1",array());
+
+		     if (!$res || db_numrows($res) < 1) {
+			    $this->setError(_('A primary publication must exist.  See About->Publications section.'));
+		     	return false;
+			 }
+		  }
+		  
+		  // confirm downloads plugin turned on and downloads description exist
+		  /*  This check has been removed since some projects may not have FRS enabled.
+		  if (!$this->usesFRS()) { 
+		     $this->setError(_('File Release System must be enabled.  See Tools section.'));
+			 return false;
+		  }
+		  */
+		  
+		  if ($this->getDownloadDescription() == "") {
+		     $this->setError(_('Download Description must be completed.  See Layout section.'));
+			 return false;
+		  }
+		}
+		
+		$result_private = $this->setProjectPublic($private);
+		if ($private == 0) {
+			// NOTE: $private = 0 means "Private Project".
+			// Unset anonymous user privileges.
+			unsetAnonymousAccessForProject($this->getID());
+		}
+		else {
+			// NOTE: $private = 1 means "Public Project".
+			// Set anonymous user privileges.
+			setAnonymousAccessForProject($this->getID());
+		}
+		
+		db_begin();
+
+		// simtk_display_downloads for front page also turned on
+		$res = db_query_params('UPDATE groups SET simtk_project_type=$1, simtk_display_downloads = 1, simtk_is_public=$2 WHERE group_id=$3', array($layout, $private, $this->getID())); 
+
+		if (!$res || db_affected_rows($res) < 1) {
+			$this->setError(sprintf(_('Error updating settings: %s'), db_error()));
+			db_rollback();
+			return false;
+		}
+
+		// Log the audit trail
+		$this->addHistory('Changed Admin Settings', '');
+
+		if (!$this->fetchData($this->getID())) {
+			db_rollback();
+			return false;
+		}
+
+
+		db_commit();
+		
+		return true;
+    }
+
+		
+    /**
+	 * update - Update Tools.
+	 *
+     */
+	function updateTools(&$user, $use_mail, $use_forum, $use_scm, $use_news, $use_docman, $use_frs, $use_stats, $use_tracker, $use_activity) {
+
+		$perm =& $this->getPermission();
+
+		if (!$perm || !is_object($perm)) {
+			$this->setError(_('Could not get permission.'));
+			return false;
+		}
+
+		if (!$perm->isAdmin()) {
+			$this->setError(_('Permission denied.'));
+			return false;
+		}
+
+		// in the database, these all default to '1',
+		// so we have to explicitly set 0
+		if (!$use_mail) {
+			$use_mail = 0;
+		}
+		if (!$use_forum) {
+			$use_forum = 0;
+		}
+		if (!$use_scm) {
+			$use_scm = 0;
+		}
+
+		if (!$use_news) {
+			$use_news = 0;
+                        $display_news = 0;
+                } else {
+                        $display_news = $this->getDisplayNews();
+		}
+		if (!$use_docman) {
+			$use_docman = 0;
+		}
+		if (!$use_frs) {
+			$use_frs = 0;
+                        $display_downloads = 0;
+                        $display_download_pulldown = 0;
+                } else {
+                        $display_downloads = $this->getDisplayDownloads();
+                        $display_download_pulldown = $this->getDisplayDownloadPulldown();
+		}
+		if (!$use_stats) {
+			$use_stats = 0;
+		}
+		if (!$use_tracker) {
+			$use_tracker = 0;
+		}
+		if (!$use_activity) {
+			$use_activity = 0;
+		}
+		if (!$send_all_docs) {
+			$send_all_docs = 0;
+		}
+
+		db_begin();
+
+
+		$res = db_query_params('UPDATE groups
+			        SET use_mail=$1,
+				use_forum=$2,
+				use_scm=$3,
+				use_news=$4,
+				use_frs=$5,
+				use_stats=$6,
+				use_activity=$7,
+                                use_docman=$8,
+                                use_tracker=$9,
+                                simtk_display_news=$10,
+                                simtk_display_downloads=$11,
+                                simtk_display_download_pulldown=$12
+			        WHERE group_id=$13',
+		   		  array($use_mail,
+					$use_forum,
+					$use_scm,
+					$use_news,
+					$use_frs,
+					$use_stats,
+					$use_activity,
+                                        $use_docman,
+                                        $use_tracker,
+                                        $display_news,
+                                        $display_downloads,
+                                        $display_download_pulldown,
+                                        $this->getID()));
+
+		if (!$res || db_affected_rows($res) < 1) {
+			$this->setError(sprintf(_('Error updating project information: %s'), db_error()));
+			db_rollback();
+			return false;
+		}
+
+		// Log the audit trail
+		$this->addHistory('Updated Admin Tools', '');
+
+		if (!$this->fetchData($this->getID())) {
+			db_rollback();
+			return false;
+		}
+
+		$hook_params = array();
+		$hook_params['group'] = $this;
+		$hook_params['group_id'] = $this->getID();
+		if (!plugin_hook("group_update", $hook_params)) {
+			if (!$this->isError()) {
+				$this->setError(_('Error updating project information in plugin_hook group_update'));
+			}
+			db_rollback();
+			return false;
+		}
+
+		db_commit();
+		return true;
+        }
+
+
+
+	/**
+	 * update - Update number of common properties.
+	 *
+     */
+	function updateInformation(&$user, $group_name, $short_description, $simtk_summary, $logo_tmpfile, $logo_type, $private) {
+
+		$perm =& $this->getPermission();
+
+		if (!$perm || !is_object($perm)) {
+			$this->setError(_('Could not get permission.'));
+			return false;
+		}
+
+		if (!$perm->isAdmin()) {
+			$this->setError(_('Permission denied.'));
+			return false;
+		}
+
+		// Validate some values
+		if ($this->getPublicName() != $group_name) {
+			if (!$this->validateGroupName($group_name)) {
+				return false;
+			}
+		}
+
+		if (strlen(htmlspecialchars($short_description))<10) {
+			$this->setError(_('Describe in a more comprehensive manner your project.'));
+			return false;
+		}
+
+		// Handle Logo upload
+		$logo_file = "";
+		if ($logo_tmpfile && !empty($logo_tmpfile)) {
+				$logo_file = $this->getUnixName();
+				$abs_logo_file = "/usr/share/gforge/www/logos/".$logo_file;
+				// logo_tmpfile used with jQuery-File-Upload no longer contains the full path.
+				$logo_tmpfile = "/usr/share/gforge/tmp/" . $logo_tmpfile;
+
+				if (!file_exists($logo_tmpfile)) {
+				   $this->setError('ERROR: logo tmp file does not exist');
+					return false;
+				}
+				
+				// Validate picture file type.
+				/*
+				$the_pic_file_type = $this->validatePictureFileImageType($userpic_type);
+				if ($the_pic_file_type === false) {
+					$this->setError('ERROR: Invalid picture file type');
+					return false;
+				}
+                */
+				
+//				if (!imageUploaded($logo_tmpfile, $abs_logo_file)) {
+				// Only need to rename file.
+				// No need to use move_uploaded_file() in imageUploaded().
+				if (!imageRenamed($logo_tmpfile, $abs_logo_file)) {
+					$this->setError('ERROR: Could not save logo file');
+					echo "error image rename<br />";
+					return false;
+				}
+			} else {
+			    // retrieve and re-save.  Can change db update to omit saving logo file and type.
+                $logo_file = $this->getLogoFile();
+                $logo_type = $this->getLogoType(); 
+            }
+
+		// Handle private setting
+		$result_private = $this->setProjectPublic($private);
+		if ($private == 0) {
+			// NOTE: $private = 0 means "Private Project".
+			// Unset anonymous user privileges.
+			unsetAnonymousAccessForProject($this->getID());
+		}
+		else {
+			// NOTE: $private = 1 means "Public Project".
+			// Set anonymous user privileges.
+			setAnonymousAccessForProject($this->getID());
+		}
+		
+		db_begin();
+
+
+		$res = db_query_params('UPDATE groups
+			        SET group_name=$1,
+				short_description=$2,
+                                simtk_summary = $3,
+                                simtk_logo_file = $4,
+                                simtk_logo_type = $5,
+                                simtk_is_public=$6								
+			        WHERE group_id=$7',
+		   		  array(htmlspecialchars($group_name),
+					htmlspecialchars($short_description),
+					$simtk_summary,
+                                        $logo_file,
+                                        $logo_type, 
+										$private,
+                                        $this->getID()));
+
+		if (!$res || db_affected_rows($res) < 1) {
+			$this->setError(sprintf(_('Error updating project information: %s'), db_error()));
+			db_rollback();
+			return false;
+		}
+
+		// Log the audit trail
+		$this->addHistory('Updated Admin Project Info', '');
+
+
+		//$this->fetchData($this->getID());
+
+
+		if (!$this->fetchData($this->getID())) {
+			db_rollback();
+			return false;
+		}
+
+		db_commit();
+		return true;
+        }
+
+	/**
+	 * update - Update Category.
+	 *
+     */	
+	function updateCategory(&$user, $ontology, $keyword) 
+	{
+		
+		$perm =& $this->getPermission();
+
+		if (!$perm || !is_object($perm)) {
+			$this->setError(_('Could not get permission.'));
+			return false;
+		}
+
+		if (!$perm->isAdmin()) {
+			$this->setError(_('Permission denied.'));
+			return false;
+		}
+		
+		//db_begin();
+		
+		if (!empty($keyword)) {
+		  
+		  $sql = 'INSERT INTO project_keywords (project_id, keyword) VALUES ($1, $2)';
+		  $res = db_query_params($sql, array($this->getID(),trim($keyword)));
+		}
+		
+		if (!empty($ontology)) {
+		  
+		  $sql = 'INSERT INTO project_bro_resources (project_id, bro_resource) VALUES ($1, $2)';
+		  $res = db_query_params($sql, array($this->getID(),trim($ontology)));
+		}
+		
+		
+		//db_commit();
+		
+		
+		// Log the audit trail
+		$this->addHistory('Updated Admin Category Info', '');
+		
+	}
+	
+	/* getTroveGroupLink - Gets Trove Group Links associated with the project
+	 *
+	 * @return  string  An array of trove group links
+	 */
+	function getTroveGroupLink() {
+		$sqlQuery = 'SELECT trove_cat_id FROM trove_group_link ' .
+			'WHERE group_id=$1 ' .
+			'AND trove_cat_id NOT IN ' .
+			'(SELECT trove_cat_id FROM trove_group_link_pending ' .
+			'WHERE group_id=$1)';
+		$res = db_query_params($sqlQuery, array($this->getID()));
+
+		$troveCatArray = array();
+
+		$res_count = db_numrows($res);
+		for ($i=0; $i<$res_count; $i++) {
+			$trove_cat_id = db_result($res, $i, 'trove_cat_id');
+			$troveCatArray[$trove_cat_id] = $trove_cat_id;
+		}
+
+		return $troveCatArray;
+	}
+
+	/* getTroveGroupLinkPending - Gets pending Trove Group Links associated with the project
+	 *
+	 * @return  string  An array of trove group links
+	 */
+	function getTroveGroupLinkPending() {
+		$sqlQuery = 'SELECT trove_cat_id FROM trove_group_link_pending ' .
+			'WHERE group_id=$1 ';
+		$res = db_query_params($sqlQuery, array($this->getID()));
+
+		$troveCatArray = array();
+
+		$res_count = db_numrows($res);
+		for ($i=0; $i<$res_count; $i++) {
+			$trove_cat_id = db_result($res, $i, 'trove_cat_id');
+			$troveCatArray[$trove_cat_id] = $trove_cat_id;
+		}
+
+		return $troveCatArray;
+	}
+
+
+	/* updateTroveGroupLink - Update Trove Group Links associated with the project
+	 *
+	 * @return  boolean True if successful
+	 */
+	function updateTroveGroupLink($categories, $isCommunity=false) {
+
+		// Get auto_approval status.
+                $arrAutoApprove = array();
+		$resAutoApprove = db_query_params(
+			'SELECT trove_cat_id, auto_approve_child FROM trove_cat',
+                        array());
+		$numRows = db_numrows($resAutoApprove);
+		for ($cnt = 0; $cnt < $numRows; $cnt++) {
+			$catId = db_result($resAutoApprove, $cnt, 'trove_cat_id');
+			$autoApprove = db_result($resAutoApprove, $cnt, 'auto_approve_child');
+			$arrAutoApprove[$catId] = $autoApprove;
+		}
+
+		// Get current links before deletion.
+                $arrCurLinks = array();
+		$resCurLinks = db_query_params(
+			'SELECT trove_cat_id FROM trove_group_link ' .
+			'WHERE group_id=$1',
+                        array($this->getID()));
+		$numRows = db_numrows($resCurLinks);
+		for ($cnt = 0; $cnt < $numRows; $cnt++) {
+			$catId = db_result($resCurLinks, $cnt, 'trove_cat_id');
+			$arrCurLinks[$catId] = $catId;
+		}
+
+
+		db_begin();
+
+		// Delete existing links associated with this group.
+		$sql = "DELETE FROM trove_group_link " .
+			"WHERE group_id = " . $this->getID();
+		if ($isCommunity === false) {
+			// Categories configuration.
+			// (Exclude communities trove_cat_idswhere parent trove_cat_id is 1000).
+			$sql .= "AND trove_cat_id NOT IN " .
+				"(SELECT trove_cat_id FROM trove_cat WHERE parent=1000)";
+		}
+		else {
+			// Communities configuration.
+			// (Include communities trove_cat_idswhere parent trove_cat_id is 1000).
+			$sql .= "AND trove_cat_id IN " .
+				"(SELECT trove_cat_id FROM trove_cat WHERE parent=1000)";
+		}
+		$res = db_query_params($sql, array());
+		if (!$res) {
+			$this->setError('Error deleting trove group links: ' . db_error());
+			db_rollback();
+			return false;
+		}
+
+		// Delete existing pending links associated with this group.
+		$sql = "DELETE FROM trove_group_link_pending " .
+			"WHERE group_id = " . $this->getID();
+		if ($isCommunity === false) {
+			// Categories configuration.
+			// (Exclude communities trove_cat_idswhere parent trove_cat_id is 1000).
+			$sql .= "AND trove_cat_id NOT IN " .
+				"(SELECT trove_cat_id FROM trove_cat WHERE parent=1000)";
+		}
+		else {
+			// Communities configuration.
+			// (Include communities trove_cat_idswhere parent trove_cat_id is 1000).
+			$sql .= "AND trove_cat_id IN " .
+				"(SELECT trove_cat_id FROM trove_cat WHERE parent=1000)";
+		}
+		$res = db_query_params($sql, array());
+		if (!$res) {
+			$this->setError('Error deleting pending trove group links: ' . db_error());
+			db_rollback();
+			return false;
+		}
+
+		if (!is_array($categories) || count($categories) <= 0) {
+			// Not array or empty array. Done.
+			// Log the audit trail.
+			if ($isCommunity === false) {
+				// Categories configuration.
+				$this->addHistory('Updated Admin Category Info: Empty', '');
+			}
+			else {
+				// Communities configuration.
+				$this->addHistory('Updated Admin Community Info: Empty', '');
+			}
+			db_commit();
+			return true;
+		}
+
+		// Insert links.
+		for ($cnt = 0; $cnt < count($categories); $cnt++) {
+
+			// Get category that has been selected.
+			$catId = $categories[$cnt];
+
+			if ((isset($arrAutoApprove[$catId]) && 
+				$arrAutoApprove[$catId] == 1) ||
+				isset($arrCurLinks[$catId])) {
+
+				// If auto_approval is on, always insert to trove_group_link.
+				// If auto_approval is off, insert to trove_group_link if link
+				// was previously present (i.e. approved previously.)
+				$sql = "INSERT INTO trove_group_link " .
+					"(trove_cat_id, trove_cat_version, " .
+					"group_id, trove_cat_root) " .
+					"VALUES ($1, $2, $3, $4)";
+				$res = db_query_params($sql, 
+					array(
+						$catId,
+						time(),
+						$this->getID(), 
+						18
+					)
+				);
+				if (!$res || db_affected_rows($res) < 1 ) {
+					$this->setError('Error inserting trove group link. ' . 
+						db_error());
+					db_rollback();
+					return false;
+				}
+			}
+			else if (isset($arrAutoApprove[$catId]) && 
+				$arrAutoApprove[$catId] == 0 &&
+				!isset($arrCurLinks[$catId])) {
+
+				// If auto_approval is off, insert to trove_group_link_pending
+				// if link was not previously inserted 
+				// (i.e. not approved previously.)
+				$sql = "INSERT INTO trove_group_link_pending " .
+					"(trove_cat_id, group_id) " .
+					"VALUES ($1, $2)";
+				$res = db_query_params($sql, 
+					array(
+						$catId,
+						$this->getID(), 
+					)
+				);
+				if (!$res || db_affected_rows($res) < 1 ) {
+					$this->setError('Error inserting trove group link. ' . 
+						db_error());
+					db_rollback();
+					return false;
+				}
+			}
+		}
+
+		// Log the audit trail
+		if ($isCommunity === false) {
+			// Categories configuration.
+			$this->addHistory('Updated Admin Category Info', '');
+		}
+		else {
+			// Communities configuration.
+			$this->addHistory('Updated Admin Category Info', '');
+		}
+
+		db_commit();
+
+		return true;
+	}
+	
+	/* getKeywords - Gets keywords associated with the project
+	 *
+	 * @return  string  An array of keywords
+	 */
+	function getKeywords()
+	{
+		if (!is_array($this->data_array['keywords']))
+		{
+			$this->data_array['keywords'] = array();
+			if ($this->getID()<=0) {
+				$this->setError("Group::getKeywords: Group id is not a positive integer");
+				return false;
+			}
+			$sql = "SELECT DISTINCT keyword FROM project_keywords WHERE project_id = " . $this->getID() . " ORDER BY keyword ASC";
+			$res = db_query($sql);
+			$res_count = db_numrows($res);
+			for ($i=0; $i<$res_count; $i++)
+			{
+				array_push($this->data_array['keywords'], db_result($res, $i, 'keyword'));
+			}
+		}
+		return $this->data_array['keywords'];
+	}
+	
+	/* deleteKeywords - delete keyword from project_keywords table
+	 *
+	 * @param  integer - keyword id
+	 */
+	function deleteKeyword($keyword)
+	{
+	
+	   db_begin();
+	   
+	   $sql = "DELETE FROM project_keywords WHERE keyword = '" . $keyword . "' and project_id = " . $this->getID();
+	   $res = db_query_params($sql, array());
+	   if ( !$res ) {
+	      $this->setError( 'Error deleting keyword: ' . db_error() );
+		  db_rollback();
+		  return false;
+	   }
+	   
+	   // Log the audit trail
+	   $this->addHistory('Updated Admin Category Info', '');
+		
+		
+	   db_commit();
+	   return true;
+	}
+	
+	/* setKeywords - Sets the list of keywords for a project equal to a given array
+	 *
+	 * @param  string  An array of strings to be used as keywords
+	 */
+	function setKeywords( $words )
+	{
+		$this->data_array['keywords'] = $words;
+	}
+	
+	/* getOntology - gets a list of ontological terms associated with the project
+	 *
+	 *
+	 * @return  string  An array of ontological terms
+	 */
+	function getOntology()
+	{
+		if (!is_array($this->data_array['ontology']))
+		{
+			$this->data_array['ontology'] = array();
+			if ($this->getID()<=0) {
+				$this->setError("Group::getOntology: Group id is not a positive integer");
+				return false;
+			}
+			$sql = "SELECT DISTINCT bro_resource FROM project_bro_resources WHERE project_id = " . $this->getID() . " ORDER BY bro_resource ASC";
+			$res = db_query($sql);
+			$res_count = db_numrows($res);
+			for ($i=0; $i<$res_count; $i++)
+			{
+				array_push($this->data_array['ontology'], db_result($res, $i, 'bro_resource'));
+			}
+		}
+		return $this->data_array['ontology'];
+	}
+
+	
+	/* setOntology - Sets the list of ontology terms for a project equal to a given array
+	 *
+	 * @param  string  An array of strings to be used as ontology terms
+	 */
+	function setOntology( $terms )
+	{
+		$this->data_array['ontology'] = $terms;
+	}	
+		
+	/* deleteOntology - delete ontology from bro_resource table
+	 *
+	 * @param  integer - keyword id
+	 */
+	function deleteOntology($ontology)
+	{
+	
+	   db_begin();
+	   
+	   $sql = "DELETE FROM project_bro_resources WHERE bro_resource = '" . $ontology . "' and project_id = " . $this->getID();
+	   $res = db_query_params($sql, array());
+	   if ( !$res ) {
+	      $this->setError( 'Error deleting ontology: ' . db_error() );
+		  db_rollback();
+		  return false;
+	   }
+	   
+	   // Log the audit trail
+	   $this->addHistory('Updated Admin Category Info', '');
+		
+		
+	   db_commit();
+	   return true;
+	}
+	
+	/**
+	 * get Recommended Projects.
+	 *
+     */
+    function getRecommendedProjects($max_recs=9)
+    {
+
+                
+                $res = db_query_params('SELECT * FROM recommended_projects_norms WHERE group_id=$1', array($this->getID()));
+                $numRows = db_numrows($res);
+                //echo "rows: " . $numRows . "<br />";
+
+                $r = array();
+                $result = array();
+                if ($numRows <= $max_recs) {
+                        for ($i = 0; $i < $numRows; $i++) {
+                                $r[] = db_result($res, $i, 'dst_group');
+                        }
+                } else {
+                        $usedIndices = array();
+
+                        while (count($r) < $max_recs) {
+                            for ($i = 0; $i < $numRows; $i++) {
+                                        // Randomly pick projects according to index $i
+                                        // Geometric distribution
+                                        $p = 0.05;
+                                        $prob = pow(1 - $p, $i) * $p;
+                                        $randNum = rand() / getrandmax();
+                                        if ($randNum < $prob && !in_array($i, $usedIndices)) {
+                                                if (count($r) < $max_recs) {
+                                                  $r[] = db_result($res, $i, 'dst_group');
+                                                  $usedIndices[] = $i;
+                                                }
+                                        }
+                            }
+                        }
+                }
+                $i = 0; 
+                foreach ($r as $dst_group) {
+                        $res = db_query_params('SELECT group_id, group_name, simtk_logo_file, simtk_logo_type, unix_group_name FROM groups WHERE group_id=$1', array($dst_group));
+                        //$data .= db_result($res, 0, 'group_id');
+                        $result[$i]['group_id'] = db_result($res, 0, 'group_id');
+
+                        //$proj_name .= escapeOnce(db_result($res, 0, 'group_name'));
+                        $result[$i]['group_name'] = db_result($res, 0, 'group_name');
+                        if (strlen($result[$i]['group_name']) > 80) {
+                                $result[$i]['group_name'] = substr($result[$i]['group_name'], 0, 80) . "...";
+                        }
+                        $result[$i]['simtk_logo_file'] = db_result($res, 0, 'simtk_logo_file');
+                        $result[$i]['unix_group_name'] = db_result($res, 0, 'unix_group_name');
+                        $i++;
+
+                        //$data .= $proj_name;
+
+                        //$data .= db_result($res, 0, 'simtk_logo_file');
+
+                        //$data .= db_result($res, 0, 'unix_group_name');
+                        //echo "data: " . $data . "<br />";
+                }
+                //print_r ($result);
+                return ($result);
+
+    }
+
+	/**
+	 * get Recommended Projects Information.
+	 *
+     */
+    function getRecommendedProjectsInfo( $group_id, &$group_name, &$simtk_logo_file, &$unix_group_name ) 
+    {
+
+                        $res = db_query_params('SELECT group_id, group_name, simtk_logo_file, simtk_logo_type, unix_group_name FROM groups WHERE group_id=$1', array($group_id));
+
+                        $group_name .= db_result($res, 0, 'group_name');
+                        if (strlen($group_name) > 60) {
+                                $group_name = substr($group_name, 0, 40) . "...";
+                        }
+
+                        $simtk_logo_file = db_result($res, 0, 'simtk_logo_file');
+
+                        $unix_group_name = db_result($res, 0, 'unix_group_name');
+
+                        return $res;
+
+    }
+
+
+
+    /**
+     * getRelatedProjectIds - Get the list of related projects (IDs only)
+     *
+     * @param       bool    Whether to get member projects or merely related projects
+     *
+     * @return      array   An array of project ID numbers
+     */
+    function getRelatedProjectIds($member = false)
+    {
+                $ids = array();
+                if ($member)
+                        $member = "true";
+                else
+                        $member = "false";
+                $res = db_query_params('SELECT related_group FROM related_projects WHERE is_member = $1 AND group_id = $2 ORDER BY position, relation_id', array($member, $this->getID()));
+
+                if ( $res && db_numrows( $res ) )
+                {
+                        for( $i = 0; $i < db_numrows( $res ); $i++ )
+                        {
+                                array_push( $ids, db_result( $res, $i, 0 ) );
+                        }
+                }
+                return $ids;
+    }
+
+    /**
+     * getMemberProjects - Get the list of projects designated as member of this project
+     *
+     * @return      array   An array of member projects
+     */
+    function getMemberProjects()
+    {
+                return group_get_objects_keys( $this->getRelatedProjectIds( true ) );
+    }
+
+    /**
+     * getRelatedProjects - Get the list of related projects
+     *
+     * @return      array   An array of projects
+     */
+    function getRelatedProjects($member=false)
+    {
+                if ($member)
+                        $member = "true";
+                else
+                        $member = "false";
+                $res = db_query_params('SELECT related_group,unix_group_name, group_name FROM related_projects, groups WHERE related_projects.related_group = groups.group_id and is_member = $1 AND related_projects.group_id = $2 ORDER BY position, relation_id', array($member, $this->getID()));
+
+                return $res; 
+    }
+
+	function updateRelatedProjects($header_order) 
+	{
+	   $arrProjects = explode(",", $header_order);
+	   //var_dump($arrProjects);
+	   db_begin();
+	   
+	   // delete old related projects
+	   
+	   $sql = "DELETE FROM related_projects WHERE group_id = " . $this->getID();
+	   $res = db_query_params($sql, array());
+	   if ( !$res ) {
+	      $this->setError( 'Error deleting old related projects: ' . db_error() );
+		  db_rollback();
+		  return false;
+	   }
+	   
+	   
+	   // add new related projects
+	   for ($cnt = 0; $cnt < count($arrProjects); $cnt++) {
+		 $idx = stripos($arrProjects[$cnt], "=");
+		 if ($idx === false) {
+			// Token not found.
+			continue;
+	     }
+		 $groupId = substr($arrProjects[$cnt], 0, $idx);
+		 $position = substr($arrProjects[$cnt], $idx + 1);
+		 //echo "groupId: " . $groupId . "<br />";
+		 //echo "position: " . $position . "<br />";
+		 $sql = "INSERT INTO related_projects (group_id, related_group, position) VALUES ($1, $2, $3)";
+	     $res = db_query_params($sql, array($this->getID(), $groupId, $position));
+	     if ( !$res || db_affected_rows( $res ) < 1 ) {
+	        $this->setError( 'Error inserting new related project: ' . db_error() );
+		    db_rollback();
+		    return false;
+	     }
+	   }
+	
+	   // Log the audit trail
+	   $this->addHistory('Updated Related Projects Info', '');
+		
+	   db_commit();
+	   return true;
+	}
+	
+	
+    /**
+	 * get SCM Commits.
+	 *
+     */
+    function getSCMCommits()
+    {
+                $res = db_query_params ('SELECT *
+                                FROM stats_cvs_group
+                                WHERE group_id = $1',
+                                array($this->getID()));
+
+                $commits = db_result($res, 0, 'commits');
+                return $commits; 
+    }
+
 
 	/**
 	 * getID - Simply return the group_id for this object.
@@ -810,6 +2032,27 @@ class Group extends Error {
 		}
 	}
 
+	function setProjectPublic($booleanparam) {
+	    // setSetting does not change setting if already set to requested value
+		db_begin();
+		$booleanparam = $booleanparam ? 1 : 0;
+		$r = RoleAnonymous::getInstance();
+		if ($booleanparam) {
+		   $r->linkProject ($this);
+		} else {
+		   $r->unlinkProject ($this);
+		}
+		$r->setSetting('project_read', $this->getID(), $booleanparam);
+		db_commit();
+	}
+
+	/*
+	function isProjectPublic() {
+	
+	
+	}
+	*/
+	
 	/**
 	 * isPublic - Wrapper around RBAC to check if a project is anonymously readable
 	 *
@@ -872,6 +2115,7 @@ class Group extends Error {
 		return group_get_object($this->data_array['built_from_template']);
 	}
 
+
 	/**
 	 *  getUnixName - the unix_name
 	 *
@@ -909,12 +2153,197 @@ class Group extends Error {
 	}
 
 	/**
+	 * getSummary - the simtk summary of this project.
+	 *
+	 * @return	string	The description.
+	 */
+	function getSummary() {
+		return $this->data_array['simtk_summary'];
+	}
+
+	/**
+	 * getDownloadDescription - the simtk download description of this project.
+	 *
+	 * @return	string	The description.
+	 */
+	function getDownloadDescription() {
+		return $this->data_array['simtk_download_description'];
+	}
+
+	/**
+	 * getLayout - the simtk project type.
+	 *
+	 * @return	int	 Layout.
+	 */
+	function getLayout() {
+		return $this->data_array['simtk_project_type'];
+	}
+
+	/**
+	 * isPublicationType - the simtk project type.
+	 *
+	 * @return	int	 Layout.
+	 */
+	function isPublicationProject() {
+		return $this->data_array['simtk_project_type'];
+	}
+	
+	/**
+	 * getDisplayNews - display News section on project overview page.
+	 *
+	 * @return	int	 
+	 */
+	function getDisplayNews() {
+		return $this->data_array['simtk_display_news'];
+	}
+
+	/**
+	 * getDisplayRelated - display Related section on project overview page.
+	 *
+	 * @return	int	 
+	 */
+	function getDisplayRelated() {
+		return $this->data_array['simtk_display_related'];
+	}
+
+	/**
+	 * getDisplayDownloads - display Downloads section on project overview page.
+	 *
+	 * @return	int	 
+	 */
+	function getDisplayDownloads() {
+		return $this->data_array['simtk_display_downloads'];
+	}
+
+	/**
+	 * getDisplayDownloadPulldown - display Download Pull down menu on project overview page.
+	 *
+	 * @return	int	 
+	 */
+	function getDisplayDownloadPulldown() {
+		return $this->data_array['simtk_display_download_pulldown'];
+	}
+
+    /**
+     * getTotalDownloads
+         *
+	 * @return	int	 
+	 */
+    function getTotalDownloads() {
+               $res = db_query_params ('
+                    SELECT SUM(frs_dlstats_filetotal_agg.downloads) as totaldownloads
+                        FROM frs_package, frs_release, frs_file, frs_dlstats_filetotal_agg
+                        WHERE frs_package.group_id = $1 and frs_package.package_id = frs_release.package_id and frs_release.release_id = frs_file.release_id and frs_file.file_id = frs_dlstats_filetotal_agg.file_id
+                        ', array ($this->getID()));
+
+               /*
+               $res = db_query_params ('
+                    SELECT COUNT(frs_dlstats_file.file_id) as totaldownloads
+                        FROM frs_package, frs_release, frs_file, frs_dlstats_file
+                        WHERE frs_package.group_id = $1 and frs_package.package_id = frs_release.package_id and frs_release.release_id = frs_file.release_id and frs_file.file_id = frs_dlstats_file.file_id
+                        ', array ($this->getID()));
+               */
+
+                $row = db_fetch_array($res);
+                return $row['totaldownloads'];
+    }
+
+
+	 /**
+     * getTotalDownloadsUnique
+     *
+	 * @return	int	 
+	 */
+    function getTotalDownloadsUnique() {
+               //SELECT COUNT(frs_dlstats_file.file_id) as totaldownloads
+               $res = db_query_params ('
+                    SELECT COUNT(distinct frs_dlstats_file.user_id) as totaldownloads
+                        FROM frs_package, frs_release, frs_file, frs_dlstats_file
+                        WHERE frs_package.group_id = $1 and frs_package.package_id = frs_release.package_id and frs_release.release_id = frs_file.release_id and frs_file.file_id = frs_dlstats_file.file_id
+                        ', array ($this->getID()));
+               
+
+                $row = db_fetch_array($res);
+                return $row['totaldownloads'];
+    }
+	
+	/**
+     * getDownloadsTracking - Used by in Admin report section for projects.
+     *
+	 * @return	int	 
+	 */
+	function getDownloadsTracking(&$offset,&$numrows,$limit=100) {
+
+	    if (!$limit) {
+	      $limit_string = "";
+		}
+		else {
+		  $limit_string = " LIMIT $limit OFFSET $offset";
+		}
+		
+	    $res = db_query_params ("SELECT u.lab_name, u.university_name, u.firstname, u.lastname, u.user_name, ff.file_id, ff.filename, ff.simtk_filetype, fr.name as release_name, fp.name as package_name, fdf.simtk_expected_use as expected_use, fdf.simtk_agreed_to_license as agreed_to_license,fdf.*
+                        FROM frs_dlstats_file fdf, frs_file ff, frs_release fr, frs_package fp, users u
+                        WHERE fdf.file_id=ff.file_id
+                        AND ff.release_id=fr.release_id
+                        AND fr.package_id=fp.package_id
+                        AND fp.group_id='".$this->getID()."'
+                        AND fdf.user_id=u.user_id
+                        ORDER BY fdf.\"month\" DESC, fdf.\"day\" DESC, upper(fp.name), UPPER(fr.name), UPPER(ff.filename), UPPER(u.firstname), UPPER(u.lastname) $limit_string",array());
+
+        $numrows = db_numrows($res);
+	    $offset = $offset + 100;
+		
+		if ( $res ) {
+			$i = 0;
+			while( $results = db_fetch_array( $res ) )
+			{
+			    $id = $results[ 'file_id' ];
+				$packageArray[$i]['file_id'] = $id;
+				$packageArray[$i]['firstname'] = $results[ 'firstname' ];
+				$packageArray[$i]['lastname'] = $results[ 'lastname' ];
+				$packageArray[$i]['package_name'] = $results[ 'package_name' ];
+				$packageArray[$i]['release_name'] = $results[ 'release_name' ];
+				$packageArray[$i]['user_name'] = $results[ 'user_name' ];
+				$packageArray[$i]['filename'] = $results[ 'filename' ];
+				$packageArray[$i]['lab_name'] = $results[ 'lab_name' ];
+				$packageArray[$i]['university_name'] = $results[ 'university_name' ];
+				$packageArray[$i]['expected_use'] = $results[ 'expected_use' ];
+				$packageArray[$i]['agreed_to_license'] = $results[ 'agreed_to_license' ];
+                $packageArray[$i]['date'] = substr($results['month'],0,4)."-".substr($results['month'],4)."-".str_pad($results['day'],2,"0",STR_PAD_LEFT);
+				$i++;
+			}
+			
+		}	
+               
+	    return $packageArray;
+	
+	}
+	
+	/**
 	 * getStartDate - the unix time this project was registered.
 	 *
 	 * @return	int	(unix time) of registration.
 	 */
 	function getStartDate() {
 		return $this->data_array['register_time'];
+	}
+
+	/**
+	 * getLogoFile - 
+	 *
+	 * @return	String	 
+	 */
+	function getLogoFile() {
+		return $this->data_array['simtk_logo_file'];
+	}
+
+	/**
+	 * getLogoType -  
+	 *
+	 * @return	String	 
+	 */
+	function getLogoType() {
+		return $this->data_array['simtk_logo_type'];
 	}
 
 	/**
@@ -982,6 +2411,21 @@ class Group extends Error {
 		return $this->data_array['http_domain'];
 	}
 
+        function getPageURL() {
+          $pageURL = 'http';
+          if ($_SERVER["HTTPS"] == "on") {$pageURL .= "s";}
+            $pageURL .= "://";
+          /*
+          if ($_SERVER["SERVER_PORT"] != "80") {
+            $pageURL .= $_SERVER["SERVER_NAME"].":".$_SERVER["SERVER_PORT"].$_SERVER["REQUEST_URI"];
+          } else {
+            $pageURL .= $_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];
+          }
+          */
+          $pageURL .= $_SERVER["SERVER_NAME"].$_SERVER["REQUEST_URI"];
+          return $pageURL;
+        }
+
 	/**
 	 * getRegistrationPurpose - the text description of the purpose of this project.
 	 *
@@ -1014,23 +2458,29 @@ class Group extends Error {
 				$user_ids[] = $u->getID();
 			}
 		}
-		$active_ids = array();
-		$ids = array_unique ($user_ids);
-		foreach ($ids as $id) {
-			$u = user_get_object ($id);
-			if ($u->isActive()) {
-				$active_ids[] = $u;
-			}
-		}
-		return $active_ids;
+		return user_get_objects(array_unique($user_ids));
 	}
+
+        function &getLeads() {
+
+		$user_ids = array();
+
+                $res = db_query_params('SELECT user_group.user_id from user_group where user_group.group_id = $1 and project_lead > 0 order by project_lead',array($this->getID()));
+
+		$rows = db_numrows($res);
+
+		for ($i=0; $i<$rows; $i++) {
+          		$user_ids[] = db_result($res, $i, 'user_id');
+		}
+		return user_get_objects(array_unique($user_ids));
+        }
 
 	/*
 		Common Group preferences for tools
 	*/
 
 	/**
-	 * enableAnonSCM - whether or not this group has opted to enable Anonymous SCM.
+	 * ennableAnonSCM - whether or not this group has opted to enable Anonymous SCM.
 	 *
 	 * @return	boolean	enable_scm.
 	 */
@@ -1164,6 +2614,7 @@ class Group extends Error {
 		}
 	}
 
+	
 	/**
 	 * usesActivity - whether or not this group has opted to display Project Activities.
 	 *
@@ -2233,6 +3684,25 @@ class Group extends Error {
 						time()));
 	}
 
+        function getLastUpdate() {
+
+           $result = $this->getHistory();
+           $rows=db_numrows($result);
+
+           if ($rows > 0) {
+              return date(_('M d, Y'),db_result($result, 0, 'adddate'));
+           }
+           else {
+              return 0;
+           }
+        }
+
+
+        function getHistory() {
+                return db_query_params("SELECT group_history.field_name,group_history.old_value,group_history.adddate,users.user_name FROM group_history,users WHERE group_history.mod_by=users.user_id AND group_id=$1 ORDER BY group_history.adddate DESC", array($this->getID()));
+        }
+
+
 	/**
 	 * activateUsers - Make sure that group members have unix accounts.
 	 *
@@ -2307,7 +3777,7 @@ class Group extends Error {
 		require_once $gfcommon.'widget/WidgetLayoutManager.class.php';
 
 		if ($this->getStatus()=='A') {
-			$this->setError(_("Group already active"));
+			$this->setError("Project already active");
 			return false;
 		}
 
@@ -2524,9 +3994,62 @@ class Group extends Error {
 			$params['project'] = $this;
 			$params['id_mappings'] = $id_mappings;
 			plugin_hook_by_reference ('clone_project_from_template', $params);
-		} else {
+		}
+		else {
+
+			// Always create Bugs and Features trackers. HK.
+			$resBugs = new ArtifactTypeHtml($this);
+			if ($resBugs->create("Bugs",
+				"Bug Tracking System",
+				0,
+				"",
+				30,
+				0,
+				"Describe the problem in the Summary and Detailed Description boxes, then press the Submit button.  Please include as much information as possible, including every detail needed to reproduce the problem.",
+				"",
+				1,
+				1,
+				1)) {
+
+				// New tracker created. Give anonymous user access by default.
+				setAnonymousAccessForProject($this->getID());
+			}
+			$resFeatures = new ArtifactTypeHtml($this);
+			if ($resFeatures->create("Features",
+				"Feature Request Tracking System",
+				0,
+				"",
+				45,
+				0,
+				"Describe the requested feature in the Summary and Detailed Description boxes, then press the Submit button.  Please describe the desired feature in as much detail as possible.",
+				"",
+				4,
+				1,
+				1)) {
+
+				// New tracker created. Give anonymous user access by default.
+				setAnonymousAccessForProject($this->getID());
+			}
+			// Create a "Suggested Ideas tracker.
+			$resIdeas = new ArtifactTypeHtml($this);
+			if ($resIdeas->create("Suggested Ideas",
+				"Suggested Idea Tracking System",
+				0,
+				"",
+				45,
+				0,
+				"Describe the suggested idea in the Summary and Detailed Description boxes, then press the Submit button.  Please describe the suggested idea in as much detail as possible.",
+				"",
+				0,
+				1,
+				0)) {
+
+				// New tracker created. Give anonymous user access by default.
+				setAnonymousAccessForProject($this->getID());
+			}
+
 			// Disable everything
-			db_query_params ('UPDATE groups SET use_mail=0, use_survey=0, use_forum=0, use_pm=0, use_pm_depend_box=0, use_scm=0, use_news=0, use_docman=0, use_ftp=0, use_tracker=0, use_frs=0, use_stats=0 WHERE group_id=$1',
+			db_query_params ('UPDATE groups SET use_survey=0, use_forum=0, use_pm=0, use_pm_depend_box=0, use_news=0, use_ftp=0, use_stats=0 WHERE group_id=$1',
 				array($this->getID()));
 		}
 
@@ -2570,53 +4093,51 @@ class Group extends Error {
 		$admins = RBACEngine::getInstance()->getUsersByAllowedAction ('project_admin', $this->getID());
 
 		if (count($admins) < 1) {
-			$this->setError(_("Group does not have any administrators."));
+			$this->setError("Project does not have any administrators.");
 			return false;
 		}
 
 		// send one email per admin
 		foreach ($admins as $admin) {
-			setup_gettext_for_user ($admin);
+		  if (count($admins) > 1 && $admin->getEmail() != "webmaster@simtk.org") {
+		  
+			setup_gettext_for_user($admin);
 
-			$message=sprintf(_('Your project registration for %4$s has been approved.
+			$message = sprintf('Your project "%1$s" has been approved.<br/><br/>
 
-Project Full Name:  %1$s
-Project Unix Name:  %2$s
+<b>Customize your project.</b> You can now log in to SimTK and <a href="https://' .
+$_SERVER["SERVER_NAME"] . '/projects/%2$s">visit your project</a> to customize it.  From the Admin drop-down menu, you can:
+<ul>
+	<li>Categorize your project to connect it with existing SimTK communities</li>
+	<li>Provide a full description of your project (on the Project Info page)</li>
+	<li>Add a logo (on the Project Info page)</li>
+	<li>Add publication(s)</li>
+	<li>Add team members, assigning each different permissions if desired</li>
+	<li>Turn different tools (e.g., Wiki, Code Repository, News, etc.) on and off</li>
+	<li>Change the layout of your project' . "'" . 's main page</li>
+</ul>
 
-Your DNS will take up to a day to become active on our site.
-Your web site is accessible through your shell account. Please read
-site documentation (see link below) about intended usage, available
-services, and directory layout of the account.
+<b>Have questions about using SimTK?</b> Post a question to our <a href="https://' . 
+$_SERVER["SERVER_NAME"] . '/plugins/phpBB/indexPhpbb.php?group_id=11&pluginname=phpBB">discussion forum</a>.  We also encourage you to <a href="https://' .
+$_SERVER["SERVER_NAME"] . '/tracker/?group_id=11">share your ideas</a> on ways to improve SimTK.<br/><br/>
 
-If you visit your
-own project page in %4$s while logged in, you will find
-additional menu functions to your left labeled \'Project Admin\'.
+We look forward to helping your project succeed!<br/><br/>
 
-We highly suggest that you now visit %4$s and create a public
-description for your project. This can be done by visiting your project
-page while logged in, and selecting \'Project Admin\' from the menus
-on the left (or by visiting %3$s
-after login).
+- the %4$s team',
+				htmlspecialchars_decode($this->getPublicName()),
+				$this->getUnixName(),
+				util_make_url ('/project/admin/?group_id='.$this->getID()),
+				forge_get_config('forge_name'));
 
-Your project will also not appear in the Trove Software Map (primary
-list of projects hosted on %4$s which offers great flexibility in
-browsing and search) until you categorize it in the project administration
-screens. So that people can find your project, you should do this now.
-Visit your project while logged in, and select \'Project Admin\' from the
-menus on the left.
-
-Enjoy the system, and please tell others about %4$s. Let us know
-if there is anything we can do to help you.
-
--- the %4$s crew'),
-							htmlspecialchars_decode($this->getPublicName()),
-							$this->getUnixName(),
-							util_make_url ('/project/admin/?group_id='.$this->getID()),
-							forge_get_config ('forge_name'));
-
-			util_send_message($admin->getEmail(), sprintf(_('%s Project Approved'), forge_get_config ('forge_name')), $message);
+			echo "email: " . $admin->getEmail() . "<br />";
+			util_send_message($admin->getEmail(), 
+				sprintf('%1$s Project "%2$s" Approved', 
+					forge_get_config('forge_name'), $this->getUnixName()), 
+				$message,
+				'', '', '', '', true, '');
 
 			setup_gettext_from_context();
+		  } // more than 1 admin and not equal to webmaster
 		}
 
 		return true;
@@ -2640,7 +4161,7 @@ if there is anything we can do to help you.
 		}
 
 		if (count ($submitters) < 1) {
-			$this->setError(_("Group does not have any administrators."));
+			$this->setError("Project does not have any administrators.");
 			return false;
 		}
 
@@ -2700,32 +4221,39 @@ if there is anything we can do to help you.
 		foreach ($admins as $admin) {
 			$admin_email = $admin->getEmail();
 			setup_gettext_for_user ($admin);
-
-			$message = sprintf(_('New %s Project Submitted'), forge_get_config ('forge_name')) . "\n\n"
-					. _('Project Full Name')._(': ').htmlspecialchars_decode($this->getPublicName()) . "\n"
-					. _('Submitted Description')._(': ').htmlspecialchars_decode($this->getRegistrationPurpose()) . "\n";
-
+			
+			$message = sprintf('New %s Project Submitted', forge_get_config('forge_name')) . 
+				"\n\n" . 
+				'Project Full Name' . ': ' . htmlspecialchars_decode($this->getPublicName()) . "\n"
+//				. 'Submitted Description' . ': ' . htmlspecialchars_decode($this->getRegistrationPurpose()) . "\n";
+				. 'Submitted Description' . ': ' . htmlspecialchars_decode($this->getDescription()) . "\n";
 			foreach ($submitters as $submitter) {
-				$message .= _('Submitter')._(': ').$submitter->getRealName().' ('.$submitter->getUnixName().')' . "\n\n";
+				$message .= 'Submitter' . ': ' . $submitter->getRealName() . 
+					' (' . $submitter->getUnixName() . ')' . "\n\n";
 			}
 
-			$message .= "\n"
-					. _('Please visit the following URL to approve or reject this project')._(': '). "\n"
-					. util_make_url('/admin/approve-pending.php');
-			util_send_message($admin_email, sprintf(_('New %s Project Submitted'), forge_get_config('forge_name')), $message);
+			$message .= "\n" . 
+				'Please visit the following URL to approve or reject this project' .
+				': ' . "\n" . 
+				util_make_url('/admin/approve-pending.php');
+			util_send_message($admin_email, 
+				sprintf('New %s Project Submitted', forge_get_config('forge_name')), $message);
 			setup_gettext_from_context();
 		}
 
 		$email = $submitter->getEmail();
 		setup_gettext_for_user ($submitter);
 
-		$message = sprintf(_('New %s Project Submitted'), forge_get_config ('forge_name')) . "\n\n"
-				. _('Project Full Name')._(': ') . $this->getPublicName() . "\n"
-				. _('Submitted Description')._(': ') . util_unconvert_htmlspecialchars($this->getRegistrationPurpose()) . "\n\n"
-				. sprintf(_('The %s admin team will now examine your project submission. You will be notified of their decision.'),
-						  forge_get_config ('web_host'));
+		$message = sprintf('New %s Project Submitted', forge_get_config ('forge_name')) . "\n\n" . 
+			'Project Full Name' . ': ' . $this->getPublicName() . "\n" . 
+			'Submitted Description' . ': ' . 
+//			util_unconvert_htmlspecialchars($this->getRegistrationPurpose()) . "\n\n" . 
+			util_unconvert_htmlspecialchars($this->getDescription()) . "\n\n" . 
+			sprintf('The %s admin team will now examine your project submission. You will be notified of their decision.', 
+				forge_get_config ('web_host'));
 
-		util_send_message($email, sprintf(_('New %s Project Submitted'), forge_get_config ('forge_name')), $message);
+		util_send_message($email, sprintf('New %s Project Submitted', 
+			forge_get_config('forge_name')), $message);
 		setup_gettext_from_context();
 
 		return true;
@@ -2740,13 +4268,13 @@ if there is anything we can do to help you.
 	 */
 	function validateGroupName($group_name) {
 		if (strlen($group_name)<3) {
-			$this->setError(_('Group name is too short'));
+			$this->setError('Project title is too short');
 			return false;
-		} elseif (strlen(htmlspecialchars($group_name))>40) {
-			$this->setError(_('Group name is too long'));
+		} elseif (strlen(htmlspecialchars($group_name)) > 80) {
+			$this->setError('Project title is too long');
 			return false;
 		} elseif (group_get_object_by_publicname($group_name)) {
-			$this->setError(_('Group name already taken'));
+			$this->setError('Project title already taken');
 			return false;
 		}
 		return true;
@@ -2830,7 +4358,7 @@ if there is anything we can do to help you.
 						$this->getID()));
 
 		if (!$res) {
-			$this->setError(sprintf(_('Error: Cannot Update Group Unix Status: %s'),db_error()));
+			$this->setError(sprintf(_('Error: Cannot update project unix status: %s'),db_error()));
 			db_rollback();
 			return false;
 		} else {
@@ -2887,6 +4415,34 @@ if there is anything we can do to help you.
 		return $this->membersArr;
 	}
 
+	/**
+	 * getUsersWithId - Get the users of a group
+	 *
+	 * @param	bool	$onlylocal
+	 * @return	array	user's objects.
+	 */
+	function getUsersWithId($onlylocal = true) {
+		$theRes = array();
+		$ids = array();
+		foreach ($this->getRoles() as $role) {
+			if ($onlylocal
+				&& ($role->getHomeProject() == NULL || $role->getHomeProject()->getID() != $this->getID())) {
+				continue;
+			}
+			foreach ($role->getUsers() as $user) {
+				$ids[] = $user->getID();
+			}
+		}
+		$ids = array_unique ($ids);
+		foreach ($ids as $id) {
+			$u = user_get_object ($id);
+			if ($u->isActive()) {
+				$theRes[$u->getId()] = $u;
+			}
+		}
+		return $theRes;
+	}
+
 	function setDocmanCreateOnlineStatus($status) {
 		db_begin();
 		/* if we activate search engine, we probably want to reindex */
@@ -2894,7 +4450,7 @@ if there is anything we can do to help you.
 					array($status, $this->getID()));
 
 		if (!$res) {
-			$this->setError(sprintf(_('Error: Cannot Update Group DocmanCreateOnline Status: %s'),db_error()));
+			$this->setError(sprintf(_('Error: Cannot update project DocmanCreateOnline status: %s'),db_error()));
 			db_rollback();
 			return false;
 		} else {
@@ -2912,7 +4468,7 @@ if there is anything we can do to help you.
 						   $this->getID()));
 
 		if (!$res) {
-			$this->setError(sprintf(_('Error: Cannot Update Group UseWebdab Status: %s'),db_error()));
+			$this->setError(sprintf(_('Error: Cannot update project UseWebdab status: %s'),db_error()));
 			db_rollback();
 			return false;
 		} else {
@@ -2930,7 +4486,7 @@ if there is anything we can do to help you.
 						$this->getID()));
 
 		if (!$res) {
-			$this->setError(sprintf(_('Error: Cannot Update Group UseDocmanSearch Status: %s'),db_error()));
+			$this->setError(sprintf(_('Error: Cannot update project UseDocmanSearch status: %s'),db_error()));
 			db_rollback();
 			return false;
 		} else {
@@ -2948,7 +4504,7 @@ if there is anything we can do to help you.
 						$this->getID()));
 
 		if (!$res) {
-			$this->setError(sprintf(_('Error: Cannot Update Group force_docman_reindex %s'),db_error()));
+			$this->setError(sprintf(_('Error: Cannot update project force_docman_reindex %s'),db_error()));
 			db_rollback();
 			return false;
 		} else {

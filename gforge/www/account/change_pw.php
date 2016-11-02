@@ -5,6 +5,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2010 (c) Franck Villaume - Capgemini
  * Copyright 2014, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -44,49 +45,36 @@ if (getStringFromRequest('submit')) {
 	$passwd = getStringFromRequest('passwd');
 	$passwd2 = getStringFromRequest('passwd2');
 
+/*
 	if ($u->getMD5Passwd() != md5($old_passwd)) {
 		form_release_key(getStringFromRequest('form_key'));
-		exit_error(_('Old password is incorrect'),'my');
+		$error_msg = 'Old password is incorrect';
 	}
-
-	if (strlen($passwd)<6) {
+*/
+	if ($u->getUnixPasswd() != crypt($old_passwd, $u->getUnixPasswd())) {
 		form_release_key(getStringFromRequest('form_key'));
-		exit_error(_('You must supply valid password (at least 6 chars).'),'my');
+		$error_msg = 'Old password is incorrect';
 	}
-
-	if ($passwd != $passwd2) {
+	else if (preg_match("/.{6,}/", $passwd) == false) {
 		form_release_key(getStringFromRequest('form_key'));
-		exit_error(_('New passwords do not match.'),'my');
+		$error_msg = 'You must supply valid password (at least 6 chars).';
 	}
-
-	if (!$u->setPasswd($passwd)) {
+	else if ($passwd != $passwd2) {
 		form_release_key(getStringFromRequest('form_key'));
-		exit_error(_('Could not change password: ').$u->getErrorMessage(),'my');
+		$error_msg = 'New passwords do not match.';
 	}
+	else if (!$u->setPasswd($passwd)) {
+		form_release_key(getStringFromRequest('form_key'));
+		$error_msg = 'Could not change password: ' . $u->getErrorMessage();
+	}
+	else {
+		$error_msg = 'Congratulations. You have changed your password.';
+	}
+}
 
-	site_user_header(array('title'=>_('Successfully Changed Password')));
-	?>
+site_user_header(array('title'=>_('Change Password')));
 
-	<?php
-	print '<h2>';
-	printf(_('%s Password Change Confirmation'), forge_get_config ('forge_name'));
-	print '</h2>';
-
-	print '<p class="feedback">';
-	print _('Congratulations. You have changed your password.');
-	print '</p>';
-	?>
-
-	<p>
-		 <?php printf(_('You should now <a href="%s">Return to User Prefs</a>.'),
-			      util_make_url('/account/')) ?>
-	</p>
-
-	<?php
-} else {
-	// Show change form
-	site_user_header(array('title'=>_('Change Password')));
-	?>
+?>
 
 	<form action="<?php echo util_make_url('/account/change_pw.php'); ?>" method="post">
 	<input type="hidden" name="form_key" value="<?php echo form_generate_key(); ?>"/>
@@ -99,20 +87,20 @@ if (getStringFromRequest('submit')) {
 	<p><?php echo _('New Password (at least 6 chars)')._(':').utils_requiredField() ?>
 	<br />
 	<label for="passwd">
-		<input id="passwd" type="password" name="passwd" required="required" pattern=".{6,}" />
+		<input id="passwd" type="password" name="passwd" required="required" />
 	</label>
 	</p>
 	<p><?php echo _('New Password (repeat)')._(':').utils_requiredField() ?>
 	<br />
 	<label for="passwd2">
-		<input id="passwd2" type="password" name="passwd2" required="required" pattern=".{6,}" />
+		<input id="passwd2" type="password" name="passwd2" required="required" />
 	</label>
 	</p>
 	<p>
-		<input type="submit" name="submit" value="<?php echo _('Update password') ?>" />
+		<input type="submit" name="submit" value="<?php echo _('Update password') ?>" class="btn-cta" />
 	</p>
 	</form>
-	<?php
-}
+
+<?php
 
 site_user_footer(array());

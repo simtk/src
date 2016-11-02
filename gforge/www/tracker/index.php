@@ -4,6 +4,7 @@
  *
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2002-2004 (c) GForge Team
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -57,6 +58,9 @@ if ($aid && (!$group_id || !$atid)) {
 		session_redirect('/tracker/?func=detail&group_id='.$group_id.'&atid='.$atid.'&aid='.$aid);
 	}
 }
+
+// Check permission and prompt for login if needed.
+session_require_perm('project_read', $group_id);
 
 $group = group_get_object($group_id);
 if (!$group || !is_object($group)) {

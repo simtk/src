@@ -3,6 +3,7 @@
  * Tracker Facility
  *
  * Copyright 2010 (c) FusionForge Team
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -27,6 +28,9 @@
 $title = sprintf(_('Modify Canned Responses In %s'),$ath->getName());
 $ath->adminHeader(array('title'=>$title));
 
+// Update page title identified by the class "project_submenu".
+echo '<script>$(".project_submenu").html("Tracker: ' . $ath->getName() . '");</script>';
+
 		$id = getStringFromRequest('id');
 		$acr = new ArtifactCanned($ath,$id);
 		if (!$acr || !is_object($acr)) {
@@ -49,7 +53,7 @@ $ath->adminHeader(array('title'=>$title));
 			</label>
 			<textarea id="body" name="body" rows="30" cols="80"><?php echo $acr->getBody(); ?></textarea></p>
 			<p>
-			<input type="submit" name="post_changes" value="<?php echo _('Submit') ?>" /></p>
+			<input type="submit" name="post_changes" value="Submit" class="btn-cta" /></p>
 			</form>
 			<?php
 		}

@@ -8,6 +8,7 @@
  * Copyright (C) 2011-2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2013, French Ministry of National Education
  * Copyright 2013, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -302,6 +303,7 @@ if (getStringFromRequest('add_forum')) {
 			exit_error($fh->getErrorMessage(),'forums');
 		}
 
+        
 		forum_header(array('title'=>_('Edit a Message')));
 		$fh->showEditForm($fm);
 		forum_footer(array());
@@ -361,6 +363,7 @@ if (getStringFromRequest('add_forum')) {
 	} else {
 		// Display select box to select new forum
 
+                
 		forum_header(array('title'=>_('Move Thread')));
 
 		$ff = new ForumFactory($g);

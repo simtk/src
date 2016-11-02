@@ -5,6 +5,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2010-2013, Franck Villaume - TrivialDev
  * Copyright 2013, French Ministry of National Education
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -53,9 +54,9 @@ if (getStringFromRequest('submit')) {
 $HTML->header(array('title'=>_('Resend confirmation email to a pending account')));
 
 if (forge_get_config('require_unique_email')) {
-	echo _('Fill in a user name or email address and click “Submit” to resend the confirmation email.');
+	echo '<br/><br/><p>Fill in your user name or email below and click "Submit" to receive a new confirmation email.  You should receive the confirmation email within minutes.  If you don' . "'" . 't, be sure to check your spam folder.</p>';
 } else {
-	echo _('Fill in a user name and click “Submit” to resend the confirmation email.');
+	echo '<br/><br/><p>Fill in your user name below and click "Submit" to receive a new confirmation email.  You should receive the confirmation email within minutes.  If you don' . "'" . 't, be sure to check your spam folder.</p>';
 }
 ?>
 
@@ -72,7 +73,7 @@ if (forge_get_config('require_unique_email')) {
 	<input id="loginname" required="required" type="text" name="loginname"/>
 </label>
 </p>
-<p><input type="submit" name="submit" value="<?php echo _('Submit'); ?>" /></p>
+<p><input type="submit" class="btn-cta" name="submit" value="<?php echo _('Submit'); ?>" /></p>
 </form>
 
 <?php $HTML->footer(array());

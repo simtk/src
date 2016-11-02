@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright 1999-2001 (c) VA Linux Systems
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -22,6 +23,8 @@
 unset ($BROWSER_AGENT);
 unset ($BROWSER_VER);
 unset ($BROWSER_PLATFORM);
+unset ($BROWSER_ADDR);
+unset ($BROWSER_HOST);
 
 function browser_get_agent () {
 	global $BROWSER_AGENT;
@@ -36,6 +39,16 @@ function browser_get_version() {
 function browser_get_platform() {
 	global $BROWSER_PLATFORM;
 	return $BROWSER_PLATFORM;
+}
+
+function browser_get_address() {
+	global $BROWSER_ADDR;
+	return $BROWSER_ADDR;
+}
+
+function browser_get_host() {
+	global $BROWSER_HOST;
+	return $BROWSER_HOST;
 }
 
 function browser_is_mac() {
@@ -102,6 +115,18 @@ if (strstr(getStringFromServer('HTTP_USER_AGENT'),'Win')) {
 	$GLOBALS['BROWSER_PLATFORM']='Unix';
 } else {
 	$GLOBALS['BROWSER_PLATFORM']='Other';
+}
+
+/*
+ * Determine IP address, host name
+ */
+$BROWSER_ADDR = $_SERVER['REMOTE_ADDR'];
+
+if (!empty($_SERVER['REMOTE_HOST'])) {
+	$BROWSER_HOST = strtolower($_SERVER['REMOTE_HOST']);
+}
+else if (!empty($BROWSER_ADDR)) {
+	$BROWSER_HOST = strtolower(getHostByAddr($BROWSER_ADDR));
 }
 
 /*

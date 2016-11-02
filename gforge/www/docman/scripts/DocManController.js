@@ -5,6 +5,7 @@
  * Copyright 2010-2011, Franck Villaume - Capgemini
  * Copyright 2011-2014, Franck Villaume - TrivialDev
  * Copyright 2011, Alain Peyrat
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -208,6 +209,7 @@ DocManListFileController.prototype =
 		this.docparams = docparams;
 		jQuery('#title').val(this.docparams.title);
 		jQuery('#description').val(this.docparams.description);
+		jQuery('#citation').val(this.docparams.citation);
 		jQuery('#docid').val(this.docparams.id);
 		if (this.docparams.isHtml) {
 			jQuery('#defaulteditfiletype').val('text/html');

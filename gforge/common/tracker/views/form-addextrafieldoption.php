@@ -4,6 +4,7 @@
  *
  * Copyright 2010 (c) FusionForge Team
  * Copyright 2014, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -35,6 +36,9 @@
 		$efearr=$ath->getExtraFieldElements($boxid);
 		$title = sprintf(_('Add/Update Custom Field Elements in %s'), $ath->getName());
 		$ath->adminHeader(array('title'=>$title));
+
+		// Update page title identified by the class "project_submenu".
+		echo '<script>$(".project_submenu").html("Tracker: ' . $ath->getName() . '");</script>';
 
 		echo '<h2>'._('Custom field name')._(': ').$ac->getName().'</h2>';
 		$rows=count($efearr);
@@ -81,12 +85,12 @@
 			?>
 			<tr class="noborder">
 			<td class="align-right">
-			<input type="submit" name="post_changes_order" value="<?php echo _('Reorder') ?>" />
+			<input type="submit" name="post_changes_order" value="Reorder" class="btn-cta" />
 			</td>
 			<td>
 			</td>
 			<td class="align-left">
-			<input type="submit" name="post_changes_alphaorder" value="<?php echo _('Alphabetical order') ?>" />
+			<input type="submit" name="post_changes_alphaorder" value="Alphabetical order" class="btn-cta" />
 			</td>
 			</tr>
 			<?php echo $GLOBALS['HTML']->listTableBottom(); ?>
@@ -109,7 +113,7 @@
 		<strong><?php echo _('Status'); ?></strong>
 		<?php echo $ath->statusBox('status_id',1,false,false); ?>
 		<?php } ?>
-		<input type="submit" name="post_changes" value="<?php echo _('Submit') ?>" />
+		<input type="submit" name="post_changes" value="Submit" class="btn-cta" />
 		</form>
 		<?php
 		$ath->footer(array());

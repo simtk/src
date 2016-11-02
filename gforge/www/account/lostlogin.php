@@ -6,6 +6,7 @@
  *
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2010 (c) Franck Villaume
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -58,33 +59,40 @@ if (!$u || !is_object($u)) {
 
 if (getStringFromRequest("submit")) {
 
-	if (strlen($passwd)<6) {
-		exit_error(_('You must supply valid password (at least 6 chars).'),'my');
+	if (preg_match("/.{6,}/", $passwd) == false) {
+		$error_msg = 'You must supply valid password (at least 6 chars).';
 	}
-
-	if ($passwd != $passwd2) {
-		exit_error(_('New passwords do not match.'),'my');
+	else if ($passwd != $passwd2) {
+		$error_msg = 'New passwords do not match.';
 	}
+	else if (!$u->setPasswd($passwd)) {
+		$error_msg = "Could not reset password: " . $u->getErrorMessage();
+	}
+	else {
+		// Update user credentials in phpbb_users.
+		// NOTE: Perform this operation because the user's
+		// FusionForge credentials may have been updated.
+		$urlUserUpdate = "https://". 
+			getStringFromServer('HTTP_HOST') .
+			"/plugins/phpBB/sync_user.php?" .
+			"userName=" . $u->getUnixName();
 
-	if ($u->setPasswd($passwd)) {
+		// Invoke URL access to add the user to phpbb_users.
+		$resStr = file_get_contents($urlUserUpdate);
 
 		// Invalidate confirm hash
 		$u->setNewEmailAndHash('', 0);
 
 		$HTML->header(array('title'=>"Password changed"));
-		print '<h2>' . _('Password changed') . '</h2>';
 		print '<p>';
-		printf (_('Congratulations, you have re-set your account password. You may <a href="%s">login</a> to the site now.'),
-			  util_make_url ("/account/login.php"));
-		print '</p>';
+                printf (_('Congratulations, you have reset your account password. You may <a href="%s">login</a> to the site now.'), util_make_url ("/account/login.php"));
+                print '</p>';
 		$HTML->footer(array());
 		exit();
 	}
-
-	$error_msg = _('Error')._(': ').$u->getErrorMessage();
 }
 
-$title = _("Lost Password Login") ;
+$title = "Change Password";
 $HTML->header(array('title'=>$title));
 echo '<p>' ;
 printf (_('Welcome, %s. You may now change your password.'),$u->getUnixName());
@@ -92,19 +100,19 @@ echo '</p>';
 ?>
 
 <form action="<?php echo util_make_url('/account/lostlogin.php'); ?>" method="post">
-<p><?php echo _('New Password (at least 6 chars)'); ?>:
+<p><?php echo _('New Password (at least 6 chars)')._(':').utils_requiredField(); ?>
 <br />
 <label for="passwd">
-	<input id="passwd" type="password" name="passwd"/>
+	<input id="passwd" type="password" name="passwd" required="required" />
 </label>
 </p>
-<p><?php echo _('New Password (repeat)'); ?>:
+<p><?php echo _('New Password (repeat)')._(':').utils_requiredField(); ?>
 <br />
 <label for="passwd2">
-	<input id="passwd2" type="password" name="passwd2"/>
+	<input id="passwd2" type="password" name="passwd2" required="required" />
 </label>
 <input type="hidden" name="confirm_hash" value="<?php print $confirm_hash; ?>" /></p>
-<p><input type="submit" name="submit" value="<?php echo _('Update'); ?>" /></p>
+<p><input type="submit" name="submit" value="<?php echo _('Update'); ?>" class="btn-cta" /></p>
 </form>
 
 <?php

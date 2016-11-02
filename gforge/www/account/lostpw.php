@@ -9,6 +9,7 @@
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2010 (c) Franck Villaume
  * Copyright (C) 2012 Alain Peyrat - Alcatel-Lucent
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -54,9 +55,8 @@ if (getStringFromRequest('submit')) {
 		exit_error($u->getErrorMessage(),'my');
 	} else {
 
-		$message = sprintf(_('Someone (presumably you) on the %s site requested a password change through email verification.'),
-							forge_get_config ('forge_name'));
-		$message .= _('If this was not you, ignore this message and nothing will happen.');
+		$message = sprintf(_('Someone (presumably you) on the %s site requested a password change through email verification.'), forge_get_config ('forge_name'));
+		$message .= ' If this was not you, ignore this message and nothing will happen.';
 		$message .= "\n\n";
 
 		$message .= _('If you requested this verification, visit the following URL to change your password:');
@@ -71,7 +71,8 @@ if (getStringFromRequest('submit')) {
 
 		$HTML->header(array('title'=>_('Lost Password Confirmation')));
 
-		echo '<p>'.printf(_('An email has been sent to the address you have on file. Follow the instructions in the email to change your account password.').'</p><p><a href="%s">'._("Home").'</a>', util_make_url ('/')).'</p>';
+		//echo '<p>'.printf(_('An email has been sent to the address you have on file. Follow the instructions in the email to change your account password.').'</p><p><a href="%s">'._("Home").'</a>', util_make_url ('/')).'</p>';
+		echo '<p>An email has been sent to the address you have on file. Follow the instructions in the email to change your account password.</p>';
 
 		$HTML->footer(array());
 		exit();
@@ -80,8 +81,7 @@ if (getStringFromRequest('submit')) {
 
 $HTML->header(array('title'=>"Lost Account Password"));
 
-echo '<p>' . _('Hey... losing your password is serious business. It compromises the security of your account, your projects, and this site.') . '</p>';
-echo '<p>' . _('Clicking “Send Lost PW Hash” below will email a URL to the email address we have on file for you. In this URL is a 128-bit confirmation hash for your account. Visiting the URL will allow you to change your password online and login.') . '</p>';
+echo '<br/><br/><p>Clicking "Reset Password" below will email a link to the email address we have on file for you.  Click on the link to reset your password and log in.</p>';
 ?>
 
 <form action="<?php echo util_make_url('/account/lostpw.php'); ?>" method="post">
@@ -92,11 +92,9 @@ echo '<p>' . _('Clicking “Send Lost PW Hash” below will email a URL to the e
         <input id="loginname" type="text" name="loginname"/>
     </label>
     <br />
-<input type="submit" name="submit" value="<?php echo _('Send Lost PW Hash'); ?>" />
+<input type="submit" name="submit" value="<?php echo 'Reset Password'; ?>" class="btn-cta" />
 </p>
 </form>
-
-	<p><?php echo util_make_link ("/", _('Return')); ?></p>
 
 <?php
 

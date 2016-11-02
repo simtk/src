@@ -6,6 +6,7 @@
 
     @copyright: 2000-2004 Juergen Hermann <jh@web.de>,
                 2006-2008 MoinMoin:ThomasWaldmann
+                2016      Henry Kwong, Tod Hing - SimTK Team
     @license: GNU GPL, see COPYING for details.
 """
 
@@ -268,9 +269,9 @@ def execute(pagename, request):
                     rchecked = ''
                 else:
                     lchecked = rchecked = ''
-                diff = '<input type="radio" name="rev1" value="%d"%s><input type="radio" name="rev2" value="%d"%s>' % (rev, lchecked, rev, rchecked)
+                diff = '<input type="radio" name="rev1" value="%d"%s><label>&nbsp;</label></input><input type="radio" name="rev2" value="%d"%s><label>&nbsp;</label></input>' % (rev, lchecked, rev, rchecked)
                 if rev > 1:
-                    diff += render_action(' ' + _('to previous'), {'action': 'diff', 'rev1': rev-1, 'rev2': rev})
+                    diff += '<br/>' + render_action(' ' + _('to previous'), {'action': 'diff', 'rev1': rev-1, 'rev2': rev})
                 comment = line.comment
                 if not comment:
                     if '/REVERT' in line.action:

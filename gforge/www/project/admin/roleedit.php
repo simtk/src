@@ -9,6 +9,7 @@
  *	Thorsten Glaser <t.glaser@tarent.de>
  * Copyright 2014, Stéphane-Eymeric Bredthauer
  * Copyright 2014, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -92,7 +93,7 @@ if (getStringFromRequest('submit')) {
 			if (!$role_id) {
 				$error_msg .= $role->getErrorMessage();
 			} else {
-				$feedback = _('Successfully Created New Role');
+				$feedback = _('Successfully created new role.');
 				$group->addHistory(_('Added Role'), $role_name);
 			}
 		} else {
@@ -102,8 +103,43 @@ if (getStringFromRequest('submit')) {
 			if (!$role->update($role_name, $data, false)) {
 				$error_msg .= $role->getErrorMessage();
 			} else {
-				$feedback = _('Successfully Updated Role');
-				$group->addHistory(_('Updated Role'), $role_name);
+
+				// Compare data to be sent against current values 
+				// to see which values have been updated.
+				$arrDiffSections = array();
+				foreach ($data as $section=>$values) {
+					// Get set of old values for the given section.
+					$strOldPerms = "";
+					foreach ($old_data[$section] as $ref_id => $val) {
+						$strOldPerms .= $val;
+					}
+
+					// Get new set of values from UI.
+					$strNewPerms = "";
+					foreach ($values as $ref_id => $val) {
+						$strNewPerms .= $val;
+					}
+
+					// Is the given section different?
+					if ($strOldPerms != $strNewPerms) {
+						// Different.
+						$arrDiffSections[$section] = $section;
+					}
+				} 
+
+				if (isset($arrDiffSections["plugin_moinmoin_access"])) {
+					// MoinMoin change is amongst the new values.
+					// Include the "MoinMoin access" keyword to get cronjob 
+					// to reload in order to effect the role change in MoinMoin.
+					$feedback = "Successfully updated role. " .
+						"MoinMoin setting may take up to 15 minutes to take effect.";
+					$group->addHistory('Updated Role: MoinMoin access', $role_name);
+				}
+				else {
+					// No MoinMoin change.
+					$feedback = 'Successfully updated role.';
+					$group->addHistory('Updated Role', $role_name);
+				}
 			}
 		}
 	}
@@ -128,11 +164,13 @@ if ($role->getHomeProject() == NULL
 	echo $role->getDisplayableName ($group) ;
 } else {
 	echo '<p><strong>'._('Role Name').'</strong><br /><input type="text" name="role_name" value="'.$role->getName().'" required="required" /><br />' ;
+/*
 	echo '<input type="checkbox" name="public" value="1"' ;
 	if ($role->isPublic()) {
 		echo ' checked="checked"' ;
 	}
 	echo ' /> '._('Shared role (can be referenced by other projects)').'</p>' ;
+*/
 }
 
 $titles[]=_('Section');
@@ -158,8 +196,11 @@ foreach ($keys as $key) {
 }
 $keys = $keys2 ;
 for ($i=0; $i<count($keys); $i++) {
+/*
         if ((!$group->usesForum() && preg_match("/forum/", $keys[$i])) ||
                 (!$group->usesTracker() && preg_match("/tracker/", $keys[$i])) ||
+*/
+        if ((!$group->usesTracker() && preg_match("/tracker/", $keys[$i])) ||
                 (!$group->usesPM() && preg_match("/pm/", $keys[$i])) ||
                 (!$group->usesFRS() && preg_match("/frs/", $keys[$i])) ||
                 (!$group->usesSCM() && preg_match("/scm/", $keys[$i])) ||
@@ -176,6 +217,7 @@ for ($i=0; $i<count($keys); $i++) {
 		}
 	}
 
+/*
 	if ($keys[$i] == 'forum' || $keys[$i] == 'forumpublic' || $keys[$i] == 'forumanon') {
 		//
 		//	Handle forum settings for all roles
@@ -215,13 +257,21 @@ for ($i=0; $i<count($keys); $i++) {
 //	Handle task mgr settings for all roles
 //
 	} elseif ($keys[$i] == 'pm' || $keys[$i] == 'pmpublic') {
+*/
+	if ($keys[$i] == 'pm' || $keys[$i] == 'pmpublic') {
 
 		$res=db_query_params ('SELECT group_project_id,project_name
 			FROM project_group_list WHERE group_id=$1',
 			array($group_id));
 		for ($q=0; $q<db_numrows($res); $q++) {
+
+			$sectionName = $rbac_edit_section_names[$keys[$i]];
+			if ($sectionName == "Tasks") {
+				// Skip all Tasks.
+				continue;
+			}
 			echo '<tr '. $HTML->boxGetAltRowStyle($j++) . '>
-			<td style="padding-left: 4em;">'.$rbac_edit_section_names[$keys[$i]].'</td>
+			<td style="padding-left: 4em;">'. $sectionName .'</td>
 			<td>'.db_result($res,$q,'project_name').'</td>
 			<td>'.html_build_select_box_from_assoc(
 				$role->getRoleVals($keys[$i]),
@@ -255,8 +305,15 @@ for ($i=0; $i<count($keys); $i++) {
 				} else {
 					$txt='';
 				}
+
+				// Replace section names to match better with UI.
+				$sectionName = $rbac_edit_section_names[$keys[$i]];
+				if ($sectionName == "Tracker") {
+					$sectionName = "Issue tracker";
+				}
+
 				echo '<tr '. $HTML->boxGetAltRowStyle($j++) . '>
-				<td style="padding-left: 4em;">'.$rbac_edit_section_names[$keys[$i]].'</td>
+				<td style="padding-left: 4em;">'. $sectionName .'</td>
 				<td>'.db_result($res,$q,'name').'</td>
 				<td>'.html_build_select_box_from_assoc(
 					$role->getRoleVals($keys[$i]),
@@ -290,8 +347,42 @@ for ($i=0; $i<count($keys); $i++) {
 //
 	} else {
 
+		if ($keys[$i] == "new_forum" ||
+			$keys[$i] == "forum" ||
+			$keys[$i] == "forum_admin") {
+			// Skip all forum roles.
+			continue;
+		}
+		else if ($keys[$i] == "pm_admin" ||
+			$keys[$i] == "new_pm") {
+			// Skip "task managers".
+			continue;
+		}
+		else if ($keys[$i] == "project_read") {
+			// NOTE: Need to set project_read to 1 in a hidden data field.
+			// Otherwise, the default is 0 and section values cannot be set!!!
+			echo '<input type="hidden" ' .
+				'name="data[' . $keys[$i] . '][' . $group_id . ']" ' .
+				'value="1" />';
+			continue;
+		}
+
+		// Replace section names to match better with UI.
+		$sectionName = $rbac_edit_section_names[$keys[$i]];
+		if ($sectionName == "SCM") {
+			$sectionName = "Source code manager";
+		}
+		else if ($sectionName == "Files") {
+			$sectionName = "Downloads";
+		}
+		else if ($sectionName == "Trackers administration") {
+			$sectionName = "Issue trackers administration";
+		}
+		else if ($sectionName == "Default for new trackers") {
+			$sectionName = "Default for new issue trackers ";
+		}
 		echo '<tr '. $HTML->boxGetAltRowStyle($j++) . '>
-		<td colspan="2"><strong>'.$rbac_edit_section_names[$keys[$i]].'</strong></td>
+		<td colspan="2"><strong>'. $sectionName .'</strong></td>
 		<td>';
 		echo html_build_select_box_from_assoc($role->getRoleVals($keys[$i]), "data[".$keys[$i]."][$group_id]", $role->getVal($keys[$i],$group_id), false, false ) ;
 		echo '</td>
@@ -303,7 +394,7 @@ for ($i=0; $i<count($keys); $i++) {
 
 echo $HTML->listTableBottom();
 
-echo '<p><input type="submit" name="submit" value="'._('Submit').'" /></p>
+echo '<p><input type="submit" name="submit" value="'._('Submit').'" class="btn-cta" /></p>
 </form>';
 
 project_admin_footer(array());

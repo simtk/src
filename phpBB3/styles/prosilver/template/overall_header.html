@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html dir="{S_CONTENT_DIRECTION}" lang="{S_USER_LANG}">
 <head>
+<base target="_parent"/>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width" />
 <meta name="keywords" content="" />
@@ -61,32 +62,9 @@
 <div id="wrap">
 	<a id="top" class="anchor" accesskey="t"></a>
 	<div id="page-header">
-		<div class="headerbar">
-			<div class="inner">
-
-			<div id="site-description">
-				<a id="logo" class="logo" href="<!-- IF U_SITE_HOME -->{U_SITE_HOME}<!-- ELSE -->{U_INDEX}<!-- ENDIF -->" title="<!-- IF U_SITE_HOME -->{L_SITE_HOME}<!-- ELSE -->{L_INDEX}<!-- ENDIF -->">{SITE_LOGO_IMG}</a>
-				<h1>{SITENAME}</h1>
-				<p>{SITE_DESCRIPTION}</p>
-				<p class="skiplink"><a href="#start_here">{L_SKIP}</a></p>
-			</div>
-
-		<!-- IF S_DISPLAY_SEARCH and not S_IN_SEARCH -->
-			<div id="search-box">
-				<form action="{U_SEARCH}" method="get" id="search">
-				<fieldset>
-					<input name="keywords" id="keywords" type="search" maxlength="128" title="{L_SEARCH_KEYWORDS}" class="inputbox search" value="{SEARCH_WORDS}" placeholder="{L_SEARCH_MINI}" />
-					<input class="button2" value="{L_SEARCH}" type="submit" /><br />
-					<a href="{U_SEARCH}" title="{L_SEARCH_ADV_EXPLAIN}">{L_SEARCH_ADV}</a> {S_SEARCH_HIDDEN_FIELDS}
-				</fieldset>
-				</form>
-			</div>
-		<!-- ENDIF -->
-
-			</div>
-		</div>
 
 		<!-- INCLUDE navbar_header.html -->
+
 	</div>
 
 	<!-- EVENT overall_header_page_body_before -->

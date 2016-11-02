@@ -1,12 +1,15 @@
 <?php
 /**
+ * menu.php
+ *
  * FusionForge Documentation Manager
  *
  * Copyright 1999-2001, VA Linux Systems
  * Copyright 2000, Quentin Cregan/SourceForge
  * Copyright 2002-2004, GForge Team
  * Copyright 2010-2011, Franck Villaume - Capgemini
- * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
+ * Copyright (C) 2011 Alain Peyrat - Alcatel-
+ * Copyright 2016, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -31,17 +34,24 @@ global $HTML; // html object
 global $d_arr; // document array
 global $group_id; // id of group
 
+/* allow anyone to read?
 if (!forge_check_perm('docman', $group_id, 'read')) {
 	$return_msg= _('Document Manager Access Denied');
 	session_redirect('/docman/?group_id='.$group_id.'&warning_msg='.urlencode($return_msg));
 }
+*/
 
 /* create the submenu following role, rules and content */
 $menu_text = array();
 $menu_links = array();
 $menu_attr = array();
 
-$menu_text[] = _('View Documents');
+if (forge_check_perm('docman', $group_id, 'approve') || forge_check_perm('docman', $group_id, 'admin')) {
+  $menu_text[] = _('View/Edit Documents');
+}
+else {
+  $menu_text[] = _('View Documents');
+}
 $menu_links[] = '/docman/?group_id='.$group_id;
 $menu_attr[] = array('title' => _('View documents and folders in 2 panels. Left a folder tree, right a list of files of selected folder.'), 'id' => 'listFileDocmanMenu', 'class' => 'tabtitle-nw');
 
@@ -51,11 +61,13 @@ if (forge_check_perm('docman', $group_id, 'submit')) {
 	$menu_attr[] = array('title' => _('Add a new item such as file, create directory, inject a ZIP at root level.'), 'id' => 'addItemDocmanMenu', 'class' => 'tabtitle');
 }
 
+/*
 if ($g->useDocmanSearch()) {
 	$menu_text[] = _('Search');
 	$menu_links[] = '/docman/?group_id='.$group_id.'&amp;view=search';
 	$menu_attr[] = array('title' => _('Search documents in this project using keywords.'), 'id' => 'searchDocmanMenu', 'class' => 'tabtitle');
 }
+*/
 
 if (forge_check_perm('docman', $group_id, 'approve')) {
     $dm = new DocumentManager($g);

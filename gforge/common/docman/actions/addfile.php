@@ -9,6 +9,7 @@
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012, Thorsten Glaser - tarent solutions GmbH
  * Copyright 2012, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -36,6 +37,7 @@ global $dirid;
 $doc_group = getIntFromRequest('doc_group');
 $title = trim(getStringFromRequest('title'));
 $description = getStringFromRequest('description');
+$citation = getStringFromRequest('citation');        // added 9-3-2014 Tod Hing
 $file_url = getStringFromRequest('file_url');
 $uploaded_data = getUploadedFile('uploaded_data');
 $manual_path = getStringFromRequest('manual_path');
@@ -174,7 +176,9 @@ switch ($type) {
 	}
 }
 
-if (!$d->create($uploaded_data_name, $uploaded_data_type, $data, $doc_group, $title, $description, $stateid)) {
+// added citation parameter 9-3-2014 - Tod Hing tod_hing@yahoo.com
+
+if (!$d->create($uploaded_data_name, $uploaded_data_type, $data, $doc_group, $title, $description, $citation, $stateid)) {
 	if (forge_check_perm('docman', $group_id, 'approve')) {
 		session_redirect($redirecturl.'&error_msg='.urlencode($d->getErrorMessage()));
 	} else {

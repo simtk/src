@@ -9,6 +9,7 @@
  * Copyright 2004 GForge, LLC - Tim Perdue
  * Copyright 2010, Franck Villaume - Capgemini
  * Copyright 2010-2011, Alain Peyrat - Alcatel-Lucent
+ * Copyright 2016, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -32,6 +33,7 @@ require_once $gfcommon.'include/pre.php';
 require_once $gfwww.'include/role_utils.php';
 require_once $gfwww.'project/admin/project_admin_utils.php';
 require_once $gfcommon.'include/GroupJoinRequest.class.php';
+require_once $gfplugins.'simtk_news/include/Simtk_news.class.php';
 
 $group_id = getIntFromRequest('group_id');
 
@@ -51,152 +53,191 @@ $group->clearError();
 if (getStringFromRequest('submit')) {
 	$form_group_name = getStringFromRequest('form_group_name');
 	$form_shortdesc = getStringFromRequest('form_shortdesc');
-	$form_homepage = getStringFromRequest('form_homepage');
-	$logo_image_id = getIntFromRequest('logo_image_id');
-	$use_mail = getStringFromRequest('use_mail');
-	$use_survey = getStringFromRequest('use_survey');
-	$use_forum = getStringFromRequest('use_forum');
-	$use_pm = getStringFromRequest('use_pm');
-	$use_scm = getStringFromRequest('use_scm');
-	$use_news = getStringFromRequest('use_news');
-	$use_docman = getStringFromRequest('use_docman');
-	$use_ftp = getStringFromRequest('use_ftp');
-	$use_tracker = getStringFromRequest('use_tracker');
-	$use_frs = getStringFromRequest('use_frs');
-	$use_stats = getStringFromRequest('use_stats');
-	$use_activity = getStringFromRequest('use_activity');
-	$tags = getStringFromRequest('form_tags');
-	$addTags = getArrayFromRequest('addTags');
-	$new_doc_address = getStringFromRequest('new_doc_address');
-	$send_all_docs = getStringFromRequest('send_all_docs');
-
-	if (trim($tags) != "") {
-		$tags .= ",";
+	$form_summary = getStringFromRequest('form_summary');
+	$logo_tmpfile = getStringFromRequest('logofilename');
+	$logo_type = getStringFromRequest('logofiletype');
+	$private = getStringFromRequest('private');
+        
+	// if private is 0, then booleanparam will be 0, otherwise set booleanparam to 1
+	// private = 0 means project is not public.
+	$feedback_more = "";	
+	if (isset($private) && $private == "0") {
+	  //echo "private: " . $private . "<br />";
+	  $private_param = 0;
+	  // disable global news
+	  $simtk_news = new Simtk_news($group);  
+	  if ($simtk_news->globalDisplayExist($group_id)) {
+	    $feedback_more = " (Notice: News displayed on the SimTK Site have been removed)"; 
+	  }
+	  $simtk_news->updateDisplayGlobalGroupID($group_id,0);
+	  $simtk_news->updateRequestGlobalGroupID($group_id,0);
+	} else {
+	  $private_param = 1;
 	}
-	$tags .= implode(",", $addTags);
-
-	$res = $group->update(
+	
+	$res = $group->updateInformation(
 		session_get_user(),
 		$form_group_name,
-		$form_homepage,
 		$form_shortdesc,
-		$use_mail,
-		$use_survey,
-		$use_forum,
-		$use_pm,
-		1,
-		$use_scm,
-		$use_news,
-		$use_docman,
-		$new_doc_address,
-		$send_all_docs,
-		100,
-		$use_ftp,
-		$use_tracker,
-		$use_frs,
-		$use_stats,
-		$tags,
-		$use_activity,
-		0
+                $form_summary,
+                $logo_tmpfile,
+                $logo_type,
+				$private_param
 	);
-
-	//100 $logo_image_id
 
 	if (!$res) {
 		$error_msg .= $group->getErrorMessage();
 	} else {
 		$feedback .= _('Project information updated');
+		$feedback .= $feedback_more;
 	}
+       if (getStringFromRequest('wizard')) {
+           header("Location: tools.php?group_id=$group_id&wizard=1");
+        }
 }
 
-project_admin_header(array('title'=>sprintf(_('Project Information for %s'), $group->getPublicName()),'group'=>$group->getID()));
+project_admin_header(array('title'=>'Admin','group'=>$group->getID()));
+
+echo "\n";
+echo "<div class=\"project_overview_main\">\n";
+echo "<div style=\"display: table; width: 100%;\">\n"; 
+echo "<div class=\"main_col\">\n";
+
 ?>
+
+<link rel='stylesheet' href='/account/register.css' type='text/css' />
+<!-- CSS to style the file input field as button and adjust the Bootstrap progress bars -->
+<link rel="stylesheet" href="/js/jquery.fileupload.css">
+<script src='/js/jquery-ui-1.10.1.custom.min.js'></script>
+<!-- The Load Image plugin for previewing images and image resizing -->
+<script src="/js/load-image.all.min.js"></script>
+<!-- The basic File Upload plugin -->
+<script src="/js/jquery.fileupload.js"></script>
+<!-- The File Upload processing plugin -->
+<script src="/js/jquery.fileupload-process.js"></script>
+<!-- The File Upload image preview & resize plugin -->
+<script src="/js/jquery.fileupload-image.js"></script>
+<!-- The File Upload validation plugin -->
+<script src="/js/jquery.fileupload-validate.js"></script>
+<script src='logoUploadHandler.js'></script>
+
+<script type="text/javascript">
+function ShowPopup(hoveritem)
+{
+	hp = document.getElementById("titlepopup");
+
+	// Set position of hover-over popup
+	hp.style.top = hoveritem.offsetTop + 18;
+	hp.style.left = hoveritem.offsetLeft + 20;
+
+	// Set popup to visible
+	hp.style.visibility = "Visible";
+}
+
+function HidePopup()
+{
+	hp = document.getElementById("titlepopup");
+	hp.style.visibility = "Hidden";
+}
+</script>
 
 <table class="my-layout-table">
 	<tr>
 		<td>
 
-<?php echo $HTML->boxTop(_('Misc. Project Information'));
+<?php 
 
-if (forge_get_config('use_shell')) {
-?>
-<p><?php echo _('Group shell (SSH) server:') ?> <strong><?php echo forge_get_config('shell_host'); ?></strong></p>
-<p><?php echo _('Group directory on shell server:') ?><br/><strong><?php echo account_group_homedir($group->getUnixName()); ?></strong></p>
-<p><?php echo _('Project WWW directory on shell server:') ?><br /><strong><?php echo account_group_homedir($group->getUnixName()).'/htdocs'; ?></strong></p>
-<?php
-	} //end of use_shell condition
+       if (getStringFromRequest('wizard')) {
+         echo $HTML->boxTop(_('<h3>Continue Project Setup - Information</h3>'));
+       } else {
+//         echo $HTML->boxTop(_('<h3>Project Information</h3>'));
+       }
+
 ?>
 
-<form action="<?php echo getStringFromServer('PHP_SELF'); ?>" method="post">
+
+
+<p>
+The information provided below will appear on your project's overview page. Please fill in all the fields, keeping in mind your audience.
+</p>
+
+<form action="<?php echo getStringFromServer('PHP_SELF'); ?>" method="post" enctype="multipart/form-data">
+<div class="row">
+<div class="col-sm-10">
 
 <input type="hidden" name="group_id" value="<?php echo $group->getID(); ?>" />
+<?php if (getStringFromRequest('wizard')) { ?>
+  <input type="hidden" name="wizard" value="1" />
+<?php } ?>
 
-<h2><?php echo _('Descriptive Project Name'); ?></h2>
-<p>
-<input type="text" name="form_group_name" value="<?php echo $group->getPublicName(); ?>" size="40" maxlength="40" />
+<h2><?php echo _('Project Title'); ?></h2>
+<p>The title will be displayed in all search results and should be short and descriptive. <b>Restrictions: 3-80 characters</b>.
 </p>
 
-<h2><?php echo _('Short Description'); ?></h2>
 <p>
-<?php echo _('Maximum 255 characters, HTML will be stripped from this description'); ?>
+<input type="text" name="form_group_name" value="<?php echo $group->getPublicName(); ?>" size="60" maxlength="80" /> 
 </p>
+
+<h2><?php echo _('Summary'); ?></h2>
+<p>Summary of your project which is displayed before the description on overview page and also in search results. <b>Restrictions:  10-255 characters</b>.</p>
+
 <p>
-<textarea cols="80" rows="3" name="form_shortdesc">
+<textarea cols="80" rows="3" name="form_summary">
+<?php echo $group->getSummary(); ?>
+</textarea>
+</p>
+
+<h2><?php echo _('Description'); ?></h2>
+<p>Your project's description is key to attracting the right people to it. Keep your audience in mind as you write your description.
+</p>
+
+<p>
+<textarea cols="80" rows="20" name="form_shortdesc">
 <?php echo $group->getDescription(); ?>
 </textarea>
 </p>
 
-<?php if (forge_get_config('use_project_tags')) { ?>
-<h2><?php echo _('Project tags'); ?></h2>
-<p>
-<?php echo _('Add tags (use comma as separator): ') ?><br />
-<input type="text" name="form_tags" size="100" value="<?php echo $group->getTags(); ?>" />
-</p>
-<?php
-	$infos = getAllProjectTags();
-	if ($infos) {
-		echo '<br />';
-		echo _('Or pick a tag from those used by other projects: ');
-		echo '<br />';
-		echo '<table width="100%"><thead><tr>';
-		echo '<th>'._('Tags').'</th>';
-		echo '<th>'._('Projects').'</th>';
-		echo '</tr></thead><tbody>';
+<h2><?php echo _('Logo') ?></h2>
 
-		$unix_name = $group->getUnixName();
-		foreach ($infos as $tag => $plist) {
-			$disabled = '';
-			$links = array();
-			foreach($plist as $project) {
-				$links[] = util_make_link('/projects/'.$project['unix_group_name'].'/',$project['unix_group_name']);
-				if ($project['group_id'] == $group_id) {
-					$disabled = ' disabled="disabled"';
-				}
-			}
+<p><b>Restrictions: Less than 2MB; Must be png, jpeg, or gif image format</b></p>
 
-			echo '<tr>';
-			echo '<td><input type="checkbox" name="addTags[]" value="'.$tag.'"'.$disabled.' /> ';
-			if ($disabled) {
-				echo '<s>'.$tag.'</s>';
-			} else {
-				echo $tag;
-			}
-			echo '</td>';
-			echo '<td>'.implode(' ', $links).'</td>' ;
-			echo '</tr>' ;
-		}
-		echo '</tbody></table>' ;
+    <div class="submodule_picture">
+        <div id="fileDataDiv"></div>
+		<div class="logo_wrapper"><?php
+
+	if (trim($group->getLogoFile() != "")) {
+		// Has logo file.
+		// Force image to refresh; otherwise, the cached image 
+	    // would be used which may be old.
+		echo '<img src="/logos/'.$group->getLogoFile() . '_thumb?dummy_value=' . rand() . '" />';
 	}
-} ?>
+	else {
+		// Show a default logo file.
+		//echo "_thumb";
+	}
 
-<h2><?php echo _('Trove Categorization'); ?></h2>
-<p>
-<a href="/project/admin/group_trove.php?group_id=<?php echo $group->getID(); ?>">[<?php echo _('Edit Trove'); ?>]</a>
-</p>
+    ?></div> <!-- logo wrapper -->
+		
+		<p>
+        <div class="drag_and_drop_wrapper">
+			<div class="div_drag_and_drop" id="div_drag_and_drop"><p>To add your image, drag and drop a file into this box or select a file from your computer.</p>
+				<span class="btn btn-success fileinput-button">
+					<i class="glyphicon"></i>
+					<span>Browse...</span>
+					<input type="file" name="files[]" id="fileupload" />
+				</span>
+			</div> <!-- div_drag_and_drop -->
+		</div> <!-- drag_and_drop_wrapper -->
+		</p>
+    </div> <!-- submodule_picture -->
 
-<h2><?php echo _('Homepage Link') ?></h2>
+<br />
+<h2><?php echo _('Privacy'); ?></h2>
+
+<p>Checking the box below prevents access to all subsections of your project (team, documents, source control, downloads, etc.). Only your overview page remains publicly viewable. The privacy of download packages, documents, and source control, can be independently controlled. This is the preferred way to manage the privacy of your project.</p>
+
 <p>
-<input type="text" name="form_homepage" size="100" value="<?php echo $group->getHomePage(); ?>" />
+<input type="checkbox" name="private" value="0" <?php if (!$group->isPublic()) { echo 'checked="checked"'; } ?>/> Keep project private.
 </p>
 
 <?php
@@ -211,84 +252,24 @@ function c($v) {
 ?>
 
 <?php
-if(forge_get_config('use_mail')) {
-?>
-<input type="hidden" name="use_mail" value="<?php echo ($group->usesMail() ? '1' : '0'); ?>" />
-<?php
-}
+if (getStringFromRequest('wizard')) { ?>
 
-if(forge_get_config('use_survey')) {
-?>
-<input type="hidden" name="use_survey" value="<?php echo ($group->usesSurvey() ? '1' : '0'); ?>" />
-<?php
-}
+   <p>
+   <input type="submit" name="submit" value="<?php echo _('Save and Continue') ?>" />
+   </p>
 
-if(forge_get_config('use_activity')) {
-?>
-<input type="hidden" name="use_activity" value="<?php echo ($group->usesActivity() ? '1' : '0'); ?>" />
-<?php
-}
+  <?php      }
+else { ?>
 
-if(forge_get_config('use_forum')) {
-?>
-<input type="hidden" name="use_forum" value="<?php echo ($group->usesForum() ? '1' : '0'); ?>" />
-<?php
-}
-
-if(forge_get_config('use_pm')) {
-?>
-<input type="hidden" name="use_pm" value="<?php echo ($group->usesPM() ? '1' : '0'); ?>" />
-<?php
-}
-
-if(forge_get_config('use_scm')) {
-?>
-<input type="hidden" name="use_scm" value="<?php echo ($group->usesSCM() ? '1' : '0'); ?>" />
-<?php
-}
-
-if(forge_get_config('use_news')) {
-?>
-<input type="hidden" name="use_news" value="<?php echo ($group->usesNews() ? '1' : '0'); ?>" />
-<?php
-}
-
-if(forge_get_config('use_docman')) {
-?>
-<input type="hidden" name="use_docman" value="<?php echo ($group->usesDocman() ? '1' : '0'); ?>" />
+<br />
 <p>
-<?php echo _('If you wish, you can provide default email addresses to which new submissions will be sent') ?>.<br />
-<strong><?php echo _('New Document Submissions')._(':'); ?></strong><br />
-<input type="email" name="new_doc_address" value="<?php echo $group->getDocEmailAddress(); ?>" size="40" maxlength="250" />
-<?php echo _('(send on all updates)') ?>
-<input type="checkbox" name="send_all_docs" value="1" <?php echo c($group->docEmailAll()); ?> />
+<input type="submit" class="btn-cta" name="submit" value="<?php echo _('Update') ?>" />
 </p>
-<?php
-}
 
-if(forge_get_config('use_ftp')) {
-?>
-<input type="hidden" name="use_ftp" value="<?php echo ($group->usesFTP() ? '1' : '0'); ?>" />
-<?php
-}
-
-if(forge_get_config('use_tracker')) {
-?>
-<input type="hidden" name="use_tracker" value="<?php echo ($group->usesTracker() ? '1' : '0'); ?>" />
-<?php
-}
-
-if(forge_get_config('use_frs')) {
-?>
-<input type="hidden" name="use_frs" value="<?php echo ($group->usesFRS() ? '1' : '0'); ?>" />
 <?php } ?>
 
-<input type="hidden" name="use_stats" value="<?php echo ($group->usesStats() ? '1' : '0'); ?>" />
-
-<p>
-<input type="submit" name="submit" value="<?php echo _('Update') ?>" />
-</p>
-
+</div> <!-- col-sm-10 -->
+</div> <!-- row-->
 </form>
 
 <?php
@@ -301,6 +282,8 @@ echo $HTML->boxBottom();?>
 </table>
 
 <?php
+
+echo "</div><!--main_col-->\n</div><!--display table-->\n</div><!--project_overview_main-->\n";
 
 project_admin_footer(array());
 

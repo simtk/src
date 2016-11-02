@@ -3,6 +3,7 @@
  * Tracker Facility
  *
  * Copyright 2010 (c) FusionForge Team
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -25,6 +26,7 @@ $name = getStringFromRequest('name', $ath->getName());
 $description = getStringFromRequest('description', $ath->getDescription());
 $email_address = getStringFromRequest('email_address', $ath->getEmailAddress());
 $email_all = getStringFromRequest('email_all', $ath->emailAll());
+$simtk_allow_anon = getStringFromRequest('simtk_allow_anon', $ath->getSimtkAllowAnon());
 $due_period = getStringFromRequest('due_period', $ath->getDuePeriod() / 86400);
 $status_timeout = getStringFromRequest('status_timeout', $ath->getStatusTimeout() / 86400);
 $submit_instructions = getStringFromRequest('submit_instructions', $ath->getSubmitInstructions());
@@ -33,8 +35,11 @@ $browse_instructions = getStringFromRequest('browse_instructions', $ath->getBrow
 //
 //	FORM TO UPDATE ARTIFACT TYPES
 //
-$ath->adminHeader(array('title'=>sprintf(_('Update settings for %s'),
-	$ath->getName())));
+$ath->adminHeader(array('title'=>sprintf(_('Update settings for %s'), $ath->getName())));
+
+// Update page title identified by the class "project_submenu".
+echo '<script>$(".project_submenu").html("Tracker: ' . $name . '");</script>';
+
 		?>
 		<form action="<?php echo getStringFromServer('PHP_SELF').'?group_id='.$group_id.'&amp;atid='.$ath->getID(); ?>" method="post">
 		<p>
@@ -61,6 +66,8 @@ $ath->adminHeader(array('title'=>sprintf(_('Update settings for %s'),
 		?>
 		</p>
 		<p>
+		<input type="checkbox" name="simtk_allow_anon" value="1" <?php echo (($simtk_allow_anon)?'checked="checked"':''); ?> /> <strong><?php echo 'Allow non-logged-in postings' ?></strong></p>
+		<p>
 		<strong><?php echo _('Send email on new submission to address')._(':'); ?></strong><br />
 		<input type="text" name="email_address" value="<?php echo $email_address; ?>" /></p>
 		<p>
@@ -78,7 +85,7 @@ $ath->adminHeader(array('title'=>sprintf(_('Update settings for %s'),
 		<strong><?php echo _('Free form text for the Browse page')._(':'); ?></strong><br />
 		<textarea name="browse_instructions" rows="10" cols="55"><?php echo $browse_instructions; ?></textarea></p>
 		<p>
-		<input type="submit" name="post_changes" value="<?php echo _('Submit') ?>" /></p>
+		<input type="submit" name="post_changes" value="Submit" class="btn-cta" /></p>
 		</form>
 		<?php
 

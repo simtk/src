@@ -1,5 +1,7 @@
 <?php
 /**
+ * SVNPlugin.class.php
+ *
  * FusionForge Subversion plugin
  *
  * Copyright 2003-2010, Roland Mas, Franck Villaume
@@ -7,6 +9,7 @@
  * Copyright 2010, Alain Peyrat <aljeux@free.fr>
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * Copyright 2013, French Ministry of National Education
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge.
  *
@@ -41,11 +44,14 @@ class SVNPlugin extends SCMPlugin {
 		$this->SCMPlugin();
 		$this->name = 'scmsvn';
 		$this->text = 'Subversion';
-		$this->svn_root_fs = '/scmrepos/svn';
+		//$this->svn_root_fs = '/scmrepos/svn';
+		$this->svn_root_fs = '/svn';
+		/*
 		if (!file_exists($this->svn_root_fs.'/.')) {
 			$this->svn_root_fs = forge_get_config('repos_path',
 			    $this->name);
 		}
+		*/
 		$this->svn_root_dav = '/svn';
 		$this->_addHook('scm_browser_page');
 		$this->_addHook('scm_update_repolist');
@@ -69,9 +75,9 @@ class SVNPlugin extends SCMPlugin {
 		}
 
 		if ($project->usesPlugin($this->name) && forge_check_perm('scm', $project->getID(), 'read')) {
-			$result = db_query_params('SELECT sum(updates) AS updates, sum(adds) AS adds FROM stats_cvs_group WHERE group_id=$1',
+			$result = db_query_params('SELECT sum(commits) AS commits, sum(adds) AS adds FROM stats_cvs_group WHERE group_id=$1',
 						  array ($project->getID())) ;
-			$commit_num = db_result($result,0,'updates');
+			$commit_num = db_result($result,0,'commits');
 			$add_num    = db_result($result,0,'adds');
 			if (!$commit_num) {
 				$commit_num=0;
@@ -83,8 +89,10 @@ class SVNPlugin extends SCMPlugin {
 		}
 	}
 
-	function getBlurb() {
+	function getBlurb($project) {
 		return '<p>'
+		        . sprintf(_('For quick instructions on installing and using <a href="http://subversion.apache.org/">Subversion</a> (sometimes called "SVN") please click <a href="instructions.php?group_id=%1$s">here</a>.'), $project->getID())
+				. '</p><p>'
 				. sprintf(_('Documentation for %1$s is available at <a href="%2$s">%2$s</a>.'),
 							'Subversion (“SVN”)',
 							'http://svnbook.red-bean.com/')
@@ -95,7 +103,8 @@ class SVNPlugin extends SCMPlugin {
 		// Check toplevel module presence
 		$repo = 'file://' . forge_get_config('repos_path', $this->name).'/'.$project->getUnixName().'/';
 		$res = array ();
-		$module = 'trunk';
+		//$module = 'trunk';
+		$module = '';
 		if (!(exec("svn ls '$repo'", $res) && in_array($module.'/', $res)))
 		{
 			$module = '';
@@ -113,7 +122,7 @@ class SVNPlugin extends SCMPlugin {
 		$b .= '<p>' ;
 		$module = $this->topModule($project);
 		if (forge_get_config('use_ssh', 'scmsvn')) {
-			$b .= '<tt>svn checkout svn://'.$this->getBoxForProject($project).$this->svn_root_fs.'/'.$project->getUnixName().$module.'</tt><br />';
+			$b .= '<tt>svn checkout svn://'.$this->getBoxForProject($project).$this->svn_root_fs.'/'.$project->getUnixName().$module.'</tt><br />';    	
 		}
 		if (forge_get_config('use_dav', 'scmsvn')) {
 			$b .= '<tt>svn checkout --username '.forge_get_config('anonsvn_login', 'scmsvn').' http'.((forge_get_config('use_ssl', 'scmsvn')) ? 's' : '').'://' . $this->getBoxForProject($project). $this->svn_root_dav .'/'. $project->getUnixName() .$module.'</tt><br />';
@@ -194,7 +203,9 @@ class SVNPlugin extends SCMPlugin {
 
 	function getBrowserLinkBlock($project) {
 		global $HTML ;
-		$b = $HTML->boxMiddle(sprintf(_('%s Repository Browser'), 'Subversion'));
+		$b = '<h2>';
+		$b .= $HTML->boxMiddle(sprintf(_('%s Repository Browser'), 'Subversion'));
+		$b .= '</h2>';
 		$b .= '<p>';
 		$b .= sprintf(_("Browsing the %s tree gives you a view into the current status of this project's code."), 'Subversion');
 		$b .= ' ';
@@ -212,7 +223,7 @@ class SVNPlugin extends SCMPlugin {
 		global $HTML ;
 		$b = '' ;
 
-		$result = db_query_params('SELECT u.realname, u.user_name, u.user_id, sum(updates) as updates, sum(adds) as adds, sum(adds+updates) as combined FROM stats_cvs_user s, users u WHERE group_id=$1 AND s.user_id=u.user_id AND (updates>0 OR adds >0) GROUP BY u.user_id, realname, user_name, u.user_id ORDER BY combined DESC, realname',
+		$result = db_query_params('SELECT u.realname, u.user_name, u.user_id, sum(commits) as commits, sum(adds) as adds, sum(adds+commits) as combined FROM stats_cvs_user s, users u WHERE group_id=$1 AND s.user_id=u.user_id AND (commits>0 OR adds >0) GROUP BY u.user_id, realname, user_name, u.user_id ORDER BY combined DESC, realname',
 					  array ($project->getID()));
 
 		if (db_numrows($result) > 0) {
@@ -226,22 +237,22 @@ class SVNPlugin extends SCMPlugin {
 			$b .= $HTML->listTableTop($tableHeaders);
 
 			$i = 0;
-			$total = array('adds' => 0, 'updates' => 0);
+			$total = array('adds' => 0, 'commits' => 0);
 
 			while($data = db_fetch_array($result)) {
 				$b .= '<tr '. $HTML->boxGetAltRowStyle($i) .'>';
 				$b .= '<td width="50%">' ;
 				$b .= util_make_link_u ($data['user_name'], $data['user_id'], $data['realname']) ;
 				$b .= '</td><td width="25%" align="right">'.$data['adds']. '</td>'.
-					'<td width="25%" align="right">'.$data['updates'].'</td></tr>';
+					'<td width="25%" align="right">'.$data['commits'].'</td></tr>';
 				$total['adds'] += $data['adds'];
-				$total['updates'] += $data['updates'];
+				$total['commits'] += $data['commits'];
 				$i++;
 			}
 			$b .= '<tr '. $HTML->boxGetAltRowStyle($i) .'>';
 			$b .= '<td width="50%"><strong>'._('Total')._(':').'</strong></td>'.
 				'<td width="25%" align="right"><strong>'.$total['adds']. '</strong></td>'.
-				'<td width="25%" align="right"><strong>'.$total['updates'].'</strong></td>';
+				'<td width="25%" align="right"><strong>'.$total['commits'].'</strong></td>';
 			$b .= '</tr>';
 			$b .= $HTML->listTableBottom();
 		}
@@ -369,12 +380,8 @@ class SVNPlugin extends SCMPlugin {
 			}
 
 			if ($project->enableAnonSCM()) {
-				$anonRole = RoleAnonymous::getInstance();
-				if ($anonRole->hasPermission('scm', $project->getID(), 'write')) {
-					$access_data .= forge_get_config('anonsvn_login', 'scmsvn')." = rw\n";
-				} else {
-					$access_data .= forge_get_config('anonsvn_login', 'scmsvn')." = r\n";
-				}
+				$access_data .= forge_get_config('anonsvn_login', 'scmsvn')." = r\n";
+				$access_data .= "* = r\n";
 			}
 
 			$access_data .= "\n";
@@ -404,7 +411,7 @@ class SVNPlugin extends SCMPlugin {
 	function gatherStats($params) {
 		global $last_user, $last_time, $last_tag, $time_ok, $start_time, $end_time,
 			$adds, $deletes, $updates, $commits, $date_key,
-			$usr_adds, $usr_deletes, $usr_updates, $usr_commits;
+			$usr_adds, $usr_deletes, $usr_updates;
 
 		$time_ok = true;
 
@@ -429,16 +436,12 @@ class SVNPlugin extends SCMPlugin {
 
 			$adds    = 0;
 			$updates = 0;
-			$deletes = 0;
-			$commits = 0;
-
 			$usr_adds    = array();
 			$usr_updates = array();
-			$usr_deletes = array();
-			$usr_commits = array();
 
 			$repo = forge_get_config('repos_path', 'scmsvn') . '/' . $project->getUnixName();
 			if (!is_dir ($repo) || !is_file ("$repo/format")) {
+				echo "No repository $repo\n";
 				db_rollback();
 				return false;
 			}
@@ -477,7 +480,7 @@ class SVNPlugin extends SCMPlugin {
 			while (!feof($pipe) &&
 				$data = fgets ($pipe, 4096)) {
 				if (!xml_parse ($xml_parser, $data, feof ($pipe))) {
-					$this->setError("Unable to parse XML with error " .
+					debug("Unable to parse XML with error " .
 					      xml_error_string(xml_get_error_code($xml_parser)) .
 					      " on line " .
 					      xml_get_current_line_number($xml_parser));
@@ -490,16 +493,14 @@ class SVNPlugin extends SCMPlugin {
 			xml_parser_free($xml_parser);
 
 			// inserting group results in stats_cvs_groups
-			if ($updates > 0 || $adds > 0 || $deletes > 0 || $commits > 0) {
-				if (!db_query_params('INSERT INTO stats_cvs_group (month,day,group_id,checkouts,commits,adds,updates,deletes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)',
+			if ($updates > 0 || $adds > 0) {
+				if (!db_query_params('INSERT INTO stats_cvs_group (month,day,group_id,checkouts,commits,adds) VALUES ($1,$2,$3,$4,$5,$6)',
 						      array ($month_string,
 							     $day,
 							     $project->getID(),
 							     0,
-							     $commits,
-							     $adds,
 							     $updates,
-							     $deletes))) {
+							     $adds))) {
 					echo "Error while inserting into stats_cvs_group\n" ;
 					db_rollback();
 					return false;
@@ -507,7 +508,7 @@ class SVNPlugin extends SCMPlugin {
 			}
 
 			// building the user list
-			$user_list = array_unique( array_merge( array_keys( $usr_adds ), array_keys( $usr_updates ),  array_keys( $usr_deletes ), array_keys( $usr_commits )) );
+			$user_list = array_unique( array_merge( array_keys( $usr_adds ), array_keys( $usr_updates ) ) );
 
 			foreach ( $user_list as $user ) {
 				// trying to get user id from user name
@@ -518,20 +519,16 @@ class SVNPlugin extends SCMPlugin {
 					continue;
 				}
 
-				$uc = isset($usr_commits[$user]) ? $usr_commits[$user] : 0 ;
 				$uu = isset($usr_updates[$user]) ? $usr_updates[$user] : 0 ;
 				$ua = isset($usr_adds[$user]) ? $usr_adds[$user] : 0 ;
-				$ud = isset($usr_deletes[$user]) ? $usr_deletes[$user] : 0 ;
-				if ($uu > 0 || $ua > 0 || $uc > 0 || $ud > 0) {
-					if (!db_query_params ('INSERT INTO stats_cvs_user (month,day,group_id,user_id,commits,adds, updates, deletes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)',
+				if ($uu > 0 || $ua > 0) {
+					if (!db_query_params ('INSERT INTO stats_cvs_user (month,day,group_id,user_id,commits,adds) VALUES ($1,$2,$3,$4,$5,$6)',
 							      array ($month_string,
 								     $day,
 								     $project->getID(),
 								     $user_id,
-								     $uc,
-								     $ua,
 								     $uu,
-								     $ud))) {
+								     $ua))) {
 						echo "Error while inserting into stats_cvs_user\n" ;
 						db_rollback () ;
 						return false ;
@@ -613,6 +610,7 @@ class SVNPlugin extends SCMPlugin {
 	function activity($params) {
 		global $last_user, $last_time, $last_tag, $time_ok, $start_time, $end_time,
 			$adds, $deletes, $updates, $commits, $date_key,
+			$usr_adds, $usr_deletes, $usr_updates, $old_commit,
 			$messages, $last_message, $times, $revisions, $users;
 		$group_id = $params['group'];
 		$project = group_get_object($group_id);
@@ -621,6 +619,8 @@ class SVNPlugin extends SCMPlugin {
 		}
 
 		if (in_array('scmsvn', $params['show']) || (count($params['show']) < 1)) {
+			$commits = 0;
+			$old_commit = -1;
 			$start_time = $params['begin'];
 			$end_time = $params['end'];
 			$d1 = date('Y-m-d', $start_time - 80000);
@@ -642,7 +642,7 @@ class SVNPlugin extends SCMPlugin {
 				}
 			}
 			xml_parser_free($xml_parser);
-			if ($adds > 0 || $updates > 0 || $commits > 0 || $deletes > 0) {
+			if ($adds > 0 || $updates > 0) {
 				$i = 0;
 				foreach ($messages as $message) {
 					$result = array();
@@ -650,11 +650,14 @@ class SVNPlugin extends SCMPlugin {
 					$result['group_id'] = $group_id;
 					$result['ref_id'] = 'viewvc.php/?root='.$project->getUnixName();
 					$result['description'] = htmlspecialchars($message).' (r'.$revisions[$i].')';
+					$result['user_name'] = $users[$i];
 					$userObject = user_get_object_by_name($users[$i]);
 					if (is_a($userObject, 'GFUser')) {
-						$result['realname'] = util_display_user($userObject->getUnixName(), $userObject->getID(), $userObject->getRealName());
+						$result['realname'] = $userObject->getFirstName().' '.$userObject->getLastName();
+						$result['user_id'] = $userObject->getId();
 					} else {
 						$result['realname'] = '';
+						$result['user_id'] = '';
 					}
 					$result['activity_date'] = $times[$i];
 					$result['subref_id'] = '&view=rev&revision='.$revisions[$i];
@@ -664,7 +667,7 @@ class SVNPlugin extends SCMPlugin {
 			}
 		}
 		$params['ids'][] = $this->name;
-		$params['texts'][] = _('Subversion Commits');
+		$params['texts'][] = _('Source Code Commits');
 		return true;
 	}
 }
@@ -672,14 +675,12 @@ class SVNPlugin extends SCMPlugin {
 // End of class, helper functions now
 
 function SVNPluginCharData($parser, $chars) {
-	global $last_tag, $last_user, $last_time, $start_time, $end_time, $usr_commits, $commits,
+	global $last_tag, $last_user, $last_time, $start_time, $end_time, $old_commit, $commits,
 		$time_ok, $user_list, $last_message, $messages, $times, $users;
 	switch ($last_tag) {
 		case "AUTHOR": {
 			$last_user = preg_replace('/[^a-z0-9_-]/', '', strtolower(trim($chars)));
 			$users[] = $last_user;
-			$usr_commits[$last_user] = isset($usr_commits[$last_user]) ? ($usr_commits[$last_user]+1) : 1 ;
-			$commits++;
 			break;
 		}
 		case "DATE": {
@@ -689,28 +690,28 @@ function SVNPluginCharData($parser, $chars) {
 				$time_ok = true;
 			} else {
 				$time_ok = false;
-				if ($last_user !== '') // empty in e.g. tags from cvs2svn
-					$usr_commits[$last_user]--;
-				$commits--;
 			}
 			$times[] = $last_time;
 			break;
 		}
 		case "MSG": {
-			if ($time_ok === true) {
+			/* If commit id is the same, then concatenate the string with the previous
++			 * (happen when the message contain accents).
++			 */
+			if ($old_commit == $commits) {
 				$messages[count($messages)-1] .= $chars;
+			} else {
+				$messages[] = $chars;
 			}
-                        /* note: there may be more than one msg
-			 * (happen when the message contain accents).
-			 */
+			$old_commit = $commits;
 			break;
 		}
 	}
 }
 
 function SVNPluginStartElement($parser, $name, $attrs) {
-	global $last_user, $last_time, $last_tag, $time_ok, $commits,
-		$adds, $updates, $usr_adds, $usr_updates, $last_message, $messages, $times, $revisions, $deletes, $usr_deletes;
+	global $last_user, $last_time, $last_tag, $time_ok,
+		$adds, $updates, $usr_adds, $usr_updates, $last_message, $messages, $times, $revisions;
 	$last_tag = $name;
 	switch($name) {
 		case "LOGENTRY": {
@@ -721,8 +722,7 @@ function SVNPluginStartElement($parser, $name, $attrs) {
 			break;
 		}
 		case "PATH": {
-			if ($time_ok === true) {
-
+			if ($time_ok) {
 				if ($attrs['ACTION'] == "M") {
 					$updates++;
 					if ($last_user) {
@@ -733,26 +733,18 @@ function SVNPluginStartElement($parser, $name, $attrs) {
 					if ($last_user) {
 						$usr_adds[$last_user] = isset($usr_adds[$last_user]) ? ($usr_adds[$last_user]+1) : 1 ;
 					}
-				} elseif ($attrs['ACTION'] == 'D') {
-					$deletes++;
-					if ($last_user) {
-						$usr_deletes[$last_user] = isset($usr_deletes[$last_user]) ? ($usr_deletes[$last_user]+1) : 1 ;
-					}
 				}
 			}
 			break;
 		}
-                case "MSG": {
-			if ($time_ok === true) {
-				$messages[] = "";
-			}
-			break;
-                }
 	}
 }
 
 function SVNPluginEndElement($parser, $name) {
-	global $last_tag;
+	global $time_ok, $last_tag, $commits;
+	if ($name == "LOGENTRY" && $time_ok) {
+		$commits++;
+	}
 	$last_tag = "";
 }
 

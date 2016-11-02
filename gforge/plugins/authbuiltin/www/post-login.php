@@ -9,6 +9,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2011, Roland Mas
  * Copyright 2011, Franck Villaume - Capgemini
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -45,8 +46,23 @@ $form_loginname = getStringFromRequest('form_loginname');
 $form_pw = getStringFromRequest('form_pw');
 $triggered = getIntFromRequest('triggered');
 
-if (session_loggedin())
+/*
+if (session_loggedin()) {
 	session_redirect('/my');
+}
+*/
+// NOTE: After the user enters login/password information using the login page,
+// at this point, the system actually has not yet logged in the user using that information.
+// If there is already a session in progress, the user will not be logged in
+// using this new set of credentials. Hence, it is incorrect to redirect to the 'my' page here,
+// which will be showing the 'my' page of the user who is logged in.
+//
+// For example, if the user was already logged in as the "admin" user, logging in again using
+// the log in page to become a lower-privileged user will not automatically
+// logged out the "admin" user.
+//
+// It is better to log out the session here first and re-authenticate with the username/password entered.
+session_logout();
 
 //
 //	Validate return_to
@@ -81,8 +97,15 @@ if ($login) {
 		if ($plugin->isSufficient()) {
 			$plugin->startSession($form_loginname);
 		}
+		// User validated.
 		if ($return_to) {
-			session_redirect($return_to);
+			if (trim($return_to) == "/") { 
+				// $return_to is not really specified. Use the 'my' page.
+				session_redirect('/my');
+			}
+			else {
+				session_redirect($return_to);
+			}
 			exit;
 		} else {
 			session_redirect('/my');
@@ -103,7 +126,8 @@ if ($login) {
 			$u = user_get_object_by_name($form_loginname) ||
 				user_get_object_by_email($form_loginname) ;
 			if (!$u) {
-				$warning_msg .= '<br />'. _('Your account does not exist.');
+				// Disabled. Do not give out too much information.
+				//$warning_msg .= '<br />'. _('Your account does not exist.');
 			}
 		}
 	} elseif ($userstatus == "P") {

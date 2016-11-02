@@ -3,6 +3,7 @@
  * FusionForge plugin system
  *
  * Copyright 2002, 2009, Roland Mas
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -239,15 +240,23 @@ class PluginManager extends Error {
 	 *
 	 * @param	string	$hookname - name of the hook
 	 * @param	array	$params - array of extra parameters
+ 	 * @param	string	$plugin_name - optional parameter to specify a plugin name.
 	 *
 	 * @return	boolean, true if all returned true.
 	 */
-	function RunHooks($hookname, & $params) {
+	function RunHooks($hookname, & $params, $plugin_name = "") {
 		$result = true;
 		$this->returned_values[$hookname] = array();
 		if (isset($this->hooks_to_plugins[$hookname])) {
 			$p_list = $this->hooks_to_plugins[$hookname];
 			foreach ($p_list as $p_name) {
+				if ($plugin_name != "") {
+					if ($p_name != $plugin_name) {
+						// Looking for a specific plugin_name.
+						// Not matched; skip.
+						continue;
+					}
+				}
 				$p_obj = $this->plugins_objects[$p_name];
 				if (method_exists($p_obj, $hookname)) {
 					$returned = $p_obj->$hookname($params);
@@ -339,12 +348,13 @@ function register_plugin(&$pluginobject) {
  * plugin_hook() - run a set of hooks
  *
  * @param	string	$hookname - name of the hook
- * @param	array		$params - parameters for the hook
+ * @param	array	$params - parameters for the hook
+ * @param	string	$plugin_name - optional parameter to specify a plugin name.
  * @return	bool
  */
-function plugin_hook($hookname, $params = array()) {
+function plugin_hook($hookname, $params = array(), $plugin_name = "") {
 	$pm =& plugin_manager_get_object();
-	return $pm->RunHooks($hookname, $params);
+	return $pm->RunHooks($hookname, $params, $plugin_name);
 }
 
 /**
@@ -352,11 +362,12 @@ function plugin_hook($hookname, $params = array()) {
  *
  * @param	string	$hookname - name of the hook
  * @param	array	$params - parameters for the hook
+ * @param	string	$plugin_name - optional parameter to specify a plugin name.
  * @return	bool
  */
-function plugin_hook_by_reference($hookname, &$params) {
+function plugin_hook_by_reference($hookname, &$params, $plugin_name = "") {
 	$pm =& plugin_manager_get_object();
-	return $pm->RunHooks($hookname, $params);
+	return $pm->RunHooks($hookname, $params, $plugin_name);
 }
 
 /**

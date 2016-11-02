@@ -6,6 +6,7 @@
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * Copyright 2012, Thorsten “mirabilos” Glaser <t.glaser@tarent.de>
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -493,8 +494,9 @@ switch (getStringFromRequest('func')) {
 			} elseif ($ah->isError()) {
 				exit_error($ah->getErrorMessage(),'tracker');
 			}
-			if (!getStringFromRequest('confirm_delete')) {
-				$warning_msg .= _('Confirmation failed. Artifact not deleted');
+
+			if (!getStringFromRequest('sure') || !getStringFromRequest('really_sure')) {
+				$warning_msg .= 'Artifact not deleted: Please tick all confirmation checkboxes!';
 			}
 			else {
 				if (!$ah->delete(true)) {

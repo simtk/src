@@ -4,6 +4,7 @@
  *
  * Copyright 2010 (c) FusionForge Team
  * Copyright 2014, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -45,6 +46,9 @@ if (!$ac || !is_object($ac)) {
 		$title = sprintf(_('Update a custom field element in %s'), $ath->getName()) ;
 		$ath->adminHeader(array('title'=>$title));
 
+		// Update page title identified by the class "project_submenu".
+		echo '<script>$(".project_submenu").html("Tracker: ' . $ath->getName() . '");</script>';
+
 ?>
 			<h2><?php echo _('Custom field name')._(': ').$ac->getName() ?></h2>
 			<form action="<?php echo getStringFromServer('PHP_SELF').'?group_id='.$group_id.'&amp;atid='.$ath->getID(); ?>" method="post">
@@ -69,7 +73,7 @@ if (!$ac || !is_object($ac)) {
 			<div class="warning"><?php echo _('It is not recommended that you change the custom field name because other things are dependent upon it. When you change the custom field name, all related items will be changed to the new name.') ?>
 			</div>
 			<p>
-			<input type="submit" name="post_changes" value="<?php echo _('Submit') ?>" /></p>
+			<input type="submit" name="post_changes" value="Submit" class="btn-cta" /></p>
 			</form>
 			<?php
 			$ath->footer(array());

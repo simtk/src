@@ -6,6 +6,7 @@
  * Copyright (C) 2002-2004 GForge Team
  * Copyright (C) 2008-2010 Alcatel-Lucent
  * Copyright 2013, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * http://fusionforge.org/
  *
@@ -129,6 +130,7 @@ if (session_loggedin()) {
 	*/
 	$group = group_get_object($group_id);
 	news_header(array('title'=>_('Submit News for Project: ').' '.$group->getPublicName()));
+    
 
 	$jsfunc = notepad_func();
 

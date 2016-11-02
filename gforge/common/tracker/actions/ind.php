@@ -5,6 +5,7 @@
  * Copyright 2010-2011, Franck Villaume - Capgemini
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -64,6 +65,11 @@ if (!$at_arr || count($at_arr) < 1) {
 		} elseif ($at_arr[$j]->isError()) {
 			echo $at_arr[$j]->getErrorMessage();
 		} else {
+			if ($at_arr[$j]->getName() == "") {
+				// Data not available or access not permitted. Skip.
+				continue;
+			}
+
 			echo '
 		<tr '. $HTML->boxGetAltRowStyle($j) . '>
 			<td><a href="'.util_make_uri('/tracker/?atid='.$at_arr[$j]->getID().'&amp;group_id='.$group_id.'&amp;func=browse').'">'.

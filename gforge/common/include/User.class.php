@@ -7,6 +7,7 @@
  * Copyright 2011, Franck Villaume - Capgemini
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * Copyright (C) 2012 Alain Peyrat - Alcatel-Lucent
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -24,6 +25,8 @@
  * with FusionForge; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+
+require_once 'image.php';
 
 $USER_OBJ = array();
 
@@ -296,68 +299,80 @@ class GFUser extends Error {
      * @return	bool|int	The newly created user ID
 	 *
 	 */
-	function create($unix_name, $firstname, $lastname, $password1, $password2, $email,
-					$mail_site, $mail_va, $language_id, $timezone,
-					$dummy1, $dummy2, $theme_id, $unix_box = 'shell',
-					$address = '', $address2 = '', $phone = '', $fax = '', $title = '',
-					$ccode = 'US', $send_mail = true, $tooltips = true) {
+	function create($unix_name, $firstname, $lastname, $password1, $password2, $email, 
+		$mail_site, $mail_va, $language_id, $timezone,
+		$dummy1, $dummy2, $theme_id, $unix_box = 'shell', 
+		$address = '', $address2 = '', $phone = '', $fax = '', $title = '', 
+		$ccode = 'US', $send_mail = true, $tooltips = true, 
+		$interest_simtk = '', $lab_name = '', $lab_website = '', 
+		$university_name, $university_website = '', $personal_website = '',
+                $userpic_tmpfile = '', $userpic_type = '', 
+		$foundUs = '', $foundUsNote = '',
+		$override_lab_website=false, 
+		$override_university_website=false, 
+		$override_personal_website=false) {
+
 		global $SYS;
 		if (!$theme_id) {
-			$this->setError(_('You must supply a theme'));
+			$this->setError(_('theme_id^' . 'You must supply a theme'));
 			return false;
 		}
 		if (!forge_get_config('require_unique_email')) {
 			if (!$unix_name) {
-				$this->setError(_('You must supply a username'));
+				$this->setError(_('unix_name^' . 'You must supply a username'));
 				return false;
 			}
 		}
 		if (!$firstname) {
-			$this->setError(_('You must supply a first name'));
+			$this->setError(_('firstname^' . 'You must supply a first name'));
 			return false;
 		}
 		if (!$lastname) {
-			$this->setError(_('You must supply a last name'));
+			$this->setError(_('lastname^' . 'You must supply a last name'));
+			return false;
+		}
+		if (!$university_name) {
+			$this->setError(_('university_name^' . 'You must supply a university/institution name'));
 			return false;
 		}
 		if (!$password1) {
-			$this->setError(_('You must supply a password'));
+			$this->setError(_('password1^' . 'You must supply a password'));
 			return false;
 		}
 		if ($password1 != $password2) {
-			$this->setError(_('Passwords do not match'));
+			$this->setError(_('password1^password2^' . 'Passwords do not match'));
 			return false;
 		}
 		if (!account_pwvalid($password1)) {
-			$this->setError(_('Invalid Password'));
+			$this->setError(_('password1^' . 'Invalid Password'));
 			return false;
 		}
 		//testing if there is at least one capital letter in the unix name
 		if  (preg_match('/[A-Z]/', $unix_name)) {
-			$this->setError(_('Invalid Unix Name (must not contain uppercase characters)'));
+			$this->setError(_('unix_name^' . 'Invalid Unix Name (must not contain uppercase characters)'));
 			return false;
 		}
 		$unix_name = strtolower($unix_name);
 		if (!account_namevalid($unix_name)) {
-			$this->setError(_('Invalid Unix Name.'));
+			$this->setError(_('unix_name^' . 'Invalid Unix Name.'));
 			return false;
 		}
 		if (!$SYS->sysUseUnixName($unix_name)) {
-			$this->setError(_('Unix name already taken.'));
+			$this->setError(_('unix_name^' . 'Unix name already taken.'));
 			return false;
 		}
 		if (!validate_email($email)) {
-			$this->setError(_('Invalid Email Address')._(': ').$email);
+			$this->setError(_('email^' . 'Invalid Email Address')._(': ').$email);
 			return false;
 		}
 		if ($unix_name && db_numrows(db_query_params('SELECT user_id FROM users WHERE user_name LIKE $1',
 							     array($unix_name))) > 0) {
-			$this->setError(_('That username already exists.'));
+			$this->setError(_('unix_name^' . 'That username already exists.'));
 			return false;
 		}
 		if (forge_get_config('require_unique_email')) {
 			if (user_get_object_by_email($email)) {
-				$this->setError(_('User with this email already exists - use people search to recover your login.'));
+				$this->setError(_('email^' . 'User with this email already exists - use people search to recover your login.'));
 				return false;
 			}
 		}
@@ -399,17 +414,62 @@ class GFUser extends Error {
 		}
 		$unix_name = strtolower($unix_name);
 		if (!account_namevalid($unix_name)) {
-			$this->setError(_('Invalid Unix Name.'));
+			$this->setError(_('unix_name^' . 'Invalid Unix Name.'));
 			return false;
 		}
 		$shell = account_get_user_default_shell();
 		// if we got this far, it must be good
+
+		// Put the user picture someplace permanent
+                $the_pic_file_type = false;
+		$userpic_file = "";
+		if ($userpic_tmpfile) {
+			if (!empty($userpic_tmpfile)) {
+				$userpic_file = $unix_name;
+//				$abs_userpic_file = $GLOBALS["sys_userpic_dir"].$userpic_file;
+				$abs_userpic_file = "/usr/share/gforge/www/userpics/" . $userpic_file;
+				// userpic_tmpfile used with jQuery-File-Upload no longer contains the full path.
+				$userpic_tmpfile = "/usr/share/gforge/tmp/" . $userpic_tmpfile;
+
+				// Validate picture file type.
+				$the_pic_file_type = $this->validatePictureFileImageType($userpic_type);
+				if ($the_pic_file_type === false) {
+					$this->setError('ERROR: Invalid picture file type');
+					return false;
+				}
+
+//				if (!imageUploaded($userpic_tmpfile, $abs_userpic_file)) {
+				// Only need to rename file.
+				// No need to use move_uploaded_file() in imageUploaded().
+				if (!imageRenamed($userpic_tmpfile, $abs_userpic_file)) {
+					$this->setError('ERROR: Could not save user picture file');
+					return false;
+				}
+			}
+                }
+
 		$confirm_hash = substr(md5($password1.util_randbytes().microtime()), 0, 16);
 		db_begin();
-		$result = db_query_params('INSERT INTO users (user_name,user_pw,unix_pw,realname,firstname,lastname,email,add_date,status,confirm_hash,mail_siteupdates,mail_va,language,timezone,unix_box,address,address2,phone,fax,title,ccode,theme_id,tooltips,shell)
-							VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24)',
-			array($unix_name,
-				md5($password1),
+		$result = db_query_params(
+			'INSERT INTO users (' .
+				'user_name,user_pw,unix_pw,realname,firstname,' .
+				'lastname,email,add_date,status,confirm_hash,' .
+				'mail_siteupdates,mail_va,language,timezone,unix_box,' .
+				'address,address2,phone,fax,title,' .
+				'ccode,theme_id,tooltips,shell,interest_simtk,' .
+				'lab_name,lab_website,university_name,university_website,picture_file,' .
+				'picture_type,found_us,found_us_note,personal_website' .
+			') ' .
+			'VALUES (' .
+				'$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,' .
+				'$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,' .
+				'$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,' .
+				'$31,$32,$33,$34' .
+			')',
+			array(
+				$unix_name,
+				//md5($password1),
+				account_genunixpw($password1),
 				account_genunixpw($password1),
 				htmlspecialchars($firstname.' '.$lastname),
 				htmlspecialchars($firstname),
@@ -431,7 +491,19 @@ class GFUser extends Error {
 				$ccode,
 				$theme_id,
 				$tooltips,
-				$shell));
+				$shell,
+				htmlspecialchars($interest_simtk),
+				htmlspecialchars($lab_name),
+				htmlspecialchars($lab_website),
+				htmlspecialchars($university_name),
+				htmlspecialchars($university_website),
+				$userpic_file,
+				$the_pic_file_type,
+				htmlspecialchars($foundUs),
+				htmlspecialchars($foundUsNote),
+				htmlspecialchars($personal_website)
+			)
+		);
 		if (!$result) {
 			$this->setError(_('Insert Error')._(': ').db_error());
 			db_rollback();
@@ -464,6 +536,16 @@ class GFUser extends Error {
 			}
 
 			db_commit();
+
+                        if ($the_pic_file_type !== false) {
+				// Picture has been uploaded.
+				// Generate symbolic link for user avatar to picture file.
+				// Note: the picture_file name is always set to the unix username.
+				if ($this->linkPictureFileToAvatar($abs_userpic_file, $the_pic_file_type) === false) {
+					return false;
+				}
+			}
+
 			return $id;
 		}
 	}
@@ -474,25 +556,20 @@ class GFUser extends Error {
 	 * @return bool    success or not
 	 */
 	function sendRegistrationEmail() {
-		$message = stripcslashes(sprintf(_('Thank you for registering on the %3$s web site. You have
-account with username %1$s created for you. In order
-to complete your registration, visit the following url:
+		$message = stripcslashes(sprintf(
+'Thank you for creating an account on the %3$s website. An account 
+with the username %1$s has been created for you. To complete
+your registration and activate your account, click on the following link:
 
 <%2$s>
 
-You have 1 week to confirm your account. After this time, your account will be deleted.
-
-(If you don\'t see any URL above, it is likely due to a bug in your mail client.
-Use one below, but make sure it is entered as the single line.)
-
-%2$s'),
+You have 48 hours to confirm your account. After this time, your 
+account will be deleted.',
 			$this->getUnixName(),
 			util_make_url('/account/verify.php?confirm_hash=_'.$this->getConfirmHash()),
 			forge_get_config('forge_name')));
 		$message .= "\n\n";
-		$message .= _('Enjoy the site.');
-		$message .= "\n\n";
-		$message .= sprintf(_('-- the %s staff'), forge_get_config('forge_name'));
+		$message .= sprintf(_('-- The %s team'), forge_get_config('forge_name'));
 		$message .= "\n";
 		util_send_message(
 			$this->getEmail(),
@@ -587,53 +664,171 @@ Use one below, but make sure it is entered as the single line.)
 	 * @param	string	$email			The users email.
      * @return bool
 	 */
-	function update($firstname, $lastname, $language_id, $timezone, $mail_site, $mail_va, $use_ratings,
-					$dummy1, $dummy2, $theme_id, $address, $address2, $phone, $fax, $title,
-					$ccode, $tooltips, $email = '') {
+	function update($firstname, $lastname, $language_id = 1, $timezone = 'US/Pacific', $mail_site = 0, 
+		$mail_va = 0, $use_ratings = true, $dummy1, $dummy2, $theme_id = 24,
+		$address = '', $address2 = '', $phone = '', $fax = '', $title = '',
+		$ccode = 'US', $tooltips = true, $email = '',
+		$interest_simtk = '', $lab_name = '', $lab_website = '',
+		$university_name, $university_website = '', $personal_website = '',
+		$userpic_tmpfile = '', $userpic_type = '',
+		$override_lab_website=false,
+		$override_university_website=false,
+		$override_personal_website=false) {
+
 		$mail_site = $mail_site ? 1 : 0;
 		$mail_va = $mail_va ? 1 : 0;
 		$block_ratings = $use_ratings ? 0 : 1;
 
+		// Put the user picture someplace permanent
+                $the_pic_file_type = false;
+		$userpic_file = "";
+		if ($userpic_tmpfile) {
+			if (!empty($userpic_tmpfile)) {
+				$userpic_file = $this->getUnixName();
+//				$abs_userpic_file = $GLOBALS["sys_userpic_dir"].$userpic_file;
+				$abs_userpic_file = "/usr/share/gforge/www/userpics/" . $userpic_file;
+				// userpic_tmpfile used with jQuery-File-Upload no longer contains the full path.
+				$userpic_tmpfile = "/usr/share/gforge/tmp/" . $userpic_tmpfile;
+
+				// Validate picture file type.
+				$the_pic_file_type = $this->validatePictureFileImageType($userpic_type);
+				if ($the_pic_file_type === false) {
+					$this->setError('ERROR: Invalid picture file type');
+					return false;
+				}
+
+//				if (!imageUploaded($userpic_tmpfile, $abs_userpic_file)) {
+				// Only need to rename file.
+				// No need to use move_uploaded_file() in imageUploaded().
+				if (!imageRenamed($userpic_tmpfile, $abs_userpic_file)) {
+					$this->setError('ERROR: Could not save user picture file');
+					return false;
+				}
+
+				if ($the_pic_file_type !== false) {
+					// Picture has been uploaded.
+					// Generate symbolic link for user avatar to picture file.
+					// Note: the picture_file name is always set to the unix username.
+					if ($this->linkPictureFileToAvatar($abs_userpic_file, $the_pic_file_type) === false) {
+						return false;
+					}
+				}
+			}
+                }
+
+
 		db_begin();
 
-		$res = db_query_params('
-				UPDATE users
-				SET
-				realname=$1,
-				firstname=$2,
-				lastname=$3,
-				language=$4,
-				timezone=$5,
-				mail_siteupdates=$6,
-				mail_va=$7,
-				block_ratings=$8,
-				address=$9,
-				address2=$10,
-				phone=$11,
-				fax=$12,
-				title=$13,
-				ccode=$14,
-				theme_id=$15,
-				tooltips=$16
-				WHERE user_id=$17',
-			array(
-				htmlspecialchars($firstname . ' ' .$lastname),
-				htmlspecialchars($firstname),
-				htmlspecialchars($lastname),
-				$language_id,
-				$timezone,
-				$mail_site,
-				$mail_va,
-				$block_ratings,
-				htmlspecialchars($address),
-				htmlspecialchars($address2),
-				htmlspecialchars($phone),
-				htmlspecialchars($fax),
-				htmlspecialchars($title),
-				$ccode,
-				$theme_id,
-				$tooltips,
-				$this->getID()));
+		if ($userpic_file != "") {
+			$res = db_query_params('
+					UPDATE users SET
+					realname=$1,
+					firstname=$2,
+					lastname=$3,
+					language=$4,
+					timezone=$5,
+					mail_siteupdates=$6,
+					mail_va=$7,
+					block_ratings=$8,
+					address=$9,
+					address2=$10,
+					phone=$11,
+					fax=$12,
+					title=$13,
+					ccode=$14,
+					theme_id=$15,
+					tooltips=$16,
+					interest_simtk=$17,
+       		                        lab_name=$18,
+					lab_website=$19,
+					university_name=$20,
+					university_website=$21,
+					picture_file=$22,
+       	                        	picture_type=$23,
+					personal_website=$24 
+					WHERE user_id=$25',
+				array(
+					htmlspecialchars($firstname . ' ' .$lastname),
+					htmlspecialchars($firstname),
+					htmlspecialchars($lastname),
+					$language_id,
+					$timezone,
+					$mail_site,
+					$mail_va,
+					$block_ratings,
+					htmlspecialchars($address),
+					htmlspecialchars($address2),
+					htmlspecialchars($phone),
+					htmlspecialchars($fax),
+					htmlspecialchars($title),
+					$ccode,
+					$theme_id,
+					$tooltips,
+					htmlspecialchars($interest_simtk),
+					htmlspecialchars($lab_name),
+					htmlspecialchars($lab_website),
+					htmlspecialchars($university_name),
+					htmlspecialchars($university_website),
+					$userpic_file,
+					$the_pic_file_type,
+					htmlspecialchars($personal_website),
+					$this->getID()
+				)
+			);
+		}
+		else {
+			$res = db_query_params('
+					UPDATE users SET
+					realname=$1,
+					firstname=$2,
+					lastname=$3,
+					language=$4,
+					timezone=$5,
+					mail_siteupdates=$6,
+					mail_va=$7,
+					block_ratings=$8,
+					address=$9,
+					address2=$10,
+					phone=$11,
+					fax=$12,
+					title=$13,
+					ccode=$14,
+					theme_id=$15,
+					tooltips=$16,
+					interest_simtk=$17,
+       		                        lab_name=$18,
+					lab_website=$19,
+					university_name=$20,
+					university_website=$21,
+					personal_website=$22 
+					WHERE user_id=$23',
+				array(
+					htmlspecialchars($firstname . ' ' .$lastname),
+					htmlspecialchars($firstname),
+					htmlspecialchars($lastname),
+					$language_id,
+					$timezone,
+					$mail_site,
+					$mail_va,
+					$block_ratings,
+					htmlspecialchars($address),
+					htmlspecialchars($address2),
+					htmlspecialchars($phone),
+					htmlspecialchars($fax),
+					htmlspecialchars($title),
+					$ccode,
+					$theme_id,
+					$tooltips,
+					htmlspecialchars($interest_simtk),
+					htmlspecialchars($lab_name),
+					htmlspecialchars($lab_website),
+					htmlspecialchars($university_name),
+					htmlspecialchars($university_website),
+					htmlspecialchars($personal_website),
+					$this->getID()
+				)
+			);
+		}
 
 		if (!$res) {
 			$this->setError(_('Error: Cannot Update User Object:').' '.db_error());
@@ -667,6 +862,155 @@ Use one below, but make sure it is entered as the single line.)
 		db_commit();
 		return true;
 	}
+
+
+	// Get picture type: jpg, png, gif, or bmp are valid.
+	// Return false for invalid picture types.
+	function validatePictureFileImageType($inPicFileType) {
+
+		$thePicFileType = false;
+		if (strripos($inPicFileType, "jpg") !== false ||
+			strripos($inPicFileType, "jpeg") !== false ||
+			strripos($inPicFileType, "pjpeg") !== false) {
+			$thePicFileType = "jpg";
+		}
+		else if (strripos($inPicFileType, "png") !== false ||
+			strripos($inPicFileType, "x-png") !== false) {
+			$thePicFileType = "png";
+		}
+		else if (strripos($inPicFileType, "gif") !== false) {
+			$thePicFileType = "gif";
+		}
+		else if (strripos($inPicFileType, "bmp") !== false ||
+			strripos($inPicFileType, "x-bmp") !== false) {
+			$thePicFileType = "bmp";
+		}
+		else if (strripos($inPicFileType, "application/octet-stream") !== false) {
+			$thePicFileType = "";
+		}
+		else {
+			// Invalid picture type.
+			return false;
+		}
+
+		// Valid picture type: JPG, PNG, GIF, or BMP.
+		return $thePicFileType;
+	}
+
+
+	// Generate symbolic link for user avatar in user forum.
+	// Note: the picture_file name is always set to the unix username.
+	function linkPictureFileToAvatar($abs_userpic_file, $inPicFileType) {
+
+		// Get root path for phpBB plugin.
+		$phpbbDirWWW = "../../plugins/phpBB/www/";
+		$phpbb_root_path = (defined('PHPBB_ROOT_PATH')) ? PHPBB_ROOT_PATH : $phpbbDirWWW;
+
+
+		// Retrieve phpBB database credentials from "phpBB.ini" config file.
+		$forgeConfig = FusionForgeConfig::get_instance();
+		$simtkHost = $forgeConfig->get_value("phpBB", "phpbb_host");
+		$simtkDbName = $forgeConfig->get_value("phpBB", "phpbb_name");
+		$simtkDbUser = $forgeConfig->get_value("phpBB", "phpbb_user");
+		$simtkDbPassword = $forgeConfig->get_value("phpBB", "phpbb_password");
+
+		// Connect to phpBB database.
+		$myconn = pg_connect(
+			"host=" . $simtkHost .
+			" dbname=" . $simtkDbName .
+			" user=" . $simtkDbUser .
+			" password=" . $simtkDbPassword);
+
+		// Get picture file name from unix username.
+		$userpic_file = $this->getUnixName();
+
+		$resOldLink = pg_query_params($myconn, 
+			"SELECT user_avatar FROM phpbb_users WHERE username='$userpic_file'",
+			array());
+		if (!$resOldLink || pg_num_rows($resOldLink) < 1) {
+			// User forum user not yet present.
+			// This case happens when user is registered but is not verified yet.
+			$isUserInPhpbb = false;
+		}
+		else {
+			$isUserInPhpbb = true;
+
+			// Remove existing link or file if present.
+			$theOldLink= pg_fetch_result($resOldLink, 0, 'user_avatar');
+			$abs_user_avatar_oldlink = $phpbb_root_path . "images/avatars/gallery/" .  $theOldLink;
+			if (is_link($abs_user_avatar_oldlink) || is_file($abs_user_avatar_oldlink)) {
+				if ($theOldLink != "_thumb.jpg") {
+					// Note: Do not remove default thumb image.
+					if (!unlink($abs_user_avatar_oldlink)) {
+						$this->setError('ERROR: Could not remove the existing user avatar link');
+						return false;
+					}
+				}
+			}
+		}
+
+		// Generate full path for symbolic link.
+		$user_avatar_link =  $userpic_file . "_thumb.$inPicFileType";
+		$abs_user_avatar_link = $phpbb_root_path . "images/avatars/gallery/" . $user_avatar_link;
+
+		// Create symbolic link. Remove previous link or file if it exists.
+		if (is_link($abs_user_avatar_link) || is_file($abs_user_avatar_link)) {
+			if ($user_avatar_link != "_thumb.jpg") {
+				// Note: Do not remove default thumb image.
+				if (!unlink($abs_user_avatar_link)) {
+					$this->setError('ERROR: Could not remove the previous user avatar link');
+					return false;
+				}
+			}
+		}
+
+		if (!symlink($abs_userpic_file, $abs_user_avatar_link)) {
+			$this->setError('ERROR: Could not create user avatar link.');
+			return false;
+		}
+
+		if ($isUserInPhpbb === true) {
+
+			// Default maximum width and height constraints.
+			$scaledWidth = 75;
+			$scaledHeight = 75;
+			// Get scaled constraints.
+			$this->getScaledPictureDimensions($abs_user_avatar_link, $scaledWidth, $scaledHeight);
+
+			// Update user_avatar, user_avatar_width, and user_avatar_height columns
+			// in phpbb_users table with image name.
+			$strSql = "UPDATE phpbb_users SET " .
+				"user_avatar='$user_avatar_link', " .
+				"user_avatar_width=$scaledWidth, " .
+				"user_avatar_height=$scaledHeight " .
+				"WHERE username='$userpic_file'";
+			$res = pg_query_params($myconn, $strSql, array());
+			if (!$res) {
+				$this->setError('ERROR - Could Not Update User Avatar: ' . pg_last_error($myconn));
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+
+	// Generate scaled picture file width and height, maitaining the picture aspect ratio.
+	function getScaledPictureDimensions($picturePathFull, &$theScaledWidth, &$theScaledHeight) {
+
+		if (list($picWidth, $picHeight, $picType, $picAttr) = @getimagesize($picturePathFull)) {
+
+			$ratioH = ((float) $theScaledHeight) / ((float) $picHeight);
+			$ratioW = ((float) $theScaledWidth) / ((float) $picWidth);
+			// Use the dimension that is constraining.
+			$theRatio = min($ratioH, $ratioW);
+
+			// New dimensions.
+			$theScaledWidth = intval($theRatio * $picWidth);
+			$theScaledHeight = intval($theRatio * $picHeight);
+		}
+	}
+
 
 	/**
 	 * fetchData - May need to refresh database fields.
@@ -729,7 +1073,7 @@ Use one below, but make sure it is entered as the single line.)
 	function setStatus($status) {
 
 		if ($status != 'P' && $status != 'A'
-			&& $status != 'S' && $status != 'D') {
+			&& $status != 'S' && $status != 'D' && $status != 'R') {
 			$this->setError(_('Error: Invalid status value'));
 			return false;
 		}
@@ -1196,6 +1540,87 @@ Use one below, but make sure it is entered as the single line.)
 	}
 
 	/**
+	 *  getPictureFile - the user picture file name.
+	 *
+	 *  @return	string	The user picture file name.
+	 */
+	function getPictureFile() {
+		return $this->data_array['picture_file'];
+	}
+	
+	/**
+	 *  getPictureType - the mime type of the user picture file.
+	 *
+	 *  @return	string	The mime type of the user picture file.
+	 */
+	function getPictureType() {
+		return $this->data_array['picture_type'];
+	}
+	
+	/**
+	 *  getSimTKInterest - the user's interest in SimTK
+	 *
+	 *  @return	string	The user's interest in SimTK
+	 */
+	function getSimTKInterest() {
+		return $this->data_array['interest_simtk'];
+	}
+
+	/**
+	 *  getOtherInterest - the user's other interests
+	 *
+	 *  @return	string	The user's other interests
+	 */
+	function getOtherInterest() {
+		return $this->data_array['interest_other'];
+	}
+
+	/**
+	 *  getLabName - the name of the user's lab
+	 *
+	 *  @return	string	the name of the user's lab
+	 */
+	function getLabName() {
+		return $this->data_array['lab_name'];
+	}
+	
+	/**
+	 *  getLabWebsite - the lab's website
+	 *
+	 *  @return	string	the lab's website
+	 */
+	function getLabWebsite() {
+		return $this->data_array['lab_website'];
+	}
+	
+	/**
+	 *  getUniversityName - the name of the user's university
+	 *
+	 *  @return	string	the name of the user's university
+	 */
+	function getUniversityName() {
+		return $this->data_array['university_name'];
+	}
+	
+	/**
+	 *  getUniversityWebsite - the university's website
+	 *
+	 *  @return	string	the university's website
+	 */
+	function getUniversityWebsite() {
+		return $this->data_array['university_website'];
+	}
+	
+	/**
+	 *  getPersonalWebsite - the user's personal website
+	 *
+	 *  @return	string	the user's personal website
+	 */
+	function getPersonalWebsite() {
+		return $this->data_array['personal_website'];
+	}
+
+	/**
 	 * getGroups - get an array of groups this user is a member of.
 	 *
 	 * @return array	Array of groups.
@@ -1412,11 +1837,12 @@ Use one below, but make sure it is entered as the single line.)
 		}
 
 		db_begin();
-		$md5_pw = md5($passwd);
+		//$md5_pw = md5($passwd);
 		$unix_pw = account_genunixpw($passwd);
 
 		$res = db_query_params('UPDATE users SET user_pw=$1, unix_pw=$2 WHERE user_id=$3',
-					array($md5_pw,
+//					array($md5_pw,
+					array(account_genunixpw($passwd),
 					       $unix_pw,
 					       $this->getID()));
 
@@ -1477,7 +1903,7 @@ Use one below, but make sure it is entered as the single line.)
 
 		db_begin();
 		if ($unix) {
-			$res = db_query_params('UPDATE users SET unix_pw=$1 WHERE user_id=$2',
+			$res = db_query_params('UPDATE users SET unix_pw=$1 WHERE user_id=$1',
 				array($unix, $this->getID()));
 
 			if (!$res || db_affected_rows($res) < 1) {
@@ -1747,7 +2173,34 @@ Email: %3$s
 		}
 		return true;
 	}
-}
+	
+	function updateFollowingNotification($frequency) {
+
+       $sqlCmd="UPDATE users SET notification_frequency = $frequency WHERE user_id = " . $this->getID();
+	   //echo "sql: " . $sqlCmd;
+       db_begin();
+       $res=db_query_params($sqlCmd,array());
+
+       if (!$res || db_affected_rows($res) < 1) {
+          return false;
+       }
+ 
+       db_commit();
+       return true;
+    }
+
+    function getFollowingNotification() {
+	   $sqlCmd = "Select * from users WHERE user_id = " . $this->getID();
+       //echo "sql: " . $sqlCmd;
+       $result = db_query_params($sqlCmd,array());
+       return $result; 
+    }
+	
+	
+}  // End of GFUser class
+
+    
+
 
 /*
 

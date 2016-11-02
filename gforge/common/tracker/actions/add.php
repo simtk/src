@@ -6,6 +6,7 @@
  * Copyright 2010 (c) Franck Villaume - Capgemini
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -27,7 +28,12 @@
 global $group;
 global $ath;
 
+html_use_coolfieldset();
+
 $ath->header(array ('title'=>_('Submit New')));
+
+// Update page title identified by the class "project_submenu".
+echo '<script>$(".project_submenu").html("Tracker: ' . $ath->getName() . '");</script>';
 
 require_once $gfcommon.'tracker/include/build_submission_form.php';
 artifact_submission_form($ath, $group);

@@ -1,9 +1,12 @@
 <?php
 /**
+ * additem.php
+ *
  * FusionForge Documentation Manager
  *
  * Copyright 2010-2011, Franck Villaume - Capgemini
  * Copyright 2012-2014, Franck Villaume - TrivialDev
+ * Copyright 2016, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -56,7 +59,7 @@ jQuery(document).ready(function() {
 <li><a id="tab-new-folder" href="#tabs-new-folder" class="tabtitle" title="<?php echo _('Create a folder based on this name.') ?>">
     <?php echo _('New Folder') ?></a></li>
 <li><a id="tab-inject-tree" href="#tabs-inject-tree" class="tabtitle" title="<?php echo _('Create a full folders tree using an compressed archive. Only ZIP format support.') ?>">
-    <?php echo _('Inject Tree') ?></a></li>
+    <?php echo _('Upload Archive') ?></a></li>
 <?php } ?>
 </ul>
 
@@ -78,7 +81,8 @@ if (forge_check_perm('docman', $group_id, 'approve')) {
 	echo '<form id="injectzip" name="injectzip" method="post" action="?group_id='.$group_id.'&amp;action=injectzip&amp;dirid='.$dirid.'" enctype="multipart/form-data">';
 	echo '<p>';
 	echo '<label>' . _('Upload archive:') . ' </label><input type="file" name="uploaded_zip" required="required" />'.sprintf(_('(max upload size: %s)'),human_readable_bytes(util_get_maxuploadfilesize()));
-	echo '<input id="submitinjectzip" type="button" value="'. _('Inject Tree') .'" />';
+	include ($gfcommon.'docman/views/addsubdocgrouparchive.php');
+	echo '<input id="submitinjectzip" type="button" value="'. _('Upload') .'" />';
 	echo '</p>';
 	echo '</form>';
 	echo '</div>';

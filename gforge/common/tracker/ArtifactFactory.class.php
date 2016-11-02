@@ -5,6 +5,7 @@
  * Copyright 2002, GForge, LLC
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2014, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -440,7 +441,7 @@ class ArtifactFactory extends Error {
 							    '_votes'));
 
 		if ($sortcol != 'extra' && $sortcol != '_votes' && $sortcol != '_voters' && $sortcol != '_votage' ) {
-			$ordersql = " ORDER BY Artifacts.group_artifact_id $sortorder, Artifacts.$sortcol $sortorder" ;
+			$ordersql = " ORDER BY Artifacts.group_artifact_id $sortorder, Artifacts.$sortcol $sortorder, Artifacts.open_date DESC" ;
 		} else {
 			$ordersql = ''  ;
 		}

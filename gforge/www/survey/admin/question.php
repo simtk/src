@@ -6,6 +6,7 @@
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2008-2010 (c) FusionForge Team
  * Copyright (C) 2010 Alain Peyrat - Alcatel-Lucent
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -76,7 +77,8 @@ if (getStringFromRequest('delete')=="Y" && $question_id) {
 		echo '<p class="error">' .$msg ."</p>";
 	} else {
 		$msg = _('Successfully Deleted.');
-		echo '<p class="feedback">' .$msg ."</p>";
+//		echo '<p class="feedback">' .$msg ."</p>";
+		echo '<p class="warning_msg">' .$msg ."</p>";
 	}
 } elseif (getStringFromRequest('post')=="Y") {
 	/* Modification */
@@ -98,7 +100,8 @@ if (getStringFromRequest('delete')=="Y" && $question_id) {
 		form_release_key(getStringFromRequest("form_key"));
 		echo '<p class="error">' .$msg ."</p>";
 	} else {
-		echo '<p class="feedback">' .$msg ."</p>";
+//		echo '<p class="feedback">' .$msg ."</p>";
+		echo '<p class="warning_msg">' .$msg ."</p>";
 	}
 
 	/* Add now Question */

@@ -4,6 +4,7 @@
  *
  * Copyright 2010 (c) FusionForge Team
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -46,7 +47,11 @@
 			$ath->adminHeader(array('title'=>sprintf(_("Delete a custom field element in: %s"),
 				$ath->getName())));
 
+			// Update page title identified by the class "project_submenu".
+			echo '<script>$(".project_submenu").html("Tracker: ' . $ath->getName() . '");</script>';
+
 			?>
+
 			<table class="centered">
 			<tr>
 			<td>
@@ -58,19 +63,20 @@
 			<input type="hidden" name="boxid" value="<?php echo $boxid; ?>" />
 
 			<p>
-			<strong><?php echo _("Element")._(':'); ?></strong>
-			<?php echo $ao->getName(); ?>
+			<?php echo _('You are about to permanently and irretrievably delete the <strong>' . $ao->getName() . '</strong> element!'); ?>
 			</p>
-
 			<p>
 			<input id="sure" type="checkbox" name="sure" value="1" />
 			<label for="sure">
 			<?php echo _("I am Sure") ?>
 			</label>
+			<input id="really_sure" type="checkbox" name="really_sure" value="1" />
+			<label for="really_sure">
+			<?php echo _("I am Really Sure") ?>
+			</label>
 			</p>
-
 			<p>
-			<input type="submit" name="post_changes" value="<?php echo _('Delete') ?>" /></p>
+			<input type="submit" name="post_changes" value="Delete" class="btn-cta" /></p>
 			</form>
 			</fieldset>
 			</td>

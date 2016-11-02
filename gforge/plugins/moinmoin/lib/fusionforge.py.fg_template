@@ -4,6 +4,7 @@
 
     @copyright: 2005 MoinMoin:AlexanderSchremmer (Thanks to Spreadshirt)
     @copyright: 2011 Roland Mas
+    @copyright: 2016 Henry Kwong, Tod Hing - SimTK Team
     @license: GNU GPL, see COPYING for details.
 """
 
@@ -93,16 +94,22 @@ class FusionForgeSessionAuth(BaseAuth):
 
         conn = self.fflink._conn
         cur = conn.cursor()
+        #cur.execute("""SELECT distinct(u.user_name)
+        #               FROM users u,
+        #                    pfo_user_role pur,
+        #                    pfo_role pr,
+        #                    pfo_role_setting prs
+        #               WHERE u.user_id = pur.user_id
+        #                 AND pur.role_id = pr.role_id
+        #                 AND pr.role_id = prs.role_id
+        #                 AND prs.section_name='forge_admin'
+        #                 AND prs.perm_val = 1""")
         cur.execute("""SELECT distinct(u.user_name)
-                       FROM users u,
-                            pfo_user_role pur,
-                            pfo_role pr,
-                            pfo_role_setting prs
-                       WHERE u.user_id = pur.user_id
-                         AND pur.role_id = pr.role_id
-                         AND pr.role_id = prs.role_id
-                         AND prs.section_name='forge_admin'
-                         AND prs.perm_val = 1""")
+                       FROM users u 
+                       JOIN pfo_user_role pur ON u.user_id=pur.user_id 
+                       JOIN pfo_role pr ON pur.role_id=pr.role_id
+                       JOIN pfo_role_setting prs ON prs.role_id=pr.role_id
+                       WHERE prs.section_name='forge_admin' AND prs.perm_val = 1""")
         self.admins = []
         if cur.rowcount > 0:
            self.admins = [r[0] for r in cur]
@@ -110,11 +117,15 @@ class FusionForgeSessionAuth(BaseAuth):
 
         # List projects
 
-        cur.execute("""SELECT g.unix_group_name
-                       FROM groups g, group_plugin gp, plugins p
-                       WHERE g.group_id = gp.group_id
-                         AND gp.plugin_id = p.plugin_id
-                         AND p.plugin_name = 'moinmoin'""")
+        #cur.execute("""SELECT g.unix_group_name
+        #               FROM groups g, group_plugin gp, plugins p
+        #               WHERE g.group_id = gp.group_id
+        #                 AND gp.plugin_id = p.plugin_id
+        #                 AND p.plugin_name = 'moinmoin'""")
+        cur.execute("""SELECT g.unix_group_name FROM groups g
+                       JOIN group_plugin gp ON g.group_id=gp.group_id
+                       JOIN plugins p ON p.plugin_id=gp.plugin_id
+                       WHERE p.plugin_name = 'moinmoin'""")
         self.projects = []
         if cur.rowcount:
            self.projects = [r[0] for r in cur]
@@ -126,12 +137,18 @@ class FusionForgeSessionAuth(BaseAuth):
 
         # Get perm setting for anonymous users
 
-        query = """SELECT prs.perm_val
-                        FROM pfo_role_setting prs, groups
+        #query = """SELECT prs.perm_val
+        #                FROM pfo_role_setting prs, groups
+        #               WHERE prs.role_id = 1
+        #                 AND prs.section_name = '%s'
+        #                 AND groups.unix_group_name = '%s'
+        #                 AND prs.ref_id = groups.group_id""" \
+        #            % (perm_name, project_name)
+        query = """SELECT prs.perm_val FROM pfo_role_setting prs
+                       JOIN groups ON groups.group_id=prs.ref_id
                        WHERE prs.role_id = 1
                          AND prs.section_name = '%s'
-                         AND groups.unix_group_name = '%s'
-                         AND prs.ref_id = groups.group_id""" \
+                         AND groups.unix_group_name = '%s' """ \
                     % (perm_name, project_name)
         val = cur.execute(query)
         val = cur.fetchone()
@@ -173,19 +190,42 @@ class FusionForgeSessionAuth(BaseAuth):
         # ??? query should also include user if permission is granted to
         # authenticated non-members.
 
-        query = """SELECT DISTINCT(u.user_name)
-                        FROM users u, pfo_user_role pur, pfo_role pr,
-                             pfo_role_setting prs, groups
+        #query = """SELECT DISTINCT(u.user_name)
+        #                FROM users u, pfo_user_role pur, pfo_role pr,
+        #                     pfo_role_setting prs, groups
+        #               WHERE %s
+        #                 AND ((u.user_id = pur.user_id
+        #                       AND pur.role_id = pr.role_id
+        #                       AND pr.role_id = prs.role_id)
+        #                      OR prs.role_id = 2)
+        #                 AND prs.section_name = '%s'
+        #                 AND groups.unix_group_name = '%s'
+        #                 AND prs.perm_val = %d
+        #                 AND prs.ref_id = groups.group_id""" \
+        #            % (ucond, perm_name, project_name, perm_map[perm])
+        query = """SELECT DISTINCT user_name FROM
+                       (SELECT u.user_name FROM users u
+                       JOIN pfo_user_role pur ON u.user_id = pur.user_id
+                       JOIN pfo_role pr ON pur.role_id = pr.role_id
+                       JOIN pfo_role_setting prs ON prs.role_id=pr.role_id
+                       JOIN groups ON groups.group_id=prs.ref_id
                        WHERE %s
-                         AND ((u.user_id = pur.user_id
-                               AND pur.role_id = pr.role_id
-                               AND pr.role_id = prs.role_id)
-                              OR prs.role_id = 2)
                          AND prs.section_name = '%s'
                          AND groups.unix_group_name = '%s'
+                         AND prs.perm_val = %d) AS q1
+                         UNION
+                       (SELECT DISTINCT u.user_name FROM
+                       (SELECT user_id, user_name FROM users) u
+                       JOIN pfo_user_role pur ON u.user_id=pur.user_id,
+                       pfo_role pr, pfo_role_setting prs,
+                       (SELECT group_id, unix_group_name FROM groups) g
+                       WHERE %s
+                         AND prs.role_id = 2
+                         AND prs.section_name = '%s'
+                         AND g.unix_group_name = '%s'
                          AND prs.perm_val = %d
-                         AND prs.ref_id = groups.group_id""" \
-                    % (ucond, perm_name, project_name, perm_map[perm])
+                         AND prs.ref_id = g.group_id)""" \
+                    % (ucond, perm_name, project_name, perm_map[perm], ucond, perm_name, project_name, perm_map[perm])
         logging.debug ("get_perm_entries: " + query)
         cur.execute(query)
         result = []

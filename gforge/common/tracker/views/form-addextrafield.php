@@ -4,6 +4,7 @@
  *
  * Copyright 2010 (c) FusionForge Team
  * Copyright 2014, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -28,6 +29,9 @@
 
 $title = sprintf(_('Manage Custom Fields for %s'), $ath->getName());
 $ath->adminHeader(array('title'=>$title));
+
+// Update page title identified by the class "project_submenu".
+echo '<script>$(".project_submenu").html("Tracker: ' . $ath->getName() . '");</script>';
 
 /*
 	List of possible user built Selection Boxes for an ArtifactType
@@ -114,24 +118,26 @@ if ($rows > 0) {
 		<strong><?php echo _('Custom Field Name')._(':').utils_requiredField(); ?></strong><br />
 		<input type="text" name="name" value="" size="15" maxlength="30" required="required" />
 		</p>
+<!--
 		<p>
 		<strong><?php echo _('Field alias')._(':'); ?></strong><br />
 		<input type="text" name="alias" value="" size="15" maxlength="30" />
 		</p>
+-->
 
 		<p>
 		<strong><?php  echo _('Type of custom field')._(':'); ?></strong><br />
-		<input type="radio" name="field_type" value="1" /> <?php echo _('Select Box'); ?><br />
-		<input type="radio" name="field_type" value="2" /> <?php echo _('Check Box'); ?><br />
-		<input type="radio" name="field_type" value="3" /> <?php echo _('Radio Buttons'); ?><br />
-		<input type="radio" name="field_type" value="4" /> <?php echo _('Text Field'); ?><br />
-		<input type="radio" name="field_type" value="5" /> <?php echo _('Multi-Select Box'); ?><br />
-		<input type="radio" name="field_type" value="6" /> <?php echo _('Text Area'); ?><br />
+		<input type="radio" name="field_type" value="1" checked /><label> <?php echo _('Select Box'); ?></label><br />
+		<input type="radio" name="field_type" value="2" /><label> <?php echo _('Check Box'); ?></label><br />
+		<input type="radio" name="field_type" value="3" /><label> <?php echo _('Radio Buttons'); ?></label><br />
+		<input type="radio" name="field_type" value="4" /><label> <?php echo _('Text Field'); ?></label><br />
+		<input type="radio" name="field_type" value="5" /><label> <?php echo _('Multi-Select Box'); ?></label><br />
+		<input type="radio" name="field_type" value="6" /><label> <?php echo _('Text Area'); ?></label><br />
 		<?php if (!$ath->usesCustomStatuses()) { ?>
-		<input type="radio" name="field_type" value="7" /> <?php echo _('Status'); ?><br />
+		<input type="radio" name="field_type" value="7" /><label> <?php echo _('Status'); ?></label><br />
 		<?php } ?>
-		<!--<input type="radio" name="field_type" value="8" /> <?php echo _('Box type technician'); ?><br />-->
-		<input type="radio" name="field_type" value="9" /> <?php echo _('Relation between artifacts'); ?><br />
+		<!--<input type="radio" name="field_type" value="8" /><label> <?php echo _('Box type technician'); ?></label><br />-->
+		<input type="radio" name="field_type" value="9" /><label> <?php echo _('Relation between artifacts'); ?></label><br />
 		<p>
 		<?php echo _('Text Fields and Text Areas need to have Size/Maxlength and Rows/Cols defined, respectively.'); ?><br />
 		<?php echo _('Text Field Size/Text Area Rows'); ?>
@@ -139,21 +145,25 @@ if ($rows > 0) {
 		<?php echo _('Text Field Maxlength/Text Area Columns'); ?>
 			<input type="text" name="attribute2" value="80" size="2" maxlength="2" />
 		</p>
+<!--
 		<p>
 		<div class="warning"><?php echo _('Warning: this add new custom field') ?></div>
 		</p>
 		<p>
-		<input type="submit" name="post_changes" value="<?php echo _('Submit') ?>" />
+-->
+		<input type="submit" name="post_changes" value="Submit" class="btn-cta" />
 		</p>
 		</form>
 		<?php
 
+/*
 		echo "<h2>"._('Custom Field Rendering Template')."</h2>";
 
 		echo "<p>";
 		echo '<a href="'.getStringFromServer('PHP_SELF').'?edittemplate=1&amp;group_id='.$group_id.'&amp;atid='. $ath->getID() .'">'._('Edit template').'</a><br />';
 		echo '<a href="'.getStringFromServer('PHP_SELF').'?deletetemplate=1&amp;group_id='.$group_id.'&amp;atid='. $ath->getID() .'">'._('Delete template').'</a><br />';
 		echo "</p>";
+*/
 
 		$ath->footer(array());
 

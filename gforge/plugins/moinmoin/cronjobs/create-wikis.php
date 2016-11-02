@@ -3,6 +3,7 @@
 /*
  * Copyright 2010, Olaf Lenz
  * Copyright 2011, Roland Mas
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge.
  *
@@ -54,7 +55,9 @@ while ( $row = db_fetch_array($project_res) ) {
 	if (!is_dir($project_dir)) {
 		cron_debug("  Creating project dir $project_dir.");
 		mkdir($project_dir, 0755, true);
-		system("cp -r /usr/share/moin/data /usr/share/moin/underlay $project_dir/");
+		//system("cp -r /usr/share/moin/data /usr/share/moin/underlay $project_dir/");
+		// Use basewiki as template for new project.
+		system("cp -r /var/lib/gforge/plugins/moinmoin/wikidata/basewiki/* $project_dir/");
 		system("chown -R gforge:gforge $project_dir");
 		$template = forge_get_config('config_path') . "/plugins/moinmoin/PROJECT_NAME.py.tmpl";
 		system('(echo "# Automatically generated on `LANG=C date` from '.$template.'";'
@@ -63,6 +66,20 @@ while ( $row = db_fetch_array($project_res) ) {
 
 		$need_reload = true;
 	}
+}
+
+// Check whether there are MoinMoin role edit entries in the last 15 minutes.
+// If so, need to reload the Apache server.
+$history_res = db_query_params("SELECT count(*) FROM group_history " .
+	"WHERE field_name like '%Updated Role%MoinMoin%' " .
+	"AND adddate>" . (time() - 900),
+	array());  
+$history = 0;
+while ($row = db_fetch_array($history_res) ) {
+	$history = $row['count'];
+}
+if ($history > 0) {
+	$need_reload = true;
 }
 
 if ($need_reload) {

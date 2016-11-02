@@ -6,6 +6,7 @@
     access.
 
     @copyright: 2009 MoinMoin:DmitrijsMilajevs
+    @copyright: 2016 Henry Kwong, Tod Hing - SimTK Team
     @license: GPL, see COPYING for details
 """
 

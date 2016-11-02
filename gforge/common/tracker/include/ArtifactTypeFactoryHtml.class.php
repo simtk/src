@@ -4,6 +4,7 @@
  *
  * Copyright (C) 2011-2012 Alain Peyrat, Alcatel-Lucent
  * Copyright 2011, Franck Villaume - Capgemini
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -40,20 +41,25 @@ class ArtifactTypeFactoryHtml extends ArtifactTypeFactory {
 
 		$params['group']=$group_id;
 		if (!isset($params['title'])) {
-			$params['title']=sprintf(_('Trackers for %s'), $this->Group->getPublicName());
+			$params['title']=sprintf(_('Features & Bugs'));
 		}
 		$params['toptab']='tracker';
 
-		$labels = array(_('View Trackers'));
+		$labels = array(_('View All Lists'));
 		$links  = array('/tracker/?group_id='.$group_id);
 		$attr   = array(array('title' => _('Get the list of available trackers'), 'class' => 'tabtitle-nw'));
+/*
 		$labels[] = _('Roadmap');
 		$links[]  = '/tracker/roadmap.php?group_id='.$group_id;
 		$attr[]   = array('title' => _('Display configured roadmaps'), 'class' => 'tabtitle');
+*/
 		if (session_loggedin()) {
+/*
 			$labels[] = _('Reporting');
 			$links[]  = '/tracker/reporting/?group_id='.$group_id;
 			$attr[]   = array('title' => _('Various graph of statistics.'), 'class' => 'tabtitle');
+*/
+
 			$perm = $this->Group->getPermission();
 			if ($perm && is_object($perm) && !$perm->isError() && $perm->isPMAdmin()) {
 				$labels[] = _('Administration');

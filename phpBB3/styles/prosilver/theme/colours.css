@@ -5,7 +5,7 @@ Colours and backgrounds for common.css
 
 html, body {
 	color: #536482;
-	background-color: #F5F7FA;
+	background-color: white;
 }
 
 h1 {
@@ -55,7 +55,7 @@ hr {
 }
 
 .navbar {
-	background-color: #cadceb;
+	background-color: #81a5d4;
 }
 
 .forabg {
@@ -64,8 +64,7 @@ hr {
 }
 
 .forumbg {
-	background-color: #12A3EB;
-	background-image: url("./images/bg_header.gif");
+	background-color: #81a5d4;
 }
 
 .panel {

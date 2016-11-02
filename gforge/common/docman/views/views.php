@@ -1,9 +1,11 @@
 <?php
 /**
+ * views.php
  * FusionForge Documentation Manager
  *
  * Copyright 2010-2011, Franck Villaume - Capgemini
  * Copyright 2012, Franck Villaume - TrivialDev
+ * Copyright 2016, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -21,17 +23,21 @@
  * with FusionForge; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
+/*  allow public to read.
 if (!forge_check_perm('docman', $group_id, 'read')) {
 	$return_msg= _('Document Manager Access Denied');
 	session_redirect('/docman/?group_id='.$group_id.'&warning_msg='.urlencode($return_msg));
 }
+*/
 
 $view = getStringFromRequest('view', 'listfile');
 switch ($view) {
 	case 'additem':
 	case 'admin':
 	case 'editdocgroup':
+	case 'editdocgroupv2':
 	case 'editfile':
+	case 'edititem':
 	case 'listfile':
 	case 'listtrashfile':
 	case 'reporting':

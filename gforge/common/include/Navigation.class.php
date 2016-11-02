@@ -1,10 +1,13 @@
 <?php
 /**
+ * Navigation.class.php
+ *
  * FusionForge navigation
  *
  * Copyright 2009 - 2010, Olaf Lenz
  * Copyright 2011-2012, Franck Villaume - TrivialDev
  * Copyright 2014, Stéphane-Eymeric Bredthauer
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -346,6 +349,167 @@ class Navigation extends Error {
 		return $menu;
 	}
 
+
+	function getSimtkProjectMenu($group_id, $toptab = "") {
+		// rebuild menu if it has never been built before, or
+		// if the toptab was set differently
+                //echo "id: " . $group_id;
+
+		if (!isset($this->project_menu_data[$group_id]) || ($toptab != "")) {
+			// get the group and permission objects
+			$group = group_get_object($group_id);
+			if (!$group || !is_object($group)) {
+				return null;
+			}
+			if ($group->isError()) {
+				//wasn't found or some other problem
+				return null;
+			}
+			if (!$group->isProject()) {
+				return;
+			}
+
+			$selected = 0;
+
+			$menu =& $this->project_menu_data[$group_id];
+			$menu['titles'] = array();
+			$menu['tooltips'] = array();
+			$menu['urls'] = array();
+			$menu['adminurls'] = array();
+
+			$menu['name'] = $group->getPublicName();
+
+			// Set up plugin parameters.
+			$hookParams = array();
+			$hookParams['group'] = $group_id;
+			$hookParams['DIRS'] =& $menu['urls'];
+			$hookParams['ADMIN'] =& $menu['adminurls'];
+			$hookParams['TITLES'] =& $menu['titles'];
+			$hookParams['TOOLTIPS'] =& $menu['tooltips'];
+			$hookParams['toptab'] =& $toptab;
+			$hookParams['selected'] =& $selected;
+
+                        /* put items in following order */
+
+			// (0) About
+			$menu['titles'][] = _('About');
+			$menu['urls'][] = util_make_uri('/projects/' . $group->getUnixName());
+			
+			// (1) Downloads
+			if ($group->usesFRS()) {
+				$menu['titles'][] = _('Downloads');
+				$menu['tooltips'][] = _('All published files organized per version.');
+				$menu['urls'][] = util_make_uri('/frs/?group_id=' . $group_id);
+				if (forge_check_perm ('frs', $group_id, 'write')) {
+					$menu['adminurls'][] = util_make_uri('/frs/admin/?group_id='.$group_id);
+				} else {
+					$menu['adminurls'][] = false;
+				}
+				if ($toptab == "frs") {
+					$selected = (count($menu['urls'])-1);
+				}
+			}
+
+			// (2) Doc Manager
+			if ($group->usesDocman()) {
+				$menu['titles'][] = _('Documents');
+				$menu['tooltips'][] = _('Document Management.');
+				$menu['urls'][] = util_make_uri('/docman/?group_id=' . $group_id);
+				if (forge_check_perm ('docman', $group_id, 'admin')) {
+					$menu['adminurls'][] = util_make_uri('/docman/?group_id='.$group_id.'&amp;view=admin');
+				} else {
+					$menu['adminurls'][] = false;
+				}
+				if ($toptab == "docman") {
+					$selected = (count($menu['urls'])-1);
+				}
+			}
+
+			// (3) Forums
+			plugin_hook("groupmenu", $hookParams, "phpBB");
+
+			
+			// (4) Wiki plugins.
+			// Select only the "moinmoin" plugin to add to menu.
+			plugin_hook("groupmenu", $hookParams, "moinmoin");
+
+			// (5) Publications plugins.
+			// Select only the "publications" plugin to add to menu.
+			//plugin_hook("groupmenu", $hookParams, "publications");
+
+			// (6) SCM systems
+			if ($group->usesSCM()) {
+				$menu['titles'][] = "Source Code";
+				$menu['tooltips'][] = _('Source Content Management, peer-review and source discovery.');
+				$menu['urls'][] = util_make_uri('/scm/?group_id=' . $group_id);
+				// eval cvs_flags?
+				if (forge_check_perm ('project_admin', $group_id)) {
+					$menu['adminurls'][] = util_make_uri('/scm/admin/?group_id='.$group_id);
+				} else {
+					$menu['adminurls'][] = false;
+				}
+				if ($toptab == "scm") {
+					$selected = (count($menu['urls'])-1);
+				}
+			}
+
+			// (7) Artifact Tracking
+			if ($group->usesTracker()) {
+				$menu['titles'][] = "Issues";
+				$menu['tooltips'][] = _('Issues, tickets, bugs.');
+				$menu['urls'][] = util_make_uri('/tracker/?group_id=' . $group_id);
+				if (forge_check_perm ('tracker_admin', $group_id)) {
+					$menu['adminurls'][] = util_make_uri('/tracker/admin/?group_id='.$group_id);
+				} else {
+					$menu['adminurls'][] = false;
+				}
+				if ($toptab == "tracker" ||
+				$toptab == "bugs" ||
+				$toptab == "support" ||
+				$toptab == "patch") {
+					$selected = (count($menu['urls'])-1);
+				}
+			}
+
+			// Simulations.
+			//if (forge_check_perm ('simulations', $group_id, 'read_public')) {
+			$u = false;
+			if (session_loggedin()) {
+				// Get user object.
+				$u = &session_get_user();
+			}
+			if (checkSimulationPermission($group, $u)) {
+				$menu['titles'][] = "Simulations";
+				$menu['tooltips'][] = 'Simulations';
+				$menu['urls'][] = util_make_uri('/simulations/viewJobs.php?group_id=' . $group_id);
+			}
+
+			// (8) News plugins.
+			// Select only the "simtk_news" plugin to add to menu.
+			plugin_hook("groupmenu", $hookParams, "simtk_news");
+
+			// (9) Reports plugins.
+			// Select only the "reports" plugin to add to menu.
+			plugin_hook("groupmenu", $hookParams, "reports");
+
+			// (9) Project Admin
+			if (forge_check_perm ('project_admin', $group_id)) {
+				$menu['titles'][] = _('Admin');
+				$menu['tooltips'][] = _('Project Admin');
+				$menu['urls'][] = util_make_uri('/project/admin/?group_id=' . $group_id);
+				$menu['adminurls'][] = false;
+				if ($toptab == "admin") {
+					$selected = (count($menu['urls'])-1);
+				}
+			}
+
+                    }
+
+		    return $this->project_menu_data[$group_id];
+
+        }
+
+
 	/**
 	 * Get a reference to an array of the projects menu for the project with the id $group_id with the following structure:
 	 *	$result['starturl']: URL of the projects starting page;
@@ -524,7 +688,7 @@ class Navigation extends Error {
 			}
 
 			// News
-			if ($group->usesNews()) {
+			if ($group->usesPlugin("simtk_news")) {
 				$menu['titles'][] = _('News');
 				$menu['tooltips'][] = _('Flash head line from the project.');
 				$menu['urls'][] = util_make_uri('/news/?group_id=' . $group_id);
@@ -651,6 +815,7 @@ class Navigation extends Error {
 					true);
 		}
 	}
+
 }
 
 // Local Variables:

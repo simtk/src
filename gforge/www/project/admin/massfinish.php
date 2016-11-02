@@ -5,6 +5,7 @@
  * Copyright 2004 (c) Tim Perdue - GForge LLC
  * Copyright 2010 (c) Franck Villaume - Capgemini
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -46,8 +47,9 @@ if (getStringFromRequest('finished')) {
 	for ($i=0; $i<count($keys); $i++) {
 		$group->addUser($keys[$i],$addrole[$keys[$i]]);
 	}
-    $feedback = _('Successful');
-	session_redirect('/project/admin/index.php?group_id='.$group_id.'&feedback='.urlencode($feedback));
+	$feedback = _('Successful');
+	//session_redirect('/project/admin/index.php?group_id='.$group_id.'&feedback='.urlencode($feedback));
+	session_redirect('/project/admin/users.php?group_id='.$group_id.'&feedback='.urlencode($feedback));
 }
 
 if (!$accumulated_ids) {

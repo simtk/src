@@ -1,5 +1,7 @@
 <?php
 /**
+ * DocumentFactory.class.php
+ *
  * FusionForge document manager
  *
  * Copyright 2000, Quentin Cregan/Sourceforge
@@ -8,6 +10,7 @@
  * Copyright 2010-2011, Franck Villaume - Capgemini
  * Copyright (C) 2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012-2013, Franck Villaume - TrivialDev
+ * Copyright 2016, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -203,6 +206,10 @@ class DocumentFactory extends Error {
 					$localColumns[] = "description";
 					break;
 				}
+				case "citation": {
+					$localColumns[] = "citation";
+					break;
+				}
 				case "filename": {
 					$localColumns[] = "filename";
 					break;
@@ -280,7 +287,8 @@ class DocumentFactory extends Error {
 		} else {
 			$keys = array_keys($this->Documents);
 		}
-
+        
+		
 		foreach ($keys as $key) {
 			if (!array_key_exists($key, $this->Documents))	continue;		// Should not happen
 
@@ -289,6 +297,7 @@ class DocumentFactory extends Error {
 			for ($i=0; $i < $count; $i++) {
 				$valid = true;							// do we need to return this document?
 				$doc =& $this->Documents[$key][$i];
+				//echo "doc: " . $this->Documents[$key][$i] . "<br />";
 
 				if (!$this->stateid) {
 					$perm =& $this->Group->getPermission();
@@ -309,6 +318,7 @@ class DocumentFactory extends Error {
 				if ($valid) {
 					$return[] =& $doc;
 				}
+				//print_r($return);
 			}
 		}
 
@@ -331,7 +341,7 @@ class DocumentFactory extends Error {
 	private function getFromStorage() {
 		$this->Documents = array();
 		$qpa = db_construct_qpa();
-		$qpa = db_construct_qpa($qpa, 'SELECT * FROM docdata_vw WHERE group_id = $1 ',
+		$qpa = db_construct_qpa($qpa, 'SELECT * FROM docdata_vw2 WHERE group_id = $1 ',
 						array($this->Group->getID()));
 
 		if ($this->docgroupid) {

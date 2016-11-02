@@ -6,6 +6,7 @@
  * Copyright 2009, Roland Mas
  * Copyright (C) 2010 Alain Peyrat - Alcatel-Lucent
  * Copyright 2013, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -127,26 +128,31 @@ function report_area_box($name='area', $selected='1', $Group=false) {
 		$use_frs = false; // Not implemented in ReportUserAct: forge_get_config('use_frs');
 		$use_pageviews = false;
 	}
-	if ($use_tracker) {
-		$arr[]='tracker';
-		$arr2[]=_('Tracker');
-	}
-	if ($use_forum) {
-		$arr[]='forum';
-		$arr2[]=_('Forums');
-	}
-	if ($use_docman) {
-		$arr[]='docman';
-		$arr2[]=_('Docs');
-	}
-	if ($use_pm) {
-		$arr[]='taskman';
-		$arr2[]=_('Tasks');
-	}
 	if ($use_frs) {
 		$arr[]='downloads';
 		$arr2[]=_('Downloads');
 	}
+	if ($use_tracker) {
+		$arr[]='tracker';
+		$arr2[]=_('Issue Trackers');
+	}
+	/* disable this - Tod Hing as requested by Joy Ku 06-28-16
+	if ($use_forum) {
+		$arr[]='forum';
+		$arr2[]=_('Forums');
+	}
+	*/
+	if ($use_docman) {
+		$arr[]='docman';
+		$arr2[]=_('Documents');
+	}
+	/* disable this - Tod Hing as requested by Joy Ku 6-13-16
+	if ($use_pm) {
+		$arr[]='taskman';
+		$arr2[]=_('Tasks');
+	}
+	*/
+	
 	if ($use_pageviews) {
 		$arr[]='pageviews';
 		$arr2[]=_('Page Views');
@@ -231,10 +237,15 @@ function report_pie_arr($labels, $vals, $format=1) {
 
 }
 
-function report_package_box($group_id, $name='dev_id', $selected='') {
+function report_package_box($group_id, $name='dev_id', $selected='', $only_public=1) {
 
-	$res = db_query_params ('SELECT package_id, name FROM frs_package WHERE frs_package.group_id = $1',
+    if ($only_public) {
+	  $res = db_query_params ('SELECT package_id, name FROM frs_package WHERE frs_package.group_id = $1 AND frs_package.is_public = 1 AND status_id = 1',
 				array ($group_id));
+	} else {
+	  $res = db_query_params ('SELECT package_id, name FROM frs_package WHERE frs_package.group_id = $1 AND status_id = 1',
+				array ($group_id));
+	}
 	return html_build_select_box($res, $name, $selected, false);
 }
 

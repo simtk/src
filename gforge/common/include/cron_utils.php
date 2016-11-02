@@ -1,10 +1,13 @@
 <?php
 /**
+ * cron_utils.php
+ *
  * FusionForge cron job utilities
  *
  * Copyright 2003, GForge, LLC
  * Copyright 2009, Roland Mas
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -57,6 +60,7 @@ $cron_arr[27]='create_scm_repos.php';
 $cron_arr[28]='gather_scm_stats.php';
 $cron_arr[29]='weekly.php';
 $cron_arr[30] = 'create_vhosts.php';
+$cron_arr[31] = 'followingnews.php';
 
 $cron_arr[901]='create_groups.php';
 $cron_arr[902]='mailing_lists_index.php';

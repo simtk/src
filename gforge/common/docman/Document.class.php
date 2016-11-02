@@ -1,5 +1,7 @@
 <?php
 /**
+ * Document.class.php
+ *
  * FusionForge document manager
  *
  * Copyright 2000, Quentin Cregan/Sourceforge
@@ -8,6 +10,7 @@
  * Copyright 2010-2011, Franck Villaume - Capgemini
  * Copyright 2011-2013, Franck Villaume - TrivialDev
  * Copyright (C) 2011-2012 Alain Peyrat - Alcatel-Lucent
+ * Copyright 2016, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -107,8 +110,10 @@ class Document extends Error {
 	 * @param	string	$description	The description of this document.
 	 * @param	int	$stateid	The state id of the document. At creation, cannot be deleted status.
 	 * @return	bool	success.
+
+           changes:  9-3-2014   Tod Hing   added citation parameter
 	 */
-	function create($filename, $filetype, $data, $doc_group, $title, $description, $stateid = 0) {
+	function create($filename, $filetype, $data, $doc_group, $title, $description, $citation, $stateid = 0) {
 		if (strlen($title) < 5) {
 			$this->setError(_('Title Must Be At Least 5 Characters'));
 			return false;
@@ -170,8 +175,8 @@ class Document extends Error {
 
 		db_begin();
 		$result = db_query_params('INSERT INTO doc_data (group_id, title, description, createdate, doc_group,
-						stateid, filename, filetype, filesize, data_words, created_by)
-						VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)',
+						stateid, filename, filetype, filesize, data_words, created_by, citation)
+						VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)',
 						array($this->Group->getId(),
 							htmlspecialchars($title),
 							htmlspecialchars($description),
@@ -182,7 +187,8 @@ class Document extends Error {
 							$filetype,
 							$filesize,
 							$kwords,
-							$user_id)
+							$user_id,
+                                                        $citation)
 					);
 
 		$docid = db_insertid($result, 'doc_data', 'docid');
@@ -238,7 +244,8 @@ class Document extends Error {
 		}
 		return true;
 	}
-
+	
+	
 	/**
 	 * fetchData() - re-fetch the data for this document from the database.
 	 *
@@ -246,13 +253,16 @@ class Document extends Error {
 	 * @return	boolean	success
 	 */
 	function fetchData($docid) {
-		$res = db_query_params('SELECT * FROM docdata_vw WHERE docid=$1 AND group_id=$2',
+		$res = db_query_params('SELECT * FROM docdata_vw2 WHERE docid=$1 AND group_id=$2',
 					array($docid, $this->Group->getID()));
 		if (!$res || db_numrows($res) < 1) {
 			$this->setError(_('Document: Invalid docid'));
 			return false;
 		}
 		$this->data_array = db_fetch_array($res);
+                //print_r ($this->data_array);
+                //exit;
+
 		db_free_result($res);
 		return true;
 	}
@@ -291,6 +301,15 @@ class Document extends Error {
 	 */
 	function getDescription() {
 		return $this->data_array['description'];
+	}
+
+	/**
+	 * getCitation - the citation of this document.
+	 *
+	 * @return	string	The Citation.
+	 */
+	function getCitation() {
+		return $this->data_array['citation'];
 	}
 
 	/**
@@ -817,9 +836,10 @@ class Document extends Error {
 	 * @param	string	$title		The title of this document.
 	 * @param	string	$description	The description of this document.
 	 * @param	int	$stateid	The state id of the doc_states table.
+	 * @param	string	$citation	The citation of this document.
 	 * @return	boolean	success.
 	 */
-	function update($filename, $filetype, $data, $doc_group, $title, $description, $stateid) {
+	function update($filename, $filetype, $data, $doc_group, $title, $description, $stateid, $citation) {
 
 		$perm =& $this->Group->getPermission();
 		if (!$perm || !is_object($perm) || !$perm->isDocEditor()) {
@@ -863,9 +883,10 @@ class Document extends Error {
 					filename=$6,
 					updatedate=$7,
 					locked=$8,
-					locked_by=$9
-					WHERE group_id=$10
-					AND docid=$11',
+					locked_by=$9,
+                                        citation=$10
+					WHERE group_id=$11
+					AND docid=$12',
 					array(htmlspecialchars($title),
 						htmlspecialchars($description),
 						$stateid,
@@ -875,6 +896,7 @@ class Document extends Error {
 						time(),
 						0,
 						NULL,
+						htmlspecialchars($citation),
 						$this->Group->getID(),
 						$this->getID())
 					);
@@ -1059,8 +1081,9 @@ class Document extends Error {
 	/**
 	 * downloadUp - insert download stats
 	 *
+	 * @access	private
 	 */
-	function downloadUp() {
+	private function downloadUp() {
 		if (session_loggedin()) {
 			$s =& session_get_user();
 			$us = $s->getID();

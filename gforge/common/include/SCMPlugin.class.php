@@ -1,10 +1,13 @@
 <?php
 /**
+ * SCMPlugin.class.php
+ *
  * FusionForge source control management
  *
  * Copyright 2004-2009, Roland Mas
  * Copyright (C) 2011-2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -124,6 +127,7 @@ abstract class SCMPlugin extends Plugin {
 			if ($project->enableAnonSCM() || forge_check_perm('scm', $project->getID(), 'read')) {
 				return true;
 			}
+                     
 		}
 		return false;
 	}
@@ -141,7 +145,7 @@ abstract class SCMPlugin extends Plugin {
 		}
 	}
 
-	function getBlurb () {
+	function getBlurb ($project) {
 		return '<p>' . _('Unimplemented SCM plugin.') . '</p>';
 	}
 
@@ -202,7 +206,7 @@ abstract class SCMPlugin extends Plugin {
 			session_require_perm('scm', $project->getID(), 'read');
 			// Table for summary info
 			print '<table class="fullwidth"><tr class="top"><td style="width:65%">'."\n" ;
-			print $this->getBlurb()."\n";
+			print $this->getBlurb($project)."\n";
 
 			// Instructions for anonymous access
 			if ($project->enableAnonSCM()) {
@@ -224,10 +228,13 @@ abstract class SCMPlugin extends Plugin {
 
 			// Browsing
 			echo $HTML->boxTop(_('Repository History'));
+                        echo "(<b>" . $project->getSCMCommits() . "</b> commits as of 5 AM)";
+                        /*
 			echo _('Data about current and past states of the repository.');
 			if ($this->browserDisplayable($project)) {
 				echo $this->getStatsBlock($project);
 			}
+                        */
 
 			echo $HTML->boxBottom();
 			print '</td></tr></table>';
@@ -252,7 +259,8 @@ abstract class SCMPlugin extends Plugin {
 		$ra = RoleAnonymous::getInstance() ;
 
 		if ( $group->usesPlugin ( $this->name ) && $ra->hasPermission('project_read', $group->getID())) {
-			print '<p><input type="checkbox" name="scm_enable_anonymous" value="1" '.$this->c($group->enableAnonSCM()).' /><strong>'._('Enable Anonymous Read Access').'</strong></p>';
+		//if ( $group->usesPlugin ( $this->name )) {
+			print '<p><input type="checkbox" name="scm_enable_anonymous" value="1" '.$this->c($group->enableAnonSCM()).' /><strong>'._('Allow everyone (SimTK members and non-SimTK members) to have read-access to repository').'</strong></p>';
 		}
 	}
 

@@ -17,6 +17,7 @@
     @copyright: 2000-2004 Juergen Hermann <jh@web.de>,
                 2003-2007 MoinMoin:ThomasWaldmann,
                 2010 Michael Foetsch <foetsch@yahoo.com>
+                2016 Henry Kwong, Tod Hing - SimTK Team
     @license: GNU GPL, see COPYING for details.
 """
 
@@ -434,7 +435,8 @@ class User:
 
             try:
                 key, val = line.strip().split('=', 1)
-                if key not in self._cfg.user_transient_fields and key[0] != '_':
+                """ NOTE: Check array size before usage! """
+                if key not in self._cfg.user_transient_fields and len(key) != 0 and key[0] != '_':
                     # Decode list values
                     if key.endswith('[]'):
                         key = key[:-2]
