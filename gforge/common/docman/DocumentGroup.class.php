@@ -1,5 +1,7 @@
 <?php
 /**
+ * DocumentGroup.class.php
+ 
  * FusionForge document manager
  *
  * Copyright 2000, Quentin Cregan/Sourceforge
@@ -8,6 +10,7 @@
  * Copyright 2010, Franck Villaume - Capgemini
  * Copyright (C) 2011-2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012-2013, Franck Villaume - TrivialDev
+ * Copyright 2016, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -826,7 +829,7 @@ class DocumentGroup extends Error {
 								$filename = $dir_arr[$i];
 							}
 							if (!$d->create($dir_arr[$i], $dir_arr_type, $directory.'/'.$dir_arr[$i], $this->getID(),
-								$filename, _('Injected by ZIP:').date(DATE_ATOM))) {
+								$filename, _('Uploaded by ZIP:').date(DATE_ATOM))) {
 								$this->setError($dir_arr[$i]._(': ').$d->getErrorMessage());
 								return false;
 							}

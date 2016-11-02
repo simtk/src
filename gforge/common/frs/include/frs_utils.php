@@ -8,6 +8,7 @@
  * Copyright 2011, Franck Villaume - Capgemini
  * Copyright 2013, Franck Villaume - TrivialDev
  * http://fusionforge.org/
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -74,7 +75,7 @@ function frs_header($params) {
 	if (forge_check_perm('frs', $group_id, 'write')) {
 		$params['submenu'] = $HTML->subMenu(
 			array(
-				_('View File Releases'),
+				_('View Downloads'),
 				_('Reporting'),
 				_('Administration')
 				),
@@ -88,8 +89,16 @@ function frs_header($params) {
 				NULL,
 				NULL
 				)
-			);
+		);
 	}
+	else {
+		$params['submenu'] = $HTML->subMenu(
+			array(),
+			array(),
+			array()
+		);
+	}
+
 	site_project_header($params);
 }
 
@@ -139,7 +148,9 @@ function frs_show_filetype_popup ($name='type_id', $checked_val="xzxz") {
 	*/
 	global $FRS_FILETYPE_RES;
 	if (!isset($FRS_FILETYPE_RES)) {
-		$FRS_FILETYPE_RES=db_query_params('SELECT * FROM frs_filetype ORDER BY type_id',
+		$FRS_FILETYPE_RES=db_query_params('SELECT * FROM frs_filetype ' .
+			'WHERE type_id>=9995 ' . 
+			'ORDER BY type_id',
 			array());
 	}
 	return html_build_select_box($FRS_FILETYPE_RES, $name, $checked_val, false);
@@ -155,7 +166,9 @@ function frs_show_processor_popup($name='processor_id', $checked_val="xzxz") {
 	*/
 	global $FRS_PROCESSOR_RES;
 	if (!isset($FRS_PROCESSOR_RES)) {
-		$FRS_PROCESSOR_RES=db_query_params ('SELECT * FROM frs_processor ORDER BY processor_id',
+		$FRS_PROCESSOR_RES=db_query_params ('SELECT * FROM frs_processor ' .
+			'WHERE processor_id>=8000 AND processor_id<=9999 ' .
+			'ORDER BY processor_id',
 			array());
 	}
 	return html_build_select_box ($FRS_PROCESSOR_RES, $name, $checked_val, false);
@@ -205,8 +218,38 @@ function frs_show_package_popup ($group_id, $name='package_id', $checked_val="xz
 	return html_build_select_box ($FRS_PACKAGE_RES,$name,$checked_val,false);
 }
 
-function frs_add_file_from_form ($release, $type_id, $processor_id, $release_date,
-				 $userfile, $ftp_filename, $manual_filename) {
+/*
+	pop-up box of mailing list for this group
+*/
+
+function frs_show_mailinglist_popup ($group_id, $name='group_list_id', $checked_val="xzxz") {
+	/*
+		return a pop-up select box of packages for this group
+	*/
+	if (!$group_id) {
+		return _('Error: group id required');
+	}
+	$strQuery = "SELECT unix_group_name from groups where group_id=$group_id";
+	$res = db_query_params($strQuery, array());
+	if (db_numrows($res) == 0) {
+		// No value available.
+		return false;
+	}
+	$unix_group_name = db_result($res, 0, 'unix_group_name');
+
+	$strQuery = "SELECT group_list_id, list_name FROM mail_group_list " .
+		"WHERE group_id=$group_id AND list_name!='$unix_group_name" . "-commits' " .
+		"ORDER BY list_name";
+	$resMailingLists = db_query_params($strQuery, array());
+
+	return html_build_select_box ($resMailingLists,$name,$checked_val,false);
+}
+
+function frs_add_file_from_form($release, $type_id, $processor_id, $release_date, 
+	$userfile, $ftp_filename, $manual_filename, 
+	$collect_info, $use_mail_list, $group_list_id, 
+	$show_notes, $show_agreement,
+	$file_desc="", $disp_name="", $doi=0, $user_id=-1, $url="") {
 
 	$group_unix_name = $release->getFRSPackage()->getGroup()->getUnixName() ;
 	$incoming = forge_get_config('groupdir_prefix')."/$group_unix_name/incoming" ;
@@ -241,31 +284,85 @@ function frs_add_file_from_form ($release, $type_id, $processor_id, $release_dat
 		$fname = $manual_filename ;
 		$move = false ;
 		$filechecks = true ;
-	} elseif ($userfile && $userfile['error'] == UPLOAD_ERR_NO_FILE) {
-		return _('Must select a file.') ;
 	}
-
-	if ($filechecks) {
-		if (strlen($fname) < 3)
-			return _('Name is too short. It must be at least 3 characters.');
-		if (!$move) {
-			$tmp = tempnam ('', '') ;
-			copy ($infile, $tmp) ;
-			$infile = $tmp ;
+	if ($url == "") {
+		// Selected a file.
+		if ($userfile && $userfile['error'] == UPLOAD_ERR_NO_FILE) {
+			return _('Must select a file.') ;
 		}
+
+		if (trim($disp_name) != "") {
+
+			// User specified a non-empty "Display Name" for file name.
+
+			// Try to get file extension.
+			$strExt = "";
+			if (isset($fname)) {
+				// Get last occurence of "."
+				$idxDot = strrpos($fname, ".");
+				if ($idxDot !== false) {
+					$strExt = substr($fname, $idxDot);
+				}
+			}
+
+			// Use "Display Name".
+			$fname = $disp_name;
+			if (strpos($fname, ".") === false) {
+				// Extension not present. Append from uploaded file.
+				$fname .= $strExt;
+			}
+		}
+
+		if ($filechecks) {
+			if (strlen($fname) < 3)
+				return _('Name is too short. It must be at least 3 characters.');
+			if (!$move) {
+				$tmp = tempnam ('', '') ;
+				copy ($infile, $tmp) ;
+				$infile = $tmp ;
+			}
+			$frsf = new FRSFile($release);
+			if (!$frsf || !is_object($frsf)) {
+				return _('Could Not Get FRSFile');
+			}
+			elseif ($frsf->isError()) {
+				return $frsf->getErrorMessage();
+			}
+			else {
+				if (!$frsf->create($fname, $infile, $type_id, 
+					$processor_id, $release_date, 
+					$collect_info, $use_mail_list, $group_list_id, 
+					$show_notes, $show_agreement,
+					$file_desc, $doi, $user_id, $url)) {
+					return $frsf->getErrorMessage();
+				}
+				return true ;
+			}
+		}
+		else {
+			return _('Unknown file upload error.') ;
+		}
+	}
+	else {
+		// URL.
+		$fname = $disp_name;
 		$frsf = new FRSFile($release);
 		if (!$frsf || !is_object($frsf)) {
 			return _('Could Not Get FRSFile');
-		} elseif ($frsf->isError()) {
+		}
+		elseif ($frsf->isError()) {
 			return $frsf->getErrorMessage();
-		} else {
-			if (!$frsf->create($fname,$infile,$type_id,$processor_id,$release_date)) {
+		}
+		else {
+			if (!$frsf->create($fname, $infile, $type_id, 
+				$processor_id, $release_date, 
+				$collect_info, $use_mail_list, $group_list_id, 
+				$show_notes, $show_agreement,
+				$file_desc, $doi, $user_id, $url)) {
 				return $frsf->getErrorMessage();
 			}
 			return true ;
 		}
-	} else {
-		return _('Unknown file upload error.') ;
 	}
 }
 
@@ -279,6 +376,168 @@ function frs_filterfiles($in) {
 	}
 	return $out;
 }
+
+
+/* list of files for download in project overview download pulldown menu */
+function frs_package_use_agreement($group_id) {
+
+   
+   $res_agreement = db_query_params('SELECT DISTINCT ON (name) name, simtk_custom_agreement, use_agreement, package_id  
+        FROM frs_package,frs_use_agreement
+        WHERE frs_package.simtk_use_agreement = frs_use_agreement.use_agreement_id AND frs_package.group_id=$1
+        AND frs_package.status_id=1
+        AND frs_package.is_public=1
+        AND use_agreement_id <> 0
+        ORDER BY name, simtk_custom_agreement, use_agreement, package_id', array($group_id));
+
+   $numrows = db_numrows($res_agreement);
+   if ($numrows > 0) {
+
+      echo '<span class="small grey">License: ';
+      $i = 1;
+      while ($row = db_fetch_array($res_agreement)) {
+          echo '<a href="#" id="package' . $row['package_id'] . '" data-content="' . $row['simtk_custom_agreement'] . '" title="' . $row['use_agreement'] . ' Use Agreement" rel="popover">' . $row['name'] . "</a>";
+          if ($i < $numrows) {
+            // insert comma
+            echo ", ";
+          }
+          $i++;
+      echo '<script>$("#package' . $row['package_id'] . '").popover({ ' . "title: 'Use Agreement', html: 'true', trigger: 'focus' });</script>";
+      }
+      echo "</span>";
+   }
+
+
+   //echo '<a href="#" id="blob" class="btn large primary" rel="popover">hover for popover</a>';
+   //echo '<script>$("#blob").popover({ ' . "title: 'test', content: 'stuff', html: 'true' });</script>";
+}
+
+
+
+/* list of files for download in project overview download pulldown menu */
+function frs_download_files_pulldown($cur_group,$group_id) {
+
+   /*
+   $cur_group = group_get_object($group_id);
+
+   if (!$cur_group) {
+        echo "error get object";
+        exit;
+        return false;
+   }
+   */
+
+   $menu = array();
+ 
+   //
+   //      Members of projects can see all packages
+   //      Non-members can only see public packages
+   //
+   /*
+   if (session_loggedin()) {
+        if (user_ismember($group_id) || forge_check_global_perm('forge_admin')) {
+                $pub_sql='';
+        } else {
+                $pub_sql=' AND is_public=1 ';
+        }
+   } else {
+        $pub_sql=' AND is_public=1 ';
+   }
+   */
+
+   $res_package = db_query_params('SELECT * 
+        FROM frs_package,frs_use_agreement
+        WHERE frs_package.simtk_use_agreement = frs_use_agreement.use_agreement_id AND frs_package.group_id=$1
+        AND frs_package.status_id=1
+        AND frs_package.is_public=1
+        ORDER BY name', array($group_id));
+   $num_packages = db_numrows( $res_package );
+
+   //echo "num packages: " . $num_packages;
+   if ( $num_packages < 1) {
+     return $num_packages;
+   } else {
+     // Iterate through packages
+        $menu_num = 0;
+        for ( $p = 0; $p < $num_packages; $p++ ) {
+
+          $package_id = db_result($res_package, $p, 'package_id');
+
+          $frsPackage = new FRSPackage($cur_group, $package_id);
+
+          $package_name = db_result($res_package, $p, 'name');
+
+          $package_use_agreement = db_result($res_package, $p, 'use_agreement');
+          $use_agreement = "";
+          if ($package_use_agreement != "None") {
+             $use_agreement = "(" . $package_use_agreement . " License)";
+          }
+          
+          // get the releases of the package
+          $res_release = db_query_params ('SELECT * FROM frs_release WHERE package_id=$1
+                AND status_id=1 ORDER BY release_date DESC, name ASC', array ($package_id));
+                $num_releases = db_numrows( $res_release );
+          
+          if ( $res_release && $num_releases > 0 ) {
+             
+             /*  
+             if (class_exists('ZipArchive')) {
+                // display link to latest-release-as-zip
+                //$menu[$p]["url"] = util_make_link ('/frs/download.php/latestzip/'.$frsPackage->getID().'/'.$frsPackage->getNewestReleaseZipName();
+                $menu[$p]["url"] = "/frs/download.php/latestzip/".$frsPackage->getID()."/".$frsPackage->getNewestReleaseZipName();
+                $menu[$p]["name"] = $frsPackage->getNewestReleaseZipName();
+                //echo "url: " . $menu[$p]["url"] . "<br />";
+                //echo "menu: " . $menu[$p]["name"] . "<br />";
+                //$frsPackage->getNewestReleaseZipName();
+                }
+             */
+
+             // get the first release which should be the latest by date
+             $package_release = db_fetch_array( $res_release );
+
+             $package_release_id = $package_release['release_id'];
+
+             // get the files in this release....
+             $res_file = db_query_params("SELECT frs_file.filename AS filename,
+                                          frs_file.file_id AS file_id,
+                                          frs_file.simtk_filetype AS simtk_filetype,
+                                          frs_filetype.name AS type, frs_filetype.type_id AS type_id, frs_processor.name AS name
+                                          FROM frs_filetype,frs_file,frs_processor
+                                          WHERE release_id=$1
+                                          AND frs_filetype.type_id=frs_file.type_id AND frs_processor.processor_id = frs_file.processor_id
+                                          ORDER BY filename", array($package_release_id));
+
+             $num_files = db_numrows( $res_file );
+             // not iterate through files and add to the menu array
+             if ( $res_file && $num_files > 0 ) {
+                // now iterate and show the files in this release....
+                for ( $f = 0; $f < $num_files; $f++ ) {
+                   $file_release = db_fetch_array( $res_file );
+                   // check release type ......$tmp_col6 = $file_release['type'];
+
+                   // NOTE: Has to check whether file is a URL. If so, do not include.
+                   if ($file_release['type_id'] != 9997 && 
+			$file_release['type_id'] != 9994 &&
+			$file_release['simtk_filetype'] != "URL") { 
+                      $menu[$menu_num]["url"] = "/frs/download_confirm.php/file/" .
+			$file_release['file_id'] . "/" .
+			$file_release['filename'] . "?" .
+			"group_id=" . $group_id;
+		      $menu[$menu_num]["name"] = "<b>" . $package_name . ":</b> " . $file_release['filename'];
+                      $menu_num++;
+                   } // filetype
+                   //print_r ($file_release);
+                }
+             }
+          } // releases more than 0
+
+        } // Iterate through packages for loop
+        return $menu;
+
+   }
+
+}
+
 
 // Local Variables:
 // mode: php

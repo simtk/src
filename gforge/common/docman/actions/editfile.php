@@ -6,6 +6,7 @@
  * Copyright 2002-2003, Tim Perdue/GForge, LLC
  * Copyright 2010-2011, Franck Villaume - Capgemini
  * Copyright 2012, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -44,6 +45,10 @@ switch ($fromview) {
 		$urlparam .= '&view='.$fromview;
 		break;
 	}
+	case 'admin': {
+		$urlparam .= '&view='.$fromview;
+		break;
+	}
 	default: {
 		$urlparam .= '&view=listfile&dirid='.$doc_group;
 		break;
@@ -58,6 +63,7 @@ if (!forge_check_perm('docman', $g->getID(), 'approve')) {
 $docid = getIntFromRequest('docid');
 $title = getStringFromRequest('title');
 $description = getStringFromRequest('description');
+$citation = getStringFromRequest('citation');
 $details = getStringFromRequest('details');
 $file_url = getStringFromRequest('file_url');
 $uploaded_data = getUploadedFile('uploaded_data');
@@ -106,7 +112,7 @@ if (($editor) && ($d->getFileData() != $details) && (!$uploaded_data['name'])) {
 	$filetype = $d->getFileType();
 }
 
-if (!$d->update($filename, $filetype, $data, $doc_group, $title, $description, $stateid))
+if (!$d->update($filename, $filetype, $data, $doc_group, $title, $description, $stateid, $citation))
 	session_redirect($urlparam.'&error_msg='.urlencode($d->getErrorMessage()));
 
 $return_msg = sprintf(_('Document %s updated successfully.'), $filename);

@@ -7,6 +7,7 @@
  * notice).
  *
  * Copyright 1999-2001 (c) VA Linux Systems
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -35,10 +36,12 @@ require_once $gfwww.'include/login-form.php';
 $return_to = getStringFromRequest('return_to');
 $triggered = getIntFromRequest('triggered');
 
+/*
 if (isset($session_hash)) {
 	//nuke their old session
 	session_logout();
 }
+*/
 
 display_login_page($return_to, $triggered);
 

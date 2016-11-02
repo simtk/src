@@ -1,5 +1,7 @@
 <?php
 /**
+ * listtrashfile.php
+ *
  * FusionForge Documentation Manager
  *
  * Copyright 2000, Quentin Cregan/Sourceforge
@@ -7,6 +9,7 @@
  * Copyright 2010-2011, Franck Villaume - Capgemini
  * Copyright 2011-2014, Franck Villaume - TrivialDev
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
+ * Copyright 2016, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -49,10 +52,12 @@ echo '</div>';
 // plugin projects-hierarchy
 $childgroup_id = getIntFromRequest('childgroup_id');
 if ($childgroup_id) {
+    /*
 	if (!forge_check_perm('docman', $childgroup_id, 'read')) {
 		$return_msg= _('Document Manager Access Denied');
 		session_redirect($baseredirecturl.'&warning_msg='.urlencode($return_msg));
 	}
+	*/
 	$redirecturl .= '&childgroup_id='.$childgroup_id;
 	$actionlistfileurl .= '&amp;childgroup_id='.$childgroup_id;
 	$g = group_get_object($childgroup_id);
@@ -119,7 +124,7 @@ jQuery(document).ready(function() {
 		divRight:		jQuery('#rightdiv'),
 		divEditFile:		jQuery('#editFile'),
 		divEditTitle:		'<?php echo _("Edit document dialog box") ?>',
-		enableResize:		true,
+		enableResize:		false,
 		page:			'trashfile'
 	});
 });

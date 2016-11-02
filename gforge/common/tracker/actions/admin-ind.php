@@ -7,6 +7,7 @@
  * Copyright 2010, FusionForge Team
  * Copyright 2011, Franck Villaume - Capgemini
  * Copyright 2012-2014, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -24,11 +25,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+require_once $gfcommon.'include/roleUtils.php';
+
 global $group;
 
 if (getStringFromRequest('post_changes')) {
 	$name = getStringFromRequest('name');
 	$description = getStringFromRequest('description');
+	$simtk_is_public = getStringFromRequest('simtk_is_public');
+	$simtk_allow_anon = getStringFromRequest('simtk_allow_anon');
 	$email_all = getStringFromRequest('email_all');
 	$email_address = getStringFromRequest('email_address');
 	$due_period = getStringFromRequest('due_period');
@@ -43,12 +48,17 @@ if (getStringFromRequest('post_changes')) {
 	if (getStringFromRequest('add_at')) {
 		$res=new ArtifactTypeHtml($group);
 		if (!$res->create($name,$description,$email_all,$email_address,
-			$due_period,$use_resolution,$submit_instructions,$browse_instructions)) {
+			$due_period,$use_resolution,$submit_instructions,$browse_instructions,
+			0,$simtk_is_public,$simtk_allow_anon)) {
 			exit_error($res->getErrorMessage(),'tracker');
 		} else {
 			$feedback .= _('Tracker created successfully');
 			$feedback .= '<br/>';
 			$feedback .= _("Please configure also the roles (by default, it's “No Access”)");
+
+			// New tracker created. Give anonymous user access by default.
+			setAnonymousAccessForProject($group->getID());
+
 		}
 		$group->normalizeAllRoles () ;
 	}
@@ -134,10 +144,14 @@ if (forge_check_perm ('tracker_admin', $group->getID())) { ?>
 	<input type="hidden" name="add_at" value="y" />
 	<p>
 	<?php echo _('<strong> Name:</strong> (examples: meeting minutes, test results, RFP Docs)').utils_requiredField() ?><br />
-	<input type="text" name="name" value="" required="required" /></p>
+	<input type="text" name="name" value="" class="required" required="required" /></p>
 	<p>
 	<strong><?php echo _('Description')._(':').utils_requiredField(); ?></strong><br />
-	<input type="text" name="description" value="" size="50" required="required" /></p>
+	<input type="text" name="description" value="" size="50" class="required" required="required" /></p>
+	<p>
+	<input type="checkbox" name="simtk_is_public" value="1" /> <strong><?php echo 'Publicly Available' ?></strong></p>
+	<p>
+	<input type="checkbox" name="simtk_allow_anon" value="1" /> <strong><?php echo 'Allow non-logged-in postings' ?></strong></p>
 	<p>
 	<strong><?php echo _('Send email on new submission to address')._(':'); ?></strong><br />
 	<input type="text" name="email_address" value="" /></p>
@@ -156,7 +170,7 @@ if (forge_check_perm ('tracker_admin', $group->getID())) { ?>
 	<strong><?php echo _('Free form text for the Browse page')._(':'); ?></strong><br />
 	<textarea name="browse_instructions" rows="10" cols="55"></textarea></p>
 	<p>
-	<input type="submit" name="post_changes" value="<?php echo _('Submit') ?>" /></p>
+	<input type="submit" name="post_changes" value="Submit" class="btn-cta" /></p>
 	</form>
 	<?php
 }

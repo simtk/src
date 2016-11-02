@@ -7,6 +7,7 @@
  * Copyright 2010 (c) Franck Villaume - Capgemini
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012, Jean-Christophe Masson - French National Education Department
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -34,6 +35,9 @@ require_once $gfcommon.'mail/MailingListFactory.class.php';
 
 $group_id = getIntFromGet('group_id');
 
+// Check permission and prompt for login if needed.
+session_require_perm('project_read', $group_id);
+
 if ($group_id) {
 	$group = group_get_object($group_id);
 	if (!$group || !is_object($group)) {
@@ -50,9 +54,16 @@ if ($group_id) {
 	}
 
 	mail_header(array(
-		'title' => sprintf(_('Mailing Lists for %s'), $group->getPublicName())
+		'title' => sprintf(_('Mailing Lists'))
 	));
 
+	if (session_loggedin()) {
+			if (forge_check_perm ('project_admin', $group_id)) {
+			   //echo "<a href='/mail/admin/?add_list=1&group_id=$group_id' class='btn-blue share_text_button'>Add List</a>";
+			   echo " <a href='/mail/admin/?group_id=$group_id' class='btn-blue share_text_button'>Administration</a>";			
+			}
+	}
+		
 	plugin_hook ("blocks", "mail index");
 
 	$mlArray = $mlFactory->getMailingLists();
@@ -93,11 +104,11 @@ if ($group_id) {
 					'<td width="25%" class="align-center">'._('Not activated yet').'</td>';
 			} else {
 				echo '<td width="25%">'.
-					'<strong><a href="'.$currentList->getArchivesUrl().'">' .
+					'<strong><a href="'.$currentList->getArchivesUrl().'" target="_blank">' .
 					sprintf(_('%s Archives'), $currentList->getName()).'</a></strong></td>'.
 					'<td width="25%" align="center"><a href="&#109;&#097;&#105;&#108;&#116;&#111;:'.$currentList->getListEmail().'">'.$currentList->getListEmail(). '</a></td>'.
 					'<td width="25%">'.htmlspecialchars($currentList->getDescription()). '</td>'.
-					'<td width="25%" class="align-center"><a href="'.$currentList->getExternalInfoUrl().'">'._('Subscribe/Unsubscribe/Preferences').'</a>'.
+					'<td width="25%" class="align-center"><a href="'.$currentList->getExternalInfoUrl().'" target="_blank">'._('Subscribe/Unsubscribe/Preferences').'</a>'.
 					'</td>';
 			}
 			echo '</tr>';

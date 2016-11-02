@@ -1,5 +1,7 @@
 <?php
 /**
+ * index.php
+ *
  * FusionForge Documentation Manager
  *
  * Copyright 2000, Quentin Cregan/Sourceforge
@@ -7,6 +9,7 @@
  * Copyright 2010-2011, Franck Villaume - Capgemini
  * Copyright (C) 2010-2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012-2013, Franck Villaume - TrivialDev
+ * Copyright 2016, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -38,6 +41,7 @@ require_once $gfcommon.'include/TextSanitizer.class.php'; // to make the HTML in
 require_once $gfcommon.'reporting/report_utils.php';
 require_once $gfcommon.'reporting/ReportPerGroupDocmanDownloads.class.php';
 require_once $gfwww.'include/html.php';
+require_once $gfwww.'project/project_utils.php';
 
 /* are we using docman ? */
 if (!forge_get_config('use_docman'))
@@ -54,7 +58,7 @@ $g = group_get_object($group_id);
 if (!$g || !is_object($g))
 	exit_no_group();
 
-session_require_perm('docman', $group_id, 'read');
+//session_require_perm('docman', $group_id, 'read');
 
 /* is this group using docman ? */
 if (!$g->usesDocman())
@@ -109,15 +113,20 @@ if (session_loggedin()) {
 }
 
 html_use_storage();
-html_use_simplemenu();
+//html_use_simplemenu();
 html_use_jqueryui();
 html_use_jquerysplitter();
 use_javascript('/docman/scripts/DocManController.js');
-use_javascript('/js/sortable.js');
+//use_javascript('/js/sortable.js');
 
-$title = _('Documents for ').$g->getPublicName();
+$title = _('Documents');
 
-site_project_header(array('title'=>$title, 'group'=>$group_id, 'toptab'=>'docman'));
+site_project_header(array('title'=>$title, 'group'=>$group_id, 'toptab'=>'docman', 'titleurl'=>'/docman/?group_id='.$group_id));
+
+echo "\n";
+echo "<div class=\"project_overview_main\">\n";
+echo "<div style=\"display: table; width: 100%;\">\n"; 
+echo "<div class=\"main_col\">\n";
 
 echo '<div id="menu" >';
 include ($gfcommon.'docman/views/menu.php');
@@ -126,5 +135,34 @@ echo '</div>';
 echo '<div id="views">';
 include ($gfcommon.'docman/views/views.php');
 echo '</div>';
+//echo "index.php";
+
+echo "</div><!--main_col-->\n";
+
+// Add side bar to show statistics and project leads.
+$group = group_get_object($group_id);
+constructSideBar($g);
+
+echo "</div><!--display table-->\n</div><!--project_overview_main-->\n";
 
 site_project_footer(array());
+
+// Construct side bar
+function constructSideBar($groupObj) {
+
+	if ($groupObj == null) {
+		// Group object not available.
+		return;
+	}
+
+	echo '<div class="side_bar">';
+
+	// Statistics.
+	displayStatsBlock($groupObj);
+
+	// Get project leads.
+	$project_admins = $groupObj->getLeads();
+	displayCarouselProjectLeads($project_admins);
+
+	echo '</div>';
+}

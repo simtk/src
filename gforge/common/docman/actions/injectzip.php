@@ -3,6 +3,7 @@
  * FusionForge Documentation Manager
  *
  * Copyright 2010-2011, Franck Villaume - Capgemini
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -35,7 +36,21 @@ if (!forge_check_perm('docman', $group_id, 'approve')) {
 	}
 }
 
-$doc_group = getIntFromRequest('dirid');
+
+
+
+// added tod hing 9-12-14 - if doc_group exist then assign it to doc_group
+$doc_group_temp = getStringFromPost('doc_group');
+if (isset($doc_group_temp) && ($doc_group_temp > 0)) {
+  $doc_group = $doc_group_temp;
+}
+else {
+  $doc_group = getIntFromRequest('dirid');
+}
+
+//echo "docgroup: " . $doc_group;
+//exit;
+
 $uploaded_zip = getUploadedFile('uploaded_zip');
 $dg = new DocumentGroup($g, $doc_group);
 

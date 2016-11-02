@@ -5,6 +5,7 @@
  * Copyright 2010 (c) Alcatel-Lucent
  * Copyright 2011, Roland Mas
  * Copyright 2014, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * @author Alain Peyrat
  * @date 2010-05-18
@@ -93,7 +94,7 @@ printf(_('You are about to permanently delete role %s'), $role->getName()); ?>
 </p>
 
 <p>
-<input type="submit" name="submit" value="<?php echo _('Submit') ?>" />
+<input type="submit" name="submit" value="<?php echo _('Submit') ?>" class="btn-cta" />
 </p>
 </form>
 </fieldset>

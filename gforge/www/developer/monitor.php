@@ -4,6 +4,7 @@
  *
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright (C) 2012 Alain Peyrat - Alcatel-Lucent
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -63,7 +64,8 @@ if (!session_loggedin()) {
 			if (!$result) {
 				echo '<p class="error">' . _('Error inserting into user_diary_monitor') . '</p>';
 			} else {
-				echo '<p class="feedback">' . _('User is now being monitored') . '</p>';
+//				echo '<p class="feedback">' . _('User is now being monitored') . '</p>';
+				echo '<p class="warning_msg">' . _('User is now being monitored') . '</p>';
 				echo '<p>' . _("You will now be emailed this user's diary entries.") . '</p>';
 				echo '<p>' . _('To turn off monitoring, simply click the <strong>Monitor user</strong> link again.') . '</p>';
 			}
@@ -72,7 +74,8 @@ if (!session_loggedin()) {
 			$result = db_query_params ('DELETE FROM user_diary_monitor WHERE user_id=$1 AND monitored_user=$2',
 						   array (user_getid(),
 							  $diary_user));
-			echo '<p class="feedback">' . _('Monitoring Stopped') . "</p>";
+//			echo '<p class="feedback">' . _('Monitoring Stopped') . "</p>";
+			echo '<p class="warning_msg">' . _('Monitoring Stopped') . "</p>";
 			echo _('You will not receive any more emails from this user');
 
 		}

@@ -4,6 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @copyright 2016, Henry Kwong, Tod Hing - SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -1328,7 +1329,7 @@ function truncate_string($string, $max_length = 60, $max_store_length = 255, $al
 function get_username_string($mode, $user_id, $username, $username_colour = '', $guest_username = false, $custom_profile_url = false)
 {
 	static $_profile_cache;
-	global $phpbb_dispatcher;
+	global $phpbb_dispatcher, $db;
 
 	// We cache some common variables we need within this function
 	if (empty($_profile_cache))
@@ -1386,6 +1387,7 @@ function get_username_string($mode, $user_id, $username, $username_colour = '', 
 
 		case 'profile':
 
+/*
 			// Build correct profile url - only show if not anonymous and permission to view profile if registered user
 			// For anonymous the link leads to a login page.
 			if ($user_id && $user_id != ANONYMOUS && ($user->data['user_id'] == ANONYMOUS || $auth->acl_get('u_viewprofile')))
@@ -1395,6 +1397,29 @@ function get_username_string($mode, $user_id, $username, $username_colour = '', 
 			else
 			{
 				$profile_url = '';
+			}
+*/
+
+			$profile_url = '';
+
+			// Get user_name from phpbb_users table using user_id.
+			//
+			// Note: Does not require check on showing user profile.
+			// SimTK's user profile is publicly accessible.
+			//
+			// Note: The $username variable is the verbose name and
+			// cannot be used to for showing the user profile in SimTK.
+			$theUserName = '';
+			$sql = 'SELECT username, user_yim FROM phpbb_users WHERE user_id=' . $user_id;
+			$result = $db->sql_query($sql);
+			while ($row = $db->sql_fetchrow($result)) {
+				$theUserName = $row['username'];
+				$full_user_name = $row['user_yim'];
+			}
+			// Set up user profile link.
+			if ($theUserName != '' && $user_id != 2) {
+				// Do not fill in profile URL for "SimTK Admin" (user_id = 2).
+				$profile_url = '/plugins/phpBB/show_user_profile.php?userId=' . $user_id;
 			}
 
 			// Return profile
@@ -1411,13 +1436,22 @@ function get_username_string($mode, $user_id, $username, $username_colour = '', 
 	{
 		if (($mode == 'full' && !$profile_url) || $mode == 'no_profile')
 		{
+			if ($username == "admin") {
+				$username = "SimTK Admin";
+			}
 			$username_string = str_replace(array('{USERNAME_COLOUR}', '{USERNAME}'), array($username_colour, $username), (!$username_colour) ? $_profile_cache['tpl_noprofile'] : $_profile_cache['tpl_noprofile_colour']);
 		}
 		else
 		{
-			$username_string = str_replace(array('{PROFILE_URL}', '{USERNAME_COLOUR}', '{USERNAME}'), array($profile_url, $username_colour, $username), (!$username_colour) ? $_profile_cache['tpl_profile'] : $_profile_cache['tpl_profile_colour']);
+			if (isset($full_user_name)) {
+				$username_string = str_replace(array('{PROFILE_URL}', '{USERNAME_COLOUR}', '{USERNAME}'), array($profile_url, $username_colour, $full_user_name), (!$username_colour) ? $_profile_cache['tpl_profile'] : $_profile_cache['tpl_profile_colour']);
+			}
+			else {
+				$username_string = str_replace(array('{PROFILE_URL}', '{USERNAME_COLOUR}', '{USERNAME}'), array($profile_url, $username_colour, $username), (!$username_colour) ? $_profile_cache['tpl_profile'] : $_profile_cache['tpl_profile_colour']);
+			}
 		}
 	}
+
 
 	/**
 	* Use this event to change the output of get_username_string()

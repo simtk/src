@@ -3,6 +3,7 @@
  * Tracker Facility
  *
  * Copyright 2010 (c) FusionForge Team
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -21,8 +22,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-$ath->adminHeader(array ('title'=>sprintf(_('Permanently Delete Tracker %s'),
-	$ath->getName())));
+$ath->adminHeader(array ('title'=>sprintf(_('Permanently Delete Tracker %s'), $ath->getName())));
+
+// Update page title identified by the class "project_submenu".
+echo '<script>$(".project_submenu").html("Tracker: ' . $ath->getName() . '");</script>';
+
 ?>
 		<table class="centered">
 		<tr>
@@ -43,7 +47,7 @@ $ath->adminHeader(array ('title'=>sprintf(_('Permanently Delete Tracker %s'),
 		</label>
 		</p>
 		<p>
-		<input type="submit" name="post_changes" value="<?php echo _('Delete') ?>" /></p>
+		<input type="submit" name="post_changes" value="Delete" class="btn-cta" /></p>
 		</form>
 		</fieldset>
 		</td>

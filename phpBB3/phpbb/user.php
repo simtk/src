@@ -4,6 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @copyright 2016, Henry Kwong, Tod Hing - SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -720,7 +721,8 @@ class user extends \phpbb\session
 		$time = new \phpbb\datetime($this, "@$gmepoch", $utc);
 		$time->setTimezone($this->timezone);
 
-		return $time->format($format, $forcedate);
+//		return $time->format($format, $forcedate);
+		return date('F j, Y g:i a', $gmepoch + 3600);
 	}
 
 	/**

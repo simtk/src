@@ -7,6 +7,7 @@
  * Copyright 2011, Franck Villaume - Capgemini
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2014, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -49,15 +50,18 @@ class ArtifactTypeHtml extends ArtifactType {
 		$links  = array();
 		$attr   = array();
 
-		$labels[] = _("View Trackers");
-		$links[]  = '/tracker/?group_id='.$group_id;
-		$attr[]   = array('title' => _('Get the list of available trackers'), 'class' => 'tabtitle-nw');
-		$labels[] = $this->getName();
+//		$labels[] = $this->getName(); 
+		$labels[] = $this->getName() . " List"; 
 		$links[]  = '/tracker/?func=browse&amp;group_id='.$group_id.'&amp;atid='. $this->getID();
 		$attr[]   = array('title' => _('Browse this tracker.'), 'class' => 'tabtitle');
+		$labels[] = _("View All Lists");
+		$links[]  = '/tracker/?group_id='.$group_id;
+		$attr[]   = array('title' => _('Get the list of available trackers'), 'class' => 'tabtitle-nw');
+/*
 		$labels[] = _('Export CSV');
 		$links[]  = '/tracker/?func=csv&amp;group_id='.$group_id.'&amp;atid='. $this->getID();
 		$attr[]   = array('title' => _('Download data from this tracker as csv file.'), 'class' => 'tabtitle');
+*/
 		if (forge_check_perm ('tracker',$this->getID(),'submit')) {
 			$labels[] = _('Submit New');
 			$links[]  = '/tracker/?func=add&amp;group_id='.$group_id.'&amp;atid='. $this->getID();
@@ -65,15 +69,19 @@ class ArtifactTypeHtml extends ArtifactType {
 		}
 
 		if (session_loggedin()) {
+/*
 			$labels[] = _('Reporting');
 			$links[]  = '/tracker/reporting/?group_id='.$group_id.'&amp;atid='. $this->getID();
 			$attr[]   = array('title' => _('Various graph about statistics.'), 'class' => 'tabtitle');
+*/
 			if ($this->isMonitoring()) {
-				$labels[] = _('Stop Monitor');
+//				$labels[] = _('Stop Monitor');
+				$labels[] = _('Stop Follow');
 				$links[]  = '/tracker/?group_id='.$group_id.'&amp;atid='. $this->getID().'&amp;func=monitor&amp;stop=1';
 				$attr[]   = array('title' => _('Remove this tracker from your monitoring.'), 'class' => 'tabtitle');
 			} else {
-				$labels[] = _('Monitor');
+//				$labels[] = _('Monitor');
+				$labels[] = _('Follow');
 				$links[]  = '/tracker/?group_id='.$group_id.'&amp;atid='. $this->getID().'&amp;func=monitor&amp;start=1';
 				$attr[]   = array('title' => _('Add this tracker from your monitoring.'), 'class' => 'tabtitle');
 			}
@@ -102,12 +110,15 @@ class ArtifactTypeHtml extends ArtifactType {
 		$this->header($params);
 		$group_id= $this->Group->getID();
 
+/*
 		$links_arr[]='/tracker/admin/?group_id='.$group_id;
 		$title_arr[]=_('New Tracker');
+*/
 
 		$links_arr[]='/tracker/admin/?group_id='.$group_id.'&amp;atid='.$this->getID().'&amp;update_type=1';
 		$title_arr[]=_('Update Settings');
 
+/*
 		$links_arr[]='/tracker/admin/?group_id='.$group_id.'&amp;atid='.$this->getID().'&amp;add_extrafield=1';
 		$title_arr[]=_('Manage Custom Fields');
 
@@ -116,17 +127,20 @@ class ArtifactTypeHtml extends ArtifactType {
 
 		$links_arr[]='/tracker/admin/?group_id='.$group_id.'&amp;atid='.$this->getID().'&amp;customize_list=1';
 		$title_arr[]=_('Customize List');
+*/
 
 		$links_arr[]='/tracker/admin/?group_id='.$group_id.'&amp;atid='.$this->getID().'&amp;add_canned=1';
 		$title_arr[]=_('Add/Update Canned Responses');
 
+/*
 		$links_arr[]='/tracker/admin/?group_id='.$group_id.'&amp;atid='.$this->getID().'&amp;clone_tracker=1';
 		$title_arr[]=_('Clone Tracker');
+*/
 
 		$links_arr[]='/tracker/admin/?group_id='.$group_id.'&amp;atid='.$this->getID().'&amp;delete=1';
 		$title_arr[]=_('Delete');
 
-		echo $HTML->printSubMenu($title_arr, $links_arr, false);
+//		echo $HTML->printSubMenu($title_arr, $links_arr, false);
 	}
 
 	function adminFooter($params) {

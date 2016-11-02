@@ -5,6 +5,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2010-2013, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -26,6 +27,10 @@
 require_once './env.inc.php';
 require_once $gfcommon.'include/pre.php';
 
+if (!session_loggedin()) {
+	exit_permission_denied();
+}
+
 $toaddress = getStringFromRequest('toaddress');
 $touser = getStringFromRequest('touser');
 
@@ -38,8 +43,9 @@ if ($touser) {
 		check to see if that user even exists
 		Get their name and email if it does
 	*/
-	$result = db_query_params('SELECT email,user_name FROM users WHERE user_id=$1',
-			array($touser));
+	$result = db_query_params('SELECT email, user_name, realname ' .
+		'FROM users WHERE user_id=$1',
+		array($touser));
 
 	if (!$result || db_numrows($result) < 1) {
 		exit_error(_('That user does not exist.'), 'home');
@@ -127,54 +133,32 @@ if (session_loggedin()) {
 	}
 }
 
+$realname = db_result($result,0,'realname');
+
 $subject = getStringFromRequest('subject');
 $HTML->header(array('title' => forge_get_config('forge_name').' '._('Contact')));
 
 ?>
 
-<p>
-<?php echo _('Fill it out accurately and completely or the receiver may not be able to respond.'); ?>
-</p>
-
-<p class="important">
-<?php echo _('<strong>IF YOU ARE WRITING FOR HELP:</strong> Did you read the site documentation? Did you include your <strong>user_id</strong> and <strong>user_name?</strong> If you are writing about a project, include your <strong>project id</strong> (<strong>group_id</strong>) and <strong>Project Name</strong>.'); ?>
-</p>
+<br/>
+<span>Provide the information below to send a message to <?php echo $realname; ?>. All fields are required.</span>
+<br/><br/>
 
 <form action="<?php echo getStringFromServer('PHP_SELF'); ?>" method="post">
 
-<p>
 <input type="hidden" name="form_key" value="<?php echo form_generate_key(); ?>" />
 <input type="hidden" name="toaddress" value="<?php echo $toaddress; ?>" />
 <input type="hidden" name="touser" value="<?php echo $touser; ?>" />
+<input type="hidden" name="name" value="<?php echo $name; ?>" />
+<input type="hidden" name="email" value="<?php echo $email; ?>" />
 
-<strong><?php echo _('Your Name').utils_requiredField()._(':'); ?></strong><br />
-<?php
-if ($is_logged) {
-	echo '<input type="hidden" name="name" value="'.$name.'" />';
-	echo '<input type="text" disabled="disabled" size="'.strlen($name).'" value="'.$name.'" />';
-} else {
-	echo '<input type="text" required="required" name="name" size="40" maxlength="40" value="'.$name.'" />';
-}
-?>
+<p>
+<strong>Subject:</strong><br/>
+<input type="text" class="required" required="required" name="subject" size="60" maxlength="255" value="<?php echo $subject; ?>" />
 </p>
 <p>
-<strong><?php echo _('Your Email Address').utils_requiredField()._(':'); ?></strong><br />
-<?php
-if ($is_logged) {
-	echo '<input type="hidden" name="email" value="'.$email.'" />';
-	echo '<input type="text" disabled="disabled" size="'.strlen($email).'" value="'.$email.'" />';
-} else {
-	echo '<input type="email" required="required" name="email" size="40" maxlength="255" value="'.$email.'" />';
-}
-?>
-</p>
-<p>
-<strong><?php echo _('Subject').utils_requiredField()._(':'); ?></strong><br />
-<input type="text" required="required" name="subject" size="60" maxlength="255" value="<?php echo $subject; ?>" />
-</p>
-<p>
-<strong><?php echo _('Message').utils_requiredField()._(':'); ?></strong><br />
-<textarea name="body" required="required" rows="15" cols="60" >
+<strong>Message:</strong><br/>
+<textarea name="body" class="required" required="required" rows="15" cols="60" >
 <?php
 if (isset($body)) {
 	echo $body;
@@ -187,9 +171,8 @@ if (!$is_logged) {
 	plugin_hook('captcha_form');
 }
 ?>
-<p align="center">
-<input type="submit" name="send_mail" value="<?php echo _('Send Message') ?>" />
-</p>
+<br/>
+<input type="submit" name="send_mail" value="Send Message" class="btn-cta" />
 </form>
 <?php
 $HTML->footer(array());

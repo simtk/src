@@ -5,6 +5,7 @@
  * Copyright 2010 (c) FusionForge Team
  * Copyright 2010 (c) Franck Villaume - Capgemini
  * Copyright 2012, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -294,6 +295,7 @@ if (getStringFromRequest('add_extrafield')) {
 } elseif (getStringFromRequest('update_type')) {
 	$name = getStringFromRequest('name');
 	$description = getStringFromRequest('description');
+	$simtk_allow_anon = getStringFromRequest('simtk_allow_anon');
 	$email_all = getStringFromRequest('email_all');
 	$email_address = getStringFromRequest('email_address');
 	$due_period = getStringFromRequest('due_period');
@@ -303,7 +305,9 @@ if (getStringFromRequest('add_extrafield')) {
 	$browse_instructions = getStringFromRequest('browse_instructions');
 
 	if (!$ath->update($name,$description,$email_all,$email_address,
-		$due_period,$status_timeout,$use_resolution,$submit_instructions,$browse_instructions)) {
+		$due_period,$status_timeout,$use_resolution,
+		$submit_instructions,$browse_instructions,
+		$simtk_allow_anon)) {
 		$error_msg .= _('Update failed')._(': ').$ath->getErrorMessage();
 		$ath->clearError();
 	} else {
@@ -577,8 +581,11 @@ if (getStringFromRequest('add_extrafield')) {
 		if (!$ao || !is_object($ao)) {
 			$error_msg .= _('Unable to create ArtifactExtraFieldElement Object');
 		} else {
-			if (!$sure || !$really_sure || !$ao->delete()) {
-				$error_msg .= _('Error deleting an element')._(': ').$ao->getErrorMessage();
+			if (!$sure || !$really_sure) {
+				$error_msg .= 'Missing Required Parameters: Please tick all checkboxes.';
+			}
+			else if (!$ao->delete()) {
+				$error_msg .= _('Error deleting an element');
 				$ao->clearError();
 			} else {
 				$feedback .= _('Element deleted');

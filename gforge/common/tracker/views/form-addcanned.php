@@ -3,6 +3,7 @@
  * Tracker Facility
  *
  * Copyright 2010 (c) FusionForge Team
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -26,6 +27,9 @@
 //
 $title = sprintf(_('Manage Canned Responses to %s'), $ath->getName());
 $ath->adminHeader(array('title'=>$title, 'modal'=>1));
+
+// Update page title identified by the class "project_submenu".
+echo '<script>$(".project_submenu").html("Tracker: ' . $ath->getName() . '");</script>';
 
 		/*
 			List of existing canned responses
@@ -65,17 +69,35 @@ $ath->adminHeader(array('title'=>$title, 'modal'=>1));
 		<p><?php echo _('Creating useful generic messages can save you a lot of time when handling common artifact requests.') ?></p>
 		<form action="<?php echo getStringFromServer('PHP_SELF').'?group_id='.$group_id.'&amp;atid='.$ath->getID(); ?>" method="post">
 		<input type="hidden" name="add_canned" value="y" />
+		<fieldset>
+		<table>
+		<tr>
+		<td>
 		<label for="title">
 		<strong><?php echo _('Title') . _(':') ?></strong><?php echo utils_requiredField(); ?><br />
 		</label>
-		<input id="title" type="text" name="title" required="required" value="" size="80" maxlength="80" />
-		<p>
+		</td>
+		<td>
+		<input id="title" type="text" name="title" class="required" required="required" value="" size="50" maxlength="80" />
+		</td>
+		</tr>
+		<tr>
+		<td>
 		<label for="body">
 		<strong><?php echo _('Message Body') . _(':') ?></strong><?php echo utils_requiredField(); ?><br />
 		</label>
-		<textarea id="body" name="body" required="required" rows="15" cols="80"></textarea></p>
-		<p>
-		<input type="submit" name="post_changes" value="<?php echo _('Submit') ?>" /></p>
+		</td>
+		<td style="padding-top:5px;" >
+		<textarea id="body" name="body" class="required" required="required" rows="15" cols="50"></textarea></p>
+		</td>
+		</tr>
+		<tr>
+		<td>
+		<input type="submit" name="post_changes" value="Submit" class="btn-cta" /></p>
+		</td>
+		</tr>
+		</table>
+		</fieldset>
 		</form>
 		<?php
 

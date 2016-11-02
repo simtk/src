@@ -1,11 +1,12 @@
 <?php
 /**
  *
- * Project Admin: Edit Packages
+ * Project Admin: Delete a package
  *
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2002-2004 (c) GForge Team
  * http://fusionforge.org/
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -37,18 +38,22 @@ if (!$group_id) {
 $project = group_get_object($group_id);
 if (!$project || !is_object($project)) {
     exit_no_group();
-} elseif ($project->isError()) {
+}
+elseif ($project->isError()) {
 	exit_error($project->getErrorMessage(),'frs');
 }
 
 session_require_perm ('frs', $group_id, 'write') ;
 
-$frsp = new FRSPackage($project,$package_id);
+// Get package.
+$frsp = new FRSPackage($project, $package_id);
 if (!$frsp || !is_object($frsp)) {
 	exit_error(_('Could Not Get FRS Package'),'frs');
-} elseif ($frsp->isError()) {
+}
+elseif ($frsp->isError()) {
 	exit_error($frsp->getErrorMessage(),'frs');
 }
+
 
 /*
 	Relatively simple form to delete packages of releases
@@ -56,6 +61,9 @@ if (!$frsp || !is_object($frsp)) {
 
 frs_admin_header(array('title'=>_('Delete Package')._(': ').$frsp->getName(),
                        'group'=>$group_id));
+
+echo '<div><h3>Delete Package ' . $frsp->getName() . '</h3></div>';
+echo "<div style='margin-left:40px;'>";
 
 	echo '
 	<form action="/frs/admin/?group_id='.$group_id.'" method="post">
@@ -65,14 +73,15 @@ frs_admin_header(array('title'=>_('Delete Package')._(': ').$frsp->getName(),
 	'._('You are about to permanently and irretrievably delete this package and all its releases and files!').'
         </p>
         <p>
-	<input type="checkbox" name="sure" value="1" />'._('I am Sure').'
+	<input type="checkbox" name="sure" value="1" />&nbsp;'._('I am Sure').'
         </p>
         <p>
-	<input type="checkbox" name="really_sure" value="1" />'._('I am Really Sure').'
+	<input type="checkbox" name="really_sure" value="1" />&nbsp;'._('I am Really Sure').'
         </p>
         <p>
-	<input type="submit" name="submit" value="'._('Delete').'" />
+	<input type="submit" name="submit" value="'._('Delete').'" class="btn-cta" />
         </p>
 	</form>';
+echo "</div>";
 
 frs_admin_footer();

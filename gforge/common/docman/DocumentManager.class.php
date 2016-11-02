@@ -1,10 +1,13 @@
 <?php
 /**
+ * DocumentManager.class.php
+ *
  * FusionForge document manager
  *
  * Copyright 2011-2013, Franck Villaume - TrivialDev
  * Copyright (C) 2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2013, French Ministry of National Education
+ * Copyright 2016, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -149,7 +152,9 @@ class DocumentManager extends Error {
 	 * @param	int	$docGroupId	the doc_group to start: default 0
 	 */
 	function getTree($selecteddir, $linkmenu, $docGroupId = 0) {
-		global $g; // the master group of all the groups .... anyway.
+		global $g, $u, $dm; // the master group of all the groups .... anyway.
+		//echo "<br />Begin getTree";
+		//echo "<br />selecteddir: " . $selecteddir;
 		$dg = new DocumentGroup($this->Group);
 		switch ($linkmenu) {
 			case "listtrashfile": {
@@ -161,8 +166,18 @@ class DocumentManager extends Error {
 				break;
 			}
 		}
+
+		//echo "<br />groupid: " . $docGroupId;
+		//echo "<br />stateid: " . $stateId;
+		//echo "<br />linkmenu: " . $linkmenu;
 		$subGroupIdArr = $dg->getSubgroup($docGroupId, $stateId);
+		//echo "<br />IdArr: ";
+		//echo "<br />sizeof subgroup: " . sizeof($subGroupIdArr) . "<br />";
+		//var_dump($subGroupIdArr);
+		
 		if (sizeof($subGroupIdArr)) {
+		    echo "<!-- START Package --->"."\n";
+            echo '<div class="download_package" style="background:none">'."\n";
 			foreach ($subGroupIdArr as $subGroupIdValue) {
 				$localDg = new DocumentGroup($this->Group, $subGroupIdValue);
 				$liclass = 'docman_li_treecontent';
@@ -187,13 +202,13 @@ class DocumentManager extends Error {
 				}
 
 				if ($nbDocs && (!isset($nbDocsPending) || $nbDocsPending == 0) && (!isset($nbDocsHidden) || $nbDocsHidden == 0) && (!isset($nbDocsPrivate) || $nbDocsPrivate) && (!isset($nbDocsTrashed) || $nbDocsTrashed)) {
-					$nbDocsLabel = '<span class="tabtitle-nw" title="'._('Number of documents in this folder').'" >('.$nbDocs.')</span>';
+					$nbDocsLabel = '<span title="'._('Number of documents in this folder').'" >('.$nbDocs.')</span>';
 				}
 				if (isset($nbDocsPending) && isset($nbDocsHidden) && isset($nbDocsPrivate)) {
-					$nbDocsLabel = '<span class="tabtitle-nw" title="'._('Number of documents in this folder per status. active/pending/hidden/private').'" >('.$nbDocs.'/'.$nbDocsPending.'/'.$nbDocsHidden.'/'.$nbDocsPrivate.')</span>';
+					$nbDocsLabel = '<span title="'._('Number of documents in this folder per status. active/pending/hidden/private').'" >('.$nbDocs.'/'.$nbDocsPending.'/'.$nbDocsHidden.'/'.$nbDocsPrivate.')</span>';
 				}
 				if (isset($nbDocsTrashed)) {
-					$nbDocsLabel = '<span class="tabtitle-nw" title="'._('Number of deleted documents in this folder').'" >('.$nbDocsTrashed.')</span>';
+					$nbDocsLabel = '<span title="'._('Number of deleted documents in this folder').'" >('.$nbDocsTrashed.')</span>';
 				}
 				if ($localDg->getName() != '.trash') {
 					$lititle = '';
@@ -207,17 +222,214 @@ class DocumentManager extends Error {
 						}
 						$lititle .= _('Last Modified')._(': ').relative_date($localDg->getLastModifyDate());
 					}
-					echo '<li id="leaf-'.$subGroupIdValue.'" class="'.$liclass.'">'.util_make_link($link, $localDg->getName(), array('class'=>'tabtitle-nw', 'title'=>$lititle)).$nbDocsLabel;
+					//echo '<li id="leaf-'.$subGroupIdValue.'" class="'.$liclass.'">'.util_make_link($link, $localDg->getName(), array('class'=>'tabtitle-nw', 'title'=>$lititle)).$nbDocsLabel;
+				    //echo util_make_link($link, $localDg->getName(), array('class'=>'expander toggle'));
+					
+					$localDf = new DocumentFactory($this->Group);
+					
+					$localDf->setDocGroupID($localDg->getID());
+					$dirid = $localDg->getID();
+					
+					$localDf->setStateID('1');
+					$d_arr_active =& $localDf->getDocuments();				
+					if ($d_arr_active != NULL)
+	                   $localdocs = $d_arr_active;
+
+                    $localDf->setStateID('4');
+                    $d_arr_hidden =& $localDf->getDocuments();
+                    if ($localdocs != NULL && $d_arr_hidden != NULL) {
+	                   $localdocs = array_merge($localdocs, $d_arr_hidden);
+                    } elseif ($d_arr_hidden != NULL) {
+	                  $localdocs = $d_arr_hidden;
+                    }
+
+                    $localDf->setStateID('5');
+                    $d_arr_private =& $localDf->getDocuments();
+                    if ($localdocs != NULL && $d_arr_private != NULL) {
+	                   $localdocs = array_merge($localdocs, $d_arr_private);
+                    } elseif ($d_arr_private != NULL) {
+	                  $localdocs = $d_arr_private;
+                    }
+					
+					//$nested_groups = $dgf->getNested();
+
+                    $nested_docs = array();
+                    
+                    $baseredirecturl = '/docman/?group_id='.$this->Group->getID();
+                    $redirecturl = $baseredirecturl.'&view='.$linkmenu.'&dirid='.$dirid;
+                    $actionlistfileurl = '?group_id='.$this->Group->getID().'&amp;view='.$linkmenu.'&amp;dirid='.$dirid;
+
+					foreach ($localdocs as $doc) {
+			           $nested_docs[$doc->getDocGroupID()][] = $doc;				   
+		            }
+		            $numFiles = $localDg->getNumberOfDocuments(1); 
+					
+					echo "<!-- START Panel --->"."\n";
+	                echo '<div>'."\n";
+					/*
+			        if ($numFiles) {   
+					   //echo "\n".'<a class="expander toggle" href="#">'. $localDg->getName() . '</a>';
+					   echo '<h2 class="panel-title"><a href="#" class="expander toggle" data-expander-target=".content'.$localDg->getID().'">'. $localDg->getName() . '</a></h2>'."\n";				
+					} else {
+					   echo '<h2 class="panel-title"><a href="#" class="expander toggle">' . $localDg->getName() . "</a></h2>"."\n";
+					}
+					*/
+					echo '<h2 class="panel-title"><a href="#" class="expander toggle" data-expander-target=".content'.$localDg->getID().'">'. $localDg->getName() . '</a></h2>'."\n";				
+				
+					echo '<div class="document_icons">'."\n";
+					if (forge_check_perm('docman', $this->Group->getID(), 'approve')) {
+		               echo ' <a href="?view=editdocgroupv2&dirid='.$dirid.'&group_id='.$this->Group->getID().'" title="'._('Edit this folder').'" >'. html_image('docman/configure-directory.png',22,22,array('alt'=>'edit')). '</a> ';
+		               echo ' <a href="'.$actionlistfileurl.'&amp;action=trashdir" id="docman-trashdirectory" title="'._('Move this folder and his content to trash').'" >'. html_image('docman/trash-empty.png',22,22,array('alt'=>'trashdir')). '</a> ';
+		               /*
+					   if (!isset($nested_docs[$dirid]) && !isset($nested_groups[$dirid])) {
+			             echo ' <a href="'.$actionlistfileurl.'&amp;action=deldir" id="docman-deletedirectory" title="'._('Permanently delete this folder').'" >'. html_image('docman/delete-directory.png',22,22,array('alt'=>'deldir')). '</a> ';
+		               }
+					   */
+	                }
+													
+	                if ($numFiles) {
+		               echo '<a href="/docman/view.php/'.$this->Group->getID().'/zip/full/'.$localDg->getID().'" title="'. _('Download this folder as a ZIP') . '" >' . html_image('docman/download-directory-zip.png',22,22,array('alt'=>'downloadaszip')). '</a>';
+		            }
+					
+		            if (session_loggedin()) {
+		               if ($localDg->isMonitoredBy($u->getID())) {
+			              $option = 'remove';
+			              $titleMonitor = _('Stop monitoring this folder');
+		               } else {
+			              $option = 'add';
+			              $titleMonitor = _('Start monitoring this folder');
+		               }
+		               echo '<a class="tabtitle-ne" href="'.$actionlistfileurl.'&amp;action=monitordirectory&amp;option='.$option.'&amp;directoryid='.$localDg->getID().'" title="'.$titleMonitor.'" >'.html_image('docman/monitor-'.$option.'document.png',22,22,array('alt'=>$titleMonitor)). '</a>';
+	                }
+	                if (forge_check_perm('docman', $localDg->getID(), 'approve')) {
+		               echo '<div id="editdocgroup" style="display:none;">';
+		               echo '<h4 class="docman_h4">'. _('Edit this folder') .'</h4>';
+		               include ($gfcommon.'docman/views/editdocgroup.php');
+		               echo '</div>';
+	                }
+	                if (forge_check_perm('docman', $localDg->getID(), 'submit')) {
+		               echo '<div id="additem" style="display:none">';
+		               include ($gfcommon.'docman/views/additem.php');
+		               echo '</div>';
+	                }
+					
+					
+					echo '</div>'."\n";
+		            echo '<div style="clear:both"></div>'."\n";				
+					echo '<div class="download_border"></div>'."\n";
+					//echo "docGroupId: " . $localDg->getID();
+					
+					//echo "nested count: " . count($nested_docs[$dirid]) . "<br />";
+					
+					if (!$numFiles && (!$dg->getSubgroup($subGroupIdValue, $stateId))) {
+					   echo '<div class="content'.$localDg->getID().'">This folder is empty.';
+					} else {
+					   echo '<div class="content'.$localDg->getID().'">';
+					}
+					
+					//echo '<div class="content'.$localDg->getID().'">';
+					
+					foreach ($nested_docs[$dirid] as $d) {
+					   echo '<div class="content'.$dirid.'">';
+					   
+					   switch ($d->getFileType()) {
+			             case "URL": {
+				         $docurl = $d->getFileName();
+				         $docurltitle = $d->getName();
+				         break;
+			             }
+			             default: {
+				         $docurl = util_make_uri('/docman/view.php/'.$d->Group->getID().'/'.$d->getID().'/'.urlencode($d->getFileName()));
+				         $docurltitle = $d->getName();
+			             }
+						
+		               }
+					   
+					   
+					   if (forge_check_perm('docman', $this->Group->getID(), 'approve')) {
+					      $admininfo = "";
+						  if ($d->getFileType() == "URL") {
+						     $admininfo = " (URL)";
+						  } else {
+						     $admininfo = " (Doc)";
+						  }
+						  if ($d->getStateID() == 4) {
+						     $admininfo .= " (Hidden)";
+						  } 
+						  if ($d->getStateID() == 5) {
+						     $admininfo .= " (Private)";
+						  } 
+					   }
+					   
+					   
+					   echo '<!-- START Item --->'."\n";
+		               echo '<div class="document_link"><a href="'.$docurl.'">'.$docurltitle.$admininfo;
+		               echo '</a></div>'."\n";
+		               
+					   echo '<div class="document_icons2">'."\n";
+					   
+					   if (forge_check_perm('docman', $d->Group->getID(), 'approve')) {
+					   
+					      $editfileaction = '?action=editfile&amp;view=listfile&amp;dirid='.$d->getDocGroupID();
+			              if (isset($GLOBALS['childgroup_id']) && $GLOBALS['childgroup_id']) {
+				             $editfileaction .= '&amp;childgroup_id='.$GLOBALS['childgroup_id'];
+			              }
+			              $editfileaction .= '&amp;group_id='.$GLOBALS['group_id'];
+			              $editfileaction = '?group_id='.$this->Group->getID().'&amp;view=edititem&amp;dirid='.$dirid;
+
+			              //echo "editfileaction: " . $editfileaction . "<br />";
+					      echo ' <a href="'.$actionlistfileurl.'&amp;action=trashfile&amp;fileid='.$d->getID().'" title="'. _('Move this document to trash') .'" >'.html_image('docman/trash-empty.png',22,22,array('alt'=>_('Move this document to trash'))). '</a> ';
+					      //echo '<a href="#" onclick="javascript:controllerListFile.toggleEditFileView({action:\''.$editfileaction.'\', lockIntervalDelay: 60000, childGroupId: '.util_ifsetor($childgroup_id, 0).' ,id:'.$d->getID().', groupId:'.$d->Group->getID().', docgroupId:'.$d->getDocGroupID().', statusId:'.$d->getStateID().', statusDict:'.$dm->getStatusNameList('json',$remove_status_list).', docgroupDict:'.$dm->getDocGroupList($nested_groups, 'json').', title:\''.addslashes($d->getName()).'\', filename:\''.$d->getFilename().'\', description:\''.addslashes($d->getDescription()).'\', citation:\''.addslashes($d->getCitation()).'\', isURL:\''.$d->isURL().'\', isText:\''.$d->isText().'\', isHtml:\''.$d->isHtml().'\', useCreateOnline:'.$d->Group->useCreateOnline().', docManURL:\''.util_make_uri("docman").'\'})" title="'. _('Edit this document') .'" >'.html_image('docman/edit-file.png',22,22,array('alt'=>_('Edit this document'))). '</a>';
+                          echo ' <a href="'.$editfileaction.'&amp;fileid='.$d->getID().'" title="'. _('Edit this document') .'" >'.html_image('docman/edit-file.png',22,22,array('alt'=>_('Edit this document'))). '</a> ';
+					     
+						  //echo ' <a href="'.$editfileaction.'" title="'. _('Edit this document') .'" >'.html_image('docman/edit-file.png',22,22,array('alt'=>_('Edit this document'))). '</a> ';
+					      //echo "util_ifsetor: " . util_ifsetor($childgroup_id, 0);
+						  //echo 'statusDict:'.$dm->getStatusNameList('json',$remove_status_list).', docgroupDict:'.$dm->getDocGroupList($nested_groups, 'json') . ', docManURL: '.util_make_uri("docman") ;
+						  
+					   }
+					   
+					   if (session_loggedin()) {
+				          if ($d->isMonitoredBy($u->getID())) {
+					        $option = 'remove';
+					        $titleMonitor = _('Stop monitoring this document');
+				          } else {
+					        $option = 'add';
+					        $titleMonitor = _('Start monitoring this document');
+				          }
+				         echo '<a href="'.$actionlistfileurl.'&amp;action=monitorfile&amp;option='.$option.'&amp;fileid='.$d->getID().'" title="'.$titleMonitor.'" >'.html_image('docman/monitor-'.$option.'document.png',22,22,array('alt'=>$titleMonitor)). '</a>';
+			           }
+					   
+					   echo '</div>'."\n";
+					   echo '<div style="clear:both"></div>'."\n";
+					   
+					   if ( $d->getUpdated() ) {
+			             echo '<div class="document_details">' . date(_('M n, Y'), $d->getUpdated()) . "</div>"."\n";
+		               } else {
+			             echo '<div class="document_details">' . date(_('M n, Y'), $d->getCreated()) . "</div>"."\n";
+		               }
+					   echo '<div class="document_details">Author: ' . make_user_link($d->getCreatorUserName(), $d->getCreatorRealName()) . "</div>"."\n";
+					   echo '<div class="download_text">' . $d->getDescription() . '</div>'."\n";
+					   
+					   echo '<!-- END Item --->'."\n";
+					   
+					   
+					  echo '</div><br />'."\n";
+					} // end of foreach
+					
 				} else {
 					echo '<li id="leaf-'.$subGroupIdValue.'" class="'.$liclass.'">'.util_make_link($link, $localDg->getName()).$nbDocsLabel;
 				}
 				if ($dg->getSubgroup($subGroupIdValue, $stateId)) {
-					echo '<ul class="simpleTreeMenu" >';
+					//echo '<ul>';
 					$this->getTree($selecteddir, $linkmenu, $subGroupIdValue);
-					echo '</ul>';
+					//echo '</ul>';
 				}
-				echo '</li>';
+				echo '</div>'."\n";
+				echo '</div>'."\n";
+				echo '<!-- END Panel --->'."\n";
 			}
+			echo "</div>"."\n";
+            echo "<!-- END Package --->"."\n";
 		}
 	}
 
@@ -229,8 +441,11 @@ class DocumentManager extends Error {
 	 * @return resource|string
 	 */
 	function getStatusNameList($format = '', $removedval = '') {
+                //echo "val: " . $removedval;
 		if (!empty($removedval)) {
 			$stateQuery = db_query_params('select * from doc_states where stateid not in ($1) order by stateid', array($removedval));
+                        // debugging
+                        //echo "q: " . $stateQuery;
 		} else {
 			$stateQuery = db_query_params('select * from doc_states order by stateid', array());
 		}

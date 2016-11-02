@@ -5,6 +5,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2010 (c) Franck Villaume - Capgemini
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -52,7 +53,26 @@ function activate_group($group_id) {
 
 	if ($group->approve(session_get_user())) {
 		$feedback .= sprintf(_('Approving Project: %s'), $group->getUnixName()).'<br />';
-	} else {
+
+		// Check the simtk_is_public flag for setting privacy.
+		$private = 0;
+		$resPriv = db_query_params("SELECT simtk_is_public FROM groups " .
+			"WHERE group_id=" . $group_id, array());
+		if ($resPriv) {
+			while ($rowPriv = db_fetch_array($resPriv)) {
+				$private = $rowPriv['simtk_is_public'];
+			}
+			// Set privacy.
+			// NOTE: Privacy should be set  after approval.
+			$res = $group->updatePrivacy(session_get_user(), $private);
+			if (!$res) {
+				$error_msg .= sprintf('Privacy error: %s', $group->getUnixName()).'<br />';
+				$error_msg .= $group->getErrorMessage();
+				return false;
+			}
+		}
+	}
+	else {
 		$error_msg .= sprintf(_('Error when approving Project: %s'), $group->getUnixName()).'<br />';
 		$error_msg .= $group->getErrorMessage();
 		return false;
@@ -108,7 +128,10 @@ if ($action == 'activate') {
 site_admin_header(array('title'=>_('Approving Pending Projects')), 'approve_projects');
 
 // get current information
-$res_grp = db_query_params("SELECT * FROM groups WHERE status='P' AND is_template!=1", array(), $LIMIT);
+$res_grp = db_query_params("SELECT * FROM groups " .
+	"WHERE status='P' " .
+	"AND is_template!=1 " .
+	"ORDER BY group_id DESC", array(), $LIMIT);
 
 $rows = db_numrows($res_grp);
 

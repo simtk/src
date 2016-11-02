@@ -4,6 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @copyright 2016, Henry Kwong, Tod Hing - SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -22,21 +23,91 @@ include($phpbb_root_path . 'includes/functions_display.' . $phpEx);
 include($phpbb_root_path . 'includes/bbcode.' . $phpEx);
 include($phpbb_root_path . 'includes/functions_user.' . $phpEx);
 
+// Retrieve user id given the seesion id.
+function getUserIdFromSid($db, $theSid) {
+	$theUID = false;
+	$sqlQueryUID = "SELECT session_user_id FROM phpbb_sessions " .
+		"WHERE session_id='" . $theSid . "'";
+	$res = $db->sql_query($sqlQueryUID);
+	$theUID = $db->sql_fetchfield('session_user_id');
+	$db->sql_freeresult($res);
+
+	return $theUID;
+}
+
 // Start session management
 $user->session_begin();
 $auth->acl($user->data);
+
+$theUserName = request_var('forname', '');
+$thePassword = request_var('forpass', '');
+if (isset($theUserName) && isset($thePassword)) {
+	$result = $auth->login($theUserName, $thePassword);
+}
 
 // Initial var setup
 $forum_id	= request_var('f', 0);
 $topic_id	= request_var('t', 0);
 $post_id	= request_var('p', 0);
-$voted_id	= request_var('vote_id', array('' => 0));
-
-$voted_id = (sizeof($voted_id) > 1) ? array_unique($voted_id) : $voted_id;
-
-
 $start		= request_var('start', 0);
 $view		= request_var('view', '');
+$voted_id	= request_var('vote_id', array('' => 0));
+
+
+// Get the HTTP_REFERER URL to test if the URL of the page that contains
+// this iframe is "viewtopicPhpbb.php".
+// If not, update the URL to be "viewtopicPhpbb.php" such that 
+// the page's URL can be copied and referrred upon.
+// Otherwise, "indexPhpbb.php" may be shown instead, which does not show
+// the more specific topic id in the forum.
+$the_url_self = $request->server('HTTP_REFERER');
+if (stripos($the_url_self, 'viewtopicPhpbb.php') === false) {
+	// No, update the URL.
+	echo '
+	<script>
+	top.window.location.href = "/plugins/phpBB/viewtopicPhpbb.php' .
+		'?f=' . $forum_id . 
+		'&t=' . $topic_id . 
+		'&p=' . $post_id .
+		'&start=' . $start .
+		'&view=' . $view .
+		'";
+	</script>
+	';
+}
+
+// Get the phpbb session_id.
+$the_sid	= request_var('sid', "");
+$the_uid = getUserIdFromSid($db, $the_sid);
+
+$cur_uid = getUserIdFromSid($db, $_SID);
+if (!$the_uid && $cur_uid) {
+	// The phpbb session id is not given as parameter.
+	// Need to reload this page with the phpbb session id ($_SID).
+	// Otherwise, the user information is not available and
+	// the UI does not behave correctly.
+
+	// Get URL of this page.
+	$the_url_self = $request->server('PHP_SELF');
+
+	// Append with forum, topic, and post ids.
+	$the_url_self .= "?f=" . $forum_id .
+		"&t=" . $topic_id .
+		"&p=" . $post_id .
+		"&start=" . $start .
+		"&view=" . $view;
+
+	// Add username and password if present.
+	if (isset($theUserName) && isset($thePassword)) {
+		$the_url_self .= "&forname=" . $theUserName . 
+			"&forpass=" . $thePassword;
+	}
+
+	// Reload this page, appended with the phpbb session id.
+	header("Location: " . $the_url_self . "&sid=" . $_SID);
+}
+
+$voted_id = (sizeof($voted_id) > 1) ? array_unique($voted_id) : $voted_id;
 
 $default_sort_days	= (!empty($user->data['user_post_show_days'])) ? $user->data['user_post_show_days'] : 0;
 $default_sort_key	= (!empty($user->data['user_post_sortby_type'])) ? $user->data['user_post_sortby_type'] : 't';
@@ -863,14 +934,28 @@ if (!empty($topic_data['poll_start']))
 		$poll_most = ($poll_option['poll_option_total'] >= $poll_most) ? $poll_option['poll_option_total'] : $poll_most;
 	}
 
-	$parse_flags = ($poll_info[0]['bbcode_bitfield'] ? OPTION_FLAG_BBCODE : 0) | OPTION_FLAG_SMILIES;
+	if (isset($poll_info[0]['bbcode_bitfield'])) {
+		$the_bbcode_bitfield = $poll_info[0]['bbcode_bitfield'];
+	}
+	else {
+		$the_bbcode_bitfield = false;
+	}
+	if (isset($poll_info[0]['bbcode_uid'])) {
+		$the_bbcode_uid = $poll_info[0]['bbcode_uid'];
+	}
+	else {
+		$the_bbcode_uid = false;
+	}
+	//$parse_flags = ($poll_info[0]['bbcode_bitfield'] ? OPTION_FLAG_BBCODE : 0) | OPTION_FLAG_SMILIES;
+	$parse_flags = ($the_bbcode_bitfield ? OPTION_FLAG_BBCODE : 0) | OPTION_FLAG_SMILIES;
 
 	for ($i = 0, $size = sizeof($poll_info); $i < $size; $i++)
 	{
 		$poll_info[$i]['poll_option_text'] = generate_text_for_display($poll_info[$i]['poll_option_text'], $poll_info[$i]['bbcode_uid'], $poll_option['bbcode_bitfield'], $parse_flags, true);
 	}
 
-	$topic_data['poll_title'] = generate_text_for_display($topic_data['poll_title'], $poll_info[0]['bbcode_uid'], $poll_info[0]['bbcode_bitfield'], $parse_flags, true);
+	//$topic_data['poll_title'] = generate_text_for_display($topic_data['poll_title'], $poll_info[0]['bbcode_uid'], $poll_info[0]['bbcode_bitfield'], $parse_flags, true);
+	$topic_data['poll_title'] = generate_text_for_display($topic_data['poll_title'], $the_bbcode_uid, $the_bbcode_bitfield, $parse_flags, true);
 
 	foreach ($poll_info as $poll_option)
 	{
@@ -1399,11 +1484,19 @@ if ($bbcode_bitfield !== '')
 }
 
 // Get the list of users who can receive private messages
-$can_receive_pm_list = $auth->acl_get_list(array_keys($user_cache), 'u_readpm');
+$arrKeysUserCache = array_keys($user_cache);
+if (!empty($arrKeysUserCache)) {
+	// Non-empty array of keys to user cache is present.
+	$can_receive_pm_list = $auth->acl_get_list($arrKeysUserCache, 'u_readpm');
+}
+else {
+	// Empty array of keys.
+	$can_receive_pm_list = array();
+}
 $can_receive_pm_list = (empty($can_receive_pm_list) || !isset($can_receive_pm_list[0]['u_readpm'])) ? array() : $can_receive_pm_list[0]['u_readpm'];
 
 // Get the list of permanently banned users
-$permanently_banned_users = phpbb_get_banned_user_ids(array_keys($user_cache), false);
+$permanently_banned_users = phpbb_get_banned_user_ids($arrKeysUserCache, false);
 
 $i_total = sizeof($rowset) - 1;
 $prev_post_id = '';
@@ -1741,7 +1834,8 @@ for ($i = 0, $end = sizeof($post_list); $i < $end; ++$i)
 		'RANK_IMG_SRC'		=> $user_cache[$poster_id]['rank_image_src'],
 		'POSTER_JOINED'		=> $user_cache[$poster_id]['joined'],
 		'POSTER_POSTS'		=> $user_cache[$poster_id]['posts'],
-		'POSTER_AVATAR'		=> $user_cache[$poster_id]['avatar'],
+//		'POSTER_AVATAR'		=> $user_cache[$poster_id]['avatar'],
+		'POSTER_AVATAR'		=> "<img src='/userpics/" . $row['username'] . "_thumb' width='75' height='75' onError='this.src=" . '"' . "/userpics/user_profile.jpg" . '"' . ";' alt='User avatar'>",
 		'POSTER_WARNINGS'	=> $auth->acl_get('m_warn') ? $user_cache[$poster_id]['warnings'] : '',
 		'POSTER_AGE'		=> $user_cache[$poster_id]['age'],
 		'CONTACT_USER'		=> $user_cache[$poster_id]['contact_user'],

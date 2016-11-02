@@ -8,6 +8,7 @@
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * Copyright 2011, Iñigo Martinez
  * Copyright 2012, Thorsten “mirabilos” Glaser <t.glaser@tarent.de>
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -50,10 +51,17 @@ $paging = 0;
 //
 //	If the query_id = -1, unset the pref and use regular browse boxes
 //
+if (getStringFromRequest('setpaging')) {
+	// Handle paging for users not logged in.
+	$paging = getIntFromRequest('nres');
+	if (!$paging) {
+		$paging = 25;
+	}
+}
 if (session_loggedin()) {
 	$u =& session_get_user();
 	if (getStringFromRequest('setpaging')) {
-		/* store paging preferences */
+		// Store paging preference.
 		$paging = getIntFromRequest('nres');
 		if (!$paging) {
 			$paging = 25;
@@ -162,6 +170,9 @@ html_use_coolfieldset();
 
 $ath->header(array('atid'=>$ath->getID(), 'title'=>$ath->getName()));
 
+// Update page title identified by the class "project_submenu".
+echo '<script>$(".project_submenu").html("Tracker: ' . $ath->getName() . '");</script>';
+
 /**
  *
  *	Build the powerful browsing options pop-up boxes
@@ -253,13 +264,12 @@ if ($art_arr && ($art_cnt = count($art_arr)) > 0) {
 	$start = 0;
 	$focus = 0;
 }
-$paging = 0;
 if (session_loggedin()) {
-	/* logged in users get configurable paging */
+	// Logged in users get configurable paging.
 	$paging = $u->getPreference("paging");
-	echo '<form action="'. getStringFromServer('PHP_SELF') .'?group_id='.$group_id.'&amp;atid='.$ath->getID().'&amp;start='.
-		$start.'" method="post">'."\n";
 }
+echo '<form action="'. getStringFromServer('PHP_SELF') .'?group_id='.$group_id.'&amp;atid='.$ath->getID().'&amp;start='. $start.'" method="post">'."\n";
+
 if (!$paging) {
 	$paging = 25;
 }
@@ -276,17 +286,37 @@ if ($art_cnt) {
 	$max = 0;
 }
 
-printf('<p>' . _('Displaying results %1$d‒%2$d out of %3$d total.'),
-       $start + 1, $max, $art_cnt);
-if (session_loggedin()) {
-	printf(' ' . _('Displaying %2$s results.') . "\n\t<input " .
-	       'type="submit" name="setpaging" value="%1$s" />' .
-	       "\n</p>\n</form>\n", _('Change'),
-	       html_build_select_box_from_array(array(
-							'10', '25', '50', '100', '1000'), 'nres', $paging, 1));
-} else {
-	echo "</p>\n";
-}
+printf('<p id="dispResults">' . 'Displaying results %1$d‒%2$d out of %3$d total.',
+	$start + 1,
+	$max,
+	$art_cnt);
+printf(' Displaying %1$s results.',
+	html_build_select_box_from_array(
+		array('10', '25', '50', '100', '1000'), 
+		'nres', 
+		$paging, 
+		1
+	)
+);
+echo '<span><a style="float:right;" class="btn-blue share_text_button" ' .
+	'href="/tracker?' .
+	'atid=' . $ath->getID() .
+	'&group_id=' . $group_id .
+	'&func=add">' .
+	'Submit new issue' .
+	'</a></span>';
+echo "</p>";
+echo '<input type="hidden" name="setpaging" value="1" />';
+echo '</form>';
+?>
+
+<script>
+	$("#dispResults select").change(function() {
+		this.form.submit();
+	});
+</script>
+
+<?php
 
 /**
  *
@@ -430,7 +460,7 @@ for ($k=0; $k<count($keys); $k++) {
 echo _('Order by').
 	html_build_select_box_from_arrays($order_arr,$order_name_arr,'_sort_col',$_sort_col,false) .
 	html_build_select_box_from_arrays($sort_arr,$sort_name_arr,'_sort_ord',$_sort_ord,false) .
-	'<input type="submit" name="submit" value="'._('Quick Browse').'" />';
+	'<input type="submit" name="submit" value="Update Results" class="btn-cta" style="margin-top:5px;"/>';
 
 echo '
 	</td>
@@ -777,7 +807,7 @@ if ($art_arr && $art_cnt > 0) {
 		echo '<tr><td colspan="2"><strong>'._('Canned Response')._(':').'</strong><br />'.
 				$ath->cannedResponseBox ('canned_response') .'</td></tr>
 
-			<tr><td colspan="3" class="align-center"><input type="submit" name="submit" value="'._('Mass Update').'" /></td></tr>
+			<tr><td colspan="3" class="align-center"><input type="submit" name="submit" value="'._('Mass Update').'" class="btn-cta" /></td></tr>
 			</table>';
 		echo '</div>
 		</fieldset>';

@@ -5,6 +5,7 @@
  * This is the page user is redirected to after first site login
  *
  * Copyright 1999-2001 (c) VA Linux Systems
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -25,15 +26,23 @@
 require_once '../env.inc.php';
 require_once $gfcommon.'include/pre.php';
 
-$forge_name = forge_get_config ('forge_name');
-site_user_header(array('title'=>sprintf(_('Welcome to %s'), $forge_name)));
+if (session_loggedin()) {
+	// Redirect to my page if logged in.
+	session_redirect('/plugins/mypage');
+}
 
-print '<p>' . sprintf(_('You are now a registered user on %s, the online development environment for Open Source projects.'), $forge_name) . '</p>';
+$HTML->header(array('title'=>'Welcome to ' . forge_get_config('forge_name'), 'pagename'=>''));
 
-print '<p>' . sprintf(_('As a registered user, you can participate fully in the activities on the site. You may now post messages to the project message forums, post bugs for software in %s, sign on as a project developer, or even start your own project.'), $forge_name) . '</p>';
+print '<br/><br/><p>You are now a member of SimTK, a thriving community of biomedical researchers who share software, models, data, and knowledge.  You can now:</p>';
+print '<ul>';
+print '<li>Create your own <a href="/register/">projects</a></li>';
+print '<li>Explore and contribute to other projects</li>';
+print '<li><a href="/search/searchPeople.php?type_of_search=people&srch=scott">Connect</a> with other SimTK members</li>';
+print '</ul><br/>';
+print '<p>We hope you find the site valuable and would love to hear how you' . "'" . 're using SimTK.  Send your stories to us at <a href="/sendmessage.php?touser=101">feedback@simtk.org</a>.  If you have feature requests or bug reports, we want to know about those, too.  Please file an issue <a href="/tracker/?group_id=11">here</a>.<br/><br/>Enjoy the site!</p>';
 
 print '<p>';
-printf(_('-- the %s staff'), $forge_name);
+printf('-- the %s staff', forge_get_config('forge_name'));
 print '</p>';
 
-site_user_footer(array());
+$HTML->footer(array());

@@ -4,6 +4,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -148,7 +149,28 @@ function stats_downloads_total() {
 function show_sitestats() {
 
 	$gforge = new FusionForge();
-	$return = '<p>';
+	//$return = '<p>';
+	$return = "<span style='color:#8f3747;font-weight:bold;font-size:18px'>Browse SimTK Projects</span>";
+	$return .= '<p/>';
+	$return .= "<span style='color:#8f3747;font-weight:bold;font-size:14px'>Biological Applications</span>";
+	$return .= '<p><a href="category/category.php?cat=309&sort=date&page=0&srch=&">Cardiovascular System</a></p>';
+	$return .= '<p><a href="category/category.php?cat=421&sort=date&page=0&srch=&">Cell</a></p>';
+	$return .= '<p><a href="category/category.php?cat=308&sort=date&page=0&srch=&">Myosin</a></p>';
+	$return .= '<p><a href="category/category.php?cat=310&sort=date&page=0&srch=&">Neuromuscular System</a></p>';
+	$return .= '<p><a href="category/category.php?cat=406&sort=date&page=0&srch=&">Protein</a></p>';
+	$return .= '<p><a href="category/category.php?cat=307&sort=date&page=0&srch=&">RNA</a></p>';
+	$return .= '<p><a href="category/category.php?cat=420&sort=date&page=0&srch=&">Tissue</a></p>';
+	$return .= '<p/>';
+	$return .= "<span style='color:#8f3747;font-weight:bold;font-size:14px'>Biocomputational Focus</span>";
+	$return .= '<p><a href="category/category.php?cat=411&sort=date&page=0&srch=&">Experimental Anaylsis</a></p>';
+	$return .= '<p><a href="category/category.php?cat=412&sort=date&page=0&srch=&">Image Processing</a></p>';
+	$return .= '<p><a href="category/category.php?cat=426&sort=date&page=0&srch=&">Network Modeling and Analysis</a></p>';
+	$return .= '<p><a href="category/category.php?cat=409&sort=date&page=0&srch=&">Physics-Based Simulation</a></p>';
+	$return .= '<p><a href="category/category.php?cat=416&sort=date&page=0&srch=&">Statistical Analysis</a></p>';
+	$return .= '<p><a href="category/category.php?cat=415&sort=date&page=0&srch=&">Visualization</a></p>';
+	$return .= '<p/>';
+	$return .= '<hr>';
+	$return .= '<p>';
 	$return .= _('Hosted Projects')._(': ');
 	if (forge_get_config('use_project_full_list')) {
 		$return .= '<a href="softwaremap/full_list.php">';

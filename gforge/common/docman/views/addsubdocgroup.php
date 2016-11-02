@@ -1,5 +1,7 @@
 <?php
 /**
+ * addsubdocgroup.php
+ *
  * FusionForge Documentation Manager
  *
  * Copyright 2000, Quentin Cregan/Sourceforge
@@ -7,6 +9,7 @@
  * Copyright 2010-2011, Franck Villaume - Capgemini
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2013, Franck Villaume - TrivialDev
+ * Copyright 2016, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -27,6 +30,7 @@
 
 /* please do not add require here : use www/docman/index.php to add require */
 /* global variables used */
+global $g; // group object
 global $group_id; // id of the group
 global $dirid; // id of the doc_group
 
@@ -42,6 +46,17 @@ if (isset($childgroup_id) && $childgroup_id) {
 	$actionurl .= '&amp;childgroup_id='.$childgroup_id;
 }
 
+$dgf = new DocumentGroupFactory($g);
+if ($dgf->isError()) {
+   echo "error dgf";
+   exit_error($dgf->getErrorMessage(), 'docman');
+}
+
+$dgh = new DocumentGroupHTML($g);
+if ($dgh->isError()) {
+   echo "error dgh";
+   exit_error($dgh->getErrorMessage(), 'docman');
+}
 ?>
 <script type="text/javascript">//<![CDATA[
 function doItAddSubGroup() {
@@ -60,6 +75,17 @@ if ($dirid) {
 	echo $folderMessage._(': ');
 }
 echo '<input required="required" type="text" name="groupname" size="40" maxlength="255" placeholder="'.$folderMessage.'" />';
+
+if ($dirid) {
+       // $folderMessage = _('Name of the document subfolder to create');
+       // echo $folderMessage._(': ');
+       // $dgh->showSelectNestedGroups($dfg->getNested(), 'doc_group', false, $dirid);
+} else {
+	$folderMessage = _('Create as subfolder in');
+	echo '<br /><br />'.$folderMessage._(': ');
+        $dgh->showSelectNestedGroups($dgf->getNested(), 'doc_group', true, $dirid);
+}
+
 echo '<input id="submitaddsubgroup" type="button" value="'. _('Create') .'" onclick="javascript:doItAddSubGroup()" />';
 echo '</form>';
 echo '</div>';

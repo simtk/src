@@ -3,6 +3,7 @@
  * FusionForge reporting system
  *
  * Copyright 2003-2004, Tim Perdue/GForge, LLC
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -178,7 +179,7 @@ class ReportSetup extends Report {
 		sum(docs) AS docs,
 		sum(cvs_commits) AS cvs_commits,
 		sum(tasks_opened) AS tasks_opened,
-		sum(tasks_closed) AS tasks_closed
+		sum(tasks_closed) AS tasks_closed,
 		FROM rep_user_act_monthly
 		GROUP BY user_id;";
 
@@ -195,6 +196,11 @@ class ReportSetup extends Report {
 		cvs_commits int not null,
 		tasks_opened int not null,
 		tasks_closed int not null,
+		simtk_visits int not null,
+		simtk_visits_stanford int not null,
+		simtk_visitors int not null,
+		simtk_visitors_stanford int not null,
+		simtk_downloads_stanford int not null,
 		PRIMARY KEY (group_id,day));";
 
 		$sql[]="DROP INDEX repgroupactdaily_day";
@@ -212,6 +218,11 @@ class ReportSetup extends Report {
 		cvs_commits int not null,
 		tasks_opened int not null,
 		tasks_closed int not null,
+		simtk_visits int not null,
+		simtk_visits_stanford int not null,
+		simtk_visitors int not null,
+		simtk_visitors_stanford int not null,
+		simtk_downloads_stanford int not null,
 		PRIMARY KEY (group_id,week));";
 
 		$sql[]="DROP INDEX repgroupactweekly_week";
@@ -229,6 +240,11 @@ class ReportSetup extends Report {
 		cvs_commits int not null,
 		tasks_opened int not null,
 		tasks_closed int not null,
+		simtk_visits int not null,
+		simtk_visits_stanford int not null,
+		simtk_visitors int not null,
+		simtk_visitors_stanford int not null,
+		simtk_downloads_stanford int not null,
 		PRIMARY KEY (group_id,month));";
 
 		$sql[]="DROP INDEX repgroupactmonthly_month";
@@ -244,7 +260,12 @@ class ReportSetup extends Report {
 		sum(downloads) AS downloads,
 		sum(cvs_commits) AS cvs_commits,
 		sum(tasks_opened) AS tasks_opened,
-		sum(tasks_closed) AS tasks_closed
+		sum(tasks_closed) AS tasks_closed,
+		sum(simtk_visits) AS simtk_visits,
+		sum(simtk_visits_stanford) AS simtk_visits_stanford,
+		sum(simtk_visitors) AS simtk_visitors,
+		sum(simtk_visitors_stanford) AS simtk_visitors_stanford,
+		sum(simtk_downloads_stanford) AS simtk_downloads_stanford
 		FROM rep_group_act_monthly
 		GROUP BY group_id;";
 
@@ -259,7 +280,12 @@ class ReportSetup extends Report {
 		sum(downloads) AS downloads,
 		sum(cvs_commits) AS cvs_commits,
 		sum(tasks_opened) AS tasks_opened,
-		sum(tasks_closed) AS tasks_closed
+		sum(tasks_closed) AS tasks_closed,
+		sum(simtk_visits) AS simtk_visits,
+		sum(simtk_visits_stanford) AS simtk_visits_stanford,
+		sum(simtk_visitors) AS simtk_visitors,
+		sum(simtk_visitors_stanford) AS simtk_visitors_stanford,
+		sum(simtk_downloads_stanford) AS simtk_downloads_stanford
 		FROM rep_group_act_daily
 		GROUP BY day;";
 
@@ -273,7 +299,12 @@ class ReportSetup extends Report {
 		sum(downloads) AS downloads,
 		sum(cvs_commits) AS cvs_commits,
 		sum(tasks_opened) AS tasks_opened,
-		sum(tasks_closed) AS tasks_closed
+		sum(tasks_closed) AS tasks_closed,
+		sum(simtk_visits) AS simtk_visits,
+		sum(simtk_visits_stanford) AS simtk_visits_stanford,
+		sum(simtk_visitors) AS simtk_visitors,
+		sum(simtk_visitors_stanford) AS simtk_visitors_stanford,
+		sum(simtk_downloads_stanford) AS simtk_downloads_stanford
 		FROM rep_group_act_weekly
 		GROUP BY week;";
 
@@ -287,7 +318,12 @@ class ReportSetup extends Report {
 		sum(downloads) AS downloads,
 		sum(cvs_commits) AS cvs_commits,
 		sum(tasks_opened) AS tasks_opened,
-		sum(tasks_closed) AS tasks_closed
+		sum(tasks_closed) AS tasks_closed,
+		sum(simtk_visits) AS simtk_visits,
+		sum(simtk_visits_stanford) AS simtk_visits_stanford,
+		sum(simtk_visitors) AS simtk_visitors,
+		sum(simtk_visitors_stanford) AS simtk_visitors_stanford,
+		sum(simtk_downloads_stanford) AS simtk_downloads_stanford
 		FROM rep_group_act_monthly
 		GROUP BY month;";
 
@@ -301,7 +337,12 @@ class ReportSetup extends Report {
 		sum(downloads) AS downloads,
 		sum(cvs_commits) AS cvs_commits,
 		sum(tasks_opened) AS tasks_opened,
-		sum(tasks_closed) AS tasks_closed
+		sum(tasks_closed) AS tasks_closed,
+		sum(simtk_visits) AS simtk_visits,
+		sum(simtk_visits_stanford) AS simtk_visits_stanford,
+		sum(simtk_visitors) AS simtk_visitors,
+		sum(simtk_visitors_stanford) AS simtk_visitors_stanford,
+		sum(simtk_downloads_stanford) AS simtk_downloads_stanford
 		FROM rep_group_act_monthly;";
 
 		for ($i=0; $i<count($sql); $i++) {
@@ -1139,8 +1180,18 @@ class ReportSetup extends Report {
 			coalesce(downloads,0) AS downloads,
 			coalesce(cvs_commits,0) AS cvs_commits,
 			coalesce(tasks_opened,0) AS tasks_opened,
-			coalesce(tasks_closed,0) AS tasks_closed
+			coalesce(tasks_closed,0) AS tasks_closed,
+			coalesce(simtk_visits,0) AS simtk_visits,
+			coalesce(simtk_visits_stanford,0) AS simtk_visits_stanford,
+			coalesce(simtk_visitors,0) AS simtk_visitors,
+			coalesce(simtk_visitors_stanford,0) AS simtk_visitors_stanford,
+			coalesce(simtk_downloads_stanford,0) AS simtk_downloads_stanford
 		FROM
+			(SELECT * FROM
+			(SELECT * FROM
+			(SELECT * FROM
+			(SELECT * FROM
+			(SELECT * FROM
 			(SELECT * FROM
 			(SELECT * FROM
 			(SELECT * FROM
@@ -1204,7 +1255,47 @@ class ReportSetup extends Report {
 				AND ph.field_name=$6
 				AND ph.project_task_id=pt.project_task_id
 				AND pt.group_project_id=pgl.group_project_id
-				GROUP BY group_id,day ) tclosed USING (group_id,day)) foo7',
+				GROUP BY group_id,day ) tclosed USING (group_id,day)) foo7
+
+			FULL OUTER JOIN
+				(SELECT al.group_id, $1::int AS day, count(*) AS simtk_visits
+				FROM activity_log al
+				JOIN (SELECT group_id FROM groups) AS g ON g.group_id=al.group_id
+				WHERE al.time BETWEEN $1 AND $2
+				GROUP BY al.group_id,day ) avisits USING (group_id,day)) foo8
+
+			FULL OUTER JOIN
+				(SELECT al.group_id, $1::int AS day, count(*) AS simtk_visits_stanford
+				FROM activity_log al
+				JOIN (SELECT group_id FROM groups) AS g ON g.group_id=al.group_id
+				WHERE al.time BETWEEN $1 AND $2
+				AND simtk_host_name LIKE \'%.stanford.edu\'
+				GROUP BY al.group_id,day ) avisits_stan USING (group_id,day)) foo9
+
+			FULL OUTER JOIN
+				(SELECT al.group_id, $1::int AS day, count(DISTINCT simtk_ip_addr) AS simtk_visitors
+				FROM activity_log al
+				JOIN (SELECT group_id FROM groups) AS g ON g.group_id=al.group_id
+				WHERE al.time BETWEEN $1 AND $2
+				GROUP BY al.group_id,day ) avisitors USING (group_id,day)) foo10
+
+			FULL OUTER JOIN
+				(SELECT al.group_id, $1::int AS day, count(DISTINCT simtk_ip_addr) AS simtk_visitors_stanford
+				FROM activity_log al
+				JOIN (SELECT group_id FROM groups) AS g ON g.group_id=al.group_id
+				WHERE al.time BETWEEN $1 AND $2
+				AND simtk_host_name LIKE \'%.stanford.edu\'
+				GROUP BY al.group_id,day ) avisitors_stan USING (group_id,day)) foo11
+
+			FULL OUTER JOIN
+                                (SELECT fp.group_id, $1::int AS day, count(*) AS simtk_downloads_stanford
+                                FROM frs_package fp, frs_release fr, frs_file ff, frs_dlstats_file fdf
+                                WHERE fp.package_id=fr.package_id
+                                AND fr.release_id=ff.release_id
+                                AND ff.file_id=fdf.file_id
+                                AND fdf.month = $3 AND fdf.day = $4
+				AND fdf.simtk_host_name like \'%.stanford.edu\'
+                                GROUP BY fp.group_id,day ) docs_stan USING (group_id,day)) foo44',
 					array($day,
 						$end_day,
 						date('Ym', $day),
@@ -1257,12 +1348,19 @@ class ReportSetup extends Report {
 		return db_query_params ('
 	INSERT INTO rep_group_act_weekly (group_id, week, tracker_opened,
 			tracker_closed, forum, docs, downloads, cvs_commits, tasks_opened,
-			tasks_closed)
+			tasks_closed,
+			simtk_visits, simtk_visits_stanford,
+			simtk_visitors, simtk_visitors_stanford, simtk_downloads_stanford)
 	SELECT group_id, $1::int AS week, sum(tracker_opened) AS tracker_opened,
 			sum(tracker_closed) AS tracker_closed, sum(forum) AS forum,
 			sum(docs) AS docs, sum(downloads) AS downloads,
 			sum(cvs_commits) AS cvs_commits, sum(tasks_opened) AS tasks_opened,
-			sum(tasks_closed) AS tasks_closed
+			sum(tasks_closed) AS tasks_closed,
+			sum(simtk_visits) AS simtk_visits,
+			sum(simtk_visits_stanford) AS simtk_visits_stanford,
+			sum(simtk_visitors) AS simtk_visitors,
+			sum(simtk_visitors_stanford) AS simtk_visitors_stanford,
+			sum(simtk_downloads_stanford) AS simtk_downloads_stanford
 	FROM rep_group_act_daily
 	WHERE DAY BETWEEN $1 AND $2
 	GROUP BY group_id, week',
@@ -1304,13 +1402,20 @@ class ReportSetup extends Report {
 		return db_query_params('
 	INSERT INTO rep_group_act_monthly (group_id, month, tracker_opened,
 			tracker_closed, forum, docs, downloads, cvs_commits, tasks_opened,
-			tasks_closed)
+			tasks_closed,
+			simtk_visits, simtk_visits_stanford,
+			simtk_visitors, simtk_visitors_stanford, simtk_downloads_stanford)
 	SELECT group_id, $1::int AS month, sum(tracker_opened) AS tracker_opened,
 			sum(tracker_closed) AS tracker_closed, sum(forum) AS forum,
 			sum(docs) AS docs, sum(downloads) AS downloads,
 			sum(cvs_commits) AS cvs_commits,
 			sum(tasks_opened) AS tasks_opened,
-			sum(tasks_closed) AS tasks_closed
+			sum(tasks_closed) AS tasks_closed,
+			sum(simtk_visits) AS simtk_visits,
+			sum(simtk_visits_stanford) AS simtk_visits_stanford,
+			sum(simtk_visitors) AS simtk_visitors,
+			sum(simtk_visitors_stanford) AS simtk_visitors_stanford,
+			sum(simtk_downloads_stanford) AS simtk_downloads_stanford
 	FROM rep_group_act_daily
 	WHERE DAY BETWEEN $1 AND $2
 	GROUP BY group_id,month',

@@ -5,6 +5,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2003-2004 (c) Guillaume Smet - Open Wide
  * Copyright (C) 2010-2011 Alain Peyrat - Alcatel-Lucent
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -31,6 +32,8 @@ function mail_header($params) {
 		$params['group'] = $group_id;
 		$params['toptab'] = 'mail';
 
+		$params['titleurl']='/mail/?group_id='.$group_id;
+		
 		$project = group_get_object($group_id);
 
 		if ($project && is_object($project)) {
@@ -45,6 +48,8 @@ function mail_header($params) {
         $links[]  = '/mail/?group_id='.$group_id;
 		if (session_loggedin()) {
 			if (forge_check_perm ('project_admin', $project->getID())) {
+			    $labels[] = _('Add');
+		        $links[]  = '/mail/admin/?add_list=1&group_id='.$group_id;
 		        $labels[] = _('Administration');
 		        $links[]  = '/mail/admin/?group_id='.$group_id;
 			}

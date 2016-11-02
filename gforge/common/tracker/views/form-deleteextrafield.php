@@ -3,6 +3,7 @@
  * Tracker Facility
  *
  * Copyright 2010 (c) FusionForge Team
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -23,6 +24,9 @@
 
 $ath->adminHeader(array('title'=>sprintf(_('Delete a custom field for %s'),
 	$ath->getName())));
+
+// Update page title identified by the class "project_submenu".
+echo '<script>$(".project_submenu").html("Tracker: ' . $ath->getName() . '");</script>';
 
 $id = getStringFromRequest('id');
 ?>
@@ -49,7 +53,7 @@ $id = getStringFromRequest('id');
 		</label>
 		</p>
 		<p>
-		<input type="submit" name="post_changes" value="<?php echo _('Delete') ?>" /></p>
+		<input type="submit" name="post_changes" value="Delete" class="btn-cta" /></p>
 		</form>
 		</fieldset>
 		</td>

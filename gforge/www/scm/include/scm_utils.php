@@ -1,11 +1,14 @@
 <?php
 /**
+ * scm_utils.php
+ *
  * FusionForge SCM Library
  *
  * Copyright 2004-2005 (c) GForge LLC, Tim Perdue
  * Copyright 2010 (c), Franck Villaume - Capgemini
  * Copyright (C) 2010-2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012-2013, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -40,6 +43,8 @@ function scm_header($params) {
 	if (!$project->usesSCM()) {
 		exit_disabled();
 	}
+	
+	
 	/*
 		Show horizontal links
 	*/
@@ -47,9 +52,9 @@ function scm_header($params) {
 		$params['TITLES'][] = _('View Source Code');
 		$params['DIRS'][] = '/scm/?group_id='.$params['group'];
 		$params['TOOLTIPS'][] = array('title' => _('Online Source code browsing'), 'class' => 'tabtitle');
-		$params['TITLES'][] = _('Reporting');
-		$params['DIRS'][] = '/scm/reporting/?group_id='.$params['group'];
-		$params['TOOLTIPS'][] = array('title' => _('Global statistics on this SCM repository'), 'class' => 'tabtitle');
+		//$params['TITLES'][] = _('Reporting');
+		//$params['DIRS'][] = '/scm/reporting/?group_id='.$params['group'];
+		//$params['TOOLTIPS'][] = array('title' => _('Global statistics on this SCM repository'), 'class' => 'tabtitle');
 		$params['TITLES'][] = _('Administration');
 		$params['DIRS'][] = '/scm/admin/?group_id='.$params['group'];
 		$params['TOOLTIPS'][] = array('title' => _('Administration page : enable / disable options'), 'class' => 'tabtitle');
@@ -63,7 +68,8 @@ function scm_header($params) {
 		}
 	}
 
-	$params['toptab'] = 'scm';
+	$params['toptab'] = 'Source Code';
+	$params['titleurl']='/scm/?group_id='.$params['group'];
 	site_project_header($params);
 	echo '<div id="scm" class="scm">';
 }
@@ -212,18 +218,8 @@ function commits_graph($group_id, $days, $chartid) {
 	if (db_numrows($res)) {
 		echo '<script type="text/javascript">//<![CDATA['."\n";
 		echo 'var data'.$chartid.' = new Array();';
-		$i = 1;
-		$lastvalue = 0;
 		while ($row = db_fetch_array($res)) {
-			if ($i <= 10) {
-				echo 'data'.$chartid.'.push([\''.htmlentities($row[0]).' ('.$row[1].')\','.$row[1].']);';
-			} elseif ($i > 10) {
-				$lastvalue += $row[1];
-			}
-			$i++;
-		}
-		if ($i > 10) {
-			echo 'data'.$chartid.'.push([\''._('Others').' ('.$lastvalue.')\','.$lastvalue.']);';
+			echo 'data'.$chartid.'.push([\''.htmlentities($row[0]).' ('.$row[1].')\','.$row[1].']);';
 		}
 		echo 'var plot'.$chartid.';';
 		echo 'jQuery(document).ready(function(){

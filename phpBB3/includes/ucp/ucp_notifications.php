@@ -4,6 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @copyright 2016, Henry Kwong, Tod Hing - SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -198,6 +199,13 @@ class ucp_notifications
 
 			foreach($subscription_types as $type => $data)
 			{
+				/*
+				// For customization of UCP. Not using now. HK.
+				if ($type == "pm") {
+					// Skip private message notification.
+					continue;
+				}
+				*/
 				$template->assign_block_vars($block, array(
 					'TYPE'				=> $type,
 

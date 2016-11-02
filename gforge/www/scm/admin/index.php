@@ -1,8 +1,11 @@
 <?php
 /**
+ * index.php
+ *
  * SCM Frontend
  *
  * Copyright 2004 (c) Roland Mas, Tim Perdue GForge LLC
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -84,7 +87,7 @@ if (getStringFromRequest('create_repository') && getStringFromRequest('submit'))
 } elseif (getStringFromRequest('submit')) {
 	$hook_params = array();
 	$hook_params['group_id'] = $group_id;
-
+	
 	$scmradio = '';
 	$scmvars = array_keys(_getRequestArray());
 	foreach (_getRequestArray() as $key => $value) {
@@ -105,9 +108,25 @@ if (getStringFromRequest('create_repository') && getStringFromRequest('submit'))
 
 	$SCMFactory = new SCMFactory();
 	$scm_plugins = $SCMFactory->getSCMs();
-
+	
 	$scm_changed = false;
-	if (in_array($scmradio, $scm_plugins)) {
+	if (count($scm_plugins) == 1) {
+	   $scmradio = getStringFromRequest('scmradio');
+	   $myPlugin = plugin_get_object($scm_plugins[0]);
+	      if ($scmradio == $myPlugin->name) {
+		     if (!$group->usesPlugin($myPlugin->name)) {
+			    $group->setPluginUse($myPlugin->name, 1);
+				if ($myPlugin->getDefaultServer()) {
+					$group->setSCMBox($myPlugin->getDefaultServer());
+				}
+				$scm_changed = true;
+			 }
+		  } else {
+			 $group->setPluginUse($myPlugin->name, 0);
+		  }   
+		
+	} else if (count($scm_plugins) > 1) {  
+	  if (in_array($scmradio, $scm_plugins)) {
 		foreach ($scm_plugins as $plugin) {
 			$myPlugin = plugin_get_object($plugin);
 			if ($scmradio == $myPlugin->name) {
@@ -122,12 +141,16 @@ if (getStringFromRequest('create_repository') && getStringFromRequest('submit'))
 				$group->setPluginUse($myPlugin->name, 0);
 			}
 		}
-	}
+	  }
 
+	}
+	
 	// Don't call scm plugin update if their form wasn't displayed
 	// to avoid processing an apparently empty form and reset configuration
 	if (!$scm_changed)
 		plugin_hook("scm_admin_update", $hook_params);
+		$feedback .= _('Updated');
+		//var_dump($hook_params);
 }
 
 $hook_params = array();
@@ -147,6 +170,7 @@ scm_header(array('title'=>_('SCM Repository'),'group'=>$group_id));
 	});
 </script>
 <form method="post" action="<?php echo util_make_uri('/scm/admin/?group_id='.$group_id) ?>">
+<div class="form_simtk">
 <?php
 
 	$hook_params = array () ;
@@ -154,36 +178,56 @@ scm_header(array('title'=>_('SCM Repository'),'group'=>$group_id));
 
 	$SCMFactory = new SCMFactory();
 	$scm_plugins = $SCMFactory->getSCMs();
+	
+	/*
 	if (count($scm_plugins) != 0) {
 		if (count($scm_plugins) == 1) {
 			$myPlugin = plugin_get_object($scm_plugins[0]);
-			echo '<input type="hidden" name="scmradio" value="'.$myPlugin->name.'" />' ;
-			$scm = $myPlugin->name;
+			//echo '<input type="hidden" name="scmradio" value="'.$myPlugin->name.'" />' ;
+			
+			echo '<p><input type="checkbox" name="scmradio" ';
+			echo 'value="'.$myPlugin->name.'"';
+			if ($group->usesPlugin($myPlugin->name)) {
+				$scm = $myPlugin->name;
+				echo ' checked="checked"';
+			}
+			echo ' />'.$myPlugin->text.' <a href="#" data-toggle="popover" data-placement="right" data-trigger="hover" title="Source Code" data-content="Unchecking the box does not delete the repository.  It only affects the information displayed under the View Source Code Menu.">?</a>
+</p>';
+			//echo '<br />'."\n";
 		} else {
 			echo '<p>'._('Note: Changing the repository does not delete the previous repository.  It only affects the information displayed under the SCM tab.').'</p>';
-			echo '<table><tbody><tr><td><strong>'._('SCM Repository').'</strong></td>';
+			echo '<p><strong>'._('SCM Repository').'</strong></p>';
 			$checked=true;
 			foreach ($scm_plugins as $plugin) {
 				$myPlugin = plugin_get_object($plugin);
-				echo '<td><input type="radio" name="scmradio" ';
+				echo '<p><input type="radio" name="scmradio" ';
 				echo 'value="'.$myPlugin->name.'"';
 				if ($group->usesPlugin($myPlugin->name)) {
 					$scm = $myPlugin->name;
 					echo ' checked="checked"';
 				}
-				echo ' />'.$myPlugin->text.'</td>';
+				echo ' />'.$myPlugin->text.'</p>';
 			}
-			echo '</tr></tbody></table>'."\n";
+			echo '<br />'."\n";
 		}
 	} else {
 		echo '<p class="error_msg">'._('Error: Site has SCM but no plugins registered').'</p>';
 	}
-
+    echo "scm_plugins: " . count($scm_plugins);
+	*/
+	
 	(isset($scm)) ? $hook_params['scm_plugin'] = $scm : $hook_params['scm_plugin'] = 0;
 	plugin_hook("scm_admin_page", $hook_params);
+	
+	if ($group->isPublic()) {
 ?>
-<input type="hidden" name="group_id" value="<?php echo $group_id; ?>" />
-<input type="submit" name="submit" value="<?php echo _('Update'); ?>" />
+       <input type="hidden" name="group_id" value="<?php echo $group_id; ?>" />
+       <input type="submit"  class="btn-blue" name="submit" value="<?php echo _('Update'); ?>" />
+    <?php } else {
+	         echo "This project is set to private.  To allow everyone read access to the repository, first go to admin settings to set project to public.";
+	      }
+	?>
+</div> <!-- class simtk -->
 </form>
 <?php
 

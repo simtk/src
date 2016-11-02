@@ -3,6 +3,7 @@
  * Tracker Facility
  *
  * Copyright 2010 (c) FusionForge Team
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -91,7 +92,7 @@ $res = db_query_params ('SELECT g.unix_group_name, agl.name AS tracker_name, aef
 		echo '<tr><td>';
 ?>
 		<br />
-	 	<input type="submit" name="post_changes" value="<?php echo _('Submit') ?>" />
+	 	<input type="submit" name="post_changes" value="Submit" class="btn-cta" />
 		</td></tr></table></form>
 
 <?php

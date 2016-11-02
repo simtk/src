@@ -4,6 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @copyright 2016, Henry Kwong, Tod Hing - SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -41,12 +42,14 @@ $mode = sizeof($mode) ? array_shift($mode) : request_var('mode', '');
 // Only Moderators can go beyond this point
 if (!$user->data['is_registered'])
 {
+/*
 	if ($user->data['is_bot'])
 	{
 		redirect(append_sid("{$phpbb_root_path}index.$phpEx"));
 	}
 
 	login_box('', $user->lang['LOGIN_EXPLAIN_MCP']);
+*/
 }
 
 $quickmod = (isset($_REQUEST['quickmod'])) ? true : false;

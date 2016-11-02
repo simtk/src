@@ -1,5 +1,7 @@
 <?php
 /**
+ * Layout.class.php
+ *
  * Base layout class.
  *
  * Copyright 1999-2001 (c) VA Linux Systems
@@ -9,6 +11,7 @@
  * Copyright © 2011 Thorsten Glaser – tarent GmbH
  * Copyright 2011 - Marc-Etienne Vargenau, Alcatel-Lucent
  * Copyright 2012-2014, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -303,7 +306,11 @@ class Layout extends Error {
 	 * @param	array	$params		Header parameters array
 	 */
 	function headerTitle($params) {
-		echo $this->navigation->getTitle($params);
+		// By default, FusionForge returns the string "FusionForge:" for the title.
+		// Replace this string with "SimTK:" here.
+		$tmpStr = $this->navigation->getTitle($params);
+		$tmpStr = str_replace("FusionForge", "SimTK", $tmpStr);
+		echo $tmpStr;
 	}
 
 	/**
@@ -436,6 +443,7 @@ class Layout extends Error {
 
 </table>
 
+
 <table class="fullwidth">
 
 	<tr>
@@ -468,7 +476,6 @@ class Layout extends Error {
 			<table class="fullwidth">
 <?php
 
-
 if (isset($params['group']) && $params['group']) {
 
 			?>
@@ -496,7 +503,7 @@ if (isset($params['group']) && $params['group']) {
 
 	<?php
 
-	}
+	} 
 
 	function footer($params) {
 
@@ -676,6 +683,7 @@ if (isset($params['group']) && $params['group']) {
 	}
 
 	function outerTabs($params) {
+                // site menu
 		$menu = $this->navigation->getSiteMenu();
 		echo $this->tabGenerator($menu['urls'], $menu['titles'], $menu['tooltips'], false, $menu['selected'], '');
 	}
@@ -737,7 +745,11 @@ if (isset($params['group']) && $params['group']) {
 	 */
 	function projectTabs($toptab, $group_id) {
 		// get group info using the common result set
-		$menu = $this->navigation->getProjectMenu($group_id, $toptab);
+                
+                /* This menu is for the project menu - will not need this since is is recreated - tod hing */ 
+		// $menu = $this->navigation->getProjectMenu($group_id, $toptab);
+
+                //print_r ($menu);
 		echo $this->tabGenerator($menu['urls'], $menu['titles'], $menu['tooltips'], true, $menu['selected'], 'white');
 	}
 
@@ -964,12 +976,36 @@ if (isset($params['group']) && $params['group']) {
 	 * @param	string	$feedback	feedback string
 	 * @return	string	htmlized feedback
 	 */
-	function feedback($feedback) {
+	function feedback($feedback, $isStripTags=true) {
 		if (!$feedback) {
 			return '';
 		} else {
-			return '
-			<p class="feedback">'.strip_tags($feedback, '<br>').'</p>';
+//			return '<p class="feedback">'.strip_tags($feedback, '<br>').'</p>';
+
+			// Message DIV.
+			$theMsg = '<div class="warning_msg" style="padding:8px;border:1px dotted;margin-top:12px;margin-bottom:12px;line-height:18px;">';
+
+			// Left-justified message.
+			if ($isStripTags === true) {
+				$theMsg .= '<div style="float:left;">' . strip_tags($feedback, '<br>') . '</div>';
+			}
+			else {
+				$theMsg .= '<div style="float:left;">' . $feedback . '</div>';
+			}
+
+			// 'X' to close.
+			$msgX = '<div style="float:right;" onclick="'. 
+				"$('.warning_msg').hide('slow');" . 
+				'">&nbsp;&nbsp;&nbsp;&nbsp;X&nbsp;&nbsp;&nbsp;&nbsp;</div>';
+
+			$theMsg .= $msgX;
+
+			// Clear formatting.
+			$theMsg .= '<div style="clear: both;"></div>';
+
+			$theMsg .= '</div>';
+
+			return $theMsg;
 		}
 	}
 	/**
@@ -978,12 +1014,36 @@ if (isset($params['group']) && $params['group']) {
 	 * @param	string	$msg	msg string
 	 * @return	string	htmlized warning
 	 */
-	function warning_msg($msg) {
+	function warning_msg($msg, $isStripTags=true) {
 		if (!$msg) {
 			return '';
 		} else {
-			return '
-			<p class="warning_msg">'.strip_tags($msg, '<br>').'</p>';
+//			return '<p class="warning_msg">'.strip_tags($msg, '<br>').'</p>';
+
+			// Message DIV.
+			$theMsg = '<div class="warning_msg" style="padding:8px;border:1px dotted;margin-top:12px;margin-bottom:12px;line-height:18px;">';
+
+			// Left-justified message.
+			if ($isStripTags === true) {
+				$theMsg .= '<div style="float:left;">' . strip_tags($msg, '<br>') . '</div>';
+			}
+			else {
+				$theMsg .= '<div style="float:left;">' . $msg . '</div>';
+			}
+
+			// 'X' to close.
+			$msgX = '<div style="float:right;" onclick="'. 
+				"$('.warning_msg').hide('slow');" . 
+				'">&nbsp;&nbsp;&nbsp;&nbsp;X&nbsp;&nbsp;&nbsp;&nbsp;</div>';
+
+			$theMsg .= $msgX;
+
+			// Clear formatting.
+			$theMsg .= '<div style="clear: both;"></div>';
+
+			$theMsg .= '</div>';
+
+			return $theMsg;
 		}
 	}
 
@@ -993,12 +1053,36 @@ if (isset($params['group']) && $params['group']) {
 	 * @param	string	$msg	msg string
 	 * @return	string	htmlized error
 	 */
-	function error_msg($msg) {
+	function error_msg($msg, $isStripTags=true) {
 		if (!$msg) {
 			return '';
 		} else {
-			return '
-			<p class="error">'.strip_tags($msg, '<br>')."</p>\n";
+//			return '<p class="error">'.strip_tags($msg, '<br>')."</p>\n";
+
+			// Message DIV.
+			$theMsg = '<div class="warning_msg" style="padding:8px;border:1px dotted;margin-top:12px;margin-bottom:12px;line-height:18px;">';
+
+			// Left-justified message.
+			if ($isStripTags === true) {
+				$theMsg .= '<div style="float:left;">' . strip_tags($msg, '<br>') . '</div>';
+			}
+			else {
+				$theMsg .= '<div style="float:left;">' . $msg . '</div>';
+			}
+
+			// 'X' to close.
+			$msgX = '<div style="float:right;" onclick="'. 
+				"$('.warning_msg').hide('slow');" . 
+				'">&nbsp;&nbsp;&nbsp;&nbsp;X&nbsp;&nbsp;&nbsp;&nbsp;</div>';
+
+			$theMsg .= $msgX;
+
+			// Clear formatting.
+			$theMsg .= '<div style="clear: both;"></div>';
+
+			$theMsg .= '</div>';
+
+			return $theMsg;
 		}
 	}
 

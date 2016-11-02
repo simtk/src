@@ -4,6 +4,7 @@
  * Copyright 2010 (c) Fusionforge Team
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012-2014, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -262,7 +263,7 @@ echo '
 <table align="center" border="3" cellpadding="4" rules="groups" frame="box" width="100%" class="tablecontent">
 	<tr>
 		<td>
-			<input type="submit" name="submit" value="'._('Save Changes').'" />
+			<input type="submit" name="submit" value="Save Changes" class="btn-cta" />
 		</td>
 		<td>';
 	if(db_numrows($res)>0) {
@@ -299,7 +300,7 @@ echo '
 	echo '
 		</td>
 		<td class="top">
-		<input type="text" name="query_name" value="'.$aq->getName().'" size="20" maxlength="30"  required="required" /></td>
+		<input type="text" name="query_name" value="'.$aq->getName().'" size="20" maxlength="30"  class="required" required="required" /></td>
 	</tr>
 </table>';
 
@@ -346,7 +347,7 @@ if (forge_check_perm ('tracker', $ath->getID(), 'manager')) {
 		<td class="top"><strong>'._('Submitter')._(': ').'</strong><br />'. $submitter_box .'</td>
 		<td class="top"><strong>'._('Assignee')._(': ').'</strong><br />'. $tech_box .'</td>
 	</tr>';
-	$ath->renderExtraFields($extra_fields,true,'none',true,'Any',array(),false,'QUERY');
+	$ath->renderExtraFields($extra_fields,true,'None',true,'Any',array(),false,'QUERY');
 
 	// Compute the list of fields which can be sorted.
 	// Currently, only scalar artifacts are taken.

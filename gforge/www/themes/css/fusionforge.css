@@ -87,21 +87,40 @@ figcaption {
 .priority1 {
 	background-color: #dadada;
 }
-
 .priority2 {
-	background-color: #dacaca;
+	background-color: #cacada;
 }
-
 .priority3 {
-	background-color: #dababa;
+	background-color: #babada;
 }
-
 .priority4 {
-	background-color: #daaaaa;
+	background-color: #aaaada;
+}
+.priority5 {
+	background-color: #8a8ada;
+}
+.priority1 a, .priority2 a, .priority3 a, .priority4 a, .priority5 a {
+	color: black;
 }
 
-.priority5 {
-	background-color: #da8a8a;
+.listing {
+	border-collapse: separate;
+	border-spacing: 1px;
+	border-color: grey;
+}
+.listing thead tr {
+	background-color: #7392b2;
+}
+.listing thead tr th {
+	color: #ecb26d;
+	padding: 6px;
+	text-align: center;
+}
+.listing thead tr th a {
+	color: #ecb26d;
+}
+.listing tbody tr td {
+	padding: 6px;
 }
 
 .requiredfield {

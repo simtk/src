@@ -3,6 +3,7 @@
  * FusionForge Documentation Manager
  *
  * Copyright 2012, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -69,6 +70,7 @@ if ($details) {
 	$filearray["type"] = $d->getFileType();
 	$filearray["title"] = $d->getName();
 	$filearray["description"] = $d->getDescription();
+	$filearray["citation"] = $d->getCitation();
 	$filearray["stateid"] = $d->getStateID();
 	$filearray["docgroupid"] = $d->getDocGroupID();
 	$filearray["isurl"] = $d->isURL();

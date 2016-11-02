@@ -6,6 +6,7 @@
  * Copyright 2004 (c) Guillaume Smet / Open Wide
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * http://fusionforge.org
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -60,9 +61,24 @@ class HtmlSearchRenderer extends SearchRenderer {
 			if($searchQuery->getResult() && ($searchQuery->getRowsTotalCount() == 1 && $searchQuery->getOffset() == 0) && $this->implementsRedirectToResult()) {
 				$this->redirectToResult();
 			} else {
+/*
 				$this->writeHeader();
 				$this->writeBody();
 				$this->writeFooter();
+*/
+				// Get text from search field.
+				$words = $this->searchQuery->getWords();
+				foreach ($this->searchQuery->getPhrases() as $p) {
+					foreach (explode(' ', $p) as $w) {
+						$words[] = $w;
+					}
+				}
+				$strSearchWords = implode(',', $words);
+
+				// Redirect to search.php page.
+				$strURL = '/search/search.php?' .
+					'srch=' . $strSearchWords;
+				header("location: " . $strURL);
 			}
 		}
 	}

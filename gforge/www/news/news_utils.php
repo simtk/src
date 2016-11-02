@@ -5,6 +5,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2002-2004 (c) GForge Team
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -26,9 +27,11 @@
 function news_header($params) {
 	global $HTML, $group_id, $news_name,$news_id;
 
+/*
 	if (!forge_get_config('use_news')) {
 		exit_disabled();
 	}
+*/
 
 	$params['toptab']='news';
 	$params['group']=$group_id;
@@ -68,6 +71,141 @@ function news_footer($params) {
 }
 
 /**
+ * Display news for frontpage.
+ *
+ * @param int  $group_id group_id of the news (forge_get_config('news_group') used if none given)
+ * @return string
+ */
+function news_show_project_overview($group_id=0) {
+
+
+	if (!$group_id) {
+		$group_id=forge_get_config('news_group');
+	}
+
+/*
+	$result = db_query_params ('
+       SELECT news_bytes.summary, news_bytes.post_date, news_bytes.details, news_bytes.forum_id
+       FROM news_bytes,groups WHERE (news_bytes.group_id=$1 AND news_bytes.is_approved <> 4)
+       AND (news_bytes.is_approved=1)
+       AND news_bytes.group_id=groups.group_id
+       AND groups.status=$2
+       AND news_bytes.simtk_sidebar_display=$3
+       ORDER BY post_date DESC',
+				   array ($group_id,
+					  'A',true),
+				   $l);
+*/
+	$result = db_query_params('SELECT pn.summary, pn.post_date, pn.details, pn.forum_id ' .
+		'pn.id ' .
+		'FROM plugin_simtk_news pn, ' .
+		'JOIN groups g ON pn.group_id=g.group_id ' .
+		'WHERE (pn.group_id=$1 ' .
+		'AND pn.is_approved <> 4) ' .
+		'AND (pn.is_approved=1) ' .
+		'AND g.status=$2 ' .
+		'AND pn.simtk_sidebar_display=$3 ' .
+		'ORDER BY post_date DESC',
+		array ($group_id, 'A', true),
+		$l);
+	$rows=db_numrows($result);
+
+	$return = '';
+
+	if (!$result || $rows < 1) {
+		$return .= false;
+		$return .= db_error();
+	} else {
+		$return .= '<div class="news_item">';
+		for ($i=0; $i<$rows; $i++) {
+			$t_thread_title = db_result($result,$i,'summary');
+
+/*
+			$forum_id = db_result($result,$i,'forum_id');
+			$return .= "<a href='/forum/forum.php?forum_id=" . $forum_id . "'><h4>". $t_thread_title . '</a></h4>';
+*/
+			$nid = db_result($result,$i,'id');
+			$return .= "<a href='/plugins/simtk_news/news_details.php?' .
+				'group_id=" . $group_id . 
+				'&id=' . $nid . "'><h4>". $t_thread_title . '</a></h4>';
+
+				//get the first paragraph of the story
+                                /*
+				if (strstr(db_result($result,$i,'details'),'<br/>')) {
+					// the news is html, fckeditor made for example
+					$arr=explode("<br/>",db_result($result,$i,'details'));
+				} else {
+					$arr=explode("\n",db_result($result,$i,'details'));
+				}
+                                */
+
+                                $return .= '<span class="small grey">' . date("M j, Y" , db_result($result,$i,'post_date')) . '</span>';
+				//$summ_txt=util_make_links( $arr[0] );
+
+                                //added from simtk 1.0
+                                /*
+                                if ($summ_txt) {
+                                  $theWordCount = str_word_count($summ_txt);
+                                  if ($theWordCount > 25) {
+                                        $words = preg_split("/[\s,.]+/", $summ_txt);
+                                        $summ_txt = "";
+                                        for ($i = 0; $i < 25; $i++) {
+                                                $summ_txt .= $words[$i] .' ';
+                                        }
+                                        $summ_txt .= "...";
+                                  }
+                                }
+
+				if ($summ_txt != "") {
+					$return .= '<p>'.$summ_txt.'</p>';
+				}
+                                */
+
+                                $re = '/# Split sentences on whitespace between them.
+                                        (?<=                # Begin positive lookbehind.
+                                          [.!?]             # Either an end of sentence punct,
+                                        | [.!?][\'"]        # or end of sentence punct and quote.
+                                        )                   # End positive lookbehind.
+                                        (?<!                # Begin negative lookbehind.
+                                          Mr\.              # Skip either "Mr."
+                                        | Mrs\.             # or "Mrs.",
+                                        | Ms\.              # or "Ms.",
+                                        | Jr\.              # or "Jr.",
+                                        | Dr\.              # or "Dr.",
+                                        | Prof\.            # or "Prof.",
+                                        | Sr\.              # or "Sr.",
+                                                                                # or... (you get the idea).
+                                        )                   # End negative lookbehind.
+                                        \s+                 # Split on whitespace between sentences.
+                                        /ix';
+
+                                $arr=preg_split($re,  db_result($result,$i,'details') , -1, PREG_SPLIT_NO_EMPTY);
+                                $summ_txt = '';
+                                //if the first paragraph is short, and so are following paragraphs, add the next paragraph on
+                                if ((strlen($arr[0]) < 50) && (strlen($arr[0].$arr[1]) < 300)) {
+                                        if($arr[1])
+                                        {
+                                                $summ_txt.=$arr[0].'. '.$arr[1];
+                                        } else {
+                                                $summ_txt.=$arr[0]; // the news has only one sentence
+                                        }
+                                } else {
+                                        $summ_txt.=$arr[0];
+                                }
+
+				if ($summ_txt != "") {
+					$return .= '<p>'.$summ_txt.'</p>';
+				}
+
+                }
+		$return .= '</div><!-- class="news_item" -->';
+
+	}
+	return $return;
+}
+
+
+/**
  * Display latest news for frontpage or news page.
  *
  * @param int  $group_id group_id of the news (forge_get_config('news_group') used if none given)
@@ -79,7 +217,10 @@ function news_footer($params) {
  * @param bool $show_forum
  * @return string
  */
-function news_show_latest($group_id=0,$limit=10,$show_summaries=true,$allow_submit=true,$flat=false,$tail_headlines=0,$show_forum=true) {
+function news_show_latest($group_id=0, $limit=10, $show_summaries=true,
+	$allow_submit=true, $flat=false, $tail_headlines=0,
+	$show_forum=true, $front_page=false,
+	$categoryId="") {
 
 	if (!$group_id) {
 		$group_id=forge_get_config('news_group');
@@ -89,39 +230,83 @@ function news_show_latest($group_id=0,$limit=10,$show_summaries=true,$allow_subm
 	*/
 	if ($tail_headlines == -1) {
 		$l = 0;
-	} else {
+	}
+	else {
 		$l = $limit + $tail_headlines;
 	}
-	$result = db_query_params ('
-SELECT groups.group_name, groups.unix_group_name, groups.group_id,
-       groups.type_id, users.user_name, users.realname,
-       news_bytes.forum_id, news_bytes.summary, news_bytes.post_date,
-       news_bytes.details
-FROM users,news_bytes,groups
-WHERE (news_bytes.group_id=$1 AND news_bytes.is_approved <> 4 OR 1!=$2)
-  AND (news_bytes.is_approved=1 OR 1 != $3)
-  AND users.user_id=news_bytes.submitted_by
-  AND news_bytes.group_id=groups.group_id
-  AND groups.status=$4
-ORDER BY post_date DESC',
-				   array ($group_id,
-					  $group_id != forge_get_config('news_group') ? 1 : 0,
-					  $group_id != forge_get_config('news_group') ? 0 : 1,
-					  'A'),
-				   $l);
-	$rows=db_numrows($result);
+
+	if (isset($categoryId) && $categoryId != "") {
+		$strQueryNews = '
+			SELECT g.group_name, g.unix_group_name, g.group_id, g.type_id, 
+				u.user_name, u.realname, u.picture_file, 
+				pn.forum_id, pn.summary, pn.post_date, pn.details, pn.id
+			FROM groups g
+			JOIN plugin_simtk_news pn ON g.group_id=pn.group_id
+			JOIN users u ON u.user_id=pn.submitted_by
+			JOIN trove_group_link tgl ON tgl.group_id=pn.group_id
+			WHERE tgl.trove_cat_id=$1
+				AND (pn.group_id=$2 AND pn.is_approved <> 4 OR 1!=$3)
+				AND (pn.is_approved=1 OR 1 != $4)
+				AND g.simtk_is_public=1
+				AND g.status=$5
+			ORDER BY post_date DESC
+		';
+		$arrQueryNews = array(
+			$categoryId,
+			$group_id,
+			$group_id != forge_get_config('news_group') ? 1 : 0,
+			$group_id != forge_get_config('news_group') ? 0 : 1,
+			'A'
+		);
+	}
+	else {
+		$strQueryNews = '
+			SELECT g.group_name, g.unix_group_name, g.group_id, g.type_id, 
+				u.user_name, u.realname, u.picture_file,
+				pn.forum_id, pn.summary, pn.post_date, pn.details, pn.id
+			FROM groups g
+			JOIN plugin_simtk_news pn ON g.group_id=pn.group_id
+			JOIN users u ON u.user_id=pn.submitted_by
+			WHERE (pn.group_id=$1 AND pn.is_approved <> 4 OR 1!=$2)
+				AND (pn.is_approved=1 OR 1 != $3)
+				AND g.simtk_is_public = 1
+				AND g.status=$4
+			ORDER BY post_date DESC
+		';
+		$arrQueryNews = array(
+			$group_id,
+			$group_id != forge_get_config('news_group') ? 1 : 0,
+			$group_id != forge_get_config('news_group') ? 0 : 1,
+			'A'
+		);
+	}
+
+	$result = db_query_params($strQueryNews, $arrQueryNews, $l);
+	$rows = db_numrows($result);
 
 	$return = '';
 
 	if (!$result || $rows < 1) {
 		$return .= _('No News Found');
 		$return .= db_error();
-//		$return .= "</div>";
-	} else {
+	}
+	else {
 		for ($i=0; $i<$rows; $i++) {
 			$t_thread_title = db_result($result,$i,'summary');
+/*
 			$t_thread_url = "/forum/forum.php?forum_id=" . db_result($result,$i,'forum_id');
+*/
+			$t_thread_url = "/plugins/simtk_news/news_details.php?" .
+				"group_id=" . $group_id .
+				"&id=" . db_result($result,$i,'id');
+
 			$t_thread_author = db_result($result,$i,'realname');
+
+			if ($front_page === true) {
+				// Generate the front page news item.
+				generate_front_page_news_item($result, $i, $return, $categoryId);
+				continue;
+			}
 
 			$return .= '<div class="one-news bordure-dessous">';
 			$return .= "\n";
@@ -147,10 +332,12 @@ ORDER BY post_date DESC',
 					$return .= '<h3>'. $t_thread_title . '</h3>';
 				}
 				$return .= ' &nbsp; <em>'. date(_('Y-m-d H:i'),db_result($result,$i,'post_date')).'</em><br />';
-			} else {
+			}
+			else {
 				if ($show_forum) {
 					$return .= '<h3>'.util_make_link ($t_thread_url, $t_thread_title).'</h3>';
-				} else {
+				}
+				else {
 					$return .= '<h3>'. $t_thread_title . '</h3>';
 				}
 				$return .= "<div>";
@@ -167,8 +354,9 @@ ORDER BY post_date DESC',
 					$return .= '<p>'.$summ_txt.'</p>';
 				}
 
-				$res2 = db_query_params ('SELECT total FROM forum_group_list_vw WHERE group_forum_id=$1',
-							 array (db_result($result,$i,'forum_id')));
+				$res2 = db_query_params(
+					'SELECT total FROM forum_group_list_vw WHERE group_forum_id=$1',
+					array(db_result($result,$i,'forum_id')));
 				$num_comments = db_result($res2,0,'total');
 
 				if (!$num_comments) {
@@ -177,7 +365,8 @@ ORDER BY post_date DESC',
 
 				if ($num_comments <= 1) {
 					$comments_txt = _('Comment');
-				} else {
+				}
+				else {
 					$comments_txt = _('Comments');
 				}
 
@@ -189,7 +378,8 @@ ORDER BY post_date DESC',
 					$return .= '<div>' . $num_comments .' '. $comments_txt .' ';
 					$return .= util_make_link ($t_thread_url, $link_text, $extra_params);
 					$return .= '</div>';
-				} else {
+				}
+				else {
 					$return .= '';
 				}
 			}
@@ -204,13 +394,15 @@ ORDER BY post_date DESC',
 
 		if ($group_id != forge_get_config('news_group')) {
 			$archive_url = '/news/?group_id='.$group_id;
-		} else {
+		}
+		else {
 			$archive_url = '/news/';
 		}
-		if ($tail_headlines != -1) {
+		if ($tail_headlines != -1 && $front_page === false) {
 			if ($show_forum) {
 				$return .= '<div>' . util_make_link($archive_url, _('News archive'), array('class' => 'dot-link')) . '</div>';
-			} else {
+			}
+			else {
 				$return .= '<div>...</div>';
 			}
 		}
@@ -231,6 +423,7 @@ function news_foundry_latest($group_id=0,$limit=5,$show_summaries=true) {
 		Show a the latest news for a portal
 	*/
 
+/*
 	$result=db_query_params("SELECT groups.group_name,groups.unix_group_name,groups.group_id,
 		users.user_name,users.realname,news_bytes.forum_id,
 		news_bytes.summary,news_bytes.post_date,news_bytes.details
@@ -241,6 +434,19 @@ function news_foundry_latest($group_id=0,$limit=5,$show_summaries=true) {
 		AND news_bytes.group_id=groups.group_id
 		AND foundry_news.is_approved=1
 		ORDER BY news_bytes.post_date DESC", array($group_id),$limit);
+*/
+	$result=db_query_params("SELECT g.group_name, g.unix_group_name, g.group_id,
+		u.user_name, u.realname,
+		pn.forum_id, pn.summary, pn.post_date, pn.details, pn.id
+		FROM groups g
+		JOIN plugin_simtk_news pn ON g.group_id=pn.group_id
+		JOIN users u ON u.user_id=pn.submitted_by
+		JOIN foundry_news fn ON fn.news_id=pn.id 
+		WHERE fn.foundry_id=$1
+		AND fn.is_approved=1
+		ORDER BY pn.post_date DESC",
+		array($group_id),
+		$limit);
 
 	$rows=db_numrows($result);
 
@@ -277,12 +483,131 @@ function get_news_name($id) {
 	/*
 		Takes an ID and returns the corresponding forum name
 	*/
+/*
 	$result=db_query_params('SELECT summary FROM news_bytes WHERE id=$1', array($id));
+*/
+	$result=db_query_params('SELECT summary FROM plugin_simtk_news WHERE id=$1', array($id));
 	if (!$result || db_numrows($result) < 1) {
 		return _('Not Found');
 	} else {
 		return db_result($result, 0, 'summary');
 	}
+}
+
+// Generate front page news.
+function generate_front_page_news_item($result, $i, &$return,
+	$categoryId="") {
+
+	$theFlag = 1;
+	if (isset($categoryId) && $categoryId != "") {
+		// Has category id; from category page.
+		$theFlag = 4 . '&cat=' . $categoryId;
+	}
+
+	$t_thread_title = db_result($result, $i, 'summary');
+
+/*
+	$t_thread_url = "/forum/forum.php?forum_id=" . db_result($result, $i, 'forum_id');
+*/
+	$group_id = db_result($result, $i, 'group_id');
+	$nid = db_result($result, $i, 'id');
+	$t_thread_url = "/plugins/simtk_news/news_details.php?" .
+		"group_id=" . $group_id .
+		"&id=" . $nid .
+		"&flag=$theFlag";
+
+	if (isset($categoryId) && $categoryId != "") {
+		$return .= '<div class="item_newsarea">';
+	}
+	else {
+		$return .= '<div class="item_home_news">';
+	}
+
+	// Title.
+	$return .= '<h4>' . util_make_link($t_thread_url, $t_thread_title) . '</h4>';
+	$return .= "\n";
+
+	// Project name.
+	$proj_name = util_make_link_g(
+		db_result($result, $i, 'unix_group_name'),
+		db_result($result, $i, 'group_id'),
+		db_result($result, $i, 'group_name'));
+	// Date.
+	$news_date = date('M j, Y', db_result($result, $i, 'post_date'));
+	if (isset($categoryId) && $categoryId != "") {
+		$return .= "<div class='newsarea_data'>" . $proj_name . " " . $news_date . "</div>";
+	}
+	else {
+		$return .= "<div class='news_data'>" . $proj_name . " " . $news_date . "</div>";
+	}
+	$return .= "\n";
+
+	// News item.
+	$re = '/# Split sentences on whitespace between them.
+                                        (?<=                # Begin positive lookbehind.
+                                          [.!?]             # Either an end of sentence punct,
+                                        | [.!?][\'"]        # or end of sentence punct and quote.
+                                        )                   # End positive lookbehind.
+                                        (?<!                # Begin negative lookbehind.
+                                          Mr\.              # Skip either "Mr."
+                                        | Mrs\.             # or "Mrs.",
+                                        | Ms\.              # or "Ms.",
+                                        | Jr\.              # or "Jr.",
+                                        | Dr\.              # or "Dr.",
+                                        | Prof\.            # or "Prof.",
+                                        | Sr\.              # or "Sr.",
+                                                                                # or... (you get the idea).
+                                        )                   # End negative lookbehind.
+                                        \s+                 # Split on whitespace between sentences.
+                                        /ix';
+
+	$arr = preg_split($re, db_result($result, $i, 'details') , -1, PREG_SPLIT_NO_EMPTY);
+	$summ_txt = '';
+	// If the first paragraph is short, and so are following paragraphs, 
+	// add the next paragraph on.
+	if ((strlen($arr[0]) < 50) && isset($arr[1]) && (strlen($arr[0].$arr[1]) < 300)) {
+		if ($arr[1]) {
+			$summ_txt .= $arr[0] . '. ' . $arr[1];
+		}
+		else {
+			$summ_txt .= $arr[0]; // the news has only one sentence
+		}
+	}
+	else {
+		$summ_txt .= $arr[0];
+	}
+
+	// User picture file.
+	$picture_file = db_result($result, $i, 'picture_file');
+	if (trim($picture_file) == "") {
+//		$picture_file = "user_default.gif";
+		$picture_file = "user_profile.jpg";
+	}
+	$user_name = db_result($result, $i, 'user_name');
+	if ($summ_txt != "") {
+		if (isset($categoryId) && $categoryId != "") {
+			$return .= '<div class="newsarea_photo">';
+		}
+		else {
+			$return .= '<div class="news_text">';
+		}
+		$return .= "<a href='/users/" . $user_name . "'>";
+		$return .= "<img " .
+			' onError="this.onerror=null;this.src=' . "'" . '/userpics/user_profile.jpg' . "';" . '"' .
+			' alt="Image not available"' .
+			" src='/userpics/" . $picture_file ."' class='news_img'/>";
+		$return .= "</a>";
+		if (isset($categoryId) && $categoryId != "") {
+			$return .= "</div>";
+			$return .= '<div class="newsarea_phototext">';
+		}
+		$return .= html_entity_decode(util_make_clickable_links(util_whitelist_tags($summ_txt)));
+		$return .= '</div>';
+	}
+
+	$return .= '<div style="clear: both"></div>';
+	$return .= '</div>';
+	$return .= "\n\n";
 }
 
 // Local Variables:

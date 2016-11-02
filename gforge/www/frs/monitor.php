@@ -6,6 +6,7 @@
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2010 (c) FusionForge Team
  * http://fusionforge.org/
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -53,18 +54,28 @@ if (session_loggedin()) {
 		if ($stop) {
 			if (!$f->stopMonitor()) {
 				exit_error($f->getErrorMessage(),'frs');
-			} else {
-                $feedback = _('Monitoring Stopped');
+			}
+			else {
+/*
+				$feedback = _('Monitoring Stopped');
 				frs_header(array('title'=>_('Monitoring Stopped'),'group'=>$group_id));
 				frs_footer();
+*/
+				// Navigate to "my" page of user to show currently monitored packages.
+				header("Location: " . "/my/");
 			}
 		} elseif($start) {
 			if (!$f->setMonitor()) {
 				exit_error($f->getErrorMessage(),'frs');
-			} else {
-                $feedback = _('Monitoring Started');
+			}
+			else {
+/*
+				$feedback = _('Monitoring Started');
 				frs_header(array('title'=>_('Monitoring Started'),'group'=>$group_id));
 				frs_footer();
+*/
+				// Navigate to "my" page of user to show currently monitored packages.
+				header("Location: " . "/my/");
 			}
 		}
 	} else {

@@ -3,6 +3,7 @@
 /**
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2013, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -36,15 +37,23 @@ db_query_params ('DELETE FROM groups WHERE status=$1 and register_time < $2',
 $err .= db_error();
 
 // one week ago for users
-$then=(time()-604800);
-db_query_params ('DELETE FROM pfo_user_role WHERE EXISTS (SELECT user_id FROM users
-WHERE status=$1 and add_date < $2 AND users.user_id=pfo_user_role.user_id)',
-		 array ('P',
-			$then));
+//$then=(time()-604800);
+// 48 hours ago for users
+$then=(time()-172800);
+db_query_params('DELETE FROM pfo_user_role ' .
+	'WHERE EXISTS (' .
+	'SELECT user_id FROM users ' .
+	'WHERE status=$1 ' .
+	'AND add_date < $2 ' .
+	'AND NOT user_id=102 ' .
+	'AND users.user_id=pfo_user_role.user_id)',
+	array ('P', $then));
 $err .= db_error();
-$result = db_query_params ('SELECT user_id, email FROM users WHERE status=$1 and add_date < $2',
-			   array ('P',
-				  $then));
+$result = db_query_params('SELECT user_id, email FROM users ' .
+	'WHERE status=$1 ' .
+	'AND NOT user_id=102 ' .
+	'AND add_date < $2',
+	array ('P', $then));
 if (db_numrows($result)) {
 
   // Plugins subsystem
@@ -64,9 +73,11 @@ if (db_numrows($result)) {
   }
 }
 
-db_query_params ('DELETE FROM users WHERE status=$1 and add_date < $2',
-		 array ('P',
-			$then));
+db_query_params('DELETE FROM users ' .
+	'WHERE status=$1 ' .
+	'AND NOT user_id=102 ' .
+	'AND add_date < $2',
+	array ('P', $then));
 $err .= db_error();
 
 #30 days ago for sessions

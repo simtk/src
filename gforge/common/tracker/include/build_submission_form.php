@@ -4,6 +4,7 @@
  *
  * Copyright 1999-2001 (c) VA Linux Systems; 2005 GForge, LLC
  * Copyright 2012, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -22,6 +23,22 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 require_once 'note.php';
+
+// Check whether anonymous posting is allowed in the given tracker.
+function isAllowAnon($idGroupArtifact) {
+	$strSql = 'SELECT simtk_allow_anon FROM artifact_group_list ' .
+		'WHERE group_artifact_id=' . $idGroupArtifact;
+	$res = db_query_params($strSql, array());
+	if ($res && db_numrows($res) > 0) {
+		$isAllowAnon = db_result($res, 0, 'simtk_allow_anon');
+		if ($isAllowAnon == 1) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 function artifact_submission_form($ath, $group) {
 	/*
 		Show the free-form text submitted by the project admin
@@ -39,6 +56,7 @@ function artifact_submission_form($ath, $group) {
 	<tr>
 		<td class="top">
 <?php
+/*
 	if (!session_loggedin()) {
 		echo '<div class="login_warning_msg">
 		<span class="warning_msg">'.sprintf(_('Please %1$s login %2$s'), '<a href="'.util_make_url ('/account/login.php?return_to='.urlencode(getStringFromServer('REQUEST_URI'))).'">', '</a>').'</span><br />
@@ -46,12 +64,18 @@ function artifact_submission_form($ath, $group) {
 		<input type="text" name="user_email" size="50" maxlength="255" /></p>
 		</div>';
 	}
+*/
+	if (!session_loggedin() && isAllowAnon($ath->getID()) == false) {
+		// Anonymous posting not allowed.
+		// Prompt user to log in.
+		exit_not_logged_in();
+	}
 ?>
 		</td>
 	</tr>
 	<tr>
 		<td class="top"><strong><?php echo _('For project')._(':'); ?></strong><br /><?php echo $group->getPublicName(); ?></td>
-		<td class="top"><input type="submit" name="submit" value="<?php echo _('Submit'); ?>" /></td>
+		<td class="top"><input type="submit" name="submit" value="Submit" class="btn-cta" /></td>
 	</tr>
 
 <?php
@@ -70,14 +94,14 @@ function artifact_submission_form($ath, $group) {
 ?>
 	<tr>
 		<td colspan="2"><strong><?php echo _('Summary').utils_requiredField()._(':'); ?></strong><br />
-			<input id="tracker-summary" required="required" type="text" name="summary" size="80" maxlength="255" title="<?php echo util_html_secure(html_get_tooltip_description('summary')); ?>" />
+			<input id="tracker-summary" class="required" required="required" type="text" name="summary" size="50" maxlength="255" title="<?php echo util_html_secure(html_get_tooltip_description('summary')); ?>" />
 		</td>
 	</tr>
 
 	<tr>
 		<td colspan="2">
 			<strong><?php echo _('Detailed description').utils_requiredField()._(':'); ?></strong><?php notepad_button('document.forms.trackeraddform.details'); ?><br />
-			<textarea id="tracker-description" required="required" name="details" rows="20" cols="79" title="<?php echo util_html_secure(html_get_tooltip_description('description')); ?> "></textarea>
+			<textarea id="tracker-description" class="required" required="required" name="details" rows="20" cols="50" title="<?php echo util_html_secure(html_get_tooltip_description('description')); ?> "></textarea>
 		</td>
 	</tr>
 
@@ -101,7 +125,9 @@ function artifact_submission_form($ath, $group) {
 	<tr>
 		<td colspan="2">
 		<div class="file_attachments">
+<!--
 		<a href="javascript:help_window(\''. util_make_url ('/help/tracker.php?helpname=attach_file') .'\')"><strong>(?)</strong></a>
+-->
 		<p>
 		<strong><?php echo _('Attach Files')._(':'); ?> </strong> <?php echo('('._('max upload size: '.human_readable_bytes(util_get_maxuploadfilesize())).')') ?><br />
 		<input type="file" name="input_file0" /><br />
@@ -115,7 +141,7 @@ function artifact_submission_form($ath, $group) {
 	</tr>
 
 	<tr><td colspan="2">
-		<input type="submit" name="submit" value="<?php echo _('Submit'); ?>" />
+		<input type="submit" name="submit" value="Submit" class="btn-cta" />
 		</td>
 	</tr>
 

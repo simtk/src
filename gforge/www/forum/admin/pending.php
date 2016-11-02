@@ -7,6 +7,7 @@
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2005 (c) Daniel Perez
  * Copyright (C) 2012 Alain Peyrat - Alcatel-Lucent
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -49,7 +50,7 @@ if (!$forum_id) {
 	} else {
 		$fa->ExecuteAction($action);
 	}
-	forum_footer(array());
+	//forum_footer(array());
 
 } else {
 	session_require_perm ('forum', $forum_id, 'moderate') ;
@@ -60,5 +61,6 @@ if (!$forum_id) {
 	} else {
 		$fa->ExecuteAction($action);
 	}
-	forum_footer(array());
+	//forum_footer(array());
 }
+

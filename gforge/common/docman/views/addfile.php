@@ -1,5 +1,7 @@
 <?php
-/**
+/** 
+ * addfile.php
+ *
  * FusionForge Documentation Manager
  *
  * Copyright 2000, Quentin Cregan/Sourceforge
@@ -8,6 +10,7 @@
  * Copyright 2011, Roland Mas
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012-2013, Franck Villaume - TrivialDev
+ * Copyright 2016, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -24,6 +27,9 @@
  * You should have received a copy of the GNU General Public License along
  * with FusionForge; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+   change log:  9-3-2014  Tod Hing  added citation text input to form
+
  */
 
 /* please do not add require here : use www/docman/index.php to add require */
@@ -94,12 +100,13 @@ if ($dgf->getNested() == NULL) {
 		echo '<p>'._('Both fields are used by the document search engine.').'</p>';
 
 	echo '<form name="adddata" action="'.$actionurl.'" method="post" enctype="multipart/form-data">';
+	echo '<div class="form_simtk">';
 	echo '<table class="infotable">
 				<tr>
 					<td>
 						'. _('Document Title').utils_requiredField()
 					.'</td><td>'
-					.'<input pattern=".{5,}" placeholder="'._('Document Title').'" title="'.sprintf(_('(at least %s characters)'), 5).'" type="text" name="title" size="40" maxlength="255" required="required" />&nbsp;'
+					.'<input pattern=".{5,}" placeholder="'._('Document Title').'" title="'.sprintf(_('(at least %s characters)'), 5).'" type="text" name="title" size="40" maxlength="255" required="required" /><br />'
 					.sprintf(_('(at least %s characters)'), 5)
 					.'</td>
 				</tr>
@@ -107,7 +114,15 @@ if ($dgf->getNested() == NULL) {
 					<td>
 						'. _('Description') .utils_requiredField()
 				 	.'</td><td>'
-						.'<input pattern=".{10,}" placeholder="'._('Description').'" title="'.sprintf(_('(at least %s characters)'), 10).'" type="text" name="description" size="50" maxlength="255" required="required" />&nbsp;'
+						.'<input pattern=".{10,}" placeholder="'._('Description').'" title="'.sprintf(_('(at least %s characters)'), 10).'" type="text" name="description" size="40" maxlength="255" required="required" /><br />'
+						.sprintf(_('(at least %s characters)'), 10)
+					.'</td>
+				</tr>
+				<tr>
+					<td>
+						'. _('Citation')
+				 	.'</td><td>'
+						.'<input pattern=".{10,}" placeholder="'._('Citation').'" title="'.sprintf(_('(at least %s characters)'), 10).'" type="text" name="citation" size="40" maxlength="255" /><br />'
 						.sprintf(_('(at least %s characters)'), 10)
 					.'</td>
 				</tr>
@@ -117,12 +132,14 @@ if ($dgf->getNested() == NULL) {
 					.'</td><td>
 					<input type="radio" id="buttonFile" name="type" value="httpupload" checked="checked" required="required" />'. _('File') .
 					'<input type="radio" id="buttonUrl" name="type" value="pasteurl" required="required" />'. _('URL');
+/* Comment OUT these options - 9/9/14 Tod Hing tod_hing@yahoo.com
 	if (forge_get_config('use_manual_uploads')) {
 					echo '<input type="radio" id="buttonManualUpload" name="type" value="manualupload" required="required" />'. _('Already-uploaded file');
 	}
 	if ($g->useCreateOnline()) {
 					echo '<input type="radio" id="buttonEditor" name="type" value="editor" required="required" />'. _('Create online');
 	}
+*/
 	echo '				</td>
 				</tr>
 				<tr id="filerow">
@@ -149,7 +166,7 @@ if ($dgf->getNested() == NULL) {
 			echo html_build_select_box_from_arrays($manual_files_arr, $manual_files_arr, 'manual_path', '');
 			echo '		<br />';
 			printf(_('Pick a file already uploaded (by SFTP or SCP) to the <a href="%2$s">project\'s incoming directory</a> (%1$s).'),
-			$incoming, "sftp://" . forge_get_config('shell_host') . $incoming . "/");
+			$incoming, "sftp://" . forge_get_config('web_host') . $incoming . "/");
 			echo '
 						</td>
 					</tr>';
@@ -204,7 +221,7 @@ if ($dgf->getNested() == NULL) {
 					<td>
 						'. _('Status of that document').'
 					</td><td>';
-		doc_get_state_box('xzxz', 2); /**no direct deleted status */
+		doc_get_state_box('xzxz', "2,3"); /**no direct deleted status */
 		echo '
 					</td>
 				</tr>';
@@ -213,7 +230,7 @@ if ($dgf->getNested() == NULL) {
 	echo '<span>'.utils_requiredField() .' '. _('Mandatory fields').'</span>';
 	echo '	<div class="docmanSubmitDiv">
 			<input type="submit" name="submit" value="'. _('Submit Information'). '" />
-		</div>
+		</div></div>
 		</form>';
 }
 

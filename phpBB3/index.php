@@ -4,6 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @copyright 2016, Henry Kwong, Tod Hing - SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -27,6 +28,9 @@ include($phpbb_root_path . 'includes/functions_display.' . $phpEx);
 $user->session_begin();
 $auth->acl($user->data);
 $user->setup('viewforum');
+
+// return blank UI page.
+return;
 
 // Mark notifications read
 if (($mark_notification = $request->variable('mark_notification', 0)))

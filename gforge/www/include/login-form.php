@@ -3,6 +3,7 @@
  * FusionForge login form functions
  *
  * Copyright 2011, Roland Mas
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -62,7 +63,8 @@ function display_login_form($return_to = '/', $triggered = false, $full_page = f
 			session_redirect_external($urls[0]);
 		}
 
-		$HTML->header(array('title'=>_('Login')));
+		//$HTML->header(array('title'=>_('Login')));
+                require "header.php";
 	}
 
 	if ($triggered) {
@@ -96,7 +98,8 @@ function display_login_form($return_to = '/', $triggered = false, $full_page = f
 	}
 
 	if ($full_page) {
-		$HTML->footer(array());
+		//$HTML->footer(array());
+                require "footer.php";
 	}
 }
 

@@ -9,6 +9,7 @@
  * Copyright 2011-2014, Franck Villaume - TrivialDev
  * Copyright © 2011, 2012
  *	Thorsten “mirabilos” Glaser <t.glaser@tarent.de>
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -618,12 +619,14 @@ function html_build_select_box_from_arrays($vals, $texts, $select_name, $checked
 	//	If the passed in "checked value" was never "SELECTED"
 	//	we want to preserve that value UNLESS that value was 'xzxz', the default value
 	//
+	/*
 	if (!$checked_found && $checked_val != 'xzxz' && $checked_val && $checked_val != 100) {
 		$return .= '
 		<option value="'.util_html_secure($checked_val).'" selected="selected">'._('No Change').'</option>';
 		$have_a_subelement = true;
 	}
-
+    */
+	
 	if (!$have_a_subelement) {
 		/* <select></select> without <option/> in between is invalid */
 		return '<!-- select without options -->';
@@ -916,11 +919,18 @@ function site_project_header($params) {
 			} else
 				exit_error(sprintf(_('Project access problem: %s'), $project->getErrorMessage()), 'home');
 		}
-		exit_error(sprintf(_('Project Problem: %s'), $project->getErrorMessage()), 'home');
+
+		// NOTE: Do NOT use exit_error() here. Otherwise, will result in server error
+		// with all php exhausting all allocated memory.
+		// Clearing the error is sufficient.
+		//exit_error(sprintf(_('Project Problem: %s'), $project->getErrorMessage()), 'home');
+		$project->clearError();
 	}
 
 	// Check permissions in case of restricted access
-	session_require_perm('project_read', $group_id);
+	// *** Disabled here. Otherwise, project description will not be displayed.
+	// and user login will be prompted.
+	//session_require_perm('project_read', $group_id);
 
 	//for dead projects must be member of admin project
 	if (!$project->isActive()) {
@@ -938,8 +948,9 @@ function site_project_header($params) {
 		$params['h1'] = $h1;
 	}
 
-	if ($project->getDescription()) {
-		$params['meta-description'] = $project->getDescription();
+        // changed this to Summary from Description - tod hing 11-19-14
+	if ($project->getSummary()) {
+		$params['meta-description'] = htmlspecialchars($project->getSummary());
 	}
 
 	if (forge_get_config('use_project_tags')) {

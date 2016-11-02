@@ -1,6 +1,8 @@
 <?php
 /**
  *
+ * index.php
+ *
  * Project Registration: Project Information.
  *
  * This page is used to request data required for project registration:
@@ -20,6 +22,7 @@
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012, Jean-Christophe Masson - French National Education Department
  * Copyright 2013, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -59,7 +62,12 @@ $purpose = trim(getStringFromRequest('purpose'));
 $description = trim(getStringFromRequest('description'));
 $unix_name = trim(strtolower(getStringFromRequest('unix_name')));
 $scm = getStringFromRequest('scm');
+$private = getStringFromRequest('private');
 $built_from_template = getIntFromRequest('built_from_template');
+//$summary = trim(getStringFromRequest('summary'));
+//$download_description = trim(getStringFromRequest('download_description'));
+$summary = substr($description, 0, 255);
+$download_description = "";
 
 $index = 1;
 
@@ -101,12 +109,33 @@ if (getStringFromRequest('submit')) {
 			$scm_host = forge_get_config('scm_host');
 		}
 	}
-
+/*
 	if ( !$purpose && forge_get_config ('project_auto_approval') ) {
 		$purpose = 'No purpose given, autoapprove was on';
 	}
+*/
+		$purpose = 'No purpose given, autoapprove was on';
 
 	$send_mail = ! forge_get_config ('project_auto_approval') ;
+
+	$logo_tmpfile = "";
+	$logo_type = "";
+	if (isset($_FILES['logofile']['tmp_name'])) {
+		$logo_tmpfile = $_FILES['logofile']['tmp_name'];
+	}
+	if (isset($_FILES['logofile']['type'])) {
+		$logo_type = $_FILES['logofile']['type'];
+	}
+
+	// Set up flag for public/private project. 
+	if (isset($private) && $private == "0") {
+		// Private project.
+		$private_param = 0;
+	}
+	else {
+		// Public project.
+		$private_param = 1;
+	}
 
 	$group = new Group();
 	$u = session_get_user();
@@ -118,9 +147,13 @@ if (getStringFromRequest('submit')) {
 		$purpose,
 		'shell1',
 		$scm_host,
-		0,
+		$private_param,
 		$send_mail,
-		$built_from_template
+		$built_from_template,
+                $summary,
+                $download_description,
+                $logo_tmpfile,
+                $logo_type
 	);
 	if ($res && forge_get_config('use_scm') && $plugin) {
 		$group->setUseSCM (true) ;
@@ -154,7 +187,16 @@ if (getStringFromRequest('submit')) {
 
 			if (!$group->approve($u)) {
 				printf('<p class="error">' . _('Approval Error: %s'), $group->getErrorMessage() . '</p>');
-			} else {
+			}
+			else {
+				// Set privacy after approval.
+				// NOTE: Privacy should be set after project approval.
+				$res = $group->updatePrivacy(session_get_user(), $private_param);
+				if (!$res) {
+					$error_msg .= $group->getErrorMessage();
+					printf('<p class="error">' . 'Privacy Error: %s', $group->getErrorMessage() . '</p>');
+				}
+
 				echo '<p>';
 				echo _('Your project has been automatically approved. You should receive an email containing further information shortly.');
 				echo '</p>';
@@ -172,27 +214,29 @@ if (getStringFromRequest('submit')) {
 }
 
 site_user_header(array('title'=>_('Register Project')));
+//require $gfwww.'/include/header.php';
 ?>
 
+<form action="<?php echo getStringFromServer('PHP_SELF'); ?>" method="post" enctype="multipart/form-data">
+<h1>Create SimTK project</h1>
 <p>
-<?php echo _('To apply for project registration, you should fill in basic information about it. Please read descriptions below carefully and provide complete and comprehensive data. All fields below are mandatory.') ?>
+<?php echo 'A project is a set of webpages used to develop and share software, models, and other data. Tailor it to highlight the downloads you provide or the publication results that you are enabling others to reproduce. <span class="required_note">Required fields outlined in blue.</span>' ?>
 </p>
 
-<form action="<?php echo getStringFromServer('PHP_SELF'); ?>" method="post">
 <input type="hidden" name="form_key" value="<?php echo form_generate_key(); ?>"/>
-<h2><?php echo $index++.'. '._('Project Full Name') ?></h2>
+<h2><?php echo 'Project title' ?></h2>
 <p>
-<?php echo _('You should start with specifying the name of your project. The “Full Name” is descriptive, and has no arbitrary restrictions (except min 3 characters and max 40 characters).') ?>
+<?php echo '<strong>Restrictions:  3-80 characters.</strong>' ?>
 </p>
 <p>
-<?php echo _('Full Name') . _(': ') ?><br/>
-<input required="required" size="40" maxlength="40" type="text" name="full_name" placeholder="<?php echo _('Project Full Name'); ?>" value="<?php echo htmlspecialchars($full_name); ?>" pattern=".{3,40}"/>
+<input class="required" required="required" size="80" maxlength="80" type="text" name="full_name" placeholder="<?php echo _('Project Title'); ?>" value="<?php echo htmlspecialchars($full_name); ?>" pattern=".{3,80}"/>
 </p>
 
 <?php
+/*
 // Don't display Project purpose if auto approval is on, because it won't be used.
 if ( !forge_get_config ('project_auto_approval') ) {
-	echo '<h2>'.$index++.'. '._('Project Purpose And Summarization').'</h2>';
+	echo '<h2>'.'Project purpose and summarization'.'</h2>';
 	echo '<p>';
 	printf(_('Please provide detailed, accurate description of your project and what %1$s resources and in which way you plan to use. This description will be the basis for the approval or rejection of your project\'s hosting on %1$s, and later, to ensure that you are using the services in the intended way. This description will not be used as a public description of your project. It must be written in English. From 10 to 1500 characters.'), forge_get_config ('forge_name'));
 	echo '</p>';
@@ -200,49 +244,41 @@ if ( !forge_get_config ('project_auto_approval') ) {
 	echo htmlspecialchars($purpose);
 	echo '</textarea>';
 }
+*/
 ?>
 
-<h2><?php echo $index++.'. '. _('Project Public Description') ?></h2>
+<h2><?php echo 'Project description' ?></h2>
 <p>
-<?php echo _('This is the description of your project which will be shown on the Project Summary page, in search results, etc. (at least 10 characters)') ?>
+<?php echo 'Provide a detailed description of your project so SimTK webmasters can determine suitability of your project for the site.'; ?>
 </p>
 
-<textarea required="required" name="description" cols="70" rows="5" placeholder="<?php echo _('Project Public Description'); ?>" >
+<textarea class="required" required="required" name="description" cols="80" rows="10" placeholder="<?php echo _('Project Public Description'); ?>" >
 <?php echo htmlspecialchars($description); ?>
 </textarea>
 
-<h2><?php echo $index++.'. '._('Project Unix Name') ?></h2>
-<p><?php echo _('In addition to full project name, you will need to choose short, “Unix” name for your project.') ?></p>
-<p><?php echo _('The “Unix Name” has several restrictions because it is used in so many places around the site. They are:') ?></p>
-<ul>
-<li><?php echo _('cannot match the Unix name of any other project;') ?></li>
-<li><?php echo _('must be between 3 and 15 characters in length;') ?></li>
-<li><?php echo _('must be in lower case (upper case letters will be converted to lower case);') ?></li>
-<li><?php echo _('can only contain characters, numbers, and dashes;') ?></li>
-<li><?php echo _('must be a valid Unix username;') ?></li>
-<li><?php echo _('cannot match one of our reserved domains;') ?></li>
-<li><?php echo _('Unix name will never change for this project;') ?></li>
-</ul>
-<p><?php echo _('Your Unix name is important, however, because it will be used for many things, including:') ?></p>
-<ul>
-<li><?php printf(_('a web site at <tt>unixname.%s</tt>,'), forge_get_config('web_host')) ?></li>
-<li><?php echo _('the URL of your source code repository,') ?></li>
-<?php if (forge_get_config('use_shell')) { ?>
-<li><?php printf(_('shell access to <span class="tt">unixname.%s</span>,'), forge_get_config('web_host')) ?></li>
-<?php } ?>
-<li><?php echo _('search engines throughout the site.') ?></li>
-</ul>
+<h2><?php echo 'Short project identifier' ?></h2>
+<?php echo "The identifier is part of the URL for your project.<p/><strong>Restrictions: 3-15 characters; lower-case; only characters, numbers, dashes (-), and underscores (_).</strong>" ?>
 <p>
-<?php echo _('Unix Name') . _(':'); ?>
 <br />
-<input required="required" type="text" maxlength="15" size="15" name="unix_name" value="<?php echo htmlspecialchars($unix_name); ?>" placeholder="<?php echo _('Unix Name'); ?>" pattern="[a-z0-9-]{3,15}"/>
+<input class="required" required="required" type="text" maxlength="15" size="15" name="unix_name" value="<?php echo htmlspecialchars($unix_name); ?>" placeholder="<?php echo _('Short Name'); ?>" pattern="[a-z0-9-]{3,15}"/>
 </p>
 
+<h2><?php echo 'Privacy' ?></h2>
+<p>
+<input type="checkbox" name="private" value="0" /> Make entire project private - only title is publicly viewable
+</p>
+<p>
+<strong>This option is discouraged. Instead, we suggest independently limiting access to individual sections of the project.</strong>
+</p>
+
+<input type="hidden" name="scm" value"noscm">
 <?php
+
+/*
 $SCMFactory = new SCMFactory();
 $scm_plugins=$SCMFactory->getSCMs();
 if (forge_get_config('use_scm') && count($scm_plugins) > 0) {
-	echo '<h2>'.$index++.'. '._('Source Code').'</h2>';
+	echo '<h2>'.'Source code'.'</h2>';
 	echo '<p>' . _('You can choose among different SCM for your project, but just one (or none at all). Please select the SCM system you want to use.')."</p>\n";
 	echo '<table><tbody><tr><td><strong>'._('SCM Repository')._(':').'</strong></td>';
 	if (!$scm) {
@@ -262,7 +298,7 @@ if (forge_get_config('use_scm') && count($scm_plugins) > 0) {
 	echo '</tr></tbody></table>'."\n";
 }
 
-echo '<h2>'.$index++.'. '._('Project template'). '</h2>';
+echo '<h2>'.'Project template'. '</h2>';
 
 if (count ($template_projects) > 1) {
 	$tpv_arr = array () ;
@@ -308,12 +344,14 @@ if (count ($template_projects) > 1) {
 	echo '<input type="hidden" name="built_from_template" value="0" />' ;
 	echo '</p>';
 }
+
+*/
+
+
 ?>
 
-<p class="align-center">
-<input type="submit" name="submit" value="<?php echo _('Submit') ?>" />
-<input type="submit" name="i_disagree" formnovalidate="formnovalidate" value="<?php echo _('Cancel') ?>" />
-</p>
+<hr>
+<input type="submit" name="submit" value="<?php echo 'Create project' ?>" class="btn-cta" />
 
 </form>
 

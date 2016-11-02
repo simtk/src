@@ -4,6 +4,7 @@
  *
  * Copyright 1999-2001 (c) VA Linux Systems - Tim Perdue
  * Copyright (C) 2010 Alain Peyrat - Alcatel-Lucent
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -62,7 +63,8 @@ if (session_loggedin()) {
 				snippet_footer(array());
 				exit;
 			} else {
-				echo '<p class="feedback">'._('Item Removed From Package').'</p>';
+//				echo '<p class="feedback">'._('Item Removed From Package').'</p>';
+				echo '<p class="warning_msg">'._('Item Removed From Package').'</p>';
 				snippet_footer(array());
 				exit;
 			}
@@ -97,7 +99,8 @@ if (session_loggedin()) {
 				$result=db_query_params("DELETE FROM snippet WHERE snippet_id=$1",array($snippet_id));
 			}
 
-			echo '<p class="feedback">'._('Snippet Removed').'</p>';
+//			echo '<p class="feedback">'._('Snippet Removed').'</p>';
+			echo '<p class="warning_msg">'._('Snippet Removed').'</p>';
 			snippet_footer(array());
 			exit;
 		}
@@ -141,7 +144,8 @@ if (session_loggedin()) {
 				//delete the main package even if the user didn't create it
 				$result=db_query_params("DELETE FROM snippet_package WHERE snippet_package_id=$1", array($snippet_package_id));
 			}
-			echo '<p class="feedback">'._('Package Removed').'</p>';
+//			echo '<p class="feedback">'._('Package Removed').'</p>';
+			echo '<p class="warning_msg">'._('Package Removed').'</p>';
 			snippet_footer(array());
 			exit;
 		}

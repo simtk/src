@@ -1,5 +1,7 @@
 <?php
 /**
+ * index.php
+ *
  * Mailing Lists Facility
  *
  * Copyright 1999-2001 (c) VA Linux Systems
@@ -7,6 +9,7 @@
  * Copyright 2010 (c) Franck Villaume - Capgemini
  * Copyright (C) 2011-2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012-2014, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -32,6 +35,11 @@ require_once $gfwww.'mail/admin/../mail_utils.php';
 require_once $gfcommon.'mail/MailingList.class.php';
 require_once $gfcommon.'mail/MailingListFactory.class.php';
 
+?>
+
+
+
+<?php
 $group_id = getIntFromRequest('group_id');
 
 if ($group_id) {
@@ -40,8 +48,8 @@ if ($group_id) {
 		exit_no_group();
 	}
 
-	session_require_perm ('project_admin', $group->getID()) ;
-
+	session_require_perm ('project_admin', $group->getID()) ;	
+	
 	//
 	//	Post Changes to database
 	//
@@ -131,8 +139,12 @@ if ($group_id) {
 //
 //	Form to add list
 //
+/*
 	if(getIntFromGet('add_list')) {
-		mail_header(array('title' => _('Add a Mailing List')));
+		mail_header(array('title' => _('Mailing List')));
+		//echo " <a href='/mail/admin/?group_id=$group_id' class='btn-blue share_text_button'>Administration</a>";
+
+		echo "<h3>Add Mailing List</h3>";
 		print '<p>';
 		printf(_('Lists are named in this manner:<br /><strong>projectname-listname@%s</strong>'), forge_get_config('lists_host'));
 		print '</p>';
@@ -178,7 +190,9 @@ if ($group_id) {
 //
 //	Form to add list
 //
+*/
 		?>
+		<!---
 		<form method="post" action="<?php echo getStringFromServer('PHP_SELF'); ?>?group_id=<?php echo $group_id ?>">
 			<input type="hidden" name="post_changes" value="y" />
 			<input type="hidden" name="add_list" value="y" />
@@ -187,20 +201,22 @@ if ($group_id) {
 			<strong><?php echo $group->getUnixName(); ?>-<input type="text" name="list_name" value="" size="10" maxlength="12" required="required" pattern="[a-zA-Z0-9]{4,}" />@<?php echo forge_get_config('lists_host'); ?></strong></p>
 			<p>
 			<strong><?php echo _('Is Public?'); ?></strong><br />
-			<input type="radio" name="is_public" value="<?php echo MAIL__MAILING_LIST_IS_PUBLIC; ?>" <?php echo ($group->isPublic() ? ' checked="checked"' : '') ?> /> <?php echo _('Yes'); ?><br />
-			<input type="radio" name="is_public" value="<?php echo MAIL__MAILING_LIST_IS_PRIVATE; ?>" <?php echo ($group->isPublic() ? '' : ' checked="checked"') ?> /> <?php echo _('No'); ?></p><p>
+			<input type="radio" name="is_public" value="<?php echo MAIL__MAILING_LIST_IS_PUBLIC; ?>" <?php echo ($group->isPublic() ? ' checked="checked"' : '') ?> ><label><?php echo _('Yes'); ?></label></input><br />
+			<input type="radio" name="is_public" value="<?php echo MAIL__MAILING_LIST_IS_PRIVATE; ?>" <?php echo ($group->isPublic() ? '' : ' checked="checked"') ?> ><label><?php echo _('No'); ?></label></input></p><p>
 			<strong><?php echo _('Description')._(':'); ?></strong><br />
 			<input type="text" name="description" value="" size="40" maxlength="80" /></p>
 			<p>
 			<input type="submit" name="submit" value="<?php echo _('Add This List'); ?>" /></p>
 		</form>
+		--->
 		<?php
-		mail_footer(array());
+		
+		//mail_footer(array());
 
 //
 //	Form to modify list
 //
-	} elseif(getIntFromGet('change_status') && getIntFromGet('group_list_id')) {
+	if(getIntFromGet('change_status') && getIntFromGet('group_list_id')) {
 		$mailingList = new MailingList($group, getIntFromGet('group_list_id'));
 
 		if(!$mailingList || !is_object($mailingList)) {
@@ -209,23 +225,22 @@ if ($group_id) {
 			exit_error($mailingList->getErrorMessage(),'mail');
 		}
 
-		mail_header(array(
-			'title' => sprintf(_('Update Mailing List %s'), $mailingList->getName())));
+		mail_header(array('title' => _('Mailing List')));
 		?>
-		<h3><?php echo $mailingList->getName(); ?></h3>
+		<h3>Update <?php echo $mailingList->getName(); ?></h3>
 		<form method="post" action="<?php echo getStringFromServer('PHP_SELF'); ?>?group_id=<?php echo $group_id; ?>&amp;group_list_id=<?php echo $mailingList->getID(); ?>">
 			<input type="hidden" name="post_changes" value="y" />
 			<input type="hidden" name="change_status" value="y" />
 			<p>
 			<strong><?php echo _('Is Public?'); ?></strong><br />
-			<input type="radio" name="is_public" value="<?php echo MAIL__MAILING_LIST_IS_PUBLIC; ?>"<?php echo ($mailingList->isPublic() == MAIL__MAILING_LIST_IS_PUBLIC ? ' checked="checked"' : ''); ?> /> <?php echo _('Yes'); ?><br />
-			<input type="radio" name="is_public" value="<?php echo MAIL__MAILING_LIST_IS_PRIVATE; ?>"<?php echo ($mailingList->isPublic() == MAIL__MAILING_LIST_IS_PRIVATE ? ' checked="checked"' : ''); ?> /> <?php echo _('No'); ?>
+			<input type="radio" name="is_public" value="<?php echo MAIL__MAILING_LIST_IS_PUBLIC; ?>"<?php echo ($mailingList->isPublic() == MAIL__MAILING_LIST_IS_PUBLIC ? ' checked="checked"' : ''); ?> ><label><?php echo _('Yes'); ?></label></input><br />
+			<input type="radio" name="is_public" value="<?php echo MAIL__MAILING_LIST_IS_PRIVATE; ?>"<?php echo ($mailingList->isPublic() == MAIL__MAILING_LIST_IS_PRIVATE ? ' checked="checked"' : ''); ?> ><label><?php echo _('No'); ?></label></input>
 			</p>
 			<p>
 			<strong><?php echo _('Description')._(':'); ?></strong><br />
 			<input type="text" name="description" value="<?php echo inputSpecialChars($mailingList->getDescription()); ?>" size="40" maxlength="80" /></p>
 			<p>
-			<input type="submit" name="submit" value="<?php echo _('Update'); ?>" /></p>
+			<input type="submit" name="submit"  class="btn-cta" value="<?php echo _('Update'); ?>" /></p>
 		</form>
 		<a href="deletelist.php?group_id=<?php echo $group_id; ?>&amp;group_list_id=<?php echo $mailingList->getID(); ?>">[<?php echo _('Permanently Delete List'); ?>]</a>
 	<?php
@@ -240,9 +255,51 @@ if ($group_id) {
 		}
 
 		mail_header(array(
-			'title' => _('Mailing Lists Admin'))
+			'title' => _('Mailing Lists'))
 		);
 
+		//echo "<a href='/mail/admin/?add_list=1&group_id=$group_id' class='btn-blue share_text_button'>Add</a>";
+		
+		?>
+		
+		<script type="text/javascript">
+           $(function() {
+                $('.expander').simpleexpand();
+           });
+        </script>
+
+		<div class="expand_content">
+		<div id="panel1.1">
+		<h2><a style="color:#f75236;font-size:29px;" id="expander" class="expander toggle collapsed" href="#">Add List</a></h2>
+					<div class="content"  style="display: block;">
+	
+		<p>
+		Lists are named in this manner:<br />
+        <b>projectname-listname@simtk.org</b>
+        </p>
+		<p>It will take one hour for your list to be created.</p>
+		
+		<form method="post" action="<?php echo getStringFromServer('PHP_SELF'); ?>?group_id=<?php echo $group_id ?>">
+			<input type="hidden" name="post_changes" value="y" />
+			<input type="hidden" name="add_list" value="y" />
+			<input type="hidden" name="form_key" value="<?php echo form_generate_key();?>" />
+			<p><strong><?php echo _('Mailing List Name')._(':'); ?></strong><br />
+			<strong><?php echo $group->getUnixName(); ?>-<input type="text" name="list_name" value="" size="10" maxlength="12" required="required" pattern="[a-zA-Z0-9]{4,}" />@<?php echo forge_get_config('lists_host'); ?></strong></p>
+			<p>
+			<strong><?php echo _('Is Public?'); ?></strong><br />
+			<input type="radio" name="is_public" value="<?php echo MAIL__MAILING_LIST_IS_PUBLIC; ?>" <?php echo ($group->isPublic() ? ' checked="checked"' : '') ?> ><label><?php echo _('Yes'); ?></label></input><br />
+			<input type="radio" name="is_public" value="<?php echo MAIL__MAILING_LIST_IS_PRIVATE; ?>" <?php echo ($group->isPublic() ? '' : ' checked="checked"') ?> ><label><?php echo _('No'); ?></label></input></p><p>
+			<strong><?php echo _('Description')._(':'); ?></strong><br />
+			<input type="text" name="description" value="" size="40" maxlength="80" /></p>
+			<p>
+			<input type="submit" name="submit" class="btn-cta" value="<?php echo _('Add This List'); ?>" /></p>
+		</form>
+		
+		</div>
+		</div>
+	    </div>	
+		
+		<?php
 		$mlArray = $mlFactory->getMailingLists();
 
 		if ($mlFactory->isError()) {
@@ -251,17 +308,15 @@ if ($group_id) {
 			mail_footer(array());
 			exit;
 		}
-		echo '<p>'.sprintf(_('You can administrate lists from here. Please note that private lists can still be viewed by members of your project, but are not listed on %s.'), forge_get_config ('forge_name')).'</p>';
-		echo '<ul>
-			<li>
-				<a href="'.getStringFromServer('PHP_SELF').'?group_id='.$group_id.'&amp;add_list=1">'._('Add Mailing List').'</a>
-			</li>
-		</ul>';
+		
+		echo '<h3>Edit Existing Lists</h3>';
+		
+		echo '<p>'.sprintf(_('Please note that private lists can still be viewed by members of your project, but are not listed on %s.'), forge_get_config ('forge_name')).'</p>';
+		//echo '<ul><li><a href="'.getStringFromServer('PHP_SELF').'?group_id='.$group_id.'&amp;add_list=1">'._('Add Mailing List').'</a></li></ul>';
 		$mlCount = count($mlArray);
 		if($mlCount > 0) {
 			$tableHeaders = array(
 				_('Mailing List'),
-				'',
 				'',
 				''
 			);
@@ -277,27 +332,31 @@ if ($group_id) {
 					'<strong>'.$currentList->getName().'</strong><br />'.
 					htmlspecialchars($currentList->getDescription()).'</td>';
 					echo '<td class="align-center">';
-					if ($currentList->getStatus() != MAIL__MAILING_LIST_PW_RESET_REQUESTED) {
+					//if ($currentList->getStatus() != MAIL__MAILING_LIST_PW_RESET_REQUESTED) {
 						echo '<a href="'.getStringFromServer('PHP_SELF').'?group_id='.$group_id.'&amp;group_list_id='.$currentList->getID().'&amp;change_status=1">'._('Update').'</a>';
-					}
-					echo '</td>';
+					//}
+					echo '&nbsp&nbsp</td>';
 					echo '<td class="align-center">';
 					if($currentList->getStatus() == MAIL__MAILING_LIST_IS_REQUESTED) {
 						echo _('Not activated yet');
 					} else {
-						echo '<a href="'.$currentList->getExternalAdminUrl().'">'._('Administration').'</a>';
+						echo '<a href="'.$currentList->getExternalAdminUrl().'?adminpw='.$currentList->getPassword().'" target="_blank">'._('Administration').'</a>';
 					}
 					echo '</td>';
+					/*
 					echo '<td class="align-center">';
 					if($currentList->getStatus() == MAIL__MAILING_LIST_IS_CONFIGURED) {
 						print '<a href="'.getStringFromServer('PHP_SELF').'?group_id='.$group_id.'&amp;group_list_id='.$currentList->getID().'&amp;reset_pw=1">'._('Reset admin password').'</a></td>' ;
 
 					}
+					*/
 					echo '</tr>';
 				}
 			}
 			echo $HTML->listTableBottom();
 		}
+		
+		
 		mail_footer(array());
 	}
 } else {

@@ -1,9 +1,12 @@
 <?php
 /**
+ * rbac_texts.php
+ *
  * FusionForge localisation
  *
  * Copyright 2007-2010, Roland Mas
  * Copyright 2012, Thorsten “mirabilos” Glaser <t.glaser@tarent.de>
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -169,6 +172,8 @@ function setup_rbac_strings () {
 								  'frs1' => _('View public packages only'),
 								  'frs2' => _('View all packages'),
 								  'frs3' => _('Publish files'),
+								  'pubs0' => _('Read/Post'),
+								  'pubs1' => _('Admin'),
 								  )
 		);
 
@@ -197,6 +202,7 @@ function setup_rbac_strings () {
 								    'scm' => _('SCM'),
 								    'docman' => _('Documentation manager'),
 								    'frs' => _('Files'),
+								    'pubs' => _('Publications'),
 
 								    )
 		) ;

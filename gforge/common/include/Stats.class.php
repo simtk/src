@@ -7,6 +7,7 @@
  * Copyright 2009, Roland Mas
  * Copyright © 2012
  *	Thorsten Glaser <t.glaser@tarent.de>
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -60,7 +61,7 @@ class Stats extends Error {
 	*/
 	function getMostActiveStats($type, $offset) {
 		if ($type == 'week') 	{
-			return db_query_params('SELECT groups.group_name,groups.unix_group_name,groups.group_id,project_weekly_metric.ranking,project_weekly_metric.percentile FROM groups,project_weekly_metric WHERE groups.group_id=project_weekly_metric.group_id AND groups.type_id=1 AND groups.status = $1 AND groups.use_stats=1 ORDER BY ranking ASC',
+			return db_query_params('SELECT groups.group_name,groups.unix_group_name,groups.group_id,project_weekly_metric.ranking,project_weekly_metric.percentile, groups.simtk_logo_file, groups.simtk_summary FROM groups,project_weekly_metric WHERE groups.group_id=project_weekly_metric.group_id AND groups.type_id=1 AND groups.status = $1 ORDER BY ranking ASC',
 				array('A'),
 				0,
 				$offset) ;

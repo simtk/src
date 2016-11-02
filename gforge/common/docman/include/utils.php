@@ -8,6 +8,7 @@
  * Copyright 2010-2011, Franck Villaume - Capgemini
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012-2013, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -31,8 +32,12 @@
  */
 
 function doc_get_state_box($checkedval = 'xzxz', $removedval = '') {
+    //echo "remove: " . $removedval . "<br />";
+	$sql_statement = "select * from doc_states where stateid not in ($removedval)";
+	//echo "sql: " . $sql_statement . "<br />";
 	if (!empty($removedval)) {
-		$res_states = db_query_params('select * from doc_states where stateid not in ($1)', array($removedval));
+		//$res_states = db_query_params('select * from doc_states where stateid not in ($1)', array($removedval));
+		$res_states = db_query_params($sql_statement, array());
 	} else {
 		$res_states = db_query_params('select * from doc_states', array());
 	}

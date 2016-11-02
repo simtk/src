@@ -6,6 +6,7 @@
  * Copyright 2010, FusionForge Team
  * Copyright (C) 2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2013-2014, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -42,6 +43,7 @@ require_once $gfcommon.'tracker/RoadmapFactory.class.php';
 
 $group_id = getIntFromRequest('group_id');
 $atid = getIntFromRequest('atid');
+$showTracker = getIntFromRequest('show_tracker');
 
 $add_extrafield = '';
 
@@ -174,6 +176,10 @@ if ($group_id && $atid) {
 		}
 		if (!$confirm) {
 			$ath->adminHeader(array ('title'=>_('Delete Canned Response'), 'modal' => 1));
+
+			// Update page title identified by the class "project_submenu".
+			echo '<script>$(".project_submenu").html("Tracker: ' . $ath->getName() . '");</script>';
+
 			echo $HTML->confirmBox(_('You are about to delete your canned response')
 				. '<br/><br/>' . _('Do you really want to do that?'),
 				array('group_id' => $group_id, 'atid' => $atid, 'delete_canned' => 1, 'id' => $id),
@@ -246,9 +252,17 @@ if ($group_id && $atid) {
 		include $gfcommon.'tracker/views/form-adminroadmap.php';
 
 	} else {
-		include $gfcommon.'tracker/actions/admin-ind.php';
+		if (isset($showTracker) && $showTracker == 1) {
+			// Show table of trackers otherwise.
+			include $gfcommon.'tracker/actions/admin-trackers.php';
+		}
+		else {
+			// Show Create new tracker UI.
+			include $gfcommon.'tracker/actions/admin-create.php';
+		}
 	}
 }
+
 
 // Local Variables:
 // mode: php

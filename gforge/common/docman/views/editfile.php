@@ -1,8 +1,11 @@
 <?php
 /**
+ * editfile.php
+ *
  * FusionForge Documentation Manager
  *
  * Copyright 2012-2013, Franck Villaume - TrivialDev
+ * Copyright 2016, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -48,6 +51,10 @@ if ($g->useDocmanSearch()) {
 	echo '	</tr>';
 }
 echo '	<tr>';
+echo '		<td><strong>'. _('Citation')._(': ').'</strong><br />';
+echo '		<input pattern=".{10,}" title="'.sprintf(_('(at least %s characters)'), 10).'" id="citation" type="text" name="citation" size="40" maxlength="255"/></td>';
+echo '	</tr>';
+echo '	<tr>';
 echo '		<td><strong>'. _('File')._(': ').'</strong>';
 echo '			<a id="filelink"></a>';
 echo '		</td>';
@@ -62,7 +69,7 @@ if ($g->useCreateOnline()) {
 	echo '	</tr>';
 }
 echo '	<tr>';
-echo '		<td><strong>'. _('Folder that document belongs to:') .'</strong><br />';
+echo '		<td><strong>'. _('Folder that document belongs to.:') .'</strong><br />';
 echo '			<select name="doc_group" id="doc_group"></select>';
 echo '		</td>';
 echo '	</tr>';

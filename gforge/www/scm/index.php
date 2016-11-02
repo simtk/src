@@ -4,6 +4,7 @@
  *
  * Copyright 2004 (c) Roland Mas, Tim Perdue -GForge LLC
  * Copyright 2013, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -45,7 +46,7 @@ if (!$scm_plugin) {
 	$warning_msg = _("This project has no associated Source Code Management tool defined, please configure one using the Administration submenu.");
 }
 
-scm_header(array('title'=> sprintf(_('Source Code Repository for %s'), $group->getPublicName()),'group'=>$group_id));
+scm_header(array('title'=> sprintf(_('SCM - Source Code Management')),'group'=>$group_id));
 
 plugin_hook("blocks", "scm index");
 

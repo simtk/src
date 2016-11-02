@@ -4,6 +4,7 @@
  *
  * Copyright 2011, Alcatel-Lucent
  * Copyright 2012, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -664,3 +665,4 @@ if (!$at_arr || count($at_arr) < 1) {
 if (! $ajax) {
 	$atfh->footer();
 }
+

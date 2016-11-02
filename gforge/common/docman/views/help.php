@@ -1,9 +1,12 @@
 <?php
 /**
+ * help.php
+ *
  * FusionForge Documentation Manager
  *
  * Copyright 2010-2011, Franck Villaume - Capgemini
  * Copyright 2013, Franck Villaume - TrivialDev
+ * Copyright 2016, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -27,10 +30,12 @@
 global $group_id; // id of the group
 global $g; // the project object
 
+/*
 if (!forge_check_perm('docman', $group_id, 'read')) {
 	$return_msg= _('Document Manager Access Denied');
 	session_redirect('/docman/?group_id='.$group_id.'&warning_msg='.urlencode($return_msg));
 }
+*/
 
 echo '<div class="docmanDivIncluded">';
 plugin_hook ("blocks", "doc help");

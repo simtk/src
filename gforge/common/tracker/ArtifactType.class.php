@@ -8,6 +8,7 @@
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012, Thorsten “mirabilos” Glaser <t.glaser@tarent.de>
  * Copyright 2014, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -42,8 +43,25 @@ function &artifactType_get_object($artType_id, $res = false) {
 		if ($res) {
 			//the db result handle was passed in
 		} else {
+/*
 			$res = db_query_params('SELECT * FROM artifact_group_list_vw WHERE group_artifact_id=$1',
 						array($artType_id));
+*/
+			// Get columns from artifact_group_list instead of from artifact_group_list_vw table.
+			$strSql = 'SELECT * FROM artifact_group_list agl ' .
+				'LEFT JOIN artifact_counts_agg aca ' .
+				'USING (group_artifact_id) ' .
+				'WHERE group_artifact_id=$1';
+
+			if (!session_loggedin()) {
+				// User is not logged in.
+				// Only show trackers that are public.
+				$strSql .= ' AND simtk_is_public=1 ';
+			}
+
+			$res = db_query_params($strSql,
+				array($artType_id));
+
 		}
 		if (!$res || db_numrows($res) < 1) {
 			$ARTIFACTTYPE_OBJ["_".$artType_id."_"] = false;
@@ -206,7 +224,10 @@ class ArtifactType extends Error {
 	 * @return	int	id on success, false on failure.
 	 */
 	function create($name, $description, $email_all, $email_address,
-					$due_period, $use_resolution, $submit_instructions, $browse_instructions, $datatype = 0) {
+		$due_period, $use_resolution, $submit_instructions, $browse_instructions, 
+		$datatype = 0,
+		$simtk_is_public = 1,
+		$simtk_allow_anon = 1) {
 
 		if (!forge_check_perm('tracker_admin', $this->Group->getID())) {
 			$this->setPermissionDeniedError();
@@ -227,6 +248,8 @@ class ArtifactType extends Error {
 		}
 
 		$use_resolution = ((!$use_resolution) ? 0 : $use_resolution);
+		$simtk_is_public = ((!$simtk_is_public) ? 0 : 1);
+		$simtk_allow_anon = ((!$simtk_allow_anon) ? 0 : 1);
 		$email_all = ((!$email_all) ? 0 : $email_all);
 
 		db_begin();
@@ -242,9 +265,12 @@ class ArtifactType extends Error {
 			status_timeout,
 			submit_instructions,
 			browse_instructions,
-			datatype)
+			datatype,
+			simtk_is_public,
+			simtk_allow_anon,
+			simtk_use_resolution)
 			VALUES
-			($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)',
+			($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)',
 					array($this->Group->getID(),
 							htmlspecialchars($name),
 							htmlspecialchars($description),
@@ -254,7 +280,10 @@ class ArtifactType extends Error {
 							1209600,
 							htmlspecialchars($submit_instructions),
 							htmlspecialchars($browse_instructions),
-							$datatype));
+							$datatype,
+							$simtk_is_public,
+							$simtk_allow_anon,
+							$use_resolution));
 
 		$id = db_insertid($res, 'artifact_group_list', 'group_artifact_id');
 
@@ -282,13 +311,32 @@ class ArtifactType extends Error {
 	 */
 	function fetchData($artifact_type_id) {
 		$this->voters = false;
+/*
 		$res = db_query_params('SELECT * FROM artifact_group_list_vw
 			WHERE group_artifact_id=$1
 			AND group_id=$2',
 			array($artifact_type_id,
 				$this->Group->getID()));
+*/
+		// Get columns from artifact_group_list instead of from artifact_group_list_vw table.
+		$strSql = 'SELECT * FROM artifact_group_list agl ' .
+			'LEFT JOIN artifact_counts_agg aca ' .
+			'USING (group_artifact_id) ' .
+			'WHERE group_artifact_id=$1 ' .
+			'AND group_id=$2';
+
+		if (!session_loggedin()) {
+			// User is not logged in.
+			// Only show trackers that are public.
+			$strSql .= ' AND simtk_is_public=1 ';
+		}
+
+		$res = db_query_params($strSql,
+			array($artifact_type_id, $this->Group->getID()));
 		if (!$res || db_numrows($res) < 1) {
-			$this->setError('ArtifactType: Invalid ArtifactTypeID');
+			// Do not setError() here.
+			// Otherwise, the page exits with undesirable side effects.
+			//$this->setError('ArtifactType: Invalid ArtifactTypeID');
 			return false;
 		}
 		$this->data_array = db_fetch_array($res);
@@ -357,6 +405,24 @@ class ArtifactType extends Error {
 	 */
 	function emailAll() {
 		return $this->data_array['email_all_updates'];
+	}
+
+	/**
+	 * getSimtkAllowAnon - determine if we're supposed to allow anonymous user posting.
+	 *
+	 * @return	boolean	simtk_allow_anon.
+	 */
+	function getSimtkAllowAnon() {
+		return $this->data_array['simtk_allow_anon'];
+	}
+
+	/**
+	 * getSimtkIsPublic - determine if we're supposed to allow non-members to access tracker.
+	 *
+	 * @return	boolean	simtk_is_public.
+	 */
+	function getSimtkIsPublic() {
+		return $this->data_array['simtk_is_public'];
 	}
 
 	/**
@@ -971,7 +1037,9 @@ class ArtifactType extends Error {
 	 * @return	bool	true on success, false on failure.
 	 */
 	function update($name, $description, $email_all, $email_address,
-					$due_period, $status_timeout, $use_resolution, $submit_instructions, $browse_instructions) {
+		$due_period, $status_timeout, $use_resolution, 
+		$submit_instructions, $browse_instructions,
+		$simtk_allow_anon = 1) {
 
 		if (!forge_check_perm ('tracker_admin', $this->Group->getID())) {
 			$this->setPermissionDeniedError();
@@ -1008,6 +1076,7 @@ class ArtifactType extends Error {
 		}
 
 		$email_all = ((!$email_all) ? 0 : $email_all);
+		$simtk_allow_anon = ((!$simtk_allow_anon) ? 0 : $simtk_allow_anon);
 		$use_resolution = ((!$use_resolution) ? 0 : $use_resolution);
 
 		$res = db_query_params('UPDATE artifact_group_list SET
@@ -1018,8 +1087,10 @@ class ArtifactType extends Error {
 			due_period=$5,
 			status_timeout=$6,
 			submit_instructions=$7,
-			browse_instructions=$8
-			WHERE group_artifact_id=$9 AND group_id=$10',
+			browse_instructions=$8,
+			simtk_allow_anon=$9,
+			simtk_use_resolution=$10
+			WHERE group_artifact_id=$11 AND group_id=$12',
 					 array (
 						 htmlspecialchars($name),
 						 htmlspecialchars($description),
@@ -1029,6 +1100,8 @@ class ArtifactType extends Error {
 						 $status_timeout * (60*60*24),
 						 htmlspecialchars($submit_instructions),
 						 htmlspecialchars($browse_instructions),
+						 $simtk_allow_anon,
+						 $use_resolution,
 						 $this->getID(),
 						 $this->Group->getID()));
 

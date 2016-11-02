@@ -7,6 +7,7 @@
  * Copyright 2010, FusionForge Team
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2014, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -167,10 +168,8 @@ $rows=count($pt_arr);
 $totalTasks = $pg->getCount($_status, $_category_id);
 if ($rows < 1) {
 
-	echo '
-		<p class="feedback">'._('No Matching Tasks found').'</p>
-		<p />
-		<div class="warning">'._('Add tasks using the link above').'</div>';
+//	echo '<p class="feedback">'._('No Matching Tasks found').'</p><p/><div class="warning">'._('Add tasks using the link above').'</div>';
+	echo '<p class="warning_msg">'._('No Matching Tasks found').'</p><p/><div class="warning">'._('Add tasks using the link above').'</div>';
 	echo db_error();
 } else {
 	if (session_loggedin()) {

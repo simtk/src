@@ -4,6 +4,7 @@
  *
  * Copyright 2011, Roland Mas
  * Copyright 2014, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -63,8 +64,11 @@ class AuthBuiltinPlugin extends ForgeAuthPlugin {
 
 		$result = '';
 
+		$result .= '<script>';
+		$result .= '$(document).ready(function () {$(".loginname").focus();});';
+		$result .= '</script>';
 		$result .= '<p>';
-		$result .= _('Cookies must be enabled past this point.');
+//		$result .= _('Cookies must be enabled past this point.');
 		$result .= '</p>';
 
 		$result .= '<form action="' . util_make_url('/plugins/authbuiltin/post-login.php') . '" method="post">
@@ -76,14 +80,14 @@ class AuthBuiltinPlugin extends ForgeAuthPlugin {
 		} else {
 			$result .= _('Login Name')._(':');
 		}
-		$result .= '<br /><input type="text" name="form_loginname" value="' . htmlspecialchars(stripslashes($loginname)) . '" required="required" /></p><p>' . _('Password')._(':') . '<br /><input type="password" name="form_pw" required="required" /></p><p><input type="submit" name="login" value="' . _('Login') . '" />
+		$result .= '<br /><input type="text" class="loginname" name="form_loginname" value="' . htmlspecialchars(stripslashes($loginname)) . '" required="required" /></p><p>' . _('Password')._(':') . '<br /><input type="password" name="form_pw" required="required" /></p><p><input type="submit" name="login" value="' . _('Login') . '" class="btn-cta" />
 </p>
 </form>' ;
 
-		$result .= '<p>' . util_make_link('/account/lostpw.php', _('[Lost your password?]')) . '</p>';
+		$result .= '<p>' . util_make_link('/account/lostpw.php', 'Reset your password') . '</p>';
 		// hide "new account" item if restricted to admin
 		if (!forge_get_config ('user_registration_restricted')) {
-			$result .= '<p>' . util_make_link('/account/register.php', _('New Account')) . '</p>';
+			$result .= '<p>' . util_make_link('/account/register.php', 'Create new account') . '</p>';
 		}
 		$result .= '<p>' . util_make_link('/account/pending-resend.php', _('Resend confirmation email to a pending account')) . '</p>';
 

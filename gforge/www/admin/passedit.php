@@ -6,6 +6,7 @@
  *	Thorsten “mirabilos” Glaser <t.glaser@tarent.de>
  * All rights reserved.
  * Copyright 2013, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * Based on other FusionForge code.
  *
@@ -77,7 +78,8 @@ if (getStringFromRequest('submit')) {
 	echo '<h2>';
 	printf(_('%s Password Change Confirmation'), forge_get_config('forge_name'));
 	echo '</h2>';
-	echo '<p class="feedback">';
+//	echo '<p class="feedback">';
+	echo '<p class="warning_msg">';
 	printf(_('You have changed successfully the password of %1$s (%2$s).'), $u->getUnixName(), $u->getRealName());
 	echo '</p>';
 	printf('<p>'._("Go back to %s.").'</p>', '<a href="userlist.php">'._("the Full User List").'</a>');

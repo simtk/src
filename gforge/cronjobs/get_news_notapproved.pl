@@ -2,6 +2,7 @@
 #
 # get_news_notapproved.pl: script to get the news not yet approved 
 #   by Vicente J. Ruiz Jurado (vjrj AT ourproject.org) Apr-2004
+#   @copyright: 2016 Henry Kwong, Tod Hing - SimTK Team
 #
 # depends: libgetopt-mixed-perl (Getopt::Long), libdbi-perl (DBI),
 #          libtext-autoformat-perl (Text::Autoformat)
@@ -14,10 +15,7 @@ use Mail::Sendmail;
 
 use strict;
 
-my $source_path = `forge_get_config source_path`;
-chomp $source_path;
-
-require ("$source_path/lib/include.pl") ; # Include all the predefined functions 
+require("/usr/share/gforge/lib/include.pl");  # Include all predefined functions
 
 use vars qw/ $server_admin $sys_name $sys_default_domain /;
 
@@ -63,8 +61,8 @@ $dbh->{RaiseError} = 1;
 
 my $old_date = time()-60*60*24*30;
 my $query = "SELECT group_name,summary,details 
-	FROM news_bytes n, groups g 
-	WHERE is_approved = 0 
+	FROM plugin_simtk_news n, groups g 
+	WHERE is_approved = 0 AND simtk_request_global = true
 	AND n.group_id=g.group_id
 	AND n.post_date > '$old_date'
 	AND g.status='A'
@@ -81,17 +79,8 @@ $sth->finish() or die "Problems with the query '$query' in DB";
 $dbh->commit or die $dbh->errstr;
 
 foreach my $newsnotapprob (@results_array) {
-	my ($group_name, $summary, $details) = @{$newsnotapprob};
-
-	my $query = "SELECT COUNT(*) FROM pfo_role_setting prs, groups g
-          WHERE prs.role_id=1 AND prs.section_name = 'project_read' AND prs.perm_val = 1
-            AND prs.ref_id = g.group_id AND g.unix_group_name = '$group_name'";
-	my $c = $dbh->prepare($query);
-	$c->execute();
-	my $is_public = (int($c->fetchrow()) > 0);
-	next if (!$is_public);
-
 	$therearenews = 1;
+	my ($group_name, $summary, $details) = @{$newsnotapprob};
 	my $title = "$group_name: $summary\n";
 	$emailformatted .= autoformat $title, {  all => 1, left=>0, right=>78 };
 	$emailformatted .= "----------------------------------------------------------------------\n";
@@ -101,7 +90,7 @@ foreach my $newsnotapprob (@results_array) {
 
 if ($therearenews) {
 	if ($debug) {print STDERR "Sending the news not approved.\n"};
-  $emailformatted .= "Please visit: http://$sys_default_domain/news/admin/";
+  $emailformatted .= "Please visit: http://$sys_default_domain/admin/pending-simtk-news.php";
 	$emailformatted .= "\n\n";
 	my %mail = ( To      => "$server_admin",
 		     From    => "noreply\@$sys_default_domain",

@@ -6,6 +6,7 @@
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * Copyright 2012, Thorsten “mirabilos” Glaser <t.glaser@tarent.de>
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -35,6 +36,9 @@ global $atid;
 
 html_use_coolfieldset();
 $ath->header(array ('title'=> $ah->getStringID().' '. $ah->getSummary(), 'atid'=>$ath->getID()));
+
+// Update page title identified by the class "project_submenu".
+echo '<script>$(".project_submenu").html("Tracker: ' . $ath->getName() . '");</script>';
 
 echo notepad_func();
 
@@ -68,6 +72,7 @@ if (session_loggedin()) {
 				?>
 			</td>
 			<td><?php
+/*
 					$votes = $ah->getVotes();
 					echo '<span id="tracker-votes" title="'.html_get_tooltip_description('votes').'" >'.html_e('strong', array(), _('Votes') . _(': ')).sprintf('%1$d/%2$d (%3$d%%)', $votes[0], $votes[1], $votes[2]).'</span>';
 					if ($ath->canVote()) {
@@ -81,6 +86,7 @@ if (session_loggedin()) {
 						echo '<a id="tracker-vote" alt="'.$txt.'" title="'.html_get_tooltip_description('vote').'" href="'.getselfhref(array('func' => $key)) . '">' .
 							html_image('ic/' . $key . '.png', '16', '16', array('border' => '0')) . '</a>';
 					}
+*/
 					?>
 			</td>
 			<td><?php
@@ -92,7 +98,7 @@ if (session_loggedin()) {
 				?>
 			</td>
 			<td>
-				<input type="submit" name="submit" value="<?php echo _('Save Changes') ?>" />
+				<input type="submit" name="submit" value="Save Changes" class="btn-cta" />
 			</td>
 		</tr>
 </table>

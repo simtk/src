@@ -7,6 +7,7 @@
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * Copyright 2012, Thorsten “mirabilos” Glaser <t.glaser@tarent.de>
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -44,6 +45,9 @@ function gettipspan($idpart, $content) {
 html_use_coolfieldset();
 $ath->header(array ('title'=> $ah->getStringID().' '. $ah->getSummary(), 'atid'=>$ath->getID()));
 
+// Update page title identified by the class "project_submenu".
+echo '<script>$(".project_submenu").html("Tracker: ' . $ath->getName() . '");</script>';
+
 echo notepad_func();
 
 ?>
@@ -73,6 +77,7 @@ if (session_loggedin()) {
 				?>
 			</td>
 			<td><?php
+/*
 					$votes = $ah->getVotes();
 					echo '<span id="tracker-votes" title="'.html_get_tooltip_description('votes').'" >'.html_e('strong', array(), _('Votes') . _(': ')).sprintf('%1$d/%2$d (%3$d%%)', $votes[0], $votes[1], $votes[2]).'</span>';
 
@@ -87,6 +92,7 @@ if (session_loggedin()) {
 						echo '<a id="tracker-vote" alt="'.$txt.'" title="'.html_get_tooltip_description('vote').'" href="'.getselfhref(array('func' => $key)) . '">' .
 							html_image('ic/' . $key . '.png', '16', '16', array('border' => '0')) . '</a>';
 					}
+*/
 				?>
 			</td>
 			<td><?php
@@ -101,7 +107,7 @@ if (session_loggedin()) {
 				<a href="<?php echo getStringFromServer('PHP_SELF')."?func=deleteartifact&amp;aid=$aid&amp;group_id=$group_id&amp;atid=$atid"; ?>"><strong><?php echo html_image('ic/trash.png','16','16') . _('Delete'); ?></strong></a>
 			</td>
 			<td>
-				<input type="submit" name="submit" value="<?php echo _('Save Changes') ?>" />
+				<input type="submit" name="submit" value="Save Changes" class="btn-cta" />
 			</td>
 		</tr>
 </table>
@@ -192,7 +198,7 @@ echo html_build_select_box ($res,'new_artifact_type_id',$ath->getID(),false);
 	?>
 	<tr>
 		<td colspan="2"><strong><?php echo _('Summary')._(':'); ?><?php echo utils_requiredField(); ?></strong><br />
-		<input id="tracker-summary" required="required" title="<?php echo _('The summary text-box represents a short tracker item summary. Useful when browsing through several tracker items.') ?>" type="text" name="summary" size="70" value="<?php
+		<input id="tracker-summary" class="required" required="required" title="<?php echo _('The summary text-box represents a short tracker item summary. Useful when browsing through several tracker items.') ?>" type="text" name="summary" size="70" value="<?php
 			echo $ah->getSummary();
 			?>" maxlength="255" />
 		</td>
@@ -201,7 +207,7 @@ echo html_build_select_box ($res,'new_artifact_type_id',$ath->getID(),false);
 		<div id="edit" style="display:none;">
 		<strong><?php echo _('Detailed description') ?><?php echo utils_requiredField(); ?><?php echo _(': ') ?><?php echo notepad_button('document.forms.trackermodform.description') ?></strong>
 		<br />
-		<textarea id="tracker-description" required="required" name="description" rows="30" cols="79" title="<?php echo html_get_tooltip_description('description') ?>"><?php echo $ah->getDetails(); ?></textarea>
+		<textarea id="tracker-description" class="required" required="required" name="description" rows="30" cols="79" title="<?php echo html_get_tooltip_description('description') ?>"><?php echo $ah->getDetails(); ?></textarea>
 		</div>
 		<div id="show" style="display:block;">
 		<?php $ah->showDetails(true); ?>

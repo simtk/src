@@ -3,6 +3,7 @@
  * Tracker Facility
  *
  * Copyright 2010 (c) FusionForge Team
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -29,6 +30,9 @@
 */
 $title = sprintf(_('Modify a custom field in %s'),$ath->getName());
 $ath->adminHeader(array('title'=>$title));
+
+// Update page title identified by the class "project_submenu".
+echo '<script>$(".project_submenu").html("Tracker: ' . $ath->getName() . '");</script>';
 
 $id = getStringFromRequest('id');
 $ac = new ArtifactExtraField($ath,$id);
@@ -78,12 +82,14 @@ if (!$ac || !is_object($ac)) {
 		<input type="hidden" name="attribute2" value="0" />
 		<?php } ?>
 	</p>
+<!--
 	<p>
 		<label for="alias">
 		<strong><?php echo _('Field alias')._(':'); ?></strong><br />
 		</label>
 		<input id="alias" type="text" name="alias" value="<?php echo $ac->getAlias(); ?>" />
 	</p>
+-->
 	<p><input id="is_required" type="checkbox" name="is_required" <?php if ($ac->isRequired()) echo 'checked="checked"'; ?> />
 	<?php echo _('Field is mandatory')?></p>
 	<label for="is_required">
@@ -91,7 +97,7 @@ if (!$ac || !is_object($ac)) {
 	</label>
 	</p>
 	<p>
-	<input type="submit" name="post_changes" value="<?php echo _('Submit') ?>" />
+	<input type="submit" name="post_changes" value="Submit" class="btn-cta" />
 	</p>
 </form>
 <?php
