@@ -24,6 +24,8 @@
 import os, time, codecs, base64
 import md5crypt
 import uuid
+import subprocess
+import psycopg2
 
 try:
     import crypt
@@ -279,7 +281,7 @@ def decodeDict(line):
 class User:
     """ A MoinMoin User """
 
-    def __init__(self, request, id=None, name="", password=None, auth_username="", **kw):
+    def __init__(self, request, id=None, name="", password=None, auth_username="", email_addr="", **kw):
         """ Initialize User object
 
         TODO: when this gets refactored, use "uid" not builtin "id"
@@ -375,6 +377,9 @@ class User:
 
         if self.language and not self.language in i18n.wikiLanguages():
             self.language = 'en'
+
+        # Change email to lowercase.
+        self.email = email_addr.lower()
 
     def __repr__(self):
         return "<%s.%s at 0x%x name:%r valid:%r>" % (
@@ -472,7 +477,10 @@ class User:
         for key, val in user_data.items():
             vars(self)[key] = val
 
-        self.tz_offset = int(self.tz_offset)
+        try:
+            self.tz_offset = int(self.tz_offset)
+        except ValueError:
+            self.tz_offset = 0
 
         # Remove old unsupported attributes from user data file.
         remove_attributes = ['passwd', 'show_emoticons']
@@ -1113,4 +1121,33 @@ recovery token.
         mailok, msg = sendmail.sendmail(self._request, [self.email], subject,
                                     text, mail_from=self._cfg.mail_from)
         return mailok, msg
+
+    def get_config(self, varname):
+        myvar = subprocess.Popen(["forge_get_config", varname, 'core'], stdout=subprocess.PIPE).communicate()[0].rstrip('\n')
+        return myvar;
+
+    def getEmailAddr(self):
+        """ Get email address of user from db.
+        @rtype: string
+        @return: the corresponding user email address or None
+        """
+        email_addr = None
+        self.database_host = self.get_config('database_host')
+        self.database_name = self.get_config('database_name')
+        self.database_user = self.get_config('database_user')
+        self.database_port = self.get_config('database_port')
+        self.database_password = self.get_config('database_password')
+        myDbConn = psycopg2.connect(database=self.database_name, user=self.database_user, 
+            port=self.database_port, password=self.database_password, host=self.database_host)
+        myDbConn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
+        myCur = myDbConn.cursor()
+        emailQuery = """SELECT email from users WHERE user_name='%s'""" % (self.name)
+        myCur.execute(emailQuery)
+        theEmailAddr = ""
+	if myCur.rowcount > 0:
+            res = myCur.fetchone()
+            theEmailAddr = res[0]
+        myCur.close()
+        myDbConn.close()
+        return theEmailAddr
 

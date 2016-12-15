@@ -8,6 +8,7 @@
  * Copyright (c) 2011, 2012
  *	Thorsten Glaser <t.glaser@tarent.de>
  * Copyright 2013, Franck Villaume - TrivialDev
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -798,6 +799,86 @@ function db_query_to_string($sql, $params = array()) {
 
 function db_qpa_to_string($qpa) {
 	return db_query_to_string($qpa[0], $qpa[1]);
+}
+
+/**
+ * Get the list of field names for the result set.
+ * @param int the handle of the result set
+ */
+function db_fieldnames($res) {
+	//get the names of the fields
+	$numFields = db_numfields($res);
+	$fieldNames = array();
+	for ($i = 0; $i < $numFields; $i++) {
+		$tmp = db_fieldname($res, $i);
+		$fieldNames[$i] = $tmp;
+	}
+	return $fieldNames;
+}
+
+/**
+ * Create an XML fragment representation for the row.
+ * @param int the handle of the result set
+ * @param int the row number
+ * @param array the list of field names
+ */
+function db_row_to_xml($res, $i, $fieldNames, $excludeFieldNames=array()) {
+	$dbArray = array();
+	foreach ($fieldNames as $fieldName) {
+		$dbArray[ $fieldName ] = db_result($res, $i, $fieldName);
+	}
+	return array_to_xml( $dbArray, $excludeFieldNames );
+}
+
+/**
+ * Helper function to create an XML fragment from a general associative array
+ * @param array the array to form XML from
+ * @param array a list of field names to exclude
+ */
+function array_to_xml( $xmlArray, $excludeFields = array() ) {
+	$xml = "";
+	foreach ( array_keys( $xmlArray ) as $fieldName ) {
+		if (!in_array($fieldName, $excludeFields) && preg_match( '/[^\d]/', $fieldName ) ) {
+			$xml .= "<".$fieldName."><![CDATA[";
+			$xml .= unescape( $xmlArray[ $fieldName ] );
+			$xml .= "]]></".$fieldName.">";
+		}
+	}
+
+	return $xml;
+}
+
+/**
+ * Create an XML fragment representation for the result set.
+ * @param int the handle of the result set
+ * @param string tag name to delineate each row of the result set
+ */
+function db_result_to_xml($res, $name, $excludeFieldNames=array()) {
+
+	if (!$res) {
+		return "";
+	}
+
+	$numRows = db_numrows($res);
+
+	if ($numRows == 0) {
+		return "";
+	}
+
+	$fieldNames = db_fieldnames($res);
+
+	//create the XML output
+	$xml = "<".$name."_list>";
+
+	for ($i = 0; $i < $numRows; $i++) {
+		$xml .= "<".$name.">";
+		$xml .= db_row_to_xml($res, $i, $fieldNames, $excludeFieldNames);
+		$xml .= "</".$name.">";
+	}
+
+	$xml .= "</".$name."_list>";
+
+	return $xml;
 }
 
 // Local Variables:

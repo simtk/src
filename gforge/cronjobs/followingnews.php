@@ -250,7 +250,8 @@ while ($users = db_fetch_array ($all_users)) {
 	
 	// send news.
 	//echo "email: " . $user->getEmail() . "\n";
-	if ($arrNewsSend || $resultsProjectsCat) {
+	if ($arrNewsSend || $max > 0) {
+	   //util_send_message("tod_hing@yahoo.com",$subj, $body.$tail,'noreply@'.forge_get_config('web_host'),'','','',true);
        util_send_message($user->getEmail(),$subj, $body.$tail,'noreply@'.forge_get_config('web_host'),'','','',true);
 	   $num_sent++;
 	}

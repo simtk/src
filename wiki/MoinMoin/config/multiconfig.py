@@ -1257,7 +1257,7 @@ myReq.done(function(strPageData) {
     ('tz_offset', 0.0,
      "default time zone offset in hours from UTC"),
 
-    ('userprefs_disabled', [],
+    ('userprefs_disabled', ["changepass", "prefs"],
      "Disable the listed user preferences plugins."),
     ('require_email_verification', False ,
      "Require verification of new user accounts."),

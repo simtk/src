@@ -354,7 +354,8 @@ function frs_add_file_from_form($release, $type_id, $processor_id, $release_date
 			return $frsf->getErrorMessage();
 		}
 		else {
-			if (!$frsf->create($fname, $infile, $type_id, 
+			// Note: For URL, the file location should be set to null.
+			if (!$frsf->create($fname, null, $type_id, 
 				$processor_id, $release_date, 
 				$collect_info, $use_mail_list, $group_list_id, 
 				$show_notes, $show_agreement,
