@@ -22,6 +22,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+// Set timezone.
+// This is necessary for PHP 5.6.
+date_default_timezone_set('America/Los_Angeles');
+
 /* Search */
 
 define('SEARCH__TYPE_IS_ARTIFACT', 'artifact');

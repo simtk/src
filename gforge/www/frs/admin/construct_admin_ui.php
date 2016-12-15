@@ -595,13 +595,13 @@ function constructFileUI($groupId,
 	$tmp_col7 = util_make_link('/frs/download.php/latestfile/' . $packId . '/' . $fileName, 
 		_('Latest version'));
 
-	// Generate label for file size (in bytes, kB, or mB).
+	// Generate label for file size (in bytes, KB, or MB).
 	$strFileSize = $fileSize;
 	if (intval($fileSize/1024) >= 1) {
-		$strFileSize = intval($fileSize/1024) . " kB";
+		$strFileSize = intval($fileSize/1024) . " KB";
 	}
 	if (intval($fileSize/1024/1024) >= 1) {
-		$strFileSize = intval($fileSize/1024/1024) . " mB";
+		$strFileSize = intval($fileSize/1024/1024) . " MB";
 	}
 
 	if (trim($filenameHeader) != "") {
@@ -625,7 +625,7 @@ function constructFileUI($groupId,
 		// Download Links.
 		if ($simtkFileType == "URL") {
 			echo '<td><div class="download_link">' . 
-				'<a href="/frs/download.php/file/' . 
+				'<a href="/frs/download_start.php/file/' . 
 				$fileId . '/' . $fileName . 
 				'?group_id=' . $groupId . 
 				'">';
@@ -645,7 +645,7 @@ function constructFileUI($groupId,
 		// Documenation Links.
 		if ($simtkFileType == "URL") {
 			echo '<td><div class="download_link">' . 
-				'<a href="/frs/download.php/file/' . 
+				'<a href="/frs/download_start.php/file/' . 
 				$fileId . '/' . $fileName . 
 				'?group_id=' . $groupId . 
 				'">';

@@ -1580,15 +1580,15 @@ class Group extends Error {
 	 */
 	function getKeywords()
 	{
-		if (!is_array($this->data_array['keywords']))
-		{
+		if (!isset($this->data_array['keywords']) || 
+			!is_array($this->data_array['keywords'])) {
 			$this->data_array['keywords'] = array();
 			if ($this->getID()<=0) {
 				$this->setError("Group::getKeywords: Group id is not a positive integer");
 				return false;
 			}
 			$sql = "SELECT DISTINCT keyword FROM project_keywords WHERE project_id = " . $this->getID() . " ORDER BY keyword ASC";
-			$res = db_query($sql);
+			$res = db_query_params($sql, array());
 			$res_count = db_numrows($res);
 			for ($i=0; $i<$res_count; $i++)
 			{
@@ -1639,15 +1639,15 @@ class Group extends Error {
 	 */
 	function getOntology()
 	{
-		if (!is_array($this->data_array['ontology']))
-		{
+		if (!isset($this->data_array['ontology']) || 
+			!is_array($this->data_array['ontology'])) {
 			$this->data_array['ontology'] = array();
 			if ($this->getID()<=0) {
 				$this->setError("Group::getOntology: Group id is not a positive integer");
 				return false;
 			}
 			$sql = "SELECT DISTINCT bro_resource FROM project_bro_resources WHERE project_id = " . $this->getID() . " ORDER BY bro_resource ASC";
-			$res = db_query($sql);
+			$res = db_query_params($sql, array());
 			$res_count = db_numrows($res);
 			for ($i=0; $i<$res_count; $i++)
 			{

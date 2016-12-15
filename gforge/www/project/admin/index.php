@@ -9,7 +9,7 @@
  * Copyright 2004 GForge, LLC - Tim Perdue
  * Copyright 2010, Franck Villaume - Capgemini
  * Copyright 2010-2011, Alain Peyrat - Alcatel-Lucent
- * Copyright 2016, Tod Hing - SimTK Team
+ * Copyright 2016, Tod Hing, Henry Kwong - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -155,12 +155,6 @@ function HidePopup()
 
 ?>
 
-
-
-<p>
-The information provided below will appear on your project's overview page. Please fill in all the fields, keeping in mind your audience.
-</p>
-
 <form action="<?php echo getStringFromServer('PHP_SELF'); ?>" method="post" enctype="multipart/form-data">
 <div class="row">
 <div class="col-sm-10">
@@ -171,7 +165,7 @@ The information provided below will appear on your project's overview page. Plea
 <?php } ?>
 
 <h2><?php echo _('Project Title'); ?></h2>
-<p>The title will be displayed in all search results and should be short and descriptive. <b>Restrictions: 3-80 characters</b>.
+<p><b>Restrictions: 3-80 characters</b>.
 </p>
 
 <p>
@@ -179,7 +173,7 @@ The information provided below will appear on your project's overview page. Plea
 </p>
 
 <h2><?php echo _('Summary'); ?></h2>
-<p>Summary of your project which is displayed before the description on overview page and also in search results. <b>Restrictions:  10-255 characters</b>.</p>
+<p>Your project summary appears on your project overview page and in the search results. <b>Restrictions:  10-255 characters</b>.</p>
 
 <p>
 <textarea cols="80" rows="3" name="form_summary">
@@ -188,7 +182,7 @@ The information provided below will appear on your project's overview page. Plea
 </p>
 
 <h2><?php echo _('Description'); ?></h2>
-<p>Your project's description is key to attracting the right people to it. Keep your audience in mind as you write your description.
+<p>The long description of your project allows you to provide more details about it.
 </p>
 
 <p>
@@ -234,10 +228,11 @@ The information provided below will appear on your project's overview page. Plea
 <br />
 <h2><?php echo _('Privacy'); ?></h2>
 
-<p>Checking the box below prevents access to all subsections of your project (team, documents, source control, downloads, etc.). Only your overview page remains publicly viewable. The privacy of download packages, documents, and source control, can be independently controlled. This is the preferred way to manage the privacy of your project.</p>
-
 <p>
-<input type="checkbox" name="private" value="0" <?php if (!$group->isPublic()) { echo 'checked="checked"'; } ?>/> Keep project private.
+<input type="checkbox" name="private" value="0" <?php if (!$group->isPublic()) { echo 'checked="checked"'; } ?>/> Make entire project private - only title is publicly viewable.
+</p>
+
+<p><b>This option is discouraged. Instead, we suggest independently limiting access to individual sections of the project.</b>
 </p>
 
 <?php

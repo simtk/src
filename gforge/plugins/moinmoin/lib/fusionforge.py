@@ -297,14 +297,15 @@ class FusionForgeSessionAuth(BaseAuth):
             (time, user_id, ip, nonce, user_agent) = m.group(1, 2, 3, 4, 5)
 
             cur = conn.cursor()
-            cur.execute("""SELECT user_name, realname
+            cur.execute("""SELECT user_name, realname, email
                            FROM users WHERE user_id=%s""", [user_id])
-            (loginname, realname) = cur.fetchone()
+            (loginname, realname, email) = cur.fetchone()
             cur.close()
 
             # MoinMoin doesn't enforce unicity of realnames
             u = user.User(request, name=loginname, auth_username=loginname,
-                          auth_method=self.name)
+                          auth_method=self.name,
+                          email_addr=email)
 
             if u and self.autocreate:
                 u.create_or_update(True)

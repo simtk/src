@@ -209,12 +209,15 @@ class SVNPlugin extends SCMPlugin {
 		$b .= '<p>';
 		$b .= sprintf(_("Browsing the %s tree gives you a view into the current status of this project's code."), 'Subversion');
 		$b .= ' ';
-		$b .= _('You may also view the complete histories of any file in the repository.');
+		//$b .= _('You may also view the complete histories of any file in the repository.');
 		$b .= '</p>';
 		$b .= '<p>[' ;
-		$b .= util_make_link ("/scm/browser.php?group_id=".$project->getID(),
+		//$b .= util_make_link ("/scm/browser.php?group_id=".$project->getID(),
+		//						sprintf(_('Browse %s Repository'), 'Subversion')
+		//	) ;
+		$b .= util_make_link ("/svn/".$project->getUnixName()."/",
 								sprintf(_('Browse %s Repository'), 'Subversion')
-			) ;
+			) ;	
 		$b .= ']</p>' ;
 		return $b ;
 	}

@@ -590,13 +590,13 @@ function constructFileUI($groupId, $release_id,
 	$doi = $fileInfo['doi'];
 	$doi_identifier = $fileInfo['doi_identifier'];
 
-	// Generate label for file size (in bytes, kB, or mB).
+	// Generate label for file size (in bytes, KB, or MB).
 	$strFileSize = $fileSize;
 	if (intval($fileSize/1024) >= 1) {
-		$strFileSize = intval($fileSize/1024) . " kB";
+		$strFileSize = intval($fileSize/1024) . " KB";
 	}
 	if (intval($fileSize/1024/1024) >= 1) {
-		$strFileSize = intval($fileSize/1024/1024) . " mB";
+		$strFileSize = intval($fileSize/1024/1024) . " MB";
 	}
 
 	if (trim($filenameHeader) != "") {

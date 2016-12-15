@@ -117,14 +117,19 @@ if (getStringFromRequest('submit') && $func=="edit_file" && $file_id) {
 		if ($url == "") {
                         $error_msg .= 'Please enter a URL.';
                 }
-                else if ($disp_name == "") {
-                        $error_msg .= 'Please enter a Display Name.';
-                }
 		else {
+			if ($disp_name == "") {
+				// Display Name is not present. Set to URL as default.
+				$disp_name = $url;
+			}
 			$ret = $frsf->update($type_id, $processor_id, $release_date, $release_id, 
 				$collect_info, $use_mail_list, $group_list_id, $userfile, 
 				$show_notes, $show_agreement,
 				$file_desc, $disp_name, $doi, $user_id, $url);
+			if ($ret === false) {
+				// Return the error message.
+				$error_msg = $frsf->getErrorMessage();
+			}
 		}
 	}
 	else {
@@ -134,6 +139,10 @@ if (getStringFromRequest('submit') && $func=="edit_file" && $file_id) {
 			$collect_info, $use_mail_list, $group_list_id, $userfile, 
 			$show_notes, $show_agreement,
 			$file_desc, $disp_name, $doi, $user_id);
+		if ($ret === false) {
+			// Return the error message.
+			$error_msg = $frsf->getErrorMessage();
+		}
 	}
 
 	if ($ret === true) {
@@ -149,7 +158,7 @@ if (getStringFromRequest('submit') && $func=="edit_file" && $file_id) {
 		   util_send_message("webmaster@simtk.org", sprintf(_('DOI for %s File Requested'), $disp_name), $message);
 		   $feedback = _('Your file has been uploaded and your DOI will be emailed within 72 hours. ');
 		} else {
-		   $feedback = 'File Updated';
+		   $feedback = 'File/Link Updated';
         }
 		
 		// Refresh file object.
@@ -186,12 +195,20 @@ frs_admin_header(array('title'=>'Update File','group'=>$group_id));
 			$('#doi').prop("disabled", false);
 		}
 		$('#docFile').click(function() {
+			// Show the Display Name warning.
+			$('#warnDispName').show("slow");
+			$('#labelDispName').html("<strong>Rename File<br/>for display & download:<br/>(optional)</strong>");
+
 			// Disable inputs for File upload.
 			$('.upFile').prop("disabled", false);
 			$('[name="group_list_id"]').prop("disabled", false);
 			$('#doi').prop("disabled", false);
 		});
 		$('#docLink').click(function() {
+			// Hide the Display Name warning.
+			$('#warnDispName').hide("slow");
+			$('#labelDispName').html("<strong>Display Name:</strong>");
+
 			// Enable inputs for File upload.
 			$('.upFile').prop("disabled", true);
 			$('#doi').attr('checked', false);
@@ -260,7 +277,7 @@ td {
 		
 <?php } else { ?>
 
-<div><h4>Update File: <?php echo $frsf->getName(); ?><p/>(RELEASE: <?php echo $frsr->getName(); ?>)</h4></div>
+<div><h4>Update: <?php echo $frsf->getName(); ?><p/>(RELEASE: <?php echo $frsr->getName(); ?>)</h4></div>
 
 <form id="addfile" enctype="multipart/form-data" action="editfile.php" method="post">
 
@@ -360,13 +377,39 @@ if ($frsp->getUseAgreement() != 0) {
 </tr>
 
 <tr>
-	<td><strong>Display Name:</strong></td>
-	<td><input type="text" id="disp_name" name="disp_name" value="<?php echo $frsf->getName(); ?>"/></td>
-</tr>
-<tr>
-	<td></td>
 	<td>
-	<strong>Restriction:</strong> Display Name must be at least 3 letters long and are limited to letters, numbers, spaces, dashes, underscores, and periods.
+	<div id="labelDispName">
+<?php
+	if ($frsf->isURL() === false) {
+		// File.
+?>
+		<strong>Rename File<br/>for display & download:<br/>(optional)</strong>
+<?php	}
+	else {
+		// URL
+?>
+		<strong>Display Name:</strong>
+<?php
+	}
+?>
+	</div>
+	</td>
+	<td><input type="text" id="disp_name" name="disp_name" value="<?php echo $frsf->getName(); ?>"/>
+	<div id="warnDispName"
+<?php
+	if ($frsf->isURL() === true) {
+		// URL.
+		// Initialize DIV for "File", but do not display the DIV,
+		// hence allowing DIV Show/Hide toggle chosen with radio button.
+?>
+		style="display: none;"
+<?php
+	}
+?>
+	>
+	<strong>Note:</strong> Include file extension so file can be launched after download.
+	<br/><strong>Restriction:</strong> File name must be at least 3 letters long and are limited to letters, numbers, spaces, dashes, underscores, and periods.
+	</div>
 	</td>
 </tr>
 <tr>

@@ -6,6 +6,7 @@
     TODO: refactor it to handle separate events for page changes, creations, etc
 
     @copyright: 2007 by Karol Nowak <grywacz@gmail.com>
+                2016 Henry Kwong, Tod Hing - SimTK Team
     @license: GNU GPL, see COPYING for details.
 """
 
@@ -95,7 +96,8 @@ def handle_page_change(event):
         for lang in subscribers:
             users = [u for u in subscribers[lang]
                      if event.name in u.email_subscribed_events]
-            emails = [u.email for u in users]
+            #emails = [u.email for u in users]
+            emails = [u.getEmailAddr() for u in users]
             names = [u.name for u in users]
             data = prep_page_changed_mail(request, page, comment, lang, revisions, trivial)
 
@@ -113,7 +115,8 @@ def handle_user_created(event):
     sitename = request.cfg.sitename
     from_address = request.cfg.mail_from
     event_name = event.name
-    email = event.user.email or u"NOT SET"
+    #email = event.user.email or u"NOT SET"
+    email = event.user.getEmailAddr() or u"NOT SET"
     username = event.user.name
 
     user_ids = getUserList(request)
@@ -123,7 +126,8 @@ def handle_user_created(event):
         if usr.isSuperUser() and event_name in usr.email_subscribed_events:
             _ = lambda text: request.getText(text, lang=usr.language or 'en')
             data = notification.user_created_message(request, _, sitename, username, email)
-            send_notification(request, from_address, [usr.email], data)
+            #send_notification(request, from_address, [usr.email], data)
+            send_notification(request, from_address, [usr.getEmailAddr()], data)
 
 
 def handle_file_attached(event):
@@ -154,7 +158,8 @@ def handle_file_attached(event):
         data = notification.attachment_added(request, _, event.pagename, event.filename, event.size)
         data['text'] = data['text'] + links
 
-        emails = [usr.email for usr in subscribers[lang]]
+        #emails = [usr.email for usr in subscribers[lang]]
+        emails = [usr.getEmailAddr() for usr in subscribers[lang]]
 
         if send_notification(request, from_address, emails, data):
             names.update(recipients)
@@ -190,7 +195,8 @@ def handle_file_removed(event):
         data = notification.attachment_removed(request, _, event.pagename, event.filename, event.size)
         data['text'] = data['text'] + links
 
-        emails = [usr.email for usr in subscribers[lang]]
+        #emails = [usr.email for usr in subscribers[lang]]
+        emails = [usr.getEmailAddr() for usr in subscribers[lang]]
 
         if send_notification(request, from_address, emails, data):
             names.update(recipients)

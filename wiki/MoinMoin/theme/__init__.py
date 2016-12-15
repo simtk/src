@@ -3,6 +3,7 @@
     MoinMoin - Theme Package
 
     @copyright: 2003-2008 MoinMoin:ThomasWaldmann
+                2016 Henry Kwong, Tod Hing - SimTK Team
     @license: GNU GPL, see COPYING for details.
 """
 
@@ -319,8 +320,8 @@ class ThemeBase:
             userlinks.append(homelink)
             # link to userprefs action
             if 'userprefs' not in self.request.cfg.actions_excluded:
-                userlinks.append(d['page'].link_to(request, text=_('Settings'),
-                                               querystr={'action': 'userprefs'}, id='userprefs', rel='nofollow'))
+                userlinks.append(d['page'].link_to(request, text='Edit Notifications',
+                                               querystr={'action': 'userprefs', 'sub': 'notification'}, id='userprefs', rel='nofollow'))
 
         if request.user.valid:
             if request.user.auth_method in request.cfg.auth_can_logout:

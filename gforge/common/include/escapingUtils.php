@@ -3,6 +3,7 @@
  * FusionForge escaping library
  *
  * Copyright 2003-2004, Guillaume Smet
+ * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -357,6 +358,39 @@ function getFilteredStringFromRequest($string, $pattern, $defaultValue = '') {
 	} else {
 		return $defaultValue;
 	}
+}
+
+/* escapeOnce - Make sure that a string is only escaped once for XML parsing
+ */
+function escapeOnce( $str ) {
+	$str = unescape( $str );
+	$str = htmlspecialchars( $str, ENT_QUOTES );
+
+	return $str;
+}
+
+/* unescape - completely unescape a string. (Unless the text is escaped eleven or more times, in which
+ * case this function will give up after ten. We don't want to get caught in any potential
+ * infinite loops in the case something goes wrong with htmlspecialchars_decode().)
+ *
+ * @param  string  The string to unescape
+ */
+function unescape( $str ) {
+	// The combination "\0" gets turned into the null character by stripslashes(),
+	// which signals a premature end of document to the XML parser
+	$str = preg_replace( "/\\\\0/", "", $str );
+	if ( get_magic_quotes_gpc() ) {
+		$str = stripslashes( $str );
+	}
+	// Adding this line because there's an exceptionally strange edge case
+	// where Acrobat, copy/paste, and IE7 can send low-range Unicode
+	// control characters signalling a premature end-of-file
+	$str = preg_replace( "/[".chr(1)."-".chr(8).chr(14)."-".chr(31)."]/", "", $str );
+
+	for($i=0; $i<10 && $str != htmlspecialchars_decode( $str, ENT_QUOTES ); $i++ )
+	$str = htmlspecialchars_decode( $str, ENT_QUOTES );
+
+	return $str;
 }
 
 // Local Variables:

@@ -127,7 +127,7 @@ class FRSFile extends Error {
 			$this->setError(_('Name is too short. It must be at least 3 characters.'));
 			return false;
 		}
-		if (!util_is_valid_filename($name)) {
+		if ($file_location != null && !util_is_valid_filename($name)) {
 			$this->setError(_('Filename can only be alphanumeric and “-”, “_”, “+”, “.”, “~” characters.'));
 			return false;
 		}
@@ -662,21 +662,16 @@ class FRSFile extends Error {
 				}
 				if ($disp_name == "") {
 					// Set display name to be the file name if not specified.
-					// Otherwise, using existing display name.
+					// Otherwise, use existing display name.
 					$disp_name = $userfile_name;
 				}
 			}
 			// Set simtk_file_type.
 			$simtk_file_type = "";
-		}
-		else {
-			// Set simtk_file_type.
-			$simtk_file_type = "URL";
-			// Set file_size.
-			$file_size = 0;
-		}
 
-		if ($disp_name != $this->getName()) {
+			// Check Display Name.
+			// NOTE: File may be changed from URL type to FILE.
+			// Hence, need to verify validity of the display name here.
 			if (strlen($disp_name) < 3) {
 				$this->setError(_('Name is too short. It must be at least 3 characters.'));
 				return false;
@@ -686,6 +681,15 @@ class FRSFile extends Error {
 				return false;
 			}
 
+		}
+		else {
+			// Set simtk_file_type.
+			$simtk_file_type = "URL";
+			// Set file_size.
+			$file_size = 0;
+		}
+
+		if ($disp_name != $this->getName()) {
 			// Display name must be unique in this release.
 			$resfile = db_query_params('SELECT filename FROM frs_file ' .
 				'WHERE filename=$1 AND release_id=$2',

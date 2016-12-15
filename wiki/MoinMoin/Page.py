@@ -31,6 +31,7 @@
                 2005-2008 by MoinMoin:ThomasWaldmann,
                 2006 by MoinMoin:FlorianFesti,
                 2007 by MoinMoin:ReimarBauer
+                2016 Henry Kwong, Tod Hing - SimTK Team
     @license: GNU GPL, see COPYING for details.
 """
 
@@ -969,8 +970,16 @@ class Page(object):
             if isSubscribed:
                 subscriber = user.User(request, uid)
 
-                if not UserPerms(subscriber).read(self.page_name):
-                    continue
+                # Disabled the UserPerms check. The check fails for subscribed users
+                # hence preventing subscribed users to receive emails.
+                # If a user can subscribe, the user first must be able to read the page!
+                # Also, we are using FusionForge permissions checks together with the
+                # MoinMoin plugin.
+                #if not UserPerms(subscriber).read(self.page_name):
+                #    continue
+
+                # Set email in user object.
+                subscriber.email = userlist[uid]['email'];
 
                 lang = subscriber.language or request.cfg.language_default
                 if not lang in subscriber_list:

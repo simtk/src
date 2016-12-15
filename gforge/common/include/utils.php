@@ -1968,21 +1968,23 @@ function util_strip_insecure_tags( $data='' )
                 }
 
                 // Now remove universally troublesome attributes
-                for ( $i = 0; $i < $data->attributes->length; $i++ )
-                {
-                        $attName = strtolower( $data->attributes->item( $i )->nodeName );
-                        if ( preg_match( "/^on.+/", $attName )
-                                || preg_match( "/^data.+/", $attName ) )
-                                $data->removeAttribute( $data->attributes->item( $i )->nodeName );
-                }
+		if (isset($data) && isset($data->attributes)) {
+			for ( $i = 0; $i < $data->attributes->length; $i++ ) {
+				$attName = strtolower( $data->attributes->item( $i )->nodeName );
+				if ( preg_match( "/^on.+/", $attName )
+					|| preg_match( "/^data.+/", $attName ) )
+					$data->removeAttribute( $data->attributes->item( $i )->nodeName );
+			}
+		}
 
                 // If we haven't seen any of the blacklist cases, go ahead and assume it's good
-                for ( $i = 0; $i < $data->childNodes->length; $i++ )
-                {
-                        $cleanNode = util_strip_insecure_tags( $data->childNodes->item( $i ) );
-                        if ( !$cleanNode )
-                                $data->removeChild( $data->childNodes->item( $i ) );
-                }
+		if (isset($data) && isset($data->childNodes)) {
+                	for ( $i = 0; $i < $data->childNodes->length; $i++ ) {
+				$cleanNode = util_strip_insecure_tags( $data->childNodes->item( $i ) );
+				if ( !$cleanNode )
+					$data->removeChild( $data->childNodes->item( $i ) );
+			}
+		}
                 return $data;
         }
         else
@@ -1991,7 +1993,7 @@ function util_strip_insecure_tags( $data='' )
                 $xml = new DOMDocument();
  try
                 {
-                        set_error_handler( XMLLoadErrorHandler );
+                        set_error_handler( "XMLLoadErrorHandler" );
                         $xml->loadXML( $xmlStr );
                         restore_error_handler();
                         $xmlStr = util_strip_insecure_tags( $xml )->saveXML();
@@ -2270,6 +2272,29 @@ function log_user_group($group_id) {
 			array($min_timestamp, $user_id));
 
 		//echo "# of rows deleted: " . pg_affected_rows($res);
+	}
+}
+
+/*
+ * Handle any errors parsing XML
+ */
+function XMLLoadErrorHandler( $errno, $errstr, $errfile, $errline, $errcontext ) {
+	throw new ErrorException( $errstr, 0, $errno, $errfile, $lineno );
+}
+
+/**
+ * util_add_linebreaks() - Convert linefeeds and newlines to <br/> tags
+ */
+function util_add_linebreaks ($data='', $escape=false) {
+	if(empty($data)) {
+		return $data;
+	}
+
+	if ($escape) {
+		return str_replace(array("\r\n","\r","\n"), "&lt;br/&gt;", $data);
+	}
+	else {
+		return str_replace(array("\r\n","\r","\n"), "<br/>", $data);
 	}
 }
 

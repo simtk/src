@@ -31,7 +31,7 @@
  * License along with SimTK. If not, see  
  * <http://www.gnu.org/licenses/>.
  */ 
- 
+
 // Retrieve popup menu items given the menu title.
 function sectionPopupMenuItems($sectionName, $groupId, &$menuTitles, &$menuUrls, &$menuDispNames) {
 
@@ -123,7 +123,7 @@ function sectionPopupMenuItems($sectionName, $groupId, &$menuTitles, &$menuUrls,
 			$menuTitles[] = 'Summary';
 			$menuUrls[] = '/scm?group_id=' . $groupId;
 			$menuTitles[] = _('Browse source code');
-			$menuUrls[] = '/scm/browser.php?group_id=' . $groupId;
+			$menuUrls[] = '/svn/' . $groupObj->getUnixName() . '/';
 			$menuTitles[] = _('Administration');
 			$menuUrls[] = '/scm/admin?group_id=' . $groupId;
 		} else if (!session_loggedin() && $groupObj && is_object($groupObj) && !$groupObj->isError() &&
@@ -131,12 +131,12 @@ function sectionPopupMenuItems($sectionName, $groupId, &$menuTitles, &$menuUrls,
 			$menuTitles[] = 'Summary';
 			$menuUrls[] = '/scm?group_id=' . $groupId;
 			$menuTitles[] = _('Browse source code');
-			$menuUrls[] = '/scm/browser.php?group_id=' . $groupId;
+			$menuUrls[] = '/svn/' . $groupObj->getUnixName() . '/';
 		} else if (session_loggedin() && forge_check_perm('scm', $groupId, 'read')) {
 		    $menuTitles[] = 'Summary';
 			$menuUrls[] = '/scm?group_id=' . $groupId;
 			$menuTitles[] = _('Browse source code');
-			$menuUrls[] = '/scm/browser.php?group_id=' . $groupId;	
+			$menuUrls[] = '/svn/' . $groupObj->getUnixName() . '/';	
 		}
 	}
 	else if ($sectionName == "Documents") {

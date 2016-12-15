@@ -77,7 +77,10 @@ $upload_dir = forge_get_config('ftp_upload_dir') . "/" . $group->getUnixName();
 // Add file to the release
 if (getStringFromRequest('submit')) {
 	$userfile = getUploadedFile('userfile');
-	$userfile_name = $userfile['name'];
+	if (isset($userfile['name'])) {
+		// Check for parameter presence before using.
+		$userfile_name = $userfile['name'];
+	}
 	$type_id = getIntFromRequest('type_id');
 	$release_date = getStringFromRequest('release_date');
 	// Build a Unix time value from the supplied Y-m-d value
@@ -100,8 +103,8 @@ if (getStringFromRequest('submit')) {
 	$doi_confirm = 0;
 	
 	// get user
-    $user = session_get_user(); // get the session user
-    $user_id = $user->getID();
+	$user = session_get_user(); // get the session user
+	$user_id = $user->getID();
 		
 	$msgReleased = "You can now " .
 		"<a href='javascript:sendnews();'>create a project news item</a>" .
@@ -113,17 +116,18 @@ if (getStringFromRequest('submit')) {
 		if ($url == "") {
 			$error_msg .= 'Please enter a URL.';
 		}
-		else if ($disp_name == "") {
-			$error_msg .= 'Please enter a Display Name.';
-		}
 		else {
+			if ($disp_name == "") {
+				// Display Name is not present. Set to URL as default.
+				$disp_name = $url;
+			}
 			$ret = frs_add_file_from_form($frsr, $type_id, $processor_id, 
 				$release_date, $userfile, false, false, 
 				$collect_info, $use_mail_list, $group_list_id, 
 				$show_notes, $show_agreement,
 				$file_desc, $disp_name, $doi, $user_id, $url);
 			if ($ret === true) {
-				$feedback = '***NOSTRIPTAGS***File Released. ' . $msgReleased;
+				$feedback = '***NOSTRIPTAGS***URL is set up. ' . $msgReleased;
 			}
 			else {
 				$error_msg .= $ret;
@@ -192,9 +196,24 @@ function sendnews() {
 "<?php 
 if (isset($disp_name)) {
 	if ($disp_name == "")
-		echo $userfile_name; 
-	else
+		// Empty display name.
+		if (isset($userfile_name)) {
+			// Use filename.
+			echo $userfile_name; 
+		}
+		else if (isset($url)) {
+			// Should never be here.
+			// For URL, the $disp_name is always set upon getting here.
+			echo $url; 
+		}
+		else {
+			// Should never be here.
+			echo "";
+		}
+	else {
+		// Has display name.
 		echo $disp_name;
+	}
 }
 ?>";
 	file_desc = "<?php if (isset($file_desc)) echo $file_desc; ?>";
@@ -241,12 +260,20 @@ $(document).ready(function() {
 		
 	}
 	$('#docFile').click(function() {
+		// Show the Display Name warning.
+		$('#warnDispName').show("slow");
+		$('#labelDispName').html("<strong>Rename File<br/>for display & download:<br/>(optional)</strong>");
+
 		// Disable inputs for File upload.
 		$('.upFile').prop("disabled", false);
 		$('[name="group_list_id"]').prop("disabled", false);
 		$('#doi').prop("disabled", false);
 	});
 	$('#docLink').click(function() {
+		// Hide the Display Name warning.
+		$('#warnDispName').hide("slow");
+		$('#labelDispName').html("<strong>Display Name:</strong>");
+
 		// Enable inputs for File upload.
 		$('.upFile').prop("disabled", true);
 		$('#doi').attr('checked', false);
@@ -392,13 +419,16 @@ if ($frsp->getUseAgreement() != 0) {
 	<td colspan="2"><h2>Provide File/Link Details</h2></td>
 </tr>
 <tr>
-	<td><strong>Display Name:</strong></label></td>
-	<td><input type="text" id="disp_name" name="disp_name" value=""/></td>
-</tr>
-<tr>
-	<td></td>
 	<td>
-	<strong>Restriction:</strong> Display Name must be at least 3 letters long and are limited to letters, numbers, spaces, dashes, underscores, and periods.
+	<div id="labelDispName">
+	<strong>Rename File<br/>for display & download:<br/>(optional)</strong>
+	</div>
+	</td>
+	<td><input type="text" id="disp_name" name="disp_name" value=""/>
+	<div id="warnDispName">
+	<strong>Note:</strong> Include file extension so file can be launched after download.
+	<br/><strong>Restriction:</strong> File name must be at least 3 letters long and are limited to letters, numbers, spaces, dashes, underscores, and periods.
+	</div>
 	</td>
 </tr>
 <tr>
