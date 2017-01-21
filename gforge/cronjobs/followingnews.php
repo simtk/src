@@ -239,7 +239,7 @@ while ($users = db_fetch_array ($all_users)) {
 	   }
 	 } // if empty $c
 	}
-	//echo "related items: " . $i . "\n";
+	
 	//echo $body . "\n";
 	
 	// create footer
