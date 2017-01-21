@@ -1,10 +1,7 @@
 #! /usr/bin/php
 <?php
 /**
- *
- * following plugin index.php
- *
- * main index file which displays private and public follows.
+ * Following News backend cron script
  * 
  * Copyright 2005-2016, SimTK Team
  *
@@ -75,11 +72,13 @@ database table. Please take appropriate actions.\n"
 $subj = "Updates from the SimTK projects you follow";
 
 //foreach ($all_users as $user) {
+$max = 0;
 $num_sent = 0;
+$users_notif = 0;
 $today = date("Y-m-d");
 echo "begin cronjob....\n";
 while ($users = db_fetch_array ($all_users)) {
-
+    $users_notif++;
     // if notification set - this check is performed in query above.
     // if > 0, then get list of projects user belongs to
     //echo "user: " . $users['user_name'] . "\n";
@@ -113,7 +112,7 @@ while ($users = db_fetch_array ($all_users)) {
 	//echo "compare . " . $compare . "\n";
     
    if ($send_email) {
-		
+	echo "\n---------------";	
     echo "User: " . $users['user_name'] . "\n";
     echo "Compare date: " . $compare_date . "\n";
     // add projects user is member of
@@ -205,28 +204,29 @@ while ($users = db_fetch_array ($all_users)) {
 		  print_r($troveCategories);
 		  $allTroveCat = array_merge($troveCategories,$allTroveCat);
     }
-	//echo "All Trove Cat: ";
+	
 	//print_r($allTroveCat);
 	// get most common category
 	$c = array_count_values($allTroveCat);
-	$commonCat = array_search(max($c),$c);
-	$cntProjectsByCat = 0;
-	echo "Common Category: " . $commonCat . "\n";
-	$resultsProjectsCat = getProjectsByCat($cntProjectsByCat,$commonCat,$compare_date);
-	// add content to body
-	if ($resultsProjectsCat) {
-	   $max = db_numrows($resultsProjectsCat);
-	   if ($max > 0) {
-	      $body .= "<br /><br /><p><b>Here are related SimTK projects recently created:</b></p><br />";
-	      $body .= "<table>";
-	   }
-	   for ($i = 0; $i < $max; $i++) {
-	      $tempLogo = db_result($resultsProjectsCat, $i, 'simtk_logo_file');
-	      if (!empty($tempLogo)) {
-		     $body .= '<tr><td width="45" valign="top"><img height="40" width="40" src="'.util_make_url('/logos/') . db_result($resultsProjectsCat, $i, 'simtk_logo_file') .'"></td>';
-		  } else {
-		     $body .= '<tr><td width="45" valign="top"><img height="40" width="40" src="'.util_make_url('/logos/_thumb') .'"></td>';
-		  }
+	if (!empty($c)) {
+	   $commonCat = array_search(max($c),$c);
+	   $cntProjectsByCat = 0;
+	   echo "Common Category: " . $commonCat . "\n";
+	   $resultsProjectsCat = getProjectsByCat($cntProjectsByCat,$commonCat,$compare_date);
+	   // add content to body
+	   if ($resultsProjectsCat) {
+	      $max = db_numrows($resultsProjectsCat);
+	      if ($max > 0) {
+	         $body .= "<br /><br /><p><b>Here are related SimTK projects recently created:</b></p><br />";
+	         $body .= "<table>";
+	      }
+	      for ($i = 0; $i < $max; $i++) {
+	         $tempLogo = db_result($resultsProjectsCat, $i, 'simtk_logo_file');
+	         if (!empty($tempLogo)) {
+		        $body .= '<tr><td width="45" valign="top"><img height="40" width="40" src="'.util_make_url('/logos/') . db_result($resultsProjectsCat, $i, 'simtk_logo_file') .'"></td>';
+		     } else {
+		        $body .= '<tr><td width="45" valign="top"><img height="40" width="40" src="'.util_make_url('/logos/_thumb') .'"></td>';
+		     }
 		  
 		  $body .= '<td width="500" valign="top"> <strong><a href="'.util_make_url('/projects/') . db_result($resultsProjectsCat, $i, 'unix_group_name') . 
 						'" style="color:#5e96e1;">' . db_result($resultsProjectsCat, $i, 'group_name') . '</a></strong><br /><small>' . 
@@ -237,6 +237,7 @@ while ($users = db_fetch_array ($all_users)) {
 	   if ($max > 0) {
 	      $body .= "</table>";
 	   }
+	 } // if empty $c
 	}
 	//echo "related items: " . $i . "\n";
 	//echo $body . "\n";
@@ -251,8 +252,8 @@ while ($users = db_fetch_array ($all_users)) {
 	// send news.
 	//echo "email: " . $user->getEmail() . "\n";
 	if ($arrNewsSend || $max > 0) {
-	   //util_send_message("tod_hing@yahoo.com",$subj, $body.$tail,'noreply@'.forge_get_config('web_host'),'','','',true);
        util_send_message($user->getEmail(),$subj, $body.$tail,'noreply@'.forge_get_config('web_host'),'','','',true);
+	   echo "Email Sent to User: " . $user->getEmail() . "\n";
 	   $num_sent++;
 	}
 
@@ -265,6 +266,7 @@ while ($users = db_fetch_array ($all_users)) {
 	sleep($SLEEP);
 	
    } // if send email
+   //echo "---------------";
 }  // while
   
   
@@ -272,7 +274,7 @@ while ($users = db_fetch_array ($all_users)) {
 // send message to admin  
 //util_send_message("tod_hing@yahoo.com",'Cronjob Following', 'Emails sent: '.$num_sent,'noreply@'.forge_get_config('web_host'),'','','',true);
 echo "Emails sent: " . $num_sent . "\n";
-
+echo "Num Users with notification on: " . $users_notif . "\n";
 
 if (db_error()) {
 	$err .= $sql.db_error();
