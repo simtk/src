@@ -159,7 +159,7 @@ while ($users = db_fetch_array ($all_users)) {
 	   //$news_date = new DateTime($news['post_date']);
 	   $news_date = date("Y-m-d H:i" ,$news['post_date']);
 	   //echo "news date: " . $news_date . "\n";
-	   //echo "news date: " . strtotime($news_date) . "\n";
+	   echo "news date: " . strtotime($news_date) . "\n";
 	   // if notification freq less than diff then include news to send
 	   if ($compare_date < strtotime($news_date)) {
 	      // Format HTML News Page to send out
