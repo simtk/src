@@ -228,6 +228,11 @@ function closePackageUI($packageInfo) {
 		echo '</div>';
 	}
 
+	//
+	if ($packageInfo["doi"]) {
+	  echo '<br />';
+	  echo '<a href="#" data-toggle="popover" data-placement="right" data-trigger="hover" title="DOI" data-content="This package has one or more DOIs associated with it and can no longer be deleted. Release files associated with a DOI also cannot be updated or deleted.">Warning: DOI Association</a>';
+	}
 	// Close "download_package" div.
 	echo '</div>';
 }
