@@ -214,7 +214,7 @@ if (getStringFromRequest('submit')) {
 site_user_header(array('title'=>_('Register Project')));
 //require $gfwww.'/include/header.php';
 
-if ($group->isError()) {
+if (isset($group) && $group->isError()) {
    echo '<script>';
    echo '$(document).ready(function() {';
    if ($group->getErrorMessage() == 'Project title is too short') {
