@@ -272,7 +272,6 @@ while ($users = db_fetch_array ($all_users)) {
   
   
 // send message to admin  
-//util_send_message("tod_hing@yahoo.com",'Cronjob Following', 'Emails sent: '.$num_sent,'noreply@'.forge_get_config('web_host'),'','','',true);
 echo "Emails sent: " . $num_sent . "\n";
 echo "Num Users with notification on: " . $users_notif . "\n";
 
