@@ -1,8 +1,6 @@
 <?php
 /**
  *
- * index.php
- *
  * Project Registration: Project Information.
  *
  * This page is used to request data required for project registration:
@@ -22,7 +20,7 @@
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012, Jean-Christophe Masson - French National Education Department
  * Copyright 2013, Franck Villaume - TrivialDev
- * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016, Tod Hing, Henry Kwong - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -215,6 +213,22 @@ if (getStringFromRequest('submit')) {
 
 site_user_header(array('title'=>_('Register Project')));
 //require $gfwww.'/include/header.php';
+
+if (isset($group) && $group->isError()) {
+   echo '<script>';
+   echo '$(document).ready(function() {';
+   if ($group->getErrorMessage() == 'Project title is too short') {
+      echo '$("input[name=\'full_name\']").css("border-color", "red");';	  
+   } elseif (trim($group->getErrorMessage()) == 'Describe in a more comprehensive manner your project.') {
+      echo '$("textarea[name=\'description\']").css("border-color", "red");';
+   } elseif ($group->getErrorMessage() == 'Invalid project identifier.') {
+      echo '$("input[name=\'unix_name\']").css("border-color", "red");';
+   } elseif ($group->getErrorMessage() == 'Project identifier is already taken.') {
+      echo '$("input[name=\'unix_name\']").css("border-color", "red");';
+   }
+   echo '});';
+   echo '</script>';
+}
 ?>
 
 <form action="<?php echo getStringFromServer('PHP_SELF'); ?>" method="post" enctype="multipart/form-data">
@@ -229,7 +243,7 @@ site_user_header(array('title'=>_('Register Project')));
 <?php echo '<strong>Restrictions:  3-80 characters.</strong>' ?>
 </p>
 <p>
-<input class="required" required="required" size="80" maxlength="80" type="text" name="full_name" placeholder="<?php echo _('Project Title'); ?>" value="<?php echo htmlspecialchars($full_name); ?>" pattern=".{3,80}"/>
+<input class="required" size="80" maxlength="80" type="text" name="full_name" placeholder="<?php echo _('Project Title'); ?>" />
 </p>
 
 <?php
@@ -252,15 +266,14 @@ if ( !forge_get_config ('project_auto_approval') ) {
 <?php echo 'Provide a detailed description of your project so SimTK webmasters can determine suitability of your project for the site.'; ?>
 </p>
 
-<textarea class="required" required="required" name="description" cols="80" rows="10" placeholder="<?php echo _('Project Public Description'); ?>" >
-<?php echo htmlspecialchars($description); ?>
+<textarea class="required" name="description" cols="80" rows="10" placeholder="<?php echo _('Project Public Description'); ?>" >
 </textarea>
 
 <h2><?php echo 'Short project identifier' ?></h2>
 <?php echo "The identifier is part of the URL for your project.<p/><strong>Restrictions: 3-15 characters; lower-case; only characters, numbers, dashes (-), and underscores (_).</strong>" ?>
 <p>
 <br />
-<input class="required" required="required" type="text" maxlength="15" size="15" name="unix_name" value="<?php echo htmlspecialchars($unix_name); ?>" placeholder="<?php echo _('Short Name'); ?>" pattern="[a-z0-9-]{3,15}"/>
+<input class="required" type="text" maxlength="15" size="15" name="unix_name" placeholder="<?php echo _('Short Name'); ?>" />
 </p>
 
 <h2><?php echo 'Privacy' ?></h2>

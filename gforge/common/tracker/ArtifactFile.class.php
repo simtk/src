@@ -4,6 +4,7 @@
  *
  * Copyright 1999-2001, VA Linux Systems, Inc.
  * Copyright 2009, Roland Mas
+ * Copyright 2016, Tod Hing, Henry Kwong - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -112,6 +113,10 @@ class ArtifactFile extends Error {
 	 */
 	function create($filename, $filetype, $filesize, $file, $description='None', $importData = array()) {
 		// Some browsers don't supply mime type if they don't know it
+		if ($filetype == "text/html") {
+		   $this->setError(_('File type not allowed.'));
+		   return false;
+		}
 		if (!$filetype) {
 			// Let's be on safe side?
 			$filetype = 'application/octet-stream';
