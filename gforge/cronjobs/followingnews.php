@@ -128,7 +128,7 @@ while ($users = db_fetch_array ($all_users)) {
 	   foreach ($userProjects as $proj) {
 		  // get news for each project
 		  
-		  $arrNews = getNewsByProject($proj['group_id']);
+		  $arrNews = getNewsByProject($proj['group_id'],0);
 		  //echo "groupid: " . $proj['group_id'] . "\n";
 		  foreach ($arrNews as $news) {
 		    $arrNewsByProjects[$i++] = $news;
@@ -144,7 +144,7 @@ while ($users = db_fetch_array ($all_users)) {
 	   // index $i should be set above
 	   foreach ($projectsFollowing as $proj) {
 		  // get news for each project
-		  $arrNews = getNewsByProject($proj['group_id']);
+		  $arrNews = getNewsByProject($proj['group_id'],0);
 		  foreach ($arrNews as $news) {
 		    $arrNewsByProjects[$i++] = $news;
 		  }
@@ -174,7 +174,7 @@ while ($users = db_fetch_array ($all_users)) {
 						'" style="color:#5e96e1;">' . 
 						$news['summary'] . 
 					'</a></strong><br />
-					<small><a href="/projects/' . 
+					<small><a href="'.util_make_url('/projects/') . 
 						$news['unix_group_name'] . 
 						'/">' . 
 						$news['group_name'] . 

@@ -76,23 +76,26 @@ function news_footer($params) {
 }
 
 
-function getNewsByProject($group_id,$details_condensed=1) {
+function getNewsByProject($group_id,$sidebar=0,$details_condensed=1) {
 
 	$arrNews = array();
 
 	if (!$group_id) {
 		$group_id=forge_get_config('news_group');
 	}
+	if ($sidebar) {
+	  $whereclause_sidebar = "AND plugin_simtk_news.simtk_sidebar_display=true";
+	} else {
+	  $whereclause_sidebar = "";
+	}
 	$result = db_query_params ('
        SELECT groups.group_id, group_name, unix_group_name, plugin_simtk_news.id,plugin_simtk_news.summary, plugin_simtk_news.post_date, plugin_simtk_news.details, plugin_simtk_news.forum_id, picture_file, user_name, realname
        FROM plugin_simtk_news,groups,users WHERE (plugin_simtk_news.group_id=$1 AND plugin_simtk_news.is_approved <> 4)
 	   AND plugin_simtk_news.submitted_by = users.user_id
        AND plugin_simtk_news.group_id=groups.group_id
-       AND groups.status=$2
-       AND plugin_simtk_news.simtk_sidebar_display=$3
-       ORDER BY post_date DESC',
+       AND groups.status=$2 '.$whereclause_sidebar.' ORDER BY post_date DESC',
 				   array ($group_id,
-					  'A',true));
+					  'A'));
 	$rows=db_numrows($result);
     //echo "rows: " . $rows . "<br>";
 	$return = '';
