@@ -183,7 +183,7 @@ function constructPackageUI($HTML, $groupId, $groupObj, $packageInfo,
 		"&package_id=" . $packId;
 	echo '<span class="download_btn">' .
 		'<a class="btn-blue" href="' . $strAddReleaseLink . '">' .
-		'Add Release</a></span>&nbsp';
+		'Add Release & Files</a></span>&nbsp';
 
 	// Add citation.
 	$strAddCitationLink = "/frs/admin/createcitation.php?" .

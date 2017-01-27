@@ -111,7 +111,8 @@ $modifyScriptName = $_POST["ModifyScriptName"];
 $submitScriptName = $_POST["SubmitScriptName"];
 $postprocessScriptName = $_POST["PostprocessScriptName"];
 $installDirName = $_POST["InstallDirName"];
-$jobTimeStamp = $_POST["JobTimeStamp"];
+$maxRunTime = $_POST["MaxRunTime"];
+$modifyModel = $_POST["ModifyModel"];
 
 // Get license agreement.
 $license = getSimulationLicense($group_id);
@@ -125,6 +126,10 @@ $license = getSimulationLicense($group_id);
 
 
 <script>
+
+function cancelHandler() {
+	window.location.href= "/simulations/submitJob.php?group_id=" + <?php echo $group_id ?>;
+}
 
 function submitHandler() {
 
@@ -140,9 +145,10 @@ function submitHandler() {
 	theData.push({name: "InstallDirName", value: <?php echo json_encode($installDirName); ?>});
 	theData.push({name: "SoftwareName", value: <?php echo json_encode($softwareName); ?>});
 	theData.push({name: "SoftwareVersion", value: <?php echo json_encode($softwareVersion); ?>});
-	theData.push({name: "JobTimeStamp", value: <?php echo json_encode($jobTimeStamp); ?>});
 	theData.push({name: "ConfigFileName", value: <?php echo json_encode($cfgName); ?>});
 	theData.push({name: "ConfigText", value: <?php echo json_encode($cfgText); ?>});
+	theData.push({name: "MaxRunTime", value: <?php echo json_encode($maxRunTime); ?>});
+	theData.push({name: "ModifyModel", value: <?php echo json_encode($modifyModel); ?>});
 
 	// Submit job request and get result.
 	$.ajax({
@@ -171,11 +177,16 @@ function submitHandler() {
 
 <div style="padding:10px;">
 <div id='license'>
+<div><strong>This simulation is provided for you to run under the following license:</strong></div><br/>
 <span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 5px 0;"></span>
 <?php echo $license; ?>
 </div>
+<br/>
 
-<button id='acceptButton' onclick='submitHandler()' class='btn-cta' >Accept</button>
+<hr/>
+<div><strong>By clicking on the “I accept” button, you agree to be bound by the terms and conditions of this license agreement.</strong></div><br/>
+<button id='acceptButton' onclick='submitHandler()' class='btn-cta' >I accept</button>
+<button id='cancelButton' onclick='cancelHandler()' class='btn-cta' >I disagree</button>
 
 </div>
 

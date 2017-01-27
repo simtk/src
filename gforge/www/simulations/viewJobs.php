@@ -153,7 +153,7 @@ function loadSimulationResults(groupId) {
 						modelName;
 
 					strRes += "<td>";
-					strRes += "Model: " + modelName +
+					strRes += "<i>Model:</i> " + modelName +
 						" <span><a href='" + 
 						"configData/" + modelReference + 
 						"' title='Download model'>" +
@@ -163,25 +163,25 @@ function loadSimulationResults(groupId) {
 					// Show config file if used.
 					if (itemInfo["cfg_pathname"] !== undefined &&
 						itemInfo["cfg_pathname"] != "") {
-						strRes += "Config: <span><a href='" + 
+						strRes += "<i>Config File:</i> <span><a href='" + 
 							itemInfo["cfg_pathname"] + 
 							"' title='Download config file'>";
 						strRes += "<img src='/themes/simtk/images/docman/download-directory-zip.png' alt='downloadaszip' style='margin:0;float:none;width:22px;height:22px;'></a>";
 						strRes += "</span><br/>";
 					}
 					else {
-						strRes += "Config: None<br/>";
+						strRes += "<i>Config File:</i> None<br/>";
 					}
 
-					strRes += "Software: " + itemInfo["software_name"] + "<br/>";
-					strRes += "Verion: " + itemInfo["software_version"] + "<br/>";
-					strRes += "Server: " + itemInfo["server_name"];
-					strRes += "<br/>Duration: ";
+					strRes += "<i>Software:</i> " + itemInfo["software_name"] + "<br/>";
+					strRes += "<i>Version:</i> " + itemInfo["software_version"] + "<br/>";
+					strRes += "<i>Server:</i> " + itemInfo["server_name"];
+					strRes += "<br/><i>Duration:</i> ";
 					if (itemInfo["duration"] != -1) {
 						strRes += itemInfo["duration"] + " secs";
 					}
 
-					strRes += "<br/>Last updated: ";
+					strRes += "<br/><i>Last updated:</i> ";
 					lastUpdated = itemInfo["last_updated"];
 					lastUpdatedVerbose = new Date(lastUpdated * 1000).format("MM/dd/yyyy hh:mm:ss");
 					strRes += lastUpdatedVerbose;
@@ -194,7 +194,7 @@ function loadSimulationResults(groupId) {
 					if (theSummary != "" && theSummary.split('\n').length <= 1) {
 						// Display summary content if content is one line only.
 						theSummaryText = theSummary;
-						strRes += "Summary: " + theSummaryText + "<br/>";
+						strRes += "<i>Summary:</i> " + theSummaryText + "<br/>";
 					}
 					else {
 						var userName = "<?php echo $userName; ?>";
@@ -219,20 +219,21 @@ function loadSimulationResults(groupId) {
 							var idx = file1.indexOf(prefix);
 							if (idx != -1) {
 								var title = file1.substr(idx + prefix.length);
-								strRes += title + ": ";
+								strRes += title + " ";
 							}
 							strRes += "<a href='" + 
 								"/simulations/" + file1 + 
 								"' title='Download file'>";
 							strRes += "<img src='/themes/simtk/images/docman/download-directory-zip.png' alt='downloadaszip' style='margin:0;float:none;width:22px;height:22px;'></a><br/>";
 
+/*
 							// "femur_kinematics.txt"
 							var file2 = summaryFile.replace("post_process.txt", 
 								"femur_kinematics.txt");
 							var idx = file2.indexOf(prefix);
 							if (idx != -1) {
 								var title = file2.substr(idx + prefix.length);
-								strRes += title + ": ";
+								strRes += title + " ";
 							}
 							strRes += "<a href='" + 
 								"/simulations/" + file2 + 
@@ -245,7 +246,7 @@ function loadSimulationResults(groupId) {
 							var idx = file3.indexOf(prefix);
 							if (idx != -1) {
 								var title = file3.substr(idx + prefix.length);
-								strRes += title + ": ";
+								strRes += title + " ";
 							}
 							strRes += "<a href='" + 
 								"/simulations/" + file3 + 
@@ -258,7 +259,7 @@ function loadSimulationResults(groupId) {
 							var idx = file4.indexOf(prefix);
 							if (idx != -1) {
 								var title = file4.substr(idx + prefix.length);
-								strRes += title + ": ";
+								strRes += title + " ";
 							}
 							strRes += "<a href='" + 
 								"/simulations/" + file4 + 
@@ -271,12 +272,13 @@ function loadSimulationResults(groupId) {
 							var idx = file5.indexOf(prefix);
 							if (idx != -1) {
 								var title = file5.substr(idx + prefix.length);
-								strRes += title + ": ";
+								strRes += title + " ";
 							}
 							strRes += "<a href='" + 
 								"/simulations/" + file5 + 
 								"' title='Download file'>";
 							strRes += "<img src='/themes/simtk/images/docman/download-directory-zip.png' alt='downloadaszip' style='margin:0;float:none;width:22px;height:22px;'></a><br/>";
+*/
 						}
 					}
 
@@ -298,11 +300,11 @@ function loadSimulationResults(groupId) {
 							", " + timeDel.getFullYear() +
 							"</span>";
 						if (timeToDelete > timeNow) {
-							strRes += "<br/><span>Raw data: ";
+							strRes += "<br/><span>Raw data ";
 							strRes += "<a href='/simulations/" + rawFile + 
 								"' title='Download raw output as a ZIP'>";
 							strRes += "<img src='/themes/simtk/images/docman/download-directory-zip.png' alt='downloadaszip' style='margin:0;float:none;width:22px;height:22px;'></a><br/>";
-							strRes += "<span style='font-size:11px;'>Raw data will be deleted on " + strTimeDel + ".</span>";
+							strRes += "<div style='font-size:11px;'>Raw data will be deleted on " + strTimeDel + ".</div>";
 							strRes += "</span>";
 						}
 					}

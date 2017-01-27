@@ -117,7 +117,11 @@ function getSubmittedJobs($theUserName, &$theJobs, &$theGroupNames) {
 			$timeToDelete = $lastUpdated + TIMEOFFSET_DELETION;
 			$jobInfo['time_to_delete'] = $timeToDelete;
 
-			// NOTE: Check whether time has past the deletion time 
+/*
+			// CHANGED TO ALWAYS FETCH FILE AFTER JOB COMPLETION AFTERWARD.
+			//  HENCE, getSubmittedJobRawData() IS NO LONGER NEEDED HERE.
+
+			// NOTE: Check whether time is past the deletion time 
 			// before fetching raw data file.
 			// Servers for old raw data files may no longer be accessible.
 			$timeNow = time();
@@ -135,10 +139,16 @@ function getSubmittedJobs($theUserName, &$theJobs, &$theGroupNames) {
 					}
 				}
 			}
+*/
 
 			// Generate job identifier.
 			$theJobTimeStamp = $jobInfo['job_timestamp'];
 			$jobId = $theUserName . "_" . $theGroupId . "_" . $theJobTimeStamp;
+
+			// Filename of raw data tar.gz file.
+			$filenameJobRawData = "results/" . $jobId . ".tar.gz";
+			$theJobRawDataFile = $filenameJobRawData;
+
 			// Filename of summary.
 			$theJobSummaryDataFile = "results/" . $jobId . "_post_process.txt";
 			if (file_exists($theJobSummaryDataFile)) {
@@ -267,7 +277,7 @@ function getSubmittedJobRawData($theUserName, $theJobName, $isFetchFile, &$theJo
 	$rowsUserJob = db_numrows($resUserJob);
 	if ($rowsUserJob == 0) {
 		// Data not available.
-		return;
+		return true;
 	}
 	for ($i = 0; $i < $rowsUserJob; $i++) {
 		$theServerName = db_result($resUserJob, $i, 'server_name');
@@ -286,7 +296,7 @@ function getSubmittedJobRawData($theUserName, $theJobName, $isFetchFile, &$theJo
 	$theJobRawData = $filenameJobRawData;
 	if ($isFetchFile === false) {
 		// Done! Get file name only. Does not fetch the file.
-		return;
+		return true;
 	}
 
 	// Fetch file.

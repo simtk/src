@@ -91,7 +91,18 @@ header("X-UA-Compatible: IE=Edge");
 
 	<div class="category-header">
 		<div class="searchresult-text">
+<?php
+if ($srch == "___ERROR___") {
+?>
+			<h2>Invalid text to search for</h2>
+<?php
+}
+else {
+?>
 			<h2><span class="searchresults">People search results: </span><?php echo $srch ?></h2>
+<?php
+}
+?>
 		</div>
 		<div class="clearer"></div>
 	</div><!-- category-header-->
