@@ -45,9 +45,13 @@ $modelCfgNames = array();
 $modelModifyScriptNames = array();
 $modelSubmitScriptNames = array();
 $modelPostprocessScriptNames = array();
+$modelMaxRunTimes = array();
 $installDirNames = array();
-$sql = "SELECT model_name, cfg_name_1, script_name_modify, script_name_submit, script_name_postprocess, install_dir FROM simulation_specifications WHERE " .
-	"group_id=" . $groupId . " AND " . 
+$sql = "SELECT model_name, cfg_name_1, script_name_modify, " .
+	"script_name_submit, script_name_postprocess, " .
+	"install_dir, max_runtime " .
+	"FROM simulation_specifications " .
+	"WHERE group_id=" . $groupId . " AND " . 
 	"software_name='" . $softwareName . "' AND " .
 	"software_version='" . $softwareVersion . "'";
 
@@ -75,6 +79,9 @@ for ($i = 0; $i < $rows; $i++) {
 	// Track model postprocess script file names.
 	$modelPostprocessScriptNames[$tmpModelName] = db_result($result, $i, 'script_name_postprocess');
 
+	// Track model max runtime
+	$modelMaxRunTimes[$tmpModelName] = db_result($result, $i, 'max_runtime');
+
 	// Track model installation directories.
 	$installDirNames[$tmpModelName] = db_result($result, $i, 'install_dir');
 }
@@ -89,6 +96,7 @@ $res["modelCfgNames"] = $modelCfgNames;
 $res["modelModifyScriptNames"] = $modelModifyScriptNames;
 $res["modelSubmitScriptNames"] = $modelSubmitScriptNames;
 $res["modelPostprocessScriptNames"] = $modelPostprocessScriptNames;
+$res["modelMaxRunTimes"] = $modelMaxRunTimes;
 $res["InstallDirNames"] = $installDirNames;
 
 echo json_encode($res);

@@ -72,9 +72,15 @@ $postprocessScriptName = $_POST["PostprocessScriptName"];
 $installDirName = $_POST["InstallDirName"];
 $softwareName = $_POST["SoftwareName"];
 $softwareVersion = $_POST["SoftwareVersion"];
-$jobTimeStamp = $_POST["JobTimeStamp"];
 $cfgName = $_POST["ConfigFileName"];
+$maxRunTime = $_POST["MaxRunTime"];
+$modifyModel = $_POST["ModifyModel"];
+
+// NOTE: All newlines were with replaced <br/> before sending via POST
+// because Firefox strips the character, but other browsers are fine.
+// Replacing <br/> with newlines to restore the content.
 $cfgText = $_POST["ConfigText"];
+$cfgText = str_replace("<br/>", "\n", $cfgText);
 
 // Submit request and get result.
 $resJobRequest = requestSimulationJob(
@@ -90,9 +96,10 @@ $resJobRequest = requestSimulationJob(
 	$installDirName,
 	$softwareName, 
 	$softwareVersion,
-	$jobTimeStamp,
 	$cfgName,
-	$cfgText);
+	$cfgText,
+	$maxRunTime,
+	$modifyModel);
 
 echo json_encode($resJobRequest);
 

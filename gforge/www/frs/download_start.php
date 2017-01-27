@@ -308,10 +308,20 @@ case 'file':
 			break;
 		}
 		else {
-			// Found file!
+			// Found file! (for backward compatibility)
 			$filepath = "/var/lib/gforge/download/" . 
 				$frsGroup->getUnixName() . "/" . 
 				$simtkFileLocation;
+			if (!file_exists($filepath)) {
+				// File is not found. Use default gforge file download.
+				// NOTE: This case happens when a file from 
+				// a previous release is re-used.
+				$filepath = forge_get_config('upload_dir') . '/'. 
+					$frsGroup->getUnixName() . '/' .
+					$frsPackage->getFileName() . '/'.
+					$frsRelease->getFileName() . '/' .
+					$filename;
+			}
 		}
 	}
 	else {

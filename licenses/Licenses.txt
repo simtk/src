@@ -56,6 +56,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 SimTK uses GeoIP which is copyright 2004 by MaxMind LLC under the terms of the GNU General Public License v2.1.  A copy of this license may be found in the accompanying file "GPL2.txt".
 
+8. AWS SDK for PHP
+
+SimTK uses aws-sdk-php v2.8.31 which is copyright under the terms of the Apache License, Version 2.0.  A copy of this license may be found in the accompanying file "Apache20.txt".
 
 =================================
 JavaScript and Other UI Utilities
