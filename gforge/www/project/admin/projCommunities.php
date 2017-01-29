@@ -51,9 +51,15 @@ if (!$group || !is_object($group)) {
 	exit_error($group->getErrorMessage(),'admin');
 }
 
+// Only display the communities request page for public projects.
+if (!$group->isPublic()) {
+	exit_error("Private project cannot join communities", 'admin');
+	return;
+}
+
 $group->clearError();
 
-// If this was a submission, make updates
+// If this was a submission, make updates.
 if ($submit = getStringFromRequest('submit')) {
 
 	$categories = getStringFromRequest('categories');
@@ -71,6 +77,31 @@ if ($submit = getStringFromRequest('submit')) {
 $theParams = project_admin_header(array('title'=>'Admin','group'=>$group->getID()));
 
 ?>
+
+<script>
+// NOTE: Chrome does not refresh checkbox even though the "checked" attribute is present.
+// Hence, used a hidden div to keep the "is_checked"/"not_checked" text value and then
+// refresh the checkbox property accordingly.
+$(document).ready(function() {
+	// The class myHiddenDiv is used for tracking the "checked" information.
+	$(".myHiddenDiv").each(function() {
+		if ($(this).attr("id").indexOf("hidden") != -1) {
+			// Get target id stored after "hidden".
+			var theTargetId = $(this).attr("id").substring(6);
+			// Generate target checkbox id.
+			var theCheckBoxId = "myCheckBox" + theTargetId;
+			if ($(this).text().trim() == "is_checked") {
+				// Check checkbox.
+				$("#" + theCheckBoxId).prop("checked", true);
+			}
+			else {
+				// Uncheck checkbox.
+				$("#" + theCheckBoxId).prop("checked", false);
+			}
+		}
+	});
+});
+</script>
 
 <style>
 .myButton {
@@ -104,12 +135,13 @@ $theParams = project_admin_header(array('title'=>'Admin','group'=>$group->getID(
 	echo '<h4>Your project belongs to the following communities</h4>';
 	echo '<div class="table-responsive">';
 	echo '<table class="table table-condensed table-bordered table-striped">';
-	echo '<tr><th>Community</th><th>Status</th>';
+	echo '<tr><th>Community</th><th>Status</th></tr>';
 
 	while ($row = db_fetch_array($resultCommunities)) {
 ?>
 		<tr>
 		<td><input type="checkbox" 
+			id="myCheckBox<?php echo $row['trove_cat_id']; ?>"
 			name="categories[]" 
 			value="<?php echo $row['trove_cat_id']; ?>"
 			<?php
@@ -136,6 +168,21 @@ $theParams = project_admin_header(array('title'=>'Admin','group'=>$group->getID(
 					echo "No description available";
 				}
 			?>" >?</a-->
+			<div style="display:none;"
+				id="hidden<?php echo $row['trove_cat_id']; ?>"
+				class="myHiddenDiv" >
+			<?php
+				if ((isset($troveCatLinkArr[$row['trove_cat_id']]) &&
+					$troveCatLinkArr[$row['trove_cat_id']]) ||
+					(isset($troveCatLinkPendingArr[$row['trove_cat_id']]) &&
+					$troveCatLinkPendingArr[$row['trove_cat_id']])) {
+					echo "is_checked";
+				}
+				else {
+					echo "not_checked";
+				}
+			?>
+			</div>
 		</td>
 		<td>
 			<?php
@@ -163,22 +210,9 @@ $theParams = project_admin_header(array('title'=>'Admin','group'=>$group->getID(
    
 ?>
 
-
-<?php
-// This function is used to render checkboxes below
-function c($v) {
-	if ($v) {
-		return 'checked="checked"';
-	} else {
-		return '';
-	}
-}
-?>
-
 <p>
 <input type="submit" class="btn-cta" name="submit" value="Update" />
 </p>
-
 
 </form>
 
