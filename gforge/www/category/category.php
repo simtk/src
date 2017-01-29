@@ -227,10 +227,12 @@ header("X-UA-Compatible: IE=Edge");
 		<p><?php echo $introduction;?></p>
 	</div><!-- /categories_intro -->
 
+	<div class="featured_projs" style="Display: none;">
 	<h2 class='underlined'>Featured projects</h2>
 
 	<div class="categories_featured" id="categories_featured">
 	</div><!-- categories_featured -->
+	</div><!-- featured_projs -->
 
 	<h2 class='underlined'>Recently updated projects</h2>
 
@@ -268,7 +270,7 @@ header("X-UA-Compatible: IE=Edge");
 	<h2 class='underlined'>News</h2>
 
 	<div class="item_newsarea">
-		<?php echo show_category_news(3, $cat_id);?>
+		<?php echo show_category_news(3, $cat_id, true);?>
 	</div><!-- /item_newsarea -->
 
 </div><!-- module_newsarea -->
@@ -283,7 +285,7 @@ header("X-UA-Compatible: IE=Edge");
 <div class='module_discussion'>
 	<h2 class='underlined'>Discussion</h2>
 
-	<?php echo show_category_forum_posts(3, $cat_id);?>
+	<?php echo show_category_forum_posts(3, $cat_id, true);?>
 
 </div><!-- module_discussion -->
 

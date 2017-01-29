@@ -42,12 +42,12 @@ require_once $gfcommon.'include/FusionForge.class.php';
 require_once $gfcommon.'include/tag_cloud.php';
 require_once $gfcommon.'include/Stats.class.php';
 
-function show_category_news($numNewsToShow, $categoryId) {
-	echo news_show_latest(0,$numNewsToShow,true,false,false,0,false,true,$categoryId);
+function show_category_news($numNewsToShow, $categoryId, $suppressDetails=false) {
+	echo news_show_latest(0,$numNewsToShow,true,false,false,0,false,true,$categoryId,$suppressDetails);
 }
 
-function show_category_forum_posts($numPostsToShow, $categoryId) {
-	echo getCategoryPosts($numPostsToShow, $categoryId);
+function show_category_forum_posts($numPostsToShow, $categoryId, $suppressDetails=false) {
+	echo getCategoryPosts($numPostsToShow, $categoryId, $suppressDetails);
 }
 
 
