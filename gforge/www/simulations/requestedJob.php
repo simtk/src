@@ -164,7 +164,8 @@ function submitHandler() {
 		}
 		else {
 			// Redirect to view jobs page to display jobs.
-			window.location.href = "/simulations/viewJobs.php?group_id=" + <?php echo $group_id; ?>;
+			window.location.href = "/simulations/viewJobs.php?group_id=" + <?php echo $group_id; ?> + 
+				"&job_launched=1";;
 		}
 	}).fail(function() {
 		alert("Failed to launch requested job");

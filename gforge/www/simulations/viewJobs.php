@@ -59,6 +59,12 @@ for ($i = 0; $i < $rows; $i++) {
 }
 db_free_result($result);
 
+$job_launched = getIntFromRequest('job_launched');
+if ($job_launched == 1) {
+	// Display feedback message after job launch.
+	$feedback = "You have submitted a job and will receive email updates on the status of the job.";
+}
+
 html_use_jqueryui();
 site_project_header(array('title'=>'Simulations', 
 	'h1' => '', 
