@@ -207,8 +207,10 @@ $(function() {
 			//$("#contentModelConfigFile").css("display", "table-cell");
 			//$("#labelConfigText").css("display", "table-cell");
 			//$("#contentConfigText").css("display", "table-cell");
-			$(".configText").removeAttr("disabled");
 			//$("#selConfigFileName").removeAttr("disabled");
+			$(".configText").removeAttr("disabled");
+			$(".configText").css({"color":"black", "background-color":"white"});
+			$("#instrConfigText").html('<small>Change the numerical values below to modify the model to be simulated</small>');
 		}
 		else {
 			// Hide the config file name selection and config text area.
@@ -217,9 +219,10 @@ $(function() {
 			//$("#contentModelConfigFile").css("display", "none");
 			//$("#labelConfigText").css("display", "none");
 			//$("#contentConfigText").css("display", "none");
-
-			$(".configText").attr("disabled", "true");
 			//$("#selConfigFileName").attr("disabled", "disabled");
+			$(".configText").attr("disabled", "true");
+			$(".configText").css({"color":"gray", "background-color":"white"});
+			$("#instrConfigText").html('<small>To change the values, select ‘Yes’ for “Modify File” above.</small>');
 
 			// Refresh config text.
 			getConfigText();
@@ -808,8 +811,8 @@ function updateConfigFileNames() {
 <tr>
 <td id='labelConfigText'><br/></td>
 <td id='contentConfigText'>
-	<div><small>Change the numerical values below to modify the model to be simulated</small></div>
-	<textarea class='configText' disabled='disabled' style='width:450px;'></textarea>
+	<div id='instrConfigText'><small>To change the values, select ‘Yes’ for “Modify File” above.</small></div>
+	<textarea class='configText' disabled='disabled' style='width:450px;color:gray;background-color:white;'></textarea>
 </td>
 </tr>
 
