@@ -434,10 +434,20 @@ case 'latestzip':
 					// e.g. URL which point to file outside are not 
 					// included in this zip file.
 					if ($simtkFileSize > 0) {
-						// Found file!
+						// Found file! (for backward compatibility)
 						$tmpFilePath = "/var/lib/gforge/download/" . 
 							$frsPackage->Group->getUnixName() . "/" . 
 							$simtkFileLocation;
+						if (!file_exists($tmpFilePath)) {
+							// File is not found. Use default gforge file download.
+							// NOTE: This case happens when a file from 
+							// a previous release is re-used.
+							$tmpFilePath = forge_get_config('upload_dir') . '/'.
+								$frsPackage->Group->getUnixName() . '/' .
+								$frsPackage->getFileName() . '/'.
+								$frsRelease->getFileName() . '/' .
+								$fileObject->getName();
+						}
 					}
 				}
 				else {
@@ -566,10 +576,20 @@ case 'latestfile':
 			break;
 		}
 		else {
-			// Found file!
+			// Found file! (for backward compatibility)
 			$filepath = "/var/lib/gforge/download/" . 
 				$frsGroup->getUnixName() . "/" . 
 				$simtkFileLocation;
+			if (!file_exists($filepath)) {
+				// File is not found. Use default gforge file download.
+				// NOTE: This case happens when a file from 
+				// a previous release is re-used.
+				$filepath = forge_get_config('upload_dir') . '/'. 
+					$frsGroup->getUnixName() . '/' .
+					$frsPackage->getFileName() . '/'.
+					$frsRelease->getFileName() . '/' .
+					$filename;
+			}
 		}
 	}
 	else {
@@ -689,10 +709,20 @@ case 'release':
 					// e.g. URL which point to file outside are not 
 					// included in this zip file.
 					if ($simtkFileSize > 0) {
-						// Found file!
+						// Found file! (for backward compatibility)
 						$tmpFilePath = "/var/lib/gforge/download/" . 
 							$frsPackage->Group->getUnixName() . "/" . 
 							$simtkFileLocation;
+						if (!file_exists($tmpFilePath)) {
+							// File is not found. Use default gforge file download.
+							// NOTE: This case happens when a file from 
+							// a previous release is re-used.
+							$tmpFilePath = forge_get_config('upload_dir') . '/'.
+								$frsGroup->getUnixName() . '/' .
+								$frsPackage->getFileName() . '/'.
+								$frsRelease->getFileName() . '/' .
+								$fileObject->getName();
+						}
 					}
 				}
 				else {
