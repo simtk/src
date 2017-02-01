@@ -1570,13 +1570,13 @@ class Group extends Error {
 				// Notify admins if link has not appeared before..
 				$theIdx = array_search($catId, $arrCatPendingStart);
 				$theMsgTitle = $arrFullName[$catId] . " Community: project pending approval";
-				$theMsgBody = "To view project pending approval for addition to " .
-					//"<a href='" . "https://" . $theServerName . "/category/communityPage.php?cat=" . $catId . "'>" . $arrFullName[$catId] . " community</a>, " .
-					$arrFullName[$catId] . " community, " .
-					"vist <a href='" . 
+				$theMsgBody = "A project has requested to be added to the " . 
+					$arrFullName[$catId] . " community.  " . 
+					"To see the list of projects pending approval, " .
+					"vist the <a href='" . 
 					"https://" . $theServerName . 
-					"/category/communityAdmin.php?cat=" . $catId . 
-					"'>Community Admin</a>.";
+					"/category/communityAdmin.php?cat=" . $catId . "'>" .
+					$arrFullName[$catId] . " Community Administration page</a>.";
 				if ($theIdx === false && $theServerName !== false) {
 					// Look up administrators' emails.
 					$sqlCatAdminEmails = "SELECT email, user_name FROM users u " .
