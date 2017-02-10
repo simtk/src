@@ -32,11 +32,41 @@
  * <http://www.gnu.org/licenses/>.
  */ 
  
-require_once('phpseclib/Math/BigInteger.php');
-require_once('phpseclib/Net/SSH2.php');
-require_once('phpseclib/Net/SFTP.php');
-require_once('phpseclib/Crypt/RC4.php');
-require_once('phpseclib/Crypt/RSA.php');
+set_include_path(get_include_path() . PATH_SEPARATOR . './phpseclib');
+require_once('Math/BigInteger.php');
+require_once('Net/SSH2.php');
+require_once('Net/SFTP.php');
+require_once('Crypt/RC4.php');
+require_once('Crypt/RSA.php');
+require_once('Crypt/AES.php');
+
+
+// Retrieve authentication info of remote server from database.
+function getRemoteUserAuthentication($theRemoteServerName, 
+	&$theRemoteUserName, &$theRemotePassword, &$theRemoteAuthMethod,
+	&$theRemoteServerAddr, &$theRemoteServerAlias) {
+
+	$theRemoteUserName = "";
+	$theRemotePassword = "";
+	$theRemoteAuthMethod = -1;
+	$theRemoteServerAddr = "";
+	$theRemoteServerAlias = $theRemoteServerName;
+
+	// *** RETRIEVE SERVERS ACCESS INFO HERE ***
+
+	if ($theRemoteUserName == "" || $theRemotePassword == "" || $theRemoteAuthMethod == -1) {
+		// Cannot get user name/password.
+		return "***ERROR***" . "Cannot get authentication information for " . $theRemoteServerName;
+	}
+
+	if (trim($theRemoteServerAddr) == "") {
+		// Server address not available yet.
+		return "***ERROR***" . "Cannot get server address: " . $theRemoteServerName;
+	}
+
+	return null;
+}
+
 
 // Wrapper for exec.
 function sshExec($theSsh, $cmd) {
@@ -91,9 +121,30 @@ function sftpGet($theSftp, $strRemoteFilePath, $strLocalFilePath) {
 		if (!$stream) {
 			return false;
 		}
+/*
 		$contents = fread($stream, filesize("ssh2.sftp://$sftp$strRemoteFilePath"));
 		file_put_contents($strLocalFilePath, $contents);
 
+		@fclose($stream);
+*/
+		if (!$theLocalFile = @fopen($strLocalFilePath, 'w')) {
+			// Cannot create local file.
+			return false;
+		}
+
+		$bytesRead = 0;
+		$theFilesize = filesize("ssh2.sftp://$sftp$strRemoteFilePath");
+		while ($bytesRead < $theFilesize && 
+			($theBuffer = fread($stream, $theFilesize - $bytesRead))) {
+
+			$bytesRead += strlen($theBuffer);
+			if (fwrite($theLocalFile, $theBuffer) === FALSE) {
+				// Cannot write to local file.
+				break;
+			}
+		}
+
+		@fclose($theLocalFile);
 		@fclose($stream);
 	}
 
@@ -141,7 +192,7 @@ function sftpPut($theSftp, $strRemoteFilePath, $strLocalFilePath) {
 }
 
 // Get ssh access to remote server.
-function getRemoteServerSshAccess($theRemoteServerName, 
+function getRemoteServerSshAccess($theRemoteServerName, $strRemoteServerAddr,
 	$theRemoteUserName, $theRemotePassword, $theRemoteAuthMethod,
 	&$strRemoteServerHomeDir = null) {
 
@@ -149,11 +200,11 @@ function getRemoteServerSshAccess($theRemoteServerName,
 
 	if ($theRemoteAuthMethod == 2) {
 		// Use phpseclib method for handling RSA private key.
-		$resSsh = new Net_SSH2($theRemoteServerName, 22);
+		$resSsh = new Net_SSH2($strRemoteServerAddr, 22);
 	}
 	else {
 		// libssh2-php method.
-		$resSsh = @ssh2_connect($theRemoteServerName, 22);
+		$resSsh = @ssh2_connect($strRemoteServerAddr, 22);
 	}
 
 	if ($theRemoteAuthMethod == 2) {
@@ -162,15 +213,13 @@ function getRemoteServerSshAccess($theRemoteServerName,
 
 		// phpseclib method.
 		$key = new Crypt_RSA();
-		$pathPrivateKeyFile = "/usr/share/gforge/awsConfigData/" . $theRemotePassword;
+		$pathPrivateKeyFile = PATH_TO_PRIVATE_KEY_FILE . $theRemotePassword;
 		$key->loadKey(file_get_contents($pathPrivateKeyFile));
 
 		if (!$resSsh || !$resSsh->login($theRemoteUserName, $key)) {
 			// Cannot login to remote server.
 			return false;
 		}
-
-		return false;
 	}
 	else {
 		// Using username/password.
@@ -190,27 +239,27 @@ function getRemoteServerSshAccess($theRemoteServerName,
 			return false;
 		}
 
-		// Result contains newline. Trim it.
-		$strRemoteServerHomeDir = trim(sshExec($resSsh, "/bin/pwd"));
 	}
+
+	// Result contains newline. Trim it.
+	$strRemoteServerHomeDir = trim(sshExec($resSsh, "/bin/pwd"));
 
 	return $resSsh;
 }
 
 // Get access to remote server.
-function getRemoteServerSftpAccess($theRemoteServerName, 
-	$theRemoteUserName, $theRemotePassword, $theRemoteAuthMethod,
-	&$strRemoteServerHomeDir = null) {
+function getRemoteServerSftpAccess($theRemoteServerName, $strRemoteServerAddr,
+	$theRemoteUserName, $theRemotePassword, $theRemoteAuthMethod) {
 
 	// Use SFTP to send file to remote server.
 
 	if ($theRemoteAuthMethod == 2) {
 		// Use phpseclib method for handling RSA private key.
-		$resSftp = new Net_SFTP($theRemoteServerName, 22);
+		$resSftp = new Net_SFTP($strRemoteServerAddr, 22);
 	}
 	else {
 		// libssh2-php method.
-		$resSftp = @ssh2_connect($theRemoteServerName, 22);
+		$resSftp = @ssh2_connect($strRemoteServerAddr, 22);
 	}
 
 	if ($theRemoteAuthMethod == 2) {
@@ -219,14 +268,12 @@ function getRemoteServerSftpAccess($theRemoteServerName,
 
 		// phpseclib method.
 		$key = new Crypt_RSA();
-		$pathPrivateKeyFile = "/usr/share/gforge/awsConfigData/" . $theRemotePassword;
+		$pathPrivateKeyFile = PATH_TO_PRIVATE_KEY_FILE . $theRemotePassword;
 		$key->loadKey(file_get_contents($pathPrivateKeyFile));
 		if (!$resSftp || !$resSftp->login($theRemoteUserName, $key)) {
 			// Cannot login to remote server.
 			return false;
 		}
-
-		return false;
 	}
 	else {
 		// Using username/password.
@@ -245,12 +292,19 @@ function getRemoteServerSftpAccess($theRemoteServerName,
 		if (!@ssh2_auth_password($resSftp, $theRemoteUserName, $theRemotePassword)) {
 			return false;
 		}
-
-		// Result contains newline. Trim it.
-		$strRemoteServerHomeDir = trim(sshExec($resSftp, "/bin/pwd"));
 	}
 
 	return $resSftp;
+}
+
+// Stop idling EC2s (i.e. ECs that do not have simulations 
+// which are running or in-queue.)
+function stopEC2sIdle() {
+}
+
+
+// Start EC2s that have pending simulation requests.
+function startEC2WithPendingRequests() {
 }
 
 ?>

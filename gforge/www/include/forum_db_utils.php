@@ -174,7 +174,7 @@ function getNumTopicsByGroupId($theGroupId) {
 }
 
 // Get posts by category which are visible (i.e. not deleted.)
-function getCategoryPosts($numPostsToShow, $categoryId) {
+function getCategoryPosts($numPostsToShow, $categoryId, $suppressDetails=false) {
 
 	$strQueryGroup = "SELECT tgl.group_id FROM trove_group_link tgl " .
 		"JOIN groups g " .
@@ -240,7 +240,7 @@ function getCategoryPosts($numPostsToShow, $categoryId) {
 		$arrTopics[$theTopic] = $theTopic;
 
 		// Retrieve post item for display.
-		generate_display_post_item($row, $cnt, $strResult);
+		generate_display_post_item($row, $cnt, $strResult, $suppressDetails);
 		$cnt++;
 	}
 
@@ -255,7 +255,7 @@ function getCategoryPosts($numPostsToShow, $categoryId) {
 }
 
 // Generate UI display item per post.
-function generate_display_post_item($result, $i, &$return) {
+function generate_display_post_item($result, $i, &$return, $suppressDetails=false) {
 
 	$theForumId = $result["forum_id"];
 	$theForumName = $result["forum_name"];
@@ -269,9 +269,11 @@ function generate_display_post_item($result, $i, &$return) {
 
 	$return .= '<div class="item_discussion">';
 
-	// Title.
-	$return .= '<h4>' . util_make_link($theUrl, $theSubject) . '</h4>';
-	$return .= "\n";
+	if ($suppressDetails === false) {
+		// Title.
+		$return .= '<h4>' . util_make_link($theUrl, $theSubject) . '</h4>';
+		$return .= "\n";
+	}
 
 	// Project name.
 	$strUnixGroupName = "";
@@ -286,8 +288,10 @@ function generate_display_post_item($result, $i, &$return) {
 
 	// Date.
 	$theDate = date('M j, Y', $result["post_time"]);
-	$return .= "<div class='discussion_data'>" . $forumName . " " . $theDate . "</div>";
-	$return .= "\n";
+	if ($suppressDetails === false) {
+		$return .= "<div class='discussion_data'>" . $forumName . " " . $theDate . "</div>";
+		$return .= "\n";
+	}
 
 	// Post item.
         $re = '/		# Split sentences on whitespace between them.
@@ -335,17 +339,35 @@ function generate_display_post_item($result, $i, &$return) {
 //		$thePictureFile = "user_default.gif";
 		$thePictureFile = "user_profile.jpg";
 	}
-	if ($summ_txt != "") {
+	if ($suppressDetails === false) {
+		if ($summ_txt != "") {
+			$return .= '<div class="discussion_photo">';
+			$return .= "<a href='/users/" . $theUserName . "'>";
+			$return .= "<img " .
+				' alt="Image not available"' .
+				' onError="this.onerror=null;this.src=' . "'" . 
+				'/userpics/user_profile.jpg' . "';" . '"' .
+				" src='/userpics/" . $thePictureFile ."' class='news_img' />";
+			$return .= "</a>";
+			$return .= '</div>';
+			$return .= '<div class="discussion_phototext">';
+			$return .= $summ_txt;
+			$return .= '</div>';
+		}
+	}
+	else {
 		$return .= '<div class="discussion_photo">';
 		$return .= "<a href='/users/" . $theUserName . "'>";
 		$return .= "<img " .
 			' alt="Image not available"' .
-			' onError="this.onerror=null;this.src=' . "'" . '/userpics/user_profile.jpg' . "';" . '"' .
+			' onError="this.onerror=null;this.src=' . "'" . 
+			'/userpics/user_profile.jpg' . "';" . '"' .
 			" src='/userpics/" . $thePictureFile ."' class='news_img' />";
 		$return .= "</a>";
 		$return .= '</div>';
 		$return .= '<div class="discussion_phototext">';
-		$return .= $summ_txt;
+		$return .= '<h4 style="margin-top:0px;margin-bottom:0px;">' . util_make_link($theUrl, $theSubject) . '</h4>';
+		$return .= "<div class='discussion_data'>" . $forumName . " " . $theDate . "</div>";
 		$return .= '</div>';
 	}
 

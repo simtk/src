@@ -1416,16 +1416,22 @@ class Group extends Error {
 	 */
 	function updateTroveGroupLink($categories, $isCommunity=false) {
 
+		// Get server name.
+		$theServerName = $this->getServerName();
+
 		// Get auto_approval status.
+		$arrCatFullName = array();
                 $arrAutoApprove = array();
 		$resAutoApprove = db_query_params(
-			'SELECT trove_cat_id, auto_approve_child FROM trove_cat',
+			'SELECT trove_cat_id, auto_approve_child, fullname FROM trove_cat',
                         array());
 		$numRows = db_numrows($resAutoApprove);
 		for ($cnt = 0; $cnt < $numRows; $cnt++) {
 			$catId = db_result($resAutoApprove, $cnt, 'trove_cat_id');
 			$autoApprove = db_result($resAutoApprove, $cnt, 'auto_approve_child');
+			$fullname = db_result($resAutoApprove, $cnt, 'fullname');
 			$arrAutoApprove[$catId] = $autoApprove;
+			$arrFullName[$catId] = $fullname;
 		}
 
 		// Get current links before deletion.
@@ -1440,6 +1446,9 @@ class Group extends Error {
 			$arrCurLinks[$catId] = $catId;
 		}
 
+
+		// Get pending links before deletion.
+		$arrCatPendingStart = $this->getTroveGroupLinkPending();
 
 		db_begin();
 
@@ -1556,6 +1565,36 @@ class Group extends Error {
 					db_rollback();
 					return false;
 				}
+
+				// Check if link has appeared before in pending links.
+				// Notify admins if link has not appeared before..
+				$theIdx = array_search($catId, $arrCatPendingStart);
+				$theMsgTitle = $arrFullName[$catId] . " Community: project pending approval";
+				$theMsgBody = "A project has requested to be added to the " . 
+					$arrFullName[$catId] . " community.  " . 
+					"To see the list of projects pending approval, " .
+					"vist the <a href='" . 
+					"https://" . $theServerName . 
+					"/category/communityAdmin.php?cat=" . $catId . "'>" .
+					$arrFullName[$catId] . " Community Administration page</a>.";
+				if ($theIdx === false && $theServerName !== false) {
+					// Look up administrators' emails.
+					$sqlCatAdminEmails = "SELECT email, user_name FROM users u " .
+						"JOIN trove_admin ta " .
+						"ON u.user_id=ta.user_id " .
+						"WHERE ta.trove_cat_id=" . $catId;
+					$resEmails = db_query_params($sqlCatAdminEmails, array());
+					$numEmails = db_numrows($resEmails);
+					for ($cnt = 0; $cnt < $numEmails; $cnt++) {
+						$theUserName = db_result($resEmails, $cnt, 'user_name');
+						$theEmailAddr = db_result($resEmails, $cnt, 'email');
+
+						// Send email to community admin.
+						$this->sendEmail($theEmailAddr, 
+							$theMsgTitle,
+							$theMsgBody);
+					}
+				}
 			}
 		}
 
@@ -1574,6 +1613,49 @@ class Group extends Error {
 		return true;
 	}
 	
+
+	// Get server name.
+	function getServerName() {
+		$theServer = false;
+		if (isset($_SERVER['SERVER_NAME'])) {
+			$theServer = $_SERVER['SERVER_NAME'];
+		}
+		else {
+			// Parse configuration to get web_host.
+			if (file_exists("/etc/gforge/config.ini.d/debian-install.ini")) {
+				// The file debian-install.ini is present.
+				$arrConfig = parse_ini_file("/etc/gforge/config.ini.d/debian-install.ini");
+				// Check for each parameter's presence.
+				if (isset($arrConfig["web_host"])) {
+					$theServer = $arrConfig["web_host"];
+				}
+			}
+		}
+
+		return $theServer;
+	}
+
+	// Send email to user.
+	function sendEmail($theEmailAddr, $theTitle, $theMsgBody) {
+
+		$theServer = $this->getServerName();
+		if ($theServer === false) {
+			// Server name not available.
+			return;
+		}
+
+		$theSenderEmailAddr = "nobody@" . $theServer;
+
+		// Email headers.
+		$headers[] = 'MIME-Version: 1.0';
+		$headers[] = 'Content-type: text/html; charset=iso-8859-1';
+		$headers[] = 'From: ' . $theSenderEmailAddr;
+
+		// Email user.
+		mail($theEmailAddr, $theTitle, $theMsgBody, implode("\r\n", $headers));
+	}
+
+
 	/* getKeywords - Gets keywords associated with the project
 	 *
 	 * @return  string  An array of keywords

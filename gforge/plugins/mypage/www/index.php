@@ -111,7 +111,7 @@ html_use_jqueryui();
 		    $group_idTrending = $proj['group_id'];
 		  }
 		  
-		  $arrNews = getNewsByProject($proj['group_id']);
+		  $arrNews = getNewsByProject($proj['group_id'],1);
 		  foreach ($arrNews as $news) {
 		    $arrNewsByProjects[$i++] = $news;
 		  }
@@ -127,7 +127,7 @@ html_use_jqueryui();
 	   // index $i should be set above
 	   foreach ($projectsFollowing as $proj) {
 		  // get news for each project
-		  $arrNews = getNewsByProject($proj['group_id']);
+		  $arrNews = getNewsByProject($proj['group_id'],1);
 		  foreach ($arrNews as $news) {
 		    $arrNewsByProjects[$i++] = $news;
 		  }

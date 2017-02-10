@@ -220,7 +220,7 @@ function news_show_project_overview($group_id=0) {
 function news_show_latest($group_id=0, $limit=10, $show_summaries=true,
 	$allow_submit=true, $flat=false, $tail_headlines=0,
 	$show_forum=true, $front_page=false,
-	$categoryId="") {
+	$categoryId="", $suppressDetails=false) {
 
 	if (!$group_id) {
 		$group_id=forge_get_config('news_group');
@@ -304,7 +304,7 @@ function news_show_latest($group_id=0, $limit=10, $show_summaries=true,
 
 			if ($front_page === true) {
 				// Generate the front page news item.
-				generate_front_page_news_item($result, $i, $return, $categoryId);
+				generate_front_page_news_item($result, $i, $return, $categoryId, $suppressDetails);
 				continue;
 			}
 
@@ -496,7 +496,7 @@ function get_news_name($id) {
 
 // Generate front page news.
 function generate_front_page_news_item($result, $i, &$return,
-	$categoryId="") {
+	$categoryId="", $suppressDetails=false) {
 
 	$theFlag = 1;
 	if (isset($categoryId) && $categoryId != "") {
@@ -523,9 +523,11 @@ function generate_front_page_news_item($result, $i, &$return,
 		$return .= '<div class="item_home_news">';
 	}
 
-	// Title.
-	$return .= '<h4>' . util_make_link($t_thread_url, $t_thread_title) . '</h4>';
-	$return .= "\n";
+	if ($suppressDetails === false) {
+		// Title.
+		$return .= '<h4>' . util_make_link($t_thread_url, $t_thread_title) . '</h4>';
+		$return .= "\n";
+	}
 
 	// Project name.
 	$proj_name = util_make_link_g(
@@ -534,13 +536,15 @@ function generate_front_page_news_item($result, $i, &$return,
 		db_result($result, $i, 'group_name'));
 	// Date.
 	$news_date = date('M j, Y', db_result($result, $i, 'post_date'));
-	if (isset($categoryId) && $categoryId != "") {
-		$return .= "<div class='newsarea_data'>" . $proj_name . " " . $news_date . "</div>";
+	if ($suppressDetails === false) {
+		if (isset($categoryId) && $categoryId != "") {
+			$return .= "<div class='newsarea_data'>" . $proj_name . " " . $news_date . "</div>";
+		}
+		else {
+			$return .= "<div class='news_data'>" . $proj_name . " " . $news_date . "</div>";
+		}
+		$return .= "\n";
 	}
-	else {
-		$return .= "<div class='news_data'>" . $proj_name . " " . $news_date . "</div>";
-	}
-	$return .= "\n";
 
 	// News item.
 	$re = '/# Split sentences on whitespace between them.
@@ -584,24 +588,42 @@ function generate_front_page_news_item($result, $i, &$return,
 		$picture_file = "user_profile.jpg";
 	}
 	$user_name = db_result($result, $i, 'user_name');
-	if ($summ_txt != "") {
-		if (isset($categoryId) && $categoryId != "") {
-			$return .= '<div class="newsarea_photo">';
+	if ($suppressDetails === false) {
+		if ($summ_txt != "") {
+			if (isset($categoryId) && $categoryId != "") {
+				$return .= '<div class="newsarea_photo">';
+			}
+			else {
+				$return .= '<div class="news_text">';
+			}
+			$return .= "<a href='/users/" . $user_name . "'>";
+			$return .= "<img " .
+				' onError="this.onerror=null;this.src=' . "'" . 
+				'/userpics/user_profile.jpg' . "';" . '"' .
+				' alt="Image not available"' .
+				" src='/userpics/" . $picture_file ."' class='news_img'/>";
+			$return .= "</a>";
+			if (isset($categoryId) && $categoryId != "") {
+				$return .= "</div>";
+				$return .= '<div class="newsarea_phototext">';
+			}
+			$return .= html_entity_decode(util_make_clickable_links(util_whitelist_tags($summ_txt)));
+			$return .= '</div>';
 		}
-		else {
-			$return .= '<div class="news_text">';
-		}
+	}
+	else {
+		$return .= '<div class="newsarea_photo">';
 		$return .= "<a href='/users/" . $user_name . "'>";
 		$return .= "<img " .
-			' onError="this.onerror=null;this.src=' . "'" . '/userpics/user_profile.jpg' . "';" . '"' .
+			' onError="this.onerror=null;this.src=' . "'" . 
+			'/userpics/user_profile.jpg' . "';" . '"' .
 			' alt="Image not available"' .
 			" src='/userpics/" . $picture_file ."' class='news_img'/>";
 		$return .= "</a>";
-		if (isset($categoryId) && $categoryId != "") {
-			$return .= "</div>";
-			$return .= '<div class="newsarea_phototext">';
-		}
-		$return .= html_entity_decode(util_make_clickable_links(util_whitelist_tags($summ_txt)));
+		$return .= "</div>";
+		$return .= '<div class="newsarea_phototext">';
+		$return .= '<h4 style="margin-top:0px;margin-bottom:0px;">' . util_make_link($t_thread_url, $t_thread_title) . '</h4>';
+		$return .= "<div class='newsarea_data'>" . $proj_name . " " . $news_date . "</div>";
 		$return .= '</div>';
 	}
 

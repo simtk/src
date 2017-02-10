@@ -139,9 +139,19 @@ var handleFeaturedProjects = function(projectData, strFeaturedGroups) {
 
 	// Fetch featured project info from associative array.
 	// Iterate over all keys.
+	var cntFeaturedProjects = 0;
 	for (var fpKey in featuredProjs) {
+		cntFeaturedProjects++;
 		renderProjectInfo("categories_featured", "item_featured_categories",
 			featuredProjs[fpKey], false);
+	}
+	if (cntFeaturedProjects == 0) {
+		// Hide DIV for Featured Projects.
+		$(".featured_projs").hide();
+	}
+	else {
+		// Show DIV for Featured Projects.
+		$(".featured_projs").show();
 	}
 };
 

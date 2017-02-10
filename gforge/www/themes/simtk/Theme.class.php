@@ -838,7 +838,7 @@ echo $u->getFirstName();
                 echo '</div>';
 
 		echo '<div style="font-size:12px;">';
-		echo 'Version 2.0.8. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 5.3.2.';
+		echo 'Version 2.0.9. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 5.3.2.';
                 echo '</div>';
 
             echo '</div>';
@@ -1514,13 +1514,16 @@ echo $u->getFirstName();
 			$subpageInfo = substr($theUri, $idxStart, $idxEnd - $idxStart);
 			switch ($subpageInfo) {
 			case "/simulations/viewJobs.php":
-				$pageTitle = "Simulations: View my jobs";
+				$pageTitle = "Simulations: View My Jobs";
 				break;
 			case "/simulations/submitJob.php":
-				$pageTitle = "Simulations: Submit job";
+				$pageTitle = "Simulations: Submit Job";
 				break;
 			case "/simulations/admin.php":
 				$pageTitle = "Simulations: Administration";
+				break;
+			case "/simulations/requestedJob.php":
+				$pageTitle = "Simulations: License";
 				break;
 			}
 		}

@@ -49,29 +49,10 @@ if (!cron_create_lock(__FILE__)) {
 // Pause between messages, sec
 $SLEEP = 1;
 
-//$all_users = user_get_active_users () ;
 $all_users=db_query_params ('Select * FROM users where notification_frequency > 0',array());
-
-/* If there was error, notify admins, but don't be pesky */
-/*
-if (!$all_users) {
-	$err .= "cannot execute query to select users for following mailings: ".db_error()."\n";
-	util_send_message(
-			forge_get_config('admin_email'),
-			"ATT: Problems with following mailing cron script",
-			"This is automatically generated message from\n
-the mass mailing cron script of ".forge_get_config ('forge_name')."\n
-installation. There was error querying massmail_queue\n
-database table. Please take appropriate actions.\n"
-		);
-	}
-	m_exit();
-}
-*/
 
 $subj = "Updates from the SimTK projects you follow";
 
-//foreach ($all_users as $user) {
 $max = 0;
 $num_sent = 0;
 $users_notif = 0;
@@ -104,13 +85,6 @@ while ($users = db_fetch_array ($all_users)) {
 	  }
 	}
 
-	
-	//echo(strtotime("now") . "\n");
-	//echo(strtotime("-700 days") . "\n");
-	//$compare  = mktime(0, 0, 0, date("m")  , date("d")-1, date("Y"));
-	//$compare = date("Y-m-d H:i",$compare);
-	//echo "compare . " . $compare . "\n";
-    
    if ($send_email) {
 	echo "\n---------------";	
     echo "User: " . $users['user_name'] . "\n";
@@ -128,7 +102,7 @@ while ($users = db_fetch_array ($all_users)) {
 	   foreach ($userProjects as $proj) {
 		  // get news for each project
 		  
-		  $arrNews = getNewsByProject($proj['group_id']);
+		  $arrNews = getNewsByProject($proj['group_id'],0);
 		  //echo "groupid: " . $proj['group_id'] . "\n";
 		  foreach ($arrNews as $news) {
 		    $arrNewsByProjects[$i++] = $news;
@@ -144,7 +118,7 @@ while ($users = db_fetch_array ($all_users)) {
 	   // index $i should be set above
 	   foreach ($projectsFollowing as $proj) {
 		  // get news for each project
-		  $arrNews = getNewsByProject($proj['group_id']);
+		  $arrNews = getNewsByProject($proj['group_id'],0);
 		  foreach ($arrNews as $news) {
 		    $arrNewsByProjects[$i++] = $news;
 		  }
@@ -156,9 +130,7 @@ while ($users = db_fetch_array ($all_users)) {
 	$i = 0;
         $body_news = "";	
 	foreach ($arrNewsByProjects as $news) {
-	   //$news_date = new DateTime($news['post_date']);
 	   $news_date = date("Y-m-d H:i" ,$news['post_date']);
-	   //echo "news date: " . $news_date . "\n";
 	   echo "news date: " . strtotime($news_date) . "\n";
 	   // if notification freq less than diff then include news to send
 	   if ($compare_date < strtotime($news_date)) {
@@ -174,14 +146,13 @@ while ($users = db_fetch_array ($all_users)) {
 						'" style="color:#5e96e1;">' . 
 						$news['summary'] . 
 					'</a></strong><br />
-					<small><a href="/projects/' . 
+					<small><a href="'.util_make_url('/projects/') . 
 						$news['unix_group_name'] . 
 						'/">' . 
 						$news['group_name'] . 
 						'</a> ' . 
 						date(_('M d, Y'),$news['post_date']) . 
 					'</small></td>';
-		  //$body_news .= $news['summary'] . "\n" . date("m/d/Y",$news['post_date']) . "\n";
 		  $body_news .= "</tr>";
 		  // store information in an array for later use
 		  $arrNewsSend[$i++] = $news;
@@ -193,19 +164,16 @@ while ($users = db_fetch_array ($all_users)) {
            $body .= $body_news;
 	   $body .= "</table>";
         }
-	//echo "news items: " . $i . "\n";
 	
 	// get related projects
 	$allTroveCat = array();
 	foreach ($projectsFollowing as $proj) {
 		  // get news for each project
 		  $troveCategories = getTroveCategories($proj['group_id']);
-		  //echo "projects following: " . $proj['group_id'] . "\n";
 		  print_r($troveCategories);
 		  $allTroveCat = array_merge($troveCategories,$allTroveCat);
     }
 	
-	//print_r($allTroveCat);
 	// get most common category
 	$c = array_count_values($allTroveCat);
 	if (!empty($c)) {
@@ -232,7 +200,6 @@ while ($users = db_fetch_array ($all_users)) {
 						'" style="color:#5e96e1;">' . db_result($resultsProjectsCat, $i, 'group_name') . '</a></strong><br /><small>' . 
 						db_result($resultsProjectsCat, $i, 'simtk_summary') . '</small></td>';
 		  $body .= "</tr>";
-		  //echo "name: " . db_result($resultsProjectsCat, $i, 'group_name') . "\n";
 	   }
 	   if ($max > 0) {
 	      $body .= "</table>";
@@ -240,17 +207,11 @@ while ($users = db_fetch_array ($all_users)) {
 	 } // if empty $c
 	}
 	
-	//echo $body . "\n";
-	
 	// create footer
 	$tail = "<br />==================================================================<br />" ;
-	$tail .= 'You received this message because you subscribed to ' . forge_get_config ('forge_name') . '
-               news for projects you are following. You may opt out or change the frequency 
-               by logging in to ' . forge_get_config ('forge_name') . ' and visiting your <a href="'.util_make_url('/account/settings.php/').'">Account Settings Page</a>';
-	
-	
+	$tail .= 'You received this message because you are following projects on ' . forge_get_config ('forge_name') . '. You may opt out or change the frequency of the news you receive by logging in to ' . forge_get_config ('forge_name') . ' and visiting your <a href="'.util_make_url('/account/settings.php/').'">Account Settings Page</a>.';
+		
 	// send news.
-	//echo "email: " . $user->getEmail() . "\n";
 	if ($arrNewsSend || $max > 0) {
        util_send_message($user->getEmail(),$subj, $body.$tail,'noreply@'.forge_get_config('web_host'),'','','',true);
 	   echo "Email Sent to User: " . $user->getEmail() . "\n";
@@ -266,7 +227,6 @@ while ($users = db_fetch_array ($all_users)) {
 	sleep($SLEEP);
 	
    } // if send email
-   //echo "---------------";
 }  // while
   
   

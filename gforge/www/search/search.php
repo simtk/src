@@ -72,22 +72,28 @@ if (isset($_GET["cat"])) {
 	$cat_id = $_GET["cat"];
 }
 $srch = "";
-if (isset($_GET["srch"])) {
-	// Get search string.
-	$srch = $_GET["srch"];
-}
 if (isset($_GET["type_of_search"])) {
 	// Get search type.
 	$typeSearch = $_GET["type_of_search"];
-	if ($typeSearch == "people") {
-		// People search.
-		session_redirect("/search/searchPeople.php?type_of_search=$typeSearch&srch=$srch");
+}
+if (isset($_GET["srch"])) {
+	// Get search string.
+	$srch = $_GET["srch"];
+	$theRegex = '/[^a-z0-9_ :\-]/i';
+	$notValid = preg_match($theRegex, $srch);
+	if ($notValid) {
+		// Ignore input.
+		session_redirect("/search/search.php?type_of_search=$typeSearch&srch=___ERROR___");
 	}
-	else {
-		// Project search.
-		// Display ',' instead of ' '.
-		$srch = str_replace(' ', ' AND ', $srch);
-	}
+}
+if ($typeSearch == "people") {
+	// People search.
+	session_redirect("/search/searchPeople.php?type_of_search=$typeSearch&srch=$srch");
+}
+else {
+	// Project search.
+	// Display ',' instead of ' '.
+	$srch = str_replace(' ', ' AND ', $srch);
 }
 
 
@@ -285,7 +291,18 @@ header("X-UA-Compatible: IE=Edge");
 <div class="category-header">
 
 <div class="searchresult-text">
+<?php
+if ($srch == "___ERROR___") {
+?>
+<h2>Invalid text to search for</h2>
+<?php
+}
+else {
+?>
 <h2><span class="searchresults">Project search results: </span><?php echo $srch ?></h2>
+<?php
+}
+?>
 </div>
 
 <div class="searchsort">

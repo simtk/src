@@ -34,7 +34,14 @@
  
 require_once('util_simulations.php');
 
+// Start EC2s with pending simulation requests.
+// Fetch Public IP addresses of EC2s.
+startEC2WithPendingRequests();
+
+// Check for remote server job completions.
 checkRemoteServerJobCompletions();
+
+// Clean up archives.
 cleanSimulationArchives();
 
 ?>
