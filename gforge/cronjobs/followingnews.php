@@ -131,7 +131,7 @@ while ($users = db_fetch_array ($all_users)) {
         $body_news = "";	
 	foreach ($arrNewsByProjects as $news) {
 	   $news_date = date("Y-m-d H:i" ,$news['post_date']);
-	   echo "news date: " . strtotime($news_date) . "\n";
+	   //echo "news date: " . strtotime($news_date) . "\n";
 	   // if notification freq less than diff then include news to send
 	   if ($compare_date < strtotime($news_date)) {
 	      // Format HTML News Page to send out
@@ -170,7 +170,7 @@ while ($users = db_fetch_array ($all_users)) {
 	foreach ($projectsFollowing as $proj) {
 		  // get news for each project
 		  $troveCategories = getTroveCategories($proj['group_id']);
-		  print_r($troveCategories);
+		  //print_r($troveCategories);
 		  $allTroveCat = array_merge($troveCategories,$allTroveCat);
     }
 	
