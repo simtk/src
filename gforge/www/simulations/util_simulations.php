@@ -276,6 +276,25 @@ function runSimulationJob($theRemoteServerName,
 	}
 
 
+	// Record job started.
+	$status = recordRemoteServerJobStart($theRemoteServerName, $theUserName, $theGroupId, $theJobTimeStamp);
+
+
+	// Reserve remote server for simulation.
+	$statusAvail = reserveRemoteServer($theRemoteServerName, $theUserName, 
+		$theGroupId, $theJobTimeStamp, $theJobStartedTimeStamp, $theSoftwareName);
+	if ($statusAvail === false) {
+		// A script is already running. Do not proceed.
+		return "***INFO***" .  "Simulation job has been submitted. " .
+			"There is currently a job running at $theRemoteServerName.";
+	}
+	else if ($statusAvail !== true) {
+		// Has error. Do not proceed.
+		return $statusAvail;
+	}
+
+	// OK. Reserved remote server.
+
 	// Get group name.
 	$groupObj = group_get_object($theGroupId);
 	$groupName = $groupObj->getPublicName();
@@ -321,25 +340,6 @@ function runSimulationJob($theRemoteServerName,
 
 	// Send email.
 	sendEmail($theEmailAddr, "Simulation Job Started for $groupName", $strJobStarted, "nobody@" . $theServer);
-
-	// Record job started.
-	$status = recordRemoteServerJobStart($theRemoteServerName, $theUserName, $theGroupId, $theJobTimeStamp);
-
-	// Reserve remote server for simulation.
-	$statusAvail = reserveRemoteServer($theRemoteServerName, $theUserName, 
-		$theGroupId, $theJobTimeStamp, $theJobStartedTimeStamp, $theSoftwareName);
-	if ($statusAvail === false) {
-		// A script is already running. Do not proceed.
-		return "***INFO***" .  "Simulation job has been submitted. " .
-			"There is currently a job running at $theRemoteServerName.";
-	}
-	else if ($statusAvail !== true) {
-		// Has error. Do not proceed.
-		return $statusAvail;
-	}
-
-	// OK. Reserved remote server.
-
 
 	// Send configuration file if the config file is specified.
 	if (isset($theFullCfgName) && $theFullCfgName != "") {

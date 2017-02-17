@@ -44,6 +44,7 @@ $groupObj = group_get_object($group_id);
 if (!$groupObj) {
 	exit_no_group();
 }
+$fullGroupName = $groupObj->getPublicName();
 
 // Check permission and prompt for login if needed.
 if (!session_loggedin() || !($u = &session_get_user())) {
@@ -53,6 +54,7 @@ if (!session_loggedin() || !($u = &session_get_user())) {
 // Get user id
 // Note: User is logged in already!!!
 $userID = $u->getID();
+$realName = $u->getRealName();
 
 html_use_jqueryui();
 site_project_header(array('title'=>'Simulations', 
@@ -81,7 +83,7 @@ echo $HTML->endSubMenu();
 //session_require_perm('simulations', $group_id, 'read_public');
 $isPermitted = checkSimulationPermission($groupObj, $u);
 if (!$isPermitted) {
-	echo "The simulation is for members only!!!";
+	echo "Cannot run simulations for $realName in $fullGroupName.<br/>The simulations are for members only!!!";
 	echo "</div></div></div>";
 	site_project_footer(array());
 	return;
