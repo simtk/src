@@ -86,9 +86,9 @@ while ($users = db_fetch_array ($all_users)) {
 	}
 
    if ($send_email) {
-	echo "\n---------------";	
-    echo "User: " . $users['user_name'] . "\n";
-    echo "Compare date: " . $compare_date . "\n";
+	//echo "\n---------------";	
+    //echo "User: " . $users['user_name'] . "\n";
+    //echo "Compare date: " . $compare_date . "\n";
     // add projects user is member of
     $i = 0;
     $cntUserProjects = 0;
@@ -179,7 +179,7 @@ while ($users = db_fetch_array ($all_users)) {
 	if (!empty($c)) {
 	   $commonCat = array_search(max($c),$c);
 	   $cntProjectsByCat = 0;
-	   echo "Common Category: " . $commonCat . "\n";
+	   //echo "Common Category: " . $commonCat . "\n";
 	   $resultsProjectsCat = getProjectsByCat($cntProjectsByCat,$commonCat,$compare_date);
 	   // add content to body
 	   if ($resultsProjectsCat) {
