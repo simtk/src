@@ -438,20 +438,34 @@ class Navigation extends Error {
 			//plugin_hook("groupmenu", $hookParams, "publications");
 
 			// (6) SCM systems
-			if ($group->usesSCM()) {
+			if ($group->usesSCM() || $group->usesGitHub()) {
 				$menu['titles'][] = "Source Code";
 				$menu['tooltips'][] = _('Source Content Management, peer-review and source discovery.');
-				$menu['urls'][] = util_make_uri('/scm/?group_id=' . $group_id);
-				// eval cvs_flags?
-				if (forge_check_perm ('project_admin', $group_id)) {
-					$menu['adminurls'][] = util_make_uri('/scm/admin/?group_id='.$group_id);
-				} else {
-					$menu['adminurls'][] = false;
+				if ($group->usesGitHub()) {
+					// GitHub.
+					$url = $group->getGitHubAccessURL();
+					$menu['urls'][] = '/githubAccess?group_id=' . $group_id;
+					if (forge_check_perm ('project_admin', $group_id)) {
+						$menu['adminurls'][] = util_make_uri('/githubAccess/admin/?group_id='.$group_id);
+					} else {
+						$menu['adminurls'][] = false;
+					}
+				}
+				else {
+					// Subversion.
+					$menu['urls'][] = util_make_uri('/scm/?group_id=' . $group_id);
+					// eval cvs_flags?
+					if (forge_check_perm ('project_admin', $group_id)) {
+						$menu['adminurls'][] = util_make_uri('/scm/admin/?group_id='.$group_id);
+					} else {
+						$menu['adminurls'][] = false;
+					}
 				}
 				if ($toptab == "scm") {
 					$selected = (count($menu['urls'])-1);
 				}
 			}
+
 
 			// (7) Artifact Tracking
 			if ($group->usesTracker()) {

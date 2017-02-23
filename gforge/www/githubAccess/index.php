@@ -39,7 +39,7 @@ require_once 'githubUtils.php';
 
 $group_id = getIntFromRequest("group_id");
 
-session_require_perm('project_read', $group_id) ;
+session_require_perm('scm', $group_id, 'read') ;
 
 $groupObj = group_get_object($group_id);
 if (!$groupObj || !is_object($groupObj)) {
