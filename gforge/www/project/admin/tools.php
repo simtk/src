@@ -44,13 +44,13 @@ if (!$group || !is_object($group)) {
 // If this was a submission, make updates
 if (getStringFromRequest('submit')) {
 
-    $SCMFactory = new SCMFactory();
+	$SCMFactory = new SCMFactory();
 	$scm_plugins = $SCMFactory->getSCMs();
-	
 	
 	$use_mail = getStringFromRequest('use_mail');
 	$use_forum = getStringFromRequest('use_forum');
-	$use_scm = getStringFromRequest('use_scm');
+	$use_code_repo = getStringFromRequest('use_code_repo');
+	$isSubVersion = getIntFromRequest('isSubVersion');
 	$use_news = getStringFromRequest('use_news');
 	$use_docman = getStringFromRequest('use_docman');
 	$use_frs = getStringFromRequest('use_frs');
@@ -58,6 +58,26 @@ if (getStringFromRequest('submit')) {
 	$use_activity = getStringFromRequest('use_activity');
 	$use_tracker = getStringFromRequest('use_tracker');
 
+	if (!isset($use_code_repo) || !$use_code_repo) {
+		// Not using code repository. Ignore radio buttons 
+		// for SubVersion and GitHub and
+		// set both $use_scm and $use_github to false.
+		$use_scm = false;
+		$use_github = false;
+	}
+	else {
+		// Using code repository.
+		// NOTE: $use_scm is for SubVersion 
+		// while $use_github is for GitHub access.
+		if (isset($isSubVersion) && $isSubVersion == 1) {
+			$use_scm = true;
+			$use_github = false;
+		}
+		else {
+			$use_scm = false;
+			$use_github = true;
+		}
+	}
 	$res = $group->updateTools(
 		session_get_user(),
 		$use_mail,
@@ -68,13 +88,14 @@ if (getStringFromRequest('submit')) {
 		$use_frs,
 		$use_stats,
 		$use_tracker,
-		$use_activity
+		$use_activity,
+		$use_github
 	);
-
 	if (!$res) {
 		$error_msg = $group->getErrorMessage();
 		$group->clearError();
-	} else {
+	}
+	else {
 		// This is done so plugins can enable/disable themselves from the project
 		$hookParams['group'] = $group_id;
 		if (!plugin_hook("groupisactivecheckboxpost", $hookParams)) {
@@ -86,7 +107,6 @@ if (getStringFromRequest('submit')) {
 			}
 		}
 	}
-
 	if (empty($error_msg)) {
 
 		$strAppend = "";
@@ -96,15 +116,17 @@ if (getStringFromRequest('submit')) {
 				$strAppend = ' Wiki takes up to 15 minutes to create.';
 			}
 			else {
+				// NOTE: Code Repository here refers to SubVersion.
 				$strAppend = ' Wiki and Code Repository take up to 15 minutes to create.';
 			}
 		}
 		else {
-			if ($use_scm == 1) {
+			if ($use_scm == true) {
+				// NOTE: Code Repository here refers to SubVersion.
 				$strAppend = ' Code Repository takes up to 15 minutes to create.';
 			}
 		}
-		if ($use_scm == 1) {
+		if ($use_scm == true) {
 			$group->setPluginUse("scmsvn", 1);
 			$group->setSCMBox("simtk.org");
 			$hook_params = array();
@@ -113,13 +135,16 @@ if (getStringFromRequest('submit')) {
 			//var_dump($hook_params);
 			plugin_hook("scm_admin_update", $hook_params);
 		}
+		if ($use_github == true) {
+			$strAppend = '<br/>Click <a href="/githubAccess/admin/index.php?group_id=' . $group_id .
+				'">here</a> to specify GitHub repository.';
+		}
 
-		$feedback = 'Project information updated.' . $strAppend;
+		$feedback = '***NOSTRIPTAGS***Project information updated.' . $strAppend;
 	}
         if (getStringFromRequest('wizard')) {
 		header("Location: category.php?group_id=$group_id&wizard=1");
         }
-
 }
 
 project_admin_header(array('title'=>'Admin','group'=>$group->getID()));
@@ -134,7 +159,7 @@ if (getStringFromRequest('wizard')) {
 	   
 echo '<table class="fullwidth">';
 echo '<tr class="top">';
-echo '<td class="onethirdwidth">';
+echo '<td>';
 
 ?>
 
@@ -170,6 +195,7 @@ input[type="checkbox"] {
 }
 </style>
 
+<div class="table-responsive">
 <table>
 <?php
 if(forge_get_config('use_activity')) {
@@ -228,11 +254,40 @@ if(forge_get_config('use_news')) {
 if(forge_get_config('use_scm')) {
 ?>
 <tr>
-<td>
-<input type="checkbox" name="use_scm" value="1" <?php echo c($group->usesSCM()); ?> />
+<td valign="top">
+	<input type="checkbox" name="use_code_repo" value="1" <?php
+		if ($group->usesSCM() || $group->usesGitHub()) {
+			echo "checked";
+		}
+	?>/>
 </td>
 <td>
-<strong><?php echo _('Use Code Repository') ?></strong>
+	<strong>Use Code Repository:</strong>&nbsp;&nbsp;
+	<div style="padding-left:10px;">
+		<input type="radio" name="isSubVersion" <?php 
+			if ($group->usesSCM()) {
+				echo 'value="1" checked';
+			}
+			else {
+				if (!$group->usesGitHub()) {
+					echo 'value="1" checked';
+				}
+				else {
+					echo 'value="1"';
+				}
+			}
+		?>/><label>Subversion</label>
+	</div>
+	<div style="padding-left:10px;">
+		<input type="radio" name="isSubVersion" <?php 
+			if ($group->usesGitHub()) {
+				echo 'value="0" checked';
+			}
+			else {
+				echo 'value="0"';
+			}
+		?>/><label>GitHub (Public repository only)</label>
+	</div>
 </td>
 </tr>
 <?php
@@ -281,6 +336,7 @@ plugin_hook("groupisactivecheckbox",$hookParams);
 ?>
 
 </table>
+</div>
 
 
 <?php
