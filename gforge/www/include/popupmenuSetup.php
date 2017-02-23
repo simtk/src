@@ -118,25 +118,73 @@ function sectionPopupMenuItems($sectionName, $groupId, &$menuTitles, &$menuUrls,
 		}
 	}
 	else if ($sectionName == "Source Code") {
-		if (session_loggedin() &&
-			forge_check_perm('project_admin', $groupId)) {
-			$menuTitles[] = 'Summary';
-			$menuUrls[] = '/scm?group_id=' . $groupId;
-			$menuTitles[] = _('Browse source code');
-			$menuUrls[] = '/svn/' . $groupObj->getUnixName() . '/';
-			$menuTitles[] = _('Administration');
-			$menuUrls[] = '/scm/admin?group_id=' . $groupId;
-		} else if (!session_loggedin() && $groupObj && is_object($groupObj) && !$groupObj->isError() &&
-			$groupObj->enableAnonSCM()) {
-			$menuTitles[] = 'Summary';
-			$menuUrls[] = '/scm?group_id=' . $groupId;
-			$menuTitles[] = _('Browse source code');
-			$menuUrls[] = '/svn/' . $groupObj->getUnixName() . '/';
+		if (session_loggedin() && forge_check_perm('project_admin', $groupId)) {
+
+			if (is_object($groupObj) && !$groupObj->isError()) {
+				if ($groupObj->usesGitHub()) {
+					// GitHub.
+					$url = $groupObj->getGitHubAccessURL();
+					if (!empty($url)) {
+						$menuTitles[] = 'Summary';
+						$menuUrls[] = '/githubAccess?group_id=' . $groupId;
+						$menuTitles[] = _('Browse source code');
+						$menuUrls[] = "/githubAccess/loadGitHubAccessURL.php?group_id=" . $groupId;
+					}
+					$menuTitles[] = _('Administration');
+					$menuUrls[] = '/githubAccess/admin?group_id=' . $groupId;
+				}
+				else {
+					// Subversion.
+					$menuTitles[] = 'Summary';
+					$menuUrls[] = '/scm?group_id=' . $groupId;
+					$menuTitles[] = _('Browse source code');
+					$menuUrls[] = '/svn/' . $groupObj->getUnixName() . '/';
+					$menuTitles[] = _('Administration');
+					$menuUrls[] = '/scm/admin?group_id=' . $groupId;
+				}
+			}
+		} else if (!session_loggedin()) {
+
+			if ($groupObj && is_object($groupObj) && !$groupObj->isError() && $groupObj->enableAnonSCM()) {
+				if ($groupObj->usesGitHub()) {
+					// GitHub.
+					$url = $groupObj->getGitHubAccessURL();
+					if (!empty($url)) {
+						$menuTitles[] = 'Summary';
+						$menuUrls[] = '/githubAccess?group_id=' . $groupId;
+						$menuTitles[] = _('Browse source code');
+						$menuUrls[] = "/githubAccess/loadGitHubAccessURL.php?group_id=" . $groupId;
+					}
+				}
+				else {
+					// Subversion.
+					$menuTitles[] = 'Summary';
+					$menuUrls[] = '/scm?group_id=' . $groupId;
+					$menuTitles[] = _('Browse source code');
+					$menuUrls[] = '/svn/' . $groupObj->getUnixName() . '/';
+				}
+			}
 		} else if (session_loggedin() && forge_check_perm('scm', $groupId, 'read')) {
-		    $menuTitles[] = 'Summary';
-			$menuUrls[] = '/scm?group_id=' . $groupId;
-			$menuTitles[] = _('Browse source code');
-			$menuUrls[] = '/svn/' . $groupObj->getUnixName() . '/';	
+
+			if (is_object($groupObj) && !$groupObj->isError()) {
+				if ($groupObj->usesGitHub()) {
+					// GitHub.
+					$url = $groupObj->getGitHubAccessURL();
+					if (!empty($url)) {
+						$menuTitles[] = 'Summary';
+						$menuUrls[] = '/githubAccess?group_id=' . $groupId;
+						$menuTitles[] = _('Browse source code');
+						$menuUrls[] = "/githubAccess/loadGitHubAccessURL.php?group_id=" . $groupId;
+					}
+				}
+				else {
+					// Subversion.
+					$menuTitles[] = 'Summary';
+					$menuUrls[] = '/scm?group_id=' . $groupId;
+					$menuTitles[] = _('Browse source code');
+					$menuUrls[] = '/svn/' . $groupObj->getUnixName() . '/';	
+				}
+			}
 		}
 	}
 	else if ($sectionName == "Documents") {
@@ -395,6 +443,22 @@ function sectionSubMenuItems($sectionName, $theSubMenuTitle, $groupId,
 	}  
 	
 	
+}
+
+// Get GitHub access info from group_github_access table.
+function getGitHubRepositoryAccessInfo($group_id) {
+
+	$arrGitHubAccessInfo = array();
+
+	$strQuery = 'SELECT main_url ' .
+		'FROM group_github_access ' .
+		'WHERE group_id=$1';
+	$resGitHubAccessInfo = db_query_params($strQuery, array($group_id));
+	while ($theRow = db_fetch_array($resGitHubAccessInfo)) {
+		$arrGitHubAccessInfo['main_url'] = $theRow['main_url'];
+	}
+
+	return $arrGitHubAccessInfo;
 }
 
 // Get trackers info from artifact_group_list table.
