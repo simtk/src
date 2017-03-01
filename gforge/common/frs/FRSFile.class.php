@@ -121,7 +121,8 @@ class FRSFile extends Error {
 	function create($name, $file_location, $type_id, $processor_id, $release_time=false, 
 		$collect_info, $use_mail_list, $group_list_id, 
 		$show_notes, $show_agreement,
-		$file_desc="", $doi, $user_id, $url="") {
+		$file_desc="", $doi, $user_id, $url="", 
+		$githubArchiveUrl="", $refreshArchive=0) {
 
 		if (strlen($name) < 3) {
 			$this->setError(_('Name is too short. It must be at least 3 characters.'));
@@ -132,7 +133,7 @@ class FRSFile extends Error {
 			return false;
 		}
 
-		if ($url == "") {
+		if ($url == "" && $githubArchiveUrl == "") {
 			//
 			//	Can't really use is_uploaded_file() or move_uploaded_file()
 			//	since we want this to be generalized code
@@ -191,12 +192,25 @@ class FRSFile extends Error {
 			$this->FRSRelease->FRSPackage->getFileName().'/'.
 			$this->FRSRelease->getFileName().'/';
 
-		if ($url == "") {
+		if ($url == "" && $githubArchiveUrl == "") {
 			$ret = rename($file_location, $newfilelocation.$name);
 			if (!$ret) {
 				$this->setError(_('File cannot be moved to the permanent location')._(': ').$newfilelocation.$name);
 				return false;
 			}
+			$file_size=filesize("$newfilelocation$name");
+		}
+		else if ($url == "") {
+			// GitHub archive URL.
+			// Get GitHub archive file content and save to $newfilelocation.
+			$content = @file_get_contents($githubArchiveUrl);
+			$fp = @fopen($newfilelocation.$name, "w+");
+			if ($fp === false) {
+				$this->setError('Cannot save file: ' . $name);
+				return false;
+			}
+			fwrite($fp, $content);
+			fclose($fp);
 			$file_size=filesize("$newfilelocation$name");
 		}
 		else {
@@ -215,7 +229,8 @@ class FRSFile extends Error {
 
 		db_begin();
 
-		if ($url == "") {
+		if ($url == "" && $githubArchiveUrl == "") {
+			// File upload.
 			$strInsert = 'INSERT INTO frs_file (' .
 				'release_id, filename, release_time, type_id, ' .
 				'processor_id, file_size, post_date, simtk_description, ' .
@@ -239,6 +254,37 @@ class FRSFile extends Error {
 				$show_agreement,
 				$doi,
 				$user_id);
+		}
+		else if ($url == "") {
+			// GitHub archive URL.
+			$strInsert = 'INSERT INTO frs_file (' .
+				'release_id, filename, release_time, type_id, ' .
+				'processor_id, file_size, post_date, simtk_description, ' .
+				'simtk_filetype, simtk_filelocation, ' .
+				'simtk_collect_data, simtk_use_mail_list, ' .
+				'simtk_group_list_id, simtk_show_notes, simtk_show_agreement, ' .
+				'doi, file_user_id, refresh_archive ' .
+				') VALUES ' .
+				'($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)';
+			$arrInsert = array(
+				$this->FRSRelease->getId(),
+				$name,
+				$release_time,
+				$type_id,
+				$processor_id,
+				$file_size,
+				time(),
+				$file_desc,
+				"GitHubArchive",
+				$githubArchiveUrl,
+				$collect_info, 
+				$use_mail_list, 
+				$group_list_id,
+				$show_notes,
+				$show_agreement,
+				$doi,
+				$user_id,
+				$refreshArchive);
 		}
 		else {
 			// URL.
@@ -302,7 +348,7 @@ class FRSFile extends Error {
 			'JOIN (SELECT file_id, simtk_description, ' .
 			'simtk_collect_data, simtk_use_mail_list, simtk_group_list_id, ' .
 			'simtk_filetype, simtk_filelocation, simtk_show_notes, simtk_show_agreement, ' .
-			'simtk_rank, simtk_filename_header, doi, doi_identifier, file_user_id ' .
+			'simtk_rank, simtk_filename_header, doi, doi_identifier, file_user_id, refresh_archive ' .
 			'FROM frs_file) AS ff ' .
 			'ON ffv.file_id=ff.file_id ' .
 			'WHERE ffv.file_id=$1 AND release_id=$2',
@@ -525,6 +571,20 @@ class FRSFile extends Error {
 	}
 
 	/**
+	 * isGitHubArchive - Is this file a GitHub archive?
+	 *
+	 * @return	true	File is GitHub archive; false otherwise.
+	 */
+	function isGitHubArchive() {
+		if ($this->data_array['simtk_filetype'] == "GitHubArchive") {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	/**
 	 * getURL - Get the URL if this file is a URL.
 	 *
 	 * @return	string	The URL if this file is a URL; "" otherwise.
@@ -535,6 +595,34 @@ class FRSFile extends Error {
 		}
 		else {
 			return "";
+		}
+	}
+
+	/**
+	 * getGitHubArchiveURL - Get the GitHub archive URL if this file is a GitHubArchive.
+	 *
+	 * @return	string	The GitHub archive URL if this file is a GitHubArchive; "" otherwise.
+	 */
+	function getGitHubArchiveURL() {
+		if ($this->data_array['simtk_filetype'] == "GitHubArchive") {
+			return $this->data_array['simtk_filelocation'];
+		}
+		else {
+			return "";
+		}
+	}
+
+	/**
+	 * getGitHubRefreshArchiveFreq - Get the GitHub archive refresh frequency if this file is a GitHubArchive.
+	 *
+	 * @return	string	The GitHub archive refresh frequency if this file is a GitHubArchive; 0 otherwise.
+	 */
+	function getGitHubRefreshArchiveFreq() {
+		if ($this->data_array['simtk_filetype'] == "GitHubArchive") {
+			return $this->data_array['refresh_archive'];
+		}
+		else {
+			return 0;
 		}
 	}
 
@@ -618,7 +706,8 @@ class FRSFile extends Error {
 	function update($type_id, $processor_id, $release_time, $release_id=false, 
 		$collect_info, $use_mail_list, $group_list_id, $userfile, 
 		$show_notes, $show_agreement,
-		$file_desc='', $disp_name="", $doi, $user_id, $url="") {
+		$file_desc='', $disp_name="", $doi, $user_id, $url="",
+		$githubArchiveUrl="", $refreshArchive=0) {
 
 		if (!forge_check_perm ('frs', $this->FRSRelease->FRSPackage->Group->getID(), 'write')) {
 			$this->setPermissionDeniedError();
@@ -650,7 +739,7 @@ class FRSFile extends Error {
 			}
 		}
 
-		if ($url == "") {
+		if ($url == "" && $githubArchiveUrl == "") {
 			// Selected a file.
 			if ($userfile && $userfile['error'] != UPLOAD_ERR_NO_FILE &&
 				$userfile_name != "") {
@@ -681,6 +770,11 @@ class FRSFile extends Error {
 				return false;
 			}
 
+		}
+		else if ($url == "") {
+			// GitHub archive URL.
+			// Set simtk_file_type.
+			$simtk_file_type = "GitHubArchive";
 		}
 		else {
 			// Set simtk_file_type.
@@ -737,7 +831,7 @@ class FRSFile extends Error {
 			$this->FRSRelease->FRSPackage->getFileName() . '/' .
 			$this->FRSRelease->getFileName() . '/';
 
-		if ($simtk_file_type != "URL") {
+		if ($simtk_file_type != "URL" && $simtk_file_type != "GitHubArchive") {
 			if (isset($userfile_name) && $userfile_name != "") {
 				// Selected a file.
 				// Move file to final location.
@@ -774,6 +868,20 @@ class FRSFile extends Error {
 					}
 				}
 			}
+		}
+		else if ($simtk_file_type == "GitHubArchive") {
+			// GitHub archive URL.
+			// Get GitHub archive file content and save to $newfilelocation.
+			$content = @file_get_contents($githubArchiveUrl);
+			$fp = @fopen($newfilelocation.$disp_name, "w+");
+			if ($fp === false) {
+				$this->setError('Cannot save file: ' . $disp_name);
+				return false;
+			}
+			fwrite($fp, $content);
+			fclose($fp);
+			// Set file_size.
+			$file_size=filesize("$newfilelocation$disp_name");
 		}
 
 		if (!$release_time) {
@@ -828,8 +936,9 @@ class FRSFile extends Error {
 				'simtk_show_notes=$14, ' .
 				'simtk_show_agreement=$15, ' .
 				'doi=$16, ' .
-				'file_user_id=$17 ' .
-				'WHERE file_id=$18';
+				'file_user_id=$17, ' .
+				'refresh_archive=$18 ' .
+				'WHERE file_id=$19';
 			$arrUpdate = array(
 				$type_id,
 				$processor_id,
@@ -848,6 +957,7 @@ class FRSFile extends Error {
 				$show_agreement,
 				$doi,
 				$user_id,
+				$refreshArchive,
 				$this->getID()
 			);
 		}
@@ -869,8 +979,9 @@ class FRSFile extends Error {
 				'simtk_show_notes=$12, ' .
 				'simtk_show_agreement=$13, ' .
 				'doi=$14, ' .
-				'file_user_id=$15 ' .
-				'WHERE file_id=$16';
+				'file_user_id=$15, ' .
+				'refresh_archive=$16 ' .
+				'WHERE file_id=$17';
 			$arrUpdate = array(
 				$type_id,
 				$processor_id,
@@ -887,6 +998,7 @@ class FRSFile extends Error {
 				$show_agreement,
 				$doi,
 				$user_id,
+				$refreshArchive,
 				$this->getID()
 			);
 		}

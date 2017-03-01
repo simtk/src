@@ -91,8 +91,8 @@ echo '<div><h3>' . $frsf->getName() . '</h3></div>';
 	<input type="hidden" name="release_id" value="'. $release_id .'" />
 	<input type="hidden" name="file_id" value="'. $file_id .'" />
 	<p>You are about to permanently and irretrievably delete this file from the release!</p>
-	<input type="checkbox" name="sure" value="1" />'._('I am Sure').'<br />
-	<input type="checkbox" name="really_sure" value="1" />'._('I am Really Sure').'<br />
+	<input type="checkbox" name="sure" value="1" />&nbsp;'._('I am Sure').'<br />
+	<input type="checkbox" name="really_sure" value="1" />&nbsp;'._('I am Really Sure').'<br />
 	<input type="submit" name="submit" value="'._('Delete').'" class="btn-cta" />
 	</p>
 	</form>';
