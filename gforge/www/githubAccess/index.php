@@ -91,12 +91,12 @@ site_project_header($params);
 	</td>
 
 	<td width="35%">
-		<p>Repository History</p>
+		<p><strong>Repository History</strong></p>
 <?php 
 		if (isset($totalCommits)) {
-			echo $totalCommits . " commits by ";
+			echo "Total number of commits: $totalCommits";
 			if (isset($numContributors)) {
-				echo $numContributors . " contributors.";
+				echo "<br/>Number of contributors: $numContributors";
 			}
 		}
 		else {
@@ -105,11 +105,10 @@ site_project_header($params);
 
 		if (isset($dateLastCommit) && $dateLastCommit > 0) {
 			$theDateTime = new DateTime("@$dateLastCommit");
-			echo "<br/>Last commit (past year) on " . 
-				$theDateTime->format('M j, Y') . ".";
+			echo "<br/>Last commit: " . $theDateTime->format('M j, Y');
 		}
 		else {
-			echo "<br/>No commits in past year.";
+			echo "<br/>Last commit: Longer than 1 year";
 		}
 ?>
 	</td>
