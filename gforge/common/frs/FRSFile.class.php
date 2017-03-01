@@ -949,7 +949,7 @@ class FRSFile extends Error {
 				$disp_name,
 				$file_size,
 				$simtk_file_type,
-				$url,
+				($simtk_file_type == "URL") ? $url : $githubArchiveUrl,
 				$collect_info, 
 				$use_mail_list, 
 				$group_list_id,
