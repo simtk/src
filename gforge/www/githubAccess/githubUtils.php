@@ -163,4 +163,27 @@ function getLastCommit($theGitHubURL, &$dateLastCommit) {
 	return false;
 }
 
+function urlExistance($strUrl) {
+	$handle = curl_init($strUrl);
+	$timeout =5;
+	curl_setopt($handle,  CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($handle,  CURLOPT_CONNECTTIMEOUT, $timeout);
+	curl_setopt($handle, CURLOPT_FOLLOWLOCATION, true);
+
+	curl_setopt($handle, CURLOPT_HEADER, true);
+	curl_setopt($handle, CURLOPT_NOBODY, true);
+	curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+	//curl_setopt($handle, CURLOPT_AUTOREFERER, true);
+
+	// Get the HTML or whatever is linked in $strUrl.
+	$response = curl_exec($handle);
+	//echo $response;
+
+	// Check for 404 (file not found).
+	$httpCode1 = curl_getinfo($handle, CURLINFO_HTTP_CODE);
+	//echo $httpCode1;
+
+	return $httpCode1;
+}
+
 ?>

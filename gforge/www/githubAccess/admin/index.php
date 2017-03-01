@@ -35,6 +35,7 @@
 require_once 'env.inc.php';
 require_once $gfcommon . 'include/pre.php';
 require_once $gfwww . 'project/admin/project_admin_utils.php';
+require_once $gfwww . 'githubAccess/githubUtils.php';
 
 $groupId = getIntFromRequest('group_id');
 if (!$groupId) {
@@ -56,15 +57,36 @@ session_require_perm('project_admin', $groupId) ;
 if ($submit = getStringFromRequest('update')) {
 	$url = getStringFromRequest('urlGitHub');
 	if (isset($url) && !empty($url)) {
-		$theGitHubURL = "https://github.com/" . $url;
-		if (urlExistance($theGitHubURL) != 200) {
-			// GitHub repository does not exist.
-			$error_msg .= "$url is an invalid URL.";
+		// Trim.
+		$url = trim($url);
+		if (strpos($url, "/") === 0) {
+			// Remove leading "/" if any.
+			$url = substr($url, 1);
+		}
+		if (strrpos($url, "/") === strlen($url) - 1) {
+			// Remove trailing "/" if any.
+			$url = substr($url, 0, strlen($url) - 1);
+		}
+		// Check $url for validity:
+		// There should be at least one "/".
+		// Format is "owner/repo".
+		$idx = strpos($url, "/");
+		if ($idx === false || $idx === 0 || $idx === strlen($url) - 1) {
+			// "/" is not present, starts with "/", or 
+			// ends with "/" after trimming.
+			$error_msg .= "$url is in invalid format.";
 		}
 		else {
-			// Save. GitHub repository exists.
-			$groupObj->saveGitHubAccessURL($url);
-			$feedback .= "URL updated.";
+			$theGitHubURL = "https://github.com/" . $url;
+			if (urlExistance($theGitHubURL) != 200) {
+				// GitHub repository does not exist.
+				$error_msg .= "$url is an invalid URL.";
+			}
+			else {
+				// Save. GitHub repository exists.
+				$groupObj->saveGitHubAccessURL($url);
+				$feedback .= "URL updated.";
+			}
 		}
 	}
 	else {
@@ -124,29 +146,6 @@ project_admin_header(array('title'=>'Admin','group'=>$groupObj->getID()));
 
 <?php
 project_admin_footer(array());
-
-function urlExistance($strUrl) {
-	$handle = curl_init($strUrl);
-	$timeout =5;
-	curl_setopt($handle,  CURLOPT_RETURNTRANSFER, true);
-	curl_setopt($handle,  CURLOPT_CONNECTTIMEOUT, $timeout);
-	curl_setopt($handle, CURLOPT_FOLLOWLOCATION, true);
-
-	curl_setopt($handle, CURLOPT_HEADER, true);
-	curl_setopt($handle, CURLOPT_NOBODY, true);
-	curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
-	//curl_setopt($handle, CURLOPT_AUTOREFERER, true);
-
-	// Get the HTML or whatever is linked in $strUrl.
-	$response = curl_exec($handle);
-	//echo $response;
-
-	// Check for 404 (file not found).
-	$httpCode1 = curl_getinfo($handle, CURLINFO_HTTP_CODE);
-	//echo $httpCode1;
-
-	return $httpCode1;
-}
 
 ?>
 
