@@ -844,6 +844,7 @@ class FRSPackage extends Error {
 				$filePath = $filesPath.'/'.$f->getName();
 				if (!file_exists($filePath)) {
 					$cntEmptyFiles++;
+					continue;
 				}
 				$zip->addFile($filePath,$f->getName());
 			}

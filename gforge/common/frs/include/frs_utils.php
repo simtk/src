@@ -249,7 +249,8 @@ function frs_add_file_from_form($release, $type_id, $processor_id, $release_date
 	$userfile, $ftp_filename, $manual_filename, 
 	$collect_info, $use_mail_list, $group_list_id, 
 	$show_notes, $show_agreement,
-	$file_desc="", $disp_name="", $doi=0, $user_id=-1, $url="") {
+	$file_desc="", $disp_name="", $doi=0, $user_id=-1, $url="",
+	$githubArchiveUrl="", $refreshArchive=0) {
 
 	$group_unix_name = $release->getFRSPackage()->getGroup()->getUnixName() ;
 	$incoming = forge_get_config('groupdir_prefix')."/$group_unix_name/incoming" ;
@@ -285,7 +286,8 @@ function frs_add_file_from_form($release, $type_id, $processor_id, $release_date
 		$move = false ;
 		$filechecks = true ;
 	}
-	if ($url == "") {
+
+	if ($url == "" && $githubArchiveUrl == "") {
 		// Selected a file.
 		if ($userfile && $userfile['error'] == UPLOAD_ERR_NO_FILE) {
 			return _('Must select a file.') ;
@@ -343,7 +345,7 @@ function frs_add_file_from_form($release, $type_id, $processor_id, $release_date
 			return _('Unknown file upload error.') ;
 		}
 	}
-	else {
+	else if ($githubArchiveUrl == "") {
 		// URL.
 		$fname = $disp_name;
 		$frsf = new FRSFile($release);
@@ -360,6 +362,28 @@ function frs_add_file_from_form($release, $type_id, $processor_id, $release_date
 				$collect_info, $use_mail_list, $group_list_id, 
 				$show_notes, $show_agreement,
 				$file_desc, $doi, $user_id, $url)) {
+				return $frsf->getErrorMessage();
+			}
+			return true ;
+		}
+	}
+	else {
+		// GitHub archive URL.
+		$fname = $disp_name;
+		$frsf = new FRSFile($release);
+		if (!$frsf || !is_object($frsf)) {
+			return _('Could Not Get FRSFile');
+		}
+		elseif ($frsf->isError()) {
+			return $frsf->getErrorMessage();
+		}
+		else {
+			if (!$frsf->create($fname, null, $type_id,
+				$processor_id, $release_date,
+				$collect_info, $use_mail_list, $group_list_id,
+				$show_notes, $show_agreement,
+				$file_desc, $doi, $user_id, $url, 
+				$githubArchiveUrl, $refreshArchive)) {
 				return $frsf->getErrorMessage();
 			}
 			return true ;

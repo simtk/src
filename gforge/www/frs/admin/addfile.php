@@ -30,6 +30,7 @@ require_once $gfcommon.'frs/FRSPackage.class.php';
 require_once $gfcommon.'frs/FRSRelease.class.php';
 require_once $gfcommon.'frs/FRSFile.class.php';
 require_once $gfcommon.'frs/include/frs_utils.php';
+require_once $gfwww . 'githubAccess/githubUtils.php';
 
 $group_id = getIntFromRequest('group_id');
 $package_id = getIntFromRequest('package_id');
@@ -89,6 +90,8 @@ if (getStringFromRequest('submit')) {
 	$file_desc = getStringFromRequest('file_desc');
 	$docType = getIntFromRequest('docType');
 	$url = trim(getStringFromRequest('url'));
+	$githubArchiveUrl = trim(getStringFromRequest('githubArchiveUrl'));
+	$refreshArchive = getIntFromRequest('refreshArchive');
 	$disp_name = trim(getStringFromRequest('disp_name'));
 	$collect_info = getIntFromRequest('collect_info');
 	$use_mail_list = getIntFromRequest('use_mail_list');
@@ -113,6 +116,9 @@ if (getStringFromRequest('submit')) {
 	if ($docType == 2) {
 		// URL.
 
+		// Ensure that the GitHub archive URL is not used.
+		$githubArchiveUrl = "";
+
 		if ($url == "") {
 			$error_msg .= 'Please enter a URL.';
 		}
@@ -121,9 +127,9 @@ if (getStringFromRequest('submit')) {
 				// Display Name is not present. Set to URL as default.
 				$disp_name = $url;
 			}
-			$ret = frs_add_file_from_form($frsr, $type_id, $processor_id, 
-				$release_date, $userfile, false, false, 
-				$collect_info, $use_mail_list, $group_list_id, 
+			$ret = frs_add_file_from_form($frsr, $type_id, $processor_id,
+				$release_date, $userfile, false, false,
+				$collect_info, $use_mail_list, $group_list_id,
 				$show_notes, $show_agreement,
 				$file_desc, $disp_name, $doi, $user_id, $url);
 			if ($ret === true) {
@@ -134,6 +140,49 @@ if (getStringFromRequest('submit')) {
 			}
 		}
 	}
+	else if ($docType == 3) {
+		// GitHub Archive URL.
+
+		// Ensure that URL is not used.
+		$url = "";
+
+		if ($githubArchiveUrl == "") {
+                        $error_msg .= 'Please enter a URL.';
+                }
+		else if (urlExistance($githubArchiveUrl) != 200) {
+			// Do not proceed if GitHub archive URL is not valid.
+                        $error_msg .= 'Please enter a valid URL.';
+		}
+                else {
+                        if ($disp_name == "") {
+                                // Display Name is not present.
+				// Set to last part of URL after "/" as default.
+				$idx = strrpos($githubArchiveUrl, "/");
+				if ($idx !== FALSE) {
+					// Start from last "/".
+					$disp_name = substr($githubArchiveUrl, $idx + 1);
+				}
+				else {
+                                	$disp_name = $githubArchiveUrl;
+				}
+                        }
+			// NOTE: The GitHub archive is retrieved from the link specified
+			// and then treated as a file for download.
+			// This archive file can be refreshed with the specified frequency.
+                        $ret = frs_add_file_from_form($frsr, $type_id, $processor_id,
+                                $release_date, $userfile, false, false,
+                                $collect_info, $use_mail_list, $group_list_id,
+                                $show_notes, $show_agreement,
+                                $file_desc, $disp_name, $doi, $user_id, $url,
+				$githubArchiveUrl, $refreshArchive);
+                        if ($ret === true) {
+                                $feedback = '***NOSTRIPTAGS***GitHub files are added. ' . $msgReleased;
+                        }
+                        else {
+                                $error_msg .= $ret;
+                        }
+                }
+        }
 	else {
 		// Selected a file.
 
@@ -244,21 +293,6 @@ if (isset($disp_name)) {
 }
 
 $(document).ready(function() {
-	if ($('#docLink').is(":checked")) {
-		// Disable inputs for File upload.
-		$('.upFile').prop("disabled", true);
-		$('[name="group_list_id"]').prop("disabled", true);
-		$('#doi').attr('checked', false);
-		$('#doi_info').hide();
-		$('#doi').prop("disabled", true);
-	}
-	else {
-		// Enable inputs for File upload.
-		$('.upFile').prop("disabled", false);
-		$('[name="group_list_id"]').prop("disabled", false);
-		$('#doi').prop("disabled", false);
-		
-	}
 	$('#docFile').click(function() {
 		// Show the Display Name warning.
 		$('#warnDispName').show("slow");
@@ -270,6 +304,18 @@ $(document).ready(function() {
 		$('#doi').prop("disabled", false);
 	});
 	$('#docLink').click(function() {
+		// Hide the Display Name warning.
+		$('#warnDispName').hide("slow");
+		$('#labelDispName').html("<strong>Display Name:</strong>");
+
+		// Enable inputs for File upload.
+		$('.upFile').prop("disabled", true);
+		$('#doi').attr('checked', false);
+		$('#doi_info').hide();
+		$('#doi').prop("disabled", true);
+		$('[name="group_list_id"]').prop("disabled", true);
+	});
+	$('#githubLink').click(function() {
 		// Hide the Display Name warning.
 		$('#warnDispName').hide("slow");
 		$('#labelDispName').html("<strong>Display Name:</strong>");
@@ -299,20 +345,20 @@ $(document).ready(function() {
 		$('#use_mail_list').prop('disabled', true);
 		$('[name="group_list_id"]').prop("disabled", true);
 	}
-	$('#doi').change(function(){
-        if(this.checked)
-            //$('#doi_info').fadeIn('slow');
+	$('#doi').change(function() {
+		if (this.checked)
+			//$('#doi_info').fadeIn('slow');
 			$('#doi_info').show();
 		else
-		    $('#doi_info').hide();
-    });
-	$("#submit").click(function(){
-	   if ($('#doi').is(":checked")) {
-         if (!confirm("I confirm that I would like to have this file, its release, and the package it belongs to made permanent. Please issue a DOI.")){
-		   event.preventDefault();
-         }
-	   }
-    });
+			$('#doi_info').hide();
+	});
+	$("#submit").click(function() {
+		if ($('#doi').is(":checked")) {
+			if (!confirm("I confirm that I would like to have this file, its release, and the package it belongs to made permanent. Please issue a DOI.")) {
+				event.preventDefault();
+			}
+		}
+	});
    
 });
 
@@ -338,7 +384,8 @@ td {
 </tr>
 
 <tr>
-	<td style="width:20%;"><input type="radio" id="docFile" name="docType" value="1" checked="checked" ><label for="docFile"><strong>Upload a File</strong></label></input></td>
+	<td style="width:25%;padding-top:2px;"><input type="radio" id="docFile" name="docType" value="1" checked="checked" ><label for="docFile"><strong>Upload a File</strong></label></input>
+	</td>
 	<td>
 	<table>
 	<tr>
@@ -404,13 +451,73 @@ if ($frsp->getUseAgreement() != 0) {
 </tr>
 
 <tr>
-	<td><input type="radio" id="docLink" name="docType" value="2" ><label for="docLink"><strong>Create a Link</strong></label></input></td>
+	<td style="padding-top:2px;"><input type="radio" id="docLink" 
+		name="docType" value="2" ><label 
+		for="docLink"><strong>Create a Link</strong></label></input>
+	</td>
 	<td>
 	<table>
-		<tr>
-			<td>Link URL:&nbsp;&nbsp;</td>
-			<td><input type="text" id="linkurl" name="url" value=""/></td>
-		</tr>
+	<tr>
+		<td>Link URL:&nbsp;&nbsp;<input type="text" 
+			id="linkurl" 
+			size="45" 
+			name="url" 
+			value=""/>
+		</td>
+	</tr>
+	</table>
+	</td>
+</tr>
+
+<tr>
+	<td style="padding-top:2px;"><input type="radio" id="githubLink" 
+		name="docType" value="3" ><label 
+		for="githubLink"><strong>Add All GitHub Files</strong></label></input>
+	</td>
+	<td>
+	<table>
+	<tr>
+		<td>Link URL:&nbsp;&nbsp;<input type="text" 
+			id="githubArchiveUrl" 
+			name="githubArchiveUrl" 
+			size="45" value="<?php
+			if ($group->usesGitHub()) {
+				$url = $group->getGitHubAccessURL();
+				// Trim.
+				$url = trim($url);
+				if (strpos($url, "/") === 0) {
+					// Remove leading "/" if any.
+					$url = substr($url, 1);
+				}
+				if (strrpos($url, "/") === strlen($url) - 1) {
+					// Remove trailing "/" if any.
+					$url = substr($url, 0, strlen($url) - 1);
+				}
+				echo "http://github.com/" . $url . "/archive/master.zip";
+			}
+		?>"/>
+		</td>
+	</tr>
+	<tr>
+		<td>(Default: Files from current release)
+		</td>
+	</tr>
+	<tr>
+		<td>Refresh frequency:&nbsp;&nbsp;
+			<input type="radio" 
+				name="refreshArchive" 
+				value="0" checked><label for="">None</label>
+			</input>&nbsp;&nbsp;
+			<input type="radio" 
+				name="refreshArchive" 
+				value="1"><label for="">Daily</label>
+			</input>&nbsp;&nbsp;
+			<input type="radio" 
+				name="refreshArchive" 
+				value="7"><label for="">Weekly</label>
+			</input>&nbsp;&nbsp;
+		</td>
+	</tr>
 	</table>
 	</td>
 </tr>
