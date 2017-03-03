@@ -38,7 +38,8 @@ require_once $gfcommon . 'frs/FRSPackage.class.php';
 
 // Get number of days since epoch for "now".
 $now = time();
-$nowDay = (int) ($now / 3600 / 24);
+$nowDay = floor($now / 86400);
+//echo "NOW: $now $nowDay \n";
 
 $arrPackages = array();
 
@@ -64,11 +65,8 @@ if ($res && db_numrows($res) > 0) {
 		$url = $row["url"];
 		$refreshArchive = $row["refresh_archive"];
 
-		// Remember this package.
-		$arrPackages[$packId] = $packId;
-
 		// Get number of days since epoch for last release time of file.
-		$relDay = $relTime / 3600 / 24;
+		$relDay = floor($relTime / 86400);
 
 		//echo "$fileId : $fileName : $relName : $packName : $packId : $groupName : $relTime : $relDay : $url : $refreshArchive \n";
 
@@ -80,6 +78,9 @@ if ($res && db_numrows($res) > 0) {
 			if ($fileSize !== false && $fileSize != -1) {
 				// Update release time and file zie for the file in frs_file table.
 				updateReleasedFileInfo($fileId, $fileSize);
+
+				// Remember this package.
+				$arrPackages[$packId] = $packId;
 			}
 		}
 	}
