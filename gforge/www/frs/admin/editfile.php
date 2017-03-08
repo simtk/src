@@ -467,6 +467,10 @@ if ($frsp->getUseAgreement() != 0) {
 	</td>
 </tr>
 
+<?php
+if ($group->usesGitHub()) {
+?>
+
 <tr>
 	<td style="padding-top:2px;"><input type="radio" id="githubLink" name="docType" 
 		value="3" <?php 
@@ -483,25 +487,23 @@ if ($frsp->getUseAgreement() != 0) {
 				name="githubArchiveUrl" 
 				size="45"
 				value="<?php 
-				if ($group->usesGitHub()) {
-					$theGitHubURL = $frsf->getGitHubArchiveURL(); 
-					if ($theGitHubURL == "") {
-						// Initialize to default GitHub archive URL.
-						$url = $group->getGitHubAccessURL();
-						// Trim.
-						$url = trim($url);
-						if (strpos($url, "/") === 0) {
-							// Remove leading "/" if any.
-							$url = substr($url, 1);
-						}
-						if (strrpos($url, "/") === strlen($url) - 1) {
-							// Remove trailing "/" if any.
-							$url = substr($url, 0, strlen($url) - 1);
-						}
-						$theGitHubURL = "http://github.com/" . $url . "/archive/master.zip";
+				$theGitHubURL = $frsf->getGitHubArchiveURL(); 
+				if ($theGitHubURL == "") {
+					// Initialize to default GitHub archive URL.
+					$url = $group->getGitHubAccessURL();
+					// Trim.
+					$url = trim($url);
+					if (strpos($url, "/") === 0) {
+						// Remove leading "/" if any.
+						$url = substr($url, 1);
 					}
-					echo $theGitHubURL;
+					if (strrpos($url, "/") === strlen($url) - 1) {
+						// Remove trailing "/" if any.
+						$url = substr($url, 0, strlen($url) - 1);
+					}
+					$theGitHubURL = "http://github.com/" . $url . "/archive/master.zip";
 				}
+				echo $theGitHubURL;
 				?>"/>
 			</td>
 		</tr>
@@ -543,6 +545,10 @@ if ($frsp->getUseAgreement() != 0) {
 	</table>
 	</td>
 </tr>
+
+<?php
+}
+?>
 
 <tr>
 	<td colspan="2"><h2>Provide File/Link Details</h2></td>
