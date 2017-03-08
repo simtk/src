@@ -2,9 +2,9 @@
 
 /**
  *
- * refreshGitHubArchives.php
+ * gitGitHubArchive.php
  * 
- * Refresh GitHub archives.
+ * Get GitHub archive file.
  * 
  * Copyright 2005-2017, SimTK Team
  *
@@ -36,23 +36,24 @@ require dirname(__FILE__) . '/../www/env.inc.php';
 require_once $gfcommon . 'include/pre.php';
 require_once "utilsGitHubSave.php";
 
-// Get number of days since epoch for "now".
-$now = time();
-$nowDay = floor($now / 86400);
-//echo "NOW: $now $nowDay \n";
+if (count($argv) < 2) {
+	// Missing file_id parameter.
+	exit();
+}
 
-$arrPackages = array();
+$fileId = $argv[1];
+//echo $fileId;
 
-// Find GitHub archive files that need refreshing (i.e. "refresh_archive>0").
+// Get info of the GitHub archive file specified.
 $strQuery = "SELECT file_id, filename, refresh_archive, " .
 	"simtk_filelocation, release_time, file_size " .
 	"FROM frs_file " .
 	"WHERE simtk_filetype='GitHubArchive' " .
-	"AND refresh_archive>0";
+	"AND file_id=$1";
 //echo $strQuery . "\n";
-$res = db_query_params($strQuery, array());
+$res = db_query_params($strQuery, array($fileId));
 if (!$res || db_numrows($res) <= 0) {
-	// No files to refresh. Done.
+	// File not found.
 	exit();
 }
 
@@ -64,32 +65,16 @@ while ($row = db_fetch_array($res)) {
 	$relTime = $row["release_time"];
 	$fSize = $row["file_size"];
 
-	// Get number of days since epoch for last release time of file.
-	$relDay = floor($relTime / 86400);
+	$fileSize = refreshFile($fileId, $url, $packId);
 
-	//echo "$fileId : $fileName : $refreshArchive : $url : $relDay : $fSize \n";
-
-	// Check whether it is time to refresh the file.
-	if ($nowDay - $relDay >= $refreshArchive) {
-		// Time to refresh the file.
-		$fileSize = refreshFile($fileId, $url, $packId);
-
-		if ($fileSize !== false && $fileSize != -1) {
-			// Update release time and file zie for the file in frs_file table.
-			updateReleasedFileInfo($fileId, $fileSize);
-
-			// Remember this package.
-			$arrPackages[$packId] = $packId;
-		}
+	if ($fileSize !== false && $fileSize != -1) {
+		// Update release time and file zie for the file in frs_file table.
+		updateReleasedFileInfo($fileId, $fileSize);
 	}
 }
 
-// Iterate through all affected packages that have
-// updated files and generate new zip file for each package.
-foreach(array_keys($arrPackages) as $packId) {
-	// Update package zip file.
-	updatePackageZipFile($packId);
-}
+// Generate new zip file for package.
+updatePackageZipFile($packId);
 
 ?>
 

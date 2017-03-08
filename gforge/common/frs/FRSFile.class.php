@@ -202,16 +202,7 @@ class FRSFile extends Error {
 		}
 		else if ($url == "") {
 			// GitHub archive URL.
-			// Get GitHub archive file content and save to $newfilelocation.
-			$content = @file_get_contents($githubArchiveUrl);
-			$fp = @fopen($newfilelocation.$name, "w+");
-			if ($fp === false) {
-				$this->setError('Cannot save file: ' . $name);
-				return false;
-			}
-			fwrite($fp, $content);
-			fclose($fp);
-			$file_size=filesize("$newfilelocation$name");
+			$file_size = 0;
 		}
 		else {
 			// URL.
@@ -229,6 +220,7 @@ class FRSFile extends Error {
 
 		db_begin();
 
+		$launchGitHubCronJob = false;
 		if ($url == "" && $githubArchiveUrl == "") {
 			// File upload.
 			$strInsert = 'INSERT INTO frs_file (' .
@@ -285,6 +277,7 @@ class FRSFile extends Error {
 				$doi,
 				$user_id,
 				$refreshArchive);
+			$launchGitHubCronJob = true;
 		}
 		else {
 			// URL.
@@ -330,9 +323,17 @@ class FRSFile extends Error {
 			$this->FRSRelease->FRSPackage->createNewestReleaseFilesAsZip();
 		}
 
-		// File released.
-		// Send notice to users monitoring this package.
-		$this->FRSRelease->sendNotice('UPDATE_RELEASE');
+		if ($launchGitHubCronJob === true) {
+			// Launch background process to retrieve GitHub archive file.
+			system("/usr/bin/php /usr/share/gforge/cronjobs/getGitHubArchive.php " .
+				$this->getID() . 
+				" >> /dev/null 2>&1 &");
+		}
+		else {
+			// File released.
+			// Send notice to users monitoring this package.
+			$this->FRSRelease->sendNotice('UPDATE_RELEASE');
+		}
 
 		return true;
 	}
@@ -831,6 +832,7 @@ class FRSFile extends Error {
 			$this->FRSRelease->FRSPackage->getFileName() . '/' .
 			$this->FRSRelease->getFileName() . '/';
 
+		$launchGitHubCronJob = false;
 		if ($simtk_file_type != "URL" && $simtk_file_type != "GitHubArchive") {
 			if (isset($userfile_name) && $userfile_name != "") {
 				// Selected a file.
@@ -870,18 +872,9 @@ class FRSFile extends Error {
 			}
 		}
 		else if ($simtk_file_type == "GitHubArchive") {
-			// GitHub archive URL.
-			// Get GitHub archive file content and save to $newfilelocation.
-			$content = @file_get_contents($githubArchiveUrl);
-			$fp = @fopen($newfilelocation.$disp_name, "w+");
-			if ($fp === false) {
-				$this->setError('Cannot save file: ' . $disp_name);
-				return false;
-			}
-			fwrite($fp, $content);
-			fclose($fp);
-			// Set file_size.
-			$file_size=filesize("$newfilelocation$disp_name");
+			// Will launch cronjob to fetch file.
+			$file_size = 0;
+			$launchGitHubCronJob = true;
 		}
 
 		if (!$release_time) {
@@ -1043,11 +1036,18 @@ class FRSFile extends Error {
 
 		db_commit();
 
-		// File updated.
-		// Send notice to users monitoring this package.
-		$this->FRSRelease->sendNotice('UPDATE_RELEASE');
-
 		$this->FRSRelease->FRSPackage->createNewestReleaseFilesAsZip();
+
+		if ($launchGitHubCronJob === true) {
+			system("/usr/bin/php /usr/share/gforge/cronjobs/getGitHubArchive.php " .
+				$this->getID() . 
+				" >> /dev/null 2>&1 &");
+		}
+		else {
+			// File updated.
+			// Send notice to users monitoring this package.
+			$this->FRSRelease->sendNotice('UPDATE_RELEASE');
+		}
 
 		return true;
 	}
