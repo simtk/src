@@ -478,10 +478,6 @@ if ($frsp->getUseAgreement() != 0) {
 	</td>
 </tr>
 
-<?php
-if ($group->usesGitHub()) {
-?>
-
 <tr>
 	<td style="padding-top:2px;"><input type="radio" id="githubLink" 
 		name="docType" value="3" ><label 
@@ -494,23 +490,25 @@ if ($group->usesGitHub()) {
 			id="githubArchiveUrl" 
 			name="githubArchiveUrl" 
 			size="45" value="<?php
-			$url = $group->getGitHubAccessURL();
-			// Trim.
-			$url = trim($url);
-			if (strpos($url, "/") === 0) {
-				// Remove leading "/" if any.
-				$url = substr($url, 1);
+			if ($group->usesGitHub()) {
+				$url = $group->getGitHubAccessURL();
+				// Trim.
+				$url = trim($url);
+				if (strpos($url, "/") === 0) {
+					// Remove leading "/" if any.
+					$url = substr($url, 1);
+				}
+				if (strrpos($url, "/") === strlen($url) - 1) {
+					// Remove trailing "/" if any.
+					$url = substr($url, 0, strlen($url) - 1);
+				}
+				echo "http://github.com/" . $url . "/archive/master.zip";
 			}
-			if (strrpos($url, "/") === strlen($url) - 1) {
-				// Remove trailing "/" if any.
-				$url = substr($url, 0, strlen($url) - 1);
-			}
-			echo "http://github.com/" . $url . "/archive/master.zip";
 		?>"/>
 		</td>
 	</tr>
 	<tr>
-		<td>(Default: Files from current release)
+		<td>(Default: Files from current release. Public repository only)
 		</td>
 	</tr>
 	<tr>
@@ -532,10 +530,6 @@ if ($group->usesGitHub()) {
 	</table>
 	</td>
 </tr>
-
-<?php
-}
-?>
 
 <tr>
 	<td colspan="2"><h2>Provide File/Link Details</h2></td>
