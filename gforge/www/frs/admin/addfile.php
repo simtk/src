@@ -32,6 +32,8 @@ require_once $gfcommon.'frs/FRSFile.class.php';
 require_once $gfcommon.'frs/include/frs_utils.php';
 require_once $gfwww . 'githubAccess/githubUtils.php';
 
+define("MAX_GITHUB_FILESIZE", 150 * 1024 * 1024);
+
 $group_id = getIntFromRequest('group_id');
 $package_id = getIntFromRequest('package_id');
 $release_id = getIntFromRequest('release_id');
@@ -153,6 +155,13 @@ if (getStringFromRequest('submit')) {
 			// Do not proceed if GitHub archive URL is not valid.
                         $error_msg .= 'Please enter a valid URL.';
 		}
+		else if (($tmpFileSize = getGitHubFileSize($githubArchiveUrl)) === false ||
+			$tmpFileSize > MAX_GITHUB_FILESIZE) {
+			// GitHub archive file at URL is too large.
+                        $error_msg .= 'Your GitHub file is too big ' .
+				'(' . floor($tmpFileSize / 1024 / 1024) . 'MB)' .
+				' to be added to SimTK';
+		}
                 else {
                         if ($disp_name == "") {
                                 // Display Name is not present.
@@ -176,7 +185,7 @@ if (getStringFromRequest('submit')) {
                                 $file_desc, $disp_name, $doi, $user_id, $url,
 				$githubArchiveUrl, $refreshArchive);
                         if ($ret === true) {
-                                $feedback = '***NOSTRIPTAGS***GitHub files are added. ' . $msgReleased;
+                                $feedback = '***NOSTRIPTAGS***GitHub files are added and will be available in a few minutes.<br/>' . $msgReleased;
                         }
                         else {
                                 $error_msg .= $ret;

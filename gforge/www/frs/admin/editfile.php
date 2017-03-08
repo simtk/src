@@ -32,6 +32,8 @@ require_once $gfcommon.'frs/FRSFile.class.php';
 require_once $gfcommon.'frs/include/frs_utils.php';
 require_once $gfwww . 'githubAccess/githubUtils.php';
 
+define("MAX_GITHUB_FILESIZE", 150 * 1024 * 1024);
+
 $group_id = getIntFromRequest('group_id');
 $package_id = getIntFromRequest('package_id');
 $release_id = getIntFromRequest('release_id');
@@ -114,6 +116,7 @@ if (getStringFromRequest('submit') && $func=="edit_file" && $file_id) {
 	$user = session_get_user(); // get the session user
 	$user_id = $user->getID();
 	
+	$isDocTypeGitHubArchive = false;
 	if ($docType == 2) {
 		// URL
 
@@ -141,6 +144,8 @@ if (getStringFromRequest('submit') && $func=="edit_file" && $file_id) {
 	else if ($docType == 3) {
 		// GitHub Archive URL.
 
+		$isDocTypeGitHubArchive = true;
+
 		// Ensure that URL is not used.
 		$url = "";
 
@@ -150,6 +155,13 @@ if (getStringFromRequest('submit') && $func=="edit_file" && $file_id) {
 		else if (urlExistance($githubArchiveUrl) != 200) {
 			// Do not proceed if GitHub archive URL is not valid.
                         $error_msg .= 'Please enter a valid URL.';
+		}
+		else if (($tmpFileSize = getGitHubFileSize($githubArchiveUrl)) === false ||
+			$tmpFileSize > MAX_GITHUB_FILESIZE) {
+			// GitHub archive file at URL is too large.
+                        $error_msg .= 'Your GitHub file is too big ' .
+				'(' . floor($tmpFileSize / 1024 / 1024) . 'MB)' .
+				' to be added to SimTK';
 		}
                 else {
                         if ($disp_name == "") {
@@ -164,6 +176,7 @@ if (getStringFromRequest('submit') && $func=="edit_file" && $file_id) {
                                 	$disp_name = $githubArchiveUrl;
 				}
                         }
+
 			// NOTE: The GitHub archive is retrieved from the link specified
 			// and then treated as a file for download.
 			// This archive file can be refreshed with the specified frequency.
@@ -192,21 +205,26 @@ if (getStringFromRequest('submit') && $func=="edit_file" && $file_id) {
 	}
 
 	if ($ret === true) {
-	    if ($doi) {
-           // set doi for release
-		   $frsr->setDoi($doi);
-		   // set doi for package
-		   $frsp->setDoi($doi);
-		   $doi_confirm = 1;
-		   $message = "\n"
-				. _('Please visit the following URL to assign DOI')._(': '). "\n"
-				. util_make_url('/admin/downloads-doi.php');
-		   util_send_message("webmaster@simtk.org", sprintf(_('DOI for %s File Requested'), $disp_name), $message);
-		   $feedback = _('Your file has been uploaded and your DOI will be emailed within 72 hours. ');
-		} else {
-		   $feedback = 'File/Link Updated';
-        }
-		
+		if ($doi) {
+			// set doi for release
+			$frsr->setDoi($doi);
+			// set doi for package
+			$frsp->setDoi($doi);
+			$doi_confirm = 1;
+			$message = "\n" . _('Please visit the following URL to assign DOI')._(': '). "\n" . 
+				util_make_url('/admin/downloads-doi.php');
+			util_send_message("webmaster@simtk.org", sprintf(_('DOI for %s File Requested'), $disp_name), $message);
+			$feedback = _('Your file has been uploaded and your DOI will be emailed within 72 hours. ');
+		}
+		else {
+			if ($isDocTypeGitHubArchive === true) {
+				$feedback = 'GitHub files updated and will be available in a few minutes';
+			}
+			else {
+				$feedback = 'File/Link Updated';
+			}
+		}
+
 		// Refresh file object.
 		$frsf = new FRSFile($frsr, $file_id);
 		if (!$frsf || !is_object($frsf)) {

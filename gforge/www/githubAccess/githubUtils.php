@@ -163,9 +163,10 @@ function getLastCommit($theGitHubURL, &$dateLastCommit) {
 	return false;
 }
 
+// Test for URL existence.
 function urlExistance($strUrl) {
 	$handle = curl_init($strUrl);
-	$timeout =5;
+	$timeout = 5;
 	curl_setopt($handle,  CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($handle,  CURLOPT_CONNECTTIMEOUT, $timeout);
 	curl_setopt($handle, CURLOPT_FOLLOWLOCATION, true);
@@ -175,7 +176,7 @@ function urlExistance($strUrl) {
 	curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
 	//curl_setopt($handle, CURLOPT_AUTOREFERER, true);
 
-	// Get the HTML or whatever is linked in $strUrl.
+	// Get the HTML or whatever is linked in URL.
 	$response = curl_exec($handle);
 	//echo $response;
 
@@ -183,7 +184,34 @@ function urlExistance($strUrl) {
 	$httpCode1 = curl_getinfo($handle, CURLINFO_HTTP_CODE);
 	//echo $httpCode1;
 
+	curl_close($handle);
+
 	return $httpCode1;
+}
+
+// Get GitHub archive file size at given URL.
+function getGitHubFileSize($strUrl) {
+
+	$fileSize = false;
+
+	$handle = curl_init($strUrl);
+	curl_setopt($handle,  CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($handle, CURLOPT_FOLLOWLOCATION, true);
+	curl_setopt($handle, CURLOPT_HEADER, true);
+	curl_setopt($handle, CURLOPT_NOBODY, true);
+	curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+
+	// Get the HTML or whatever is linked in URL.
+	$response = curl_exec($handle);
+	//echo $response;
+
+	// Check for 404 (file not found).
+	$fileSize = curl_getinfo($handle, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
+	//echo $fileSize;
+
+	curl_close($handle);
+
+	return $fileSize;
 }
 
 ?>

@@ -637,13 +637,19 @@ function constructFileUI($groupId,
 			echo $fileName . ' (URL)</a></div></td>';
 		}
 		else {
-			echo '<td><div class="download_link">' . 
-				'<a href="/frs/download_confirm.php/file/' . 
-				$fileId . '/' . $fileName . 
-				'?group_id=' . $groupId . 
-				'">';
-			echo $fileName . '</a></div></td>';
-			
+			if ($simtkFileType == "GitHubArchive" && $fileSize == 0) {
+				// File downloading. Not ready yet.
+				echo '<td><div class="download_link">';
+				echo $fileName . '</div></td>';
+			}
+			else {
+				echo '<td><div class="download_link">' . 
+					'<a href="/frs/download_confirm.php/file/' . 
+					$fileId . '/' . $fileName . 
+					'?group_id=' . $groupId . 
+					'">';
+				echo $fileName . '</a></div></td>';
+			}
 		}
 	}
 	else {
@@ -657,12 +663,19 @@ function constructFileUI($groupId,
 			echo $fileName . ' (URL)</a></div></td>';
 		}
 		else {
-			echo '<td><div class="download_link">' . 
-				'<a href="/frs/download_confirm.php/file/' . 
-				$fileId . '/' . $fileName . 
-				'?group_id=' . $groupId . 
-				'">';
-			echo $fileName . '</a></div></td>';
+			if ($simtkFileType == "GitHubArchive" && $fileSize == 0) {
+				// File downloading. Not ready yet.
+				echo '<td><div class="download_link">';
+				echo $fileName . '</div></td>';
+			}
+			else {
+				echo '<td><div class="download_link">' . 
+					'<a href="/frs/download_confirm.php/file/' . 
+					$fileId . '/' . $fileName . 
+					'?group_id=' . $groupId . 
+					'">';
+				echo $fileName . '</a></div></td>';
+			}
 		}
 	}
 	if (!$doi) {

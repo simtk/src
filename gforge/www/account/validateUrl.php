@@ -107,7 +107,7 @@ function ShowExtension($path) {
 
 function urlExistance($strUrl) {
 	$handle = curl_init($strUrl);
-	$timeout =5;
+	$timeout = 5;
 	curl_setopt($handle,  CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($handle,  CURLOPT_CONNECTTIMEOUT, $timeout);
 	curl_setopt($handle, CURLOPT_FOLLOWLOCATION, true);
@@ -124,6 +124,8 @@ function urlExistance($strUrl) {
 	// Check for 404 (file not found).
 	$httpCode1 = curl_getinfo($handle, CURLINFO_HTTP_CODE);
 	echo $httpCode1;
+
+	curl_close($handle);
 
 	return $httpCode1;
 }
