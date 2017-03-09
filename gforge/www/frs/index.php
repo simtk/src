@@ -88,4 +88,9 @@ plugin_hook("blocks", "files index");
 
 require_once 'frs_front.php';
 
+?>
+
+<script src='/frs/showNotReadyDivs.js'></script>
+
+<?php
 frs_footer();
