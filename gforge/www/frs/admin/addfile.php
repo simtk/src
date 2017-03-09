@@ -508,7 +508,7 @@ if ($frsp->getUseAgreement() != 0) {
 		</td>
 	</tr>
 	<tr>
-		<td>(Default: Files from current release)
+		<td>(Default: Files from current release. Public repository only)
 		</td>
 	</tr>
 	<tr>

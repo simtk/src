@@ -639,7 +639,7 @@ function constructFileUI($groupId,
 		else {
 			if ($simtkFileType == "GitHubArchive" && $fileSize == 0) {
 				// File downloading. Not ready yet.
-				echo '<td><div class="download_link">';
+				echo '<td><div class="download_link grey">';
 				echo $fileName . '</div></td>';
 			}
 			else {
@@ -665,7 +665,7 @@ function constructFileUI($groupId,
 		else {
 			if ($simtkFileType == "GitHubArchive" && $fileSize == 0) {
 				// File downloading. Not ready yet.
-				echo '<td><div class="download_link">';
+				echo '<td><div class="download_link grey">';
 				echo $fileName . '</div></td>';
 			}
 			else {
@@ -693,6 +693,15 @@ function constructFileUI($groupId,
 	   echo "<td colspan=2><span>doi:" . $doi_identifier . "</span></td>";
 	}
 	echo "</tr>";
+
+	if ($simtkFileType == "GitHubArchive" && $fileSize == 0) {
+		// File downloading. Not ready yet.
+		echo '<tr><td>' .
+			'<div class="download_size not_ready" ' .
+			'id="notready_' . $packId . "_" . $relId . "_" . $fileId .
+			'"><i>Updating from GitHub...</i></div>' .
+			'</td></tr>';
+	}
 }
 
 

@@ -620,7 +620,7 @@ function constructFileUI($groupId, $release_id,
 			echo '<div style="clear:both"></div>';
 			if ($simtkFileType == "GitHubArchive" && $fileSize == 0) {
 				// File downloading. Not ready yet.
-				echo '<div class="download_link">';
+				echo '<div class="download_link grey">';
 				echo $fileName . '</div>';
 			}
 			else {
@@ -647,7 +647,9 @@ function constructFileUI($groupId, $release_id,
 
 		if ($simtkFileType == "GitHubArchive" && $fileSize == 0) {
 			// File downloading. Not ready yet.
-			echo '<div class="download_text">Downloading...</div>';
+			echo '<div class="download_size not_ready" ' .
+				'id="notready_' . $packId . "_" . $relId . "_" . $fileId .
+				'"><i>Updating from GitHub...</i></div>';
 		}
 	}
 	else {
@@ -666,7 +668,7 @@ function constructFileUI($groupId, $release_id,
 			echo '<div style="clear:both"></div>';
 			if ($simtkFileType == "GitHubArchive" && $fileSize == 0) {
 				// File downloading. Not ready yet.
-				echo '<div class="download_link">';
+				echo '<div class="download_link grey">';
 				echo $fileName . '</div>';
 			}
 			else {
@@ -689,7 +691,9 @@ function constructFileUI($groupId, $release_id,
 		echo '<div class="download_text">' . $fileDescription . '</div>';
 		if ($simtkFileType == "GitHubArchive" && $fileSize == 0) {
 			// File downloading. Not ready yet.
-			echo '<div class="download_text">Downloading...</div>';
+			echo '<div class="download_size not_ready" ' .
+				'id="notready_' . $packId . "_" . $relId . "_" . $fileId .
+				'"><i>Updating from GitHub...</i></div>';
 		}
 	}
 	echo '<br/>';

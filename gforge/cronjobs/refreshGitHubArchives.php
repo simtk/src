@@ -38,8 +38,6 @@ require_once "utilsGitHubSave.php";
 
 // Get number of days since epoch for "now".
 $now = time();
-$nowDay = floor($now / 86400);
-//echo "NOW: $now $nowDay \n";
 
 $arrPackages = array();
 
@@ -65,12 +63,11 @@ while ($row = db_fetch_array($res)) {
 	$fSize = $row["file_size"];
 
 	// Get number of days since epoch for last release time of file.
-	$relDay = floor($relTime / 86400);
 
-	//echo "$fileId : $fileName : $refreshArchive : $url : $relDay : $fSize \n";
+	//echo "$fileId : $fileName : $refreshArchive : $url : $relTime : $fSize \n";
 
 	// Check whether it is time to refresh the file.
-	if ($nowDay - $relDay >= $refreshArchive) {
+	if ($now - $relTime > $refreshArchive * 86400) {
 		// Time to refresh the file.
 		$fileSize = refreshFile($fileId, $url, $packId);
 

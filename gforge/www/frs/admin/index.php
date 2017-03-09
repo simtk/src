@@ -247,6 +247,12 @@ $rows = db_numrows($res);
 
 require_once 'frs_admin_front.php';
 
+?>
+
+<script src='/frs/showNotReadyDivs.js'></script>
+
+<?php
+
 frs_admin_footer();
 
 // Local Variables:
