@@ -132,6 +132,10 @@ class FRSFile extends Error {
 			$this->setError(_('Filename can only be alphanumeric and “-”, “_”, “+”, “.”, “~” characters.'));
 			return false;
 		}
+		if ($githubArchiveUrl != "" && !util_is_valid_filename($name)) {
+			$this->setError(_('Filename can only be alphanumeric and “-”, “_”, “+”, “.”, “~” characters.'));
+			return false;
+		}
 
 		if ($url == "" && $githubArchiveUrl == "") {
 			//
@@ -770,12 +774,23 @@ class FRSFile extends Error {
 				$this->setError(_('Filename can only be alphanumeric and “-”, “_”, “+”, “.”, “~” characters.'));
 				return false;
 			}
-
 		}
 		else if ($url == "") {
 			// GitHub archive URL.
 			// Set simtk_file_type.
 			$simtk_file_type = "GitHubArchive";
+
+			// Check Display Name.
+			// NOTE: File may be changed from URL type to FILE.
+			// Hence, need to verify validity of the display name here.
+			if (strlen($disp_name) < 3) {
+				$this->setError(_('Name is too short. It must be at least 3 characters.'));
+				return false;
+			}
+			if (!util_is_valid_filename($disp_name)) {
+				$this->setError(_('Filename can only be alphanumeric and “-”, “_”, “+”, “.”, “~” characters.'));
+				return false;
+			}
 		}
 		else {
 			// Set simtk_file_type.
