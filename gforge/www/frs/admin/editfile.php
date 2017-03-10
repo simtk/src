@@ -244,8 +244,7 @@ frs_admin_header(array('title'=>'Update File','group'=>$group_id));
 
 <script>
 	$(document).ready(function() {
-		if ($('#docLink').is(":checked") ||
-			$('#githubLink').is(":checked")) {
+		if ($('#docLink').is(":checked") || $('#githubLink').is(":checked")) {
 			// Disable inputs for File upload.
 			$('.upFile').prop("disabled", true);
 			$('[name="group_list_id"]').prop("disabled", true);
@@ -264,7 +263,7 @@ frs_admin_header(array('title'=>'Update File','group'=>$group_id));
 			$('#warnDispName').show("slow");
 			$('#labelDispName').html("<strong>Rename File<br/>for display & download:<br/>(optional)</strong>");
 
-			// Disable inputs for File upload.
+			// Enable inputs for File upload.
 			$('.upFile').prop("disabled", false);
 			$('[name="group_list_id"]').prop("disabled", false);
 			$('#doi').prop("disabled", false);
@@ -274,7 +273,7 @@ frs_admin_header(array('title'=>'Update File','group'=>$group_id));
 			$('#warnDispName').hide("slow");
 			$('#labelDispName').html("<strong>Display Name:</strong>");
 
-			// Enable inputs for File upload.
+			// Disable inputs for File upload.
 			$('.upFile').prop("disabled", true);
 			$('#doi').attr('checked', false);
 			$('#doi_info').hide();
@@ -282,11 +281,11 @@ frs_admin_header(array('title'=>'Update File','group'=>$group_id));
 			$('[name="group_list_id"]').prop("disabled", true);
 		});
 		$('#githubLink').click(function() {
-			// Hide the Display Name warning.
-			$('#warnDispName').hide("slow");
-			$('#labelDispName').html("<strong>Display Name:</strong>");
+			// Show the Display Name warning.
+			$('#warnDispName').show("slow");
+			$('#labelDispName').html("<strong>Rename File<br/>for display & download:<br/>(optional)</strong>");
 
-			// Enable inputs for File upload.
+			// Disable inputs for File upload.
 			$('.upFile').prop("disabled", true);
 			$('#doi').attr('checked', false);
 			$('#doi_info').hide();

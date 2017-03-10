@@ -307,7 +307,7 @@ $(document).ready(function() {
 		$('#warnDispName').show("slow");
 		$('#labelDispName').html("<strong>Rename File<br/>for display & download:<br/>(optional)</strong>");
 
-		// Disable inputs for File upload.
+		// Enable inputs for File upload.
 		$('.upFile').prop("disabled", false);
 		$('[name="group_list_id"]').prop("disabled", false);
 		$('#doi').prop("disabled", false);
@@ -317,7 +317,7 @@ $(document).ready(function() {
 		$('#warnDispName').hide("slow");
 		$('#labelDispName').html("<strong>Display Name:</strong>");
 
-		// Enable inputs for File upload.
+		// Disable inputs for File upload.
 		$('.upFile').prop("disabled", true);
 		$('#doi').attr('checked', false);
 		$('#doi_info').hide();
@@ -325,11 +325,11 @@ $(document).ready(function() {
 		$('[name="group_list_id"]').prop("disabled", true);
 	});
 	$('#githubLink').click(function() {
-		// Hide the Display Name warning.
-		$('#warnDispName').hide("slow");
-		$('#labelDispName').html("<strong>Display Name:</strong>");
+		// Show the Display Name warning.
+		$('#warnDispName').show("slow");
+		$('#labelDispName').html("<strong>Rename File<br/>for display & download:<br/>(optional)</strong>");
 
-		// Enable inputs for File upload.
+		// Disable inputs for File upload.
 		$('.upFile').prop("disabled", true);
 		$('#doi').attr('checked', false);
 		$('#doi_info').hide();

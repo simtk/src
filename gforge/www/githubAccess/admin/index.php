@@ -76,6 +76,11 @@ if ($submit = getStringFromRequest('update')) {
 			// ends with "/" after trimming.
 			$error_msg .= "$url is in invalid format.";
 		}
+		else if (stripos(strrev($url), strrev(".git/")) === 0 ||
+			stripos(strrev($url), strrev(".git")) === 0) {
+			// Ends with ".git" or ".git/".
+			$error_msg .= "Do not include .git suffix in URL.";
+		}
 		else {
 			$theGitHubURL = "https://github.com/" . $url;
 			if (urlExistance($theGitHubURL) != 200) {
