@@ -1171,7 +1171,7 @@ class ReportSetup extends Report {
 				array($day));
 
 		$end_day=$day+REPORT_DAY_SPAN-1;
-
+		
 		return db_query_params ('INSERT INTO rep_group_act_daily
 		SELECT group_id,day,coalesce(tracker_opened,0) AS tracker_opened,
 			coalesce(tracker_closed,0) AS tracker_closed,
@@ -1262,7 +1262,7 @@ class ReportSetup extends Report {
 				FROM activity_log al
 				JOIN (SELECT group_id FROM groups) AS g ON g.group_id=al.group_id
 				WHERE al.time BETWEEN $1 AND $2
-				GROUP BY al.group_id,day ) avisits USING (group_id,day)) foo8
+				GROUP BY al.group_id ) avisits USING (group_id,day)) foo8
 
 			FULL OUTER JOIN
 				(SELECT al.group_id, $1::int AS day, count(*) AS simtk_visits_stanford
@@ -1270,14 +1270,14 @@ class ReportSetup extends Report {
 				JOIN (SELECT group_id FROM groups) AS g ON g.group_id=al.group_id
 				WHERE al.time BETWEEN $1 AND $2
 				AND simtk_host_name LIKE \'%.stanford.edu\'
-				GROUP BY al.group_id,day ) avisits_stan USING (group_id,day)) foo9
+				GROUP BY al.group_id ) avisits_stan USING (group_id,day)) foo9
 
 			FULL OUTER JOIN
 				(SELECT al.group_id, $1::int AS day, count(DISTINCT simtk_ip_addr) AS simtk_visitors
 				FROM activity_log al
 				JOIN (SELECT group_id FROM groups) AS g ON g.group_id=al.group_id
 				WHERE al.time BETWEEN $1 AND $2
-				GROUP BY al.group_id,day ) avisitors USING (group_id,day)) foo10
+				GROUP BY al.group_id ) avisitors USING (group_id,day)) foo10
 
 			FULL OUTER JOIN
 				(SELECT al.group_id, $1::int AS day, count(DISTINCT simtk_ip_addr) AS simtk_visitors_stanford
@@ -1285,7 +1285,7 @@ class ReportSetup extends Report {
 				JOIN (SELECT group_id FROM groups) AS g ON g.group_id=al.group_id
 				WHERE al.time BETWEEN $1 AND $2
 				AND simtk_host_name LIKE \'%.stanford.edu\'
-				GROUP BY al.group_id,day ) avisitors_stan USING (group_id,day)) foo11
+				GROUP BY al.group_id ) avisitors_stan USING (group_id,day)) foo11
 
 			FULL OUTER JOIN
                                 (SELECT fp.group_id, $1::int AS day, count(*) AS simtk_downloads_stanford

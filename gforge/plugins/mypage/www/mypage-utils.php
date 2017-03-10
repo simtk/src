@@ -80,15 +80,20 @@ function getProjects() {
 function getUserProjects($user,&$cntUserProjects,$include_following=0) {
 
    $arrProjects = array();
-
+   $cntUserProjects = 0;
+   
    // Get user projects info.
    $projects = $user->getGroups();
+   if (!$projects) {
+     return NULL;
+   }
+   
    sortProjectList($projects);
    $roles = RBACEngine::getInstance()->getAvailableRolesForUser($user);
    sortRoleList($roles);
   
    // Count number of projects that user is a member of. 
-   $cntUserProjects = 0;
+   
    foreach ($projects as $p) {
       if (!forge_check_perm('project_read', $p->getID())) {
 		continue;

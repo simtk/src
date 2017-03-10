@@ -240,12 +240,13 @@ function report_pie_arr($labels, $vals, $format=1) {
 function report_package_box($group_id, $name='dev_id', $selected='', $only_public=1) {
 
     if ($only_public) {
-	  $res = db_query_params ('SELECT package_id, name FROM frs_package WHERE frs_package.group_id = $1 AND frs_package.is_public = 1 AND status_id = 1',
+	  $res = db_query_params ('select sub2.package_id as package_id, sub2.name as name from (SELECT sub1.release_date as release_date, sub1.name as name, sub1.package_id as package_id from (SELECT distinct on (sub.name) name,sub.release_date,sub.package_id as package_id from (SELECT release_date,frs_package.name, frs_package.package_id FROM frs_package, frs_release WHERE frs_package.package_id = frs_release.package_id and frs_package.group_id = $1 AND frs_package.is_public = 1 AND frs_package.status_id = 1 order by release_date desc) sub) sub1 order by release_date desc) sub2',
 				array ($group_id));
 	} else {
-	  $res = db_query_params ('SELECT package_id, name FROM frs_package WHERE frs_package.group_id = $1 AND status_id = 1',
+	  $res = db_query_params ('select sub2.package_id as package_id, sub2.name as name from (SELECT sub1.release_date, sub1.name as name, sub1.package_id as package_id from (SELECT distinct on (sub.name) name,sub.package_id as package_id,sub.release_date from (SELECT release_date,frs_package.name, frs_package.package_id FROM frs_package, frs_release WHERE frs_package.package_id = frs_release.package_id and frs_package.group_id = $1 AND frs_package.status_id = 1 order by release_date desc) sub) sub1 order by sub1.release_date desc) sub2',
 				array ($group_id));
 	}
+	
 	return html_build_select_box($res, $name, $selected, false);
 }
 
