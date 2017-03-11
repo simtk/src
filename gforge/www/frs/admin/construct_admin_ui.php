@@ -637,13 +637,19 @@ function constructFileUI($groupId,
 			echo $fileName . ' (URL)</a></div></td>';
 		}
 		else {
-			echo '<td><div class="download_link">' . 
-				'<a href="/frs/download_confirm.php/file/' . 
-				$fileId . '/' . $fileName . 
-				'?group_id=' . $groupId . 
-				'">';
-			echo $fileName . '</a></div></td>';
-			
+			if ($simtkFileType == "GitHubArchive" && $fileSize == 0) {
+				// File downloading. Not ready yet.
+				echo '<td><div class="download_link grey">';
+				echo $fileName . '</div></td>';
+			}
+			else {
+				echo '<td><div class="download_link">' . 
+					'<a href="/frs/download_confirm.php/file/' . 
+					$fileId . '/' . $fileName . 
+					'?group_id=' . $groupId . 
+					'">';
+				echo $fileName . '</a></div></td>';
+			}
 		}
 	}
 	else {
@@ -657,12 +663,19 @@ function constructFileUI($groupId,
 			echo $fileName . ' (URL)</a></div></td>';
 		}
 		else {
-			echo '<td><div class="download_link">' . 
-				'<a href="/frs/download_confirm.php/file/' . 
-				$fileId . '/' . $fileName . 
-				'?group_id=' . $groupId . 
-				'">';
-			echo $fileName . '</a></div></td>';
+			if ($simtkFileType == "GitHubArchive" && $fileSize == 0) {
+				// File downloading. Not ready yet.
+				echo '<td><div class="download_link grey">';
+				echo $fileName . '</div></td>';
+			}
+			else {
+				echo '<td><div class="download_link">' . 
+					'<a href="/frs/download_confirm.php/file/' . 
+					$fileId . '/' . $fileName . 
+					'?group_id=' . $groupId . 
+					'">';
+				echo $fileName . '</a></div></td>';
+			}
 		}
 	}
 	if (!$doi) {
@@ -680,6 +693,15 @@ function constructFileUI($groupId,
 	   echo "<td colspan=2><span>doi:" . $doi_identifier . "</span></td>";
 	}
 	echo "</tr>";
+
+	if ($simtkFileType == "GitHubArchive" && $fileSize == 0) {
+		// File downloading. Not ready yet.
+		echo '<tr><td>' .
+			'<div class="download_size not_ready" ' .
+			'id="notready_' . $packId . "_" . $relId . "_" . $fileId .
+			'"><i>Updating from GitHub...</i></div>' .
+			'</td></tr>';
+	}
 }
 
 

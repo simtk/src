@@ -618,12 +618,19 @@ function constructFileUI($groupId, $release_id,
 		}
 		else {
 			echo '<div style="clear:both"></div>';
-			echo '<div class="download_link">' . 
-				'<a href="/frs/download_confirm.php/file/' . 
-				$fileId . '/' . $fileName . 
-				'?group_id=' . $groupId .
-				'">';
-			echo $fileName . '</a></div>';
+			if ($simtkFileType == "GitHubArchive" && $fileSize == 0) {
+				// File downloading. Not ready yet.
+				echo '<div class="download_link grey">';
+				echo $fileName . '</div>';
+			}
+			else {
+				echo '<div class="download_link">' . 
+					'<a href="/frs/download_confirm.php/file/' . 
+					$fileId . '/' . $fileName . 
+					'?group_id=' . $groupId .
+					'">';
+				echo $fileName . '</a></div>';
+			}
 		}
 		
 		echo '<div class="download_date">' . date('M d, Y', $fileTime) . '</div>';
@@ -631,13 +638,19 @@ function constructFileUI($groupId, $release_id,
 		echo '<div class="download_details">' . $fileProcessor . '</div>';
 		echo '<div class="download_details">' . $fileFileType . '</div>';
 		if ($doi) {
-		   if (empty($doi_identifier)) {
-		      $doi_identifier = " pending";
-		   }
-		   echo '<div class="download_details">doi:' . $doi_identifier . '</div>';
+			if (empty($doi_identifier)) {
+				$doi_identifier = " pending";
+			}
+			echo '<div class="download_details">doi:' . $doi_identifier . '</div>';
 		}
 		echo '<div class="download_text">' . $fileDescription . '</div>';
-		
+
+		if ($simtkFileType == "GitHubArchive" && $fileSize == 0) {
+			// File downloading. Not ready yet.
+			echo '<div class="download_size not_ready" ' .
+				'id="notready_' . $packId . "_" . $relId . "_" . $fileId .
+				'"><i>Updating from GitHub...</i></div>';
+		}
 	}
 	else {
 		// Documentation Links.
@@ -653,22 +666,35 @@ function constructFileUI($groupId, $release_id,
 		}
 		else {
 			echo '<div style="clear:both"></div>';
-			echo '<div class="download_link">' . 
-				'<a href="/frs/download_confirm.php/file/' . 
-				$fileId . '/' . $fileName . 
-				'?group_id=' . $groupId .
-				'">';
-			echo $fileName . '</a></div>';
+			if ($simtkFileType == "GitHubArchive" && $fileSize == 0) {
+				// File downloading. Not ready yet.
+				echo '<div class="download_link grey">';
+				echo $fileName . '</div>';
+			}
+			else {
+				echo '<div class="download_link">' . 
+					'<a href="/frs/download_confirm.php/file/' . 
+					$fileId . '/' . $fileName . 
+					'?group_id=' . $groupId .
+					'">';
+				echo $fileName . '</a></div>';
+			}
 		}
 		echo '<div class="download_date">' . date('M d, Y', $fileTime) . '</div>';
 		echo '<div style="clear:both"></div>';
 		if ($doi) {
-		   if (empty($doi_identifier)) {
-		      $doi_identifier = " pending";
-		   }
-		echo '<div class="download_size">doi:' . $doi_identifier . '</div>';
+			if (empty($doi_identifier)) {
+				$doi_identifier = " pending";
+			}
+			echo '<div class="download_size">doi:' . $doi_identifier . '</div>';
 		}
 		echo '<div class="download_text">' . $fileDescription . '</div>';
+		if ($simtkFileType == "GitHubArchive" && $fileSize == 0) {
+			// File downloading. Not ready yet.
+			echo '<div class="download_size not_ready" ' .
+				'id="notready_' . $packId . "_" . $relId . "_" . $fileId .
+				'"><i>Updating from GitHub...</i></div>';
+		}
 	}
 	echo '<br/>';
 

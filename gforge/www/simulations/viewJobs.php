@@ -41,6 +41,7 @@ $groupObj = group_get_object($group_id);
 if (!$groupObj) {
 	exit_no_group();
 }
+$fullGroupName = $groupObj->getPublicName();
 
 // Check permission and prompt for login if needed.
 if (!session_loggedin() || !($u = &session_get_user())) {
@@ -51,6 +52,7 @@ if (!session_loggedin() || !($u = &session_get_user())) {
 // Note: User is logged in already!!!
 $userID = $u->getID();
 $userName = $u->getUnixName();
+$realName = $u->getRealName();
 $sql = "SELECT email FROM users WHERE user_id=" . $userID;
 $result = db_query_params($sql, array());
 $rows = db_numrows($result);
@@ -91,7 +93,7 @@ echo $HTML->endSubMenu();
 //session_require_perm('simulations', $group_id, 'read_public');
 $isPermitted = checkSimulationPermission($groupObj, $u);
 if (!$isPermitted) {
-	echo "The simulation is for members only!!!";
+	echo "Cannot view simulations for $realName in $fullGroupName.<br/>The simulations are for members only!!!";
 	echo "</div></div></div>";
 	site_project_footer(array());
 	return;

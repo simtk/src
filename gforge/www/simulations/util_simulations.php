@@ -276,6 +276,10 @@ function runSimulationJob($theRemoteServerName,
 	}
 
 
+	// Record job started.
+	$status = recordRemoteServerJobStart($theRemoteServerName, $theUserName, $theGroupId, $theJobTimeStamp);
+
+
 	// Reserve remote server for simulation.
 	$statusAvail = reserveRemoteServer($theRemoteServerName, $theUserName, 
 		$theGroupId, $theJobTimeStamp, $theJobStartedTimeStamp, $theSoftwareName);
@@ -337,10 +341,6 @@ function runSimulationJob($theRemoteServerName,
 	// Send email.
 	sendEmail($theEmailAddr, "Simulation Job Started for $groupName", $strJobStarted, "nobody@" . $theServer);
 
-	// Record job started.
-	$status = recordRemoteServerJobStart($theRemoteServerName, $theUserName, $theGroupId, $theJobTimeStamp);
-
-
 	// Send configuration file if the config file is specified.
 	if (isset($theFullCfgName) && $theFullCfgName != "") {
 		sftpPut($theSftp, 
@@ -400,7 +400,7 @@ function runSimulationJob($theRemoteServerName,
 	$theSftp->disconnect();
 */
 
-	return "Simulation job request has been successfully submitted.";
+	return "Simulation job request has been successfully started.";
 }
 
 

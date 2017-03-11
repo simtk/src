@@ -1086,7 +1086,7 @@ class Group extends Error {
 	 * update - Update Tools.
 	 *
      */
-	function updateTools(&$user, $use_mail, $use_forum, $use_scm, $use_news, $use_docman, $use_frs, $use_stats, $use_tracker, $use_activity) {
+	function updateTools(&$user, $use_mail, $use_forum, $use_scm, $use_news, $use_docman, $use_frs, $use_stats, $use_tracker, $use_activity, $use_github=0) {
 
 		$perm =& $this->getPermission();
 
@@ -1108,8 +1108,12 @@ class Group extends Error {
 		if (!$use_forum) {
 			$use_forum = 0;
 		}
+
 		if (!$use_scm) {
 			$use_scm = 0;
+		}
+		if (!$use_github) {
+			$use_github = 0;
 		}
 
 		if (!$use_news) {
@@ -1138,9 +1142,6 @@ class Group extends Error {
 		if (!$use_activity) {
 			$use_activity = 0;
 		}
-		if (!$send_all_docs) {
-			$send_all_docs = 0;
-		}
 
 		db_begin();
 
@@ -1157,8 +1158,9 @@ class Group extends Error {
                                 use_tracker=$9,
                                 simtk_display_news=$10,
                                 simtk_display_downloads=$11,
-                                simtk_display_download_pulldown=$12
-			        WHERE group_id=$13',
+                                simtk_display_download_pulldown=$12,
+                                use_github=$13
+			        WHERE group_id=$14',
 		   		  array($use_mail,
 					$use_forum,
 					$use_scm,
@@ -1171,6 +1173,7 @@ class Group extends Error {
                                         $display_news,
                                         $display_downloads,
                                         $display_download_pulldown,
+                                        $use_github,
                                         $this->getID()));
 
 		if (!$res || db_affected_rows($res) < 1) {
@@ -1655,6 +1658,45 @@ class Group extends Error {
 		mail($theEmailAddr, $theTitle, $theMsgBody, implode("\r\n", $headers));
 	}
 
+	// Save GitHub access URL.
+	function saveGitHubAccessURL($url="") {
+
+                db_begin();
+
+		$strUpdate = 'UPDATE group_github_access ' .
+			'SET main_url=$2 ' .
+			'WHERE group_id=$1';
+		$res = db_query_params($strUpdate, array($this->getID(), $url));
+		if (!$res || db_affected_rows($res) < 1) {
+			$strInsert = 'INSERT INTO group_github_access ' .
+				'(group_id, main_url) ' .
+				'VALUES ($1, $2)';
+			$res = db_query_params($strInsert, array($this->getID(), $url));
+			if (!$res || db_affected_rows($res) < 1) {
+				// Cannot insert entry.
+				db_rollback();
+				return false;
+			}
+		}
+
+		db_commit();
+		return true;
+	}
+
+
+	// Get GitHub accses URL.
+	function getGitHubAccessURL() {
+
+		$urlGitHubAccess = "";
+		$strQuery = "SELECT main_url FROM group_github_access " .
+			"WHERE group_id=" . $this->getID();
+		$resGitHubAccessInfo = db_query_params($strQuery, array());
+		while ($theRow = db_fetch_array($resGitHubAccessInfo)) {
+			$urlGitHubAccess = $theRow['main_url'];
+		}
+
+		return $urlGitHubAccess;
+	}
 
 	/* getKeywords - Gets keywords associated with the project
 	 *
@@ -2618,6 +2660,15 @@ class Group extends Error {
 		} else {
 			return false;
 		}
+	}
+
+	/**
+	 * usesGitHub - whether or not this group has opted to use GitHub.
+	 *
+	 * @return	boolean	uses_github.
+	 */
+	function usesGitHub() {
+		return $this->data_array['use_github'];
 	}
 
 	/**

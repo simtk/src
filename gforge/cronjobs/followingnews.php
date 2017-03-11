@@ -86,9 +86,9 @@ while ($users = db_fetch_array ($all_users)) {
 	}
 
    if ($send_email) {
-	echo "\n---------------";	
-    echo "User: " . $users['user_name'] . "\n";
-    echo "Compare date: " . $compare_date . "\n";
+	//echo "\n---------------";	
+    //echo "User: " . $users['user_name'] . "\n";
+    //echo "Compare date: " . $compare_date . "\n";
     // add projects user is member of
     $i = 0;
     $cntUserProjects = 0;
@@ -131,7 +131,7 @@ while ($users = db_fetch_array ($all_users)) {
         $body_news = "";	
 	foreach ($arrNewsByProjects as $news) {
 	   $news_date = date("Y-m-d H:i" ,$news['post_date']);
-	   echo "news date: " . strtotime($news_date) . "\n";
+	   //echo "news date: " . strtotime($news_date) . "\n";
 	   // if notification freq less than diff then include news to send
 	   if ($compare_date < strtotime($news_date)) {
 	      // Format HTML News Page to send out
@@ -156,8 +156,8 @@ while ($users = db_fetch_array ($all_users)) {
 		  $body_news .= "</tr>";
 		  // store information in an array for later use
 		  $arrNewsSend[$i++] = $news;
-	   }
-	}
+	   } // if compare_date
+	} // foreach
         if ($arrNewsSend) {
 	   $body = "<p><b>Here's the latest news from the SimTK projects you are following:</b></p><br />";
 	   $body .= '<table cellpadding="5" cellspacing="5">';
@@ -170,7 +170,7 @@ while ($users = db_fetch_array ($all_users)) {
 	foreach ($projectsFollowing as $proj) {
 		  // get news for each project
 		  $troveCategories = getTroveCategories($proj['group_id']);
-		  print_r($troveCategories);
+		  //print_r($troveCategories);
 		  $allTroveCat = array_merge($troveCategories,$allTroveCat);
     }
 	
@@ -179,7 +179,7 @@ while ($users = db_fetch_array ($all_users)) {
 	if (!empty($c)) {
 	   $commonCat = array_search(max($c),$c);
 	   $cntProjectsByCat = 0;
-	   echo "Common Category: " . $commonCat . "\n";
+	   //echo "Common Category: " . $commonCat . "\n";
 	   $resultsProjectsCat = getProjectsByCat($cntProjectsByCat,$commonCat,$compare_date);
 	   // add content to body
 	   if ($resultsProjectsCat) {
@@ -187,7 +187,7 @@ while ($users = db_fetch_array ($all_users)) {
 	      if ($max > 0) {
 	         $body .= "<br /><br /><p><b>Here are related SimTK projects recently created:</b></p><br />";
 	         $body .= "<table>";
-	      }
+	      } // max > 0
 	      for ($i = 0; $i < $max; $i++) {
 	         $tempLogo = db_result($resultsProjectsCat, $i, 'simtk_logo_file');
 	         if (!empty($tempLogo)) {
@@ -196,16 +196,17 @@ while ($users = db_fetch_array ($all_users)) {
 		        $body .= '<tr><td width="45" valign="top"><img height="40" width="40" src="'.util_make_url('/logos/_thumb') .'"></td>';
 		     }
 		  
-		  $body .= '<td width="500" valign="top"> <strong><a href="'.util_make_url('/projects/') . db_result($resultsProjectsCat, $i, 'unix_group_name') . 
+		     $body .= '<td width="500" valign="top"> <strong><a href="'.util_make_url('/projects/') . db_result($resultsProjectsCat, $i, 'unix_group_name') . 
 						'" style="color:#5e96e1;">' . db_result($resultsProjectsCat, $i, 'group_name') . '</a></strong><br /><small>' . 
 						db_result($resultsProjectsCat, $i, 'simtk_summary') . '</small></td>';
-		  $body .= "</tr>";
-	   }
-	   if ($max > 0) {
-	      $body .= "</table>";
-	   }
-	 } // if empty $c
-	}
+		     $body .= "</tr>";
+	      } // for
+	      if ($max > 0) {
+	         $body .= "</table>";
+	      }  // max > 0
+	   } // if resultsProjectsCat
+	} // if empty $c
+	
 	
 	// create footer
 	$tail = "<br />==================================================================<br />" ;

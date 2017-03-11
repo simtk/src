@@ -84,8 +84,8 @@ echo '<div><h3>' . db_result($res, 0, 'citation') . '</h3></div>';
 	<input type="hidden" name="citation_id" value="'. $citation_id .'" />
 	'._('You are about to permanently and irretrievably delete this citation!').'
 	<p>
-	<input type="checkbox" name="sure" value="1" />'._('I am Sure').'<br />
-	<input type="checkbox" name="really_sure" value="1" />'._('I am Really Sure').'<br />
+	<input type="checkbox" name="sure" value="1" />&nbsp;'._('I am Sure').'<br />
+	<input type="checkbox" name="really_sure" value="1" />&nbsp;'._('I am Really Sure').'<br />
 	<input type="submit" name="submit" value="'._('Delete').'" class="btn-cta" />
 	</p>
 	</form>';
