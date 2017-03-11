@@ -494,7 +494,15 @@ class FRSFile extends Error {
 			return $this->data_array['filename'];
 		}
 		else {
-			return $this->data_array['simtk_filelocation'];
+			if ($this->data_array['simtk_filetype'] == 'GitHubArchive') {
+				// GitHub archive download uses simtk_filelocation
+				// for the URL, which is non-empty,
+				// and filename for the local filename.
+				return $this->data_array['filename'];
+			}
+			else {
+				return $this->data_array['simtk_filelocation'];
+			}
 		}
 	}
 
