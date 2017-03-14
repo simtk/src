@@ -167,9 +167,31 @@ SimtkFilters = function(){
 				// Handle space. Convert it into ','.
 				//strSearch = strSearch.split(" ").join(",");
 				//strSearch = strSearch.split("+").join(",");
+				//strSearch = strSearch.split("+").join(" ");
 */
-				// Handle '+' as space to do AND search. 
-				strSearch = strSearch.split("+").join(" ");
+				if ((strSearch.startsWith('"') && strSearch.endsWith('"')) ||
+					(strSearch.startsWith("'") && strSearch.endsWith("'"))) {
+					// Handle '+' as space to do AND search. 
+					// Strip leading and trailing " or '.
+					strSearch = strSearch.substring(1, strSearch.length - 1);
+					strSearch = strSearch.split("+").join(" ");
+				}
+				else if (strSearch.startsWith('"') || strSearch.startsWith("'")) {
+					// Strip leading " or '.
+					strSearch = strSearch.substring(1);
+					// Handle '+' as space to do OR search. 
+					strSearch = strSearch.split("+").join(",");
+				}
+				else if (strSearch.endsWith('"') || strSearch.endsWith("'")) {
+					// Strip trailing " or '.
+					strSearch = strSearch.substring(0, strSearch.length - 1);
+					// Handle '+' as space to do OR search. 
+					strSearch = strSearch.split("+").join(",");
+				}
+				else {
+					// Handle '+' as space to do OR search. 
+					strSearch = strSearch.split("+").join(",");
+				}
 			}
 		}
 		$("#titleFilter").val(strSearch);
@@ -311,9 +333,32 @@ SimtkFilters = function(){
 		// Handle space. Convert it into ','.
 		//strTitleSearch = strTitleSearch.split(" ").join(",");
 		//strTitleSearch = strTitleSearch.split("+").join(",");
+		// Handle '+' as space to do OR search. 
+		//strTitleSearch = strTitleSearch.split("+").join(" ");
 */
-		// Handle '+' as space to do AND search. 
-		strTitleSearch = strTitleSearch.split("+").join(" ");
+		if ((strTitleSearch.startsWith('"') && strTitleSearch.endsWith('"')) ||
+			(strTitleSearch.startsWith("'") && strTitleSearch.endsWith("'"))) {
+			// Handle '+' as space to do AND search. 
+			// Strip leading and trailing " or '.
+			strTitleSearch = strTitleSearch.substring(1, strTitleSearch.length - 1);
+			strTitleSearch = strTitleSearch.split("+").join(" ");
+		}
+		else if (strTitleSearch.startsWith('"') || strTitleSearch.startsWith("'")) {
+			// Strip leading " or '.
+			strTitleSearch = strTitleSearch.substring(1);
+			// Handle '+' as space to do OR search. 
+			strTitleSearch = strTitleSearch.split("+").join(",");
+		}
+		else if (strTitleSearch.endsWith('"') || strTitleSearch.endsWith("'")) {
+			// Strip trailing " or '.
+			strTitleSearch = strTitleSearch.substring(0, strTitleSearch.length - 1);
+			// Handle '+' as space to do OR search. 
+			strTitleSearch = strTitleSearch.split("+").join(",");
+		}
+		else {
+			// Handle '+' as space to do OR search. 
+			strTitleSearch = strTitleSearch.split("+").join(",");
+		}
 		myPushStateSearchAndReplaceWithPage(loc, "srch", "=", strTitleSearch);
 
 		var project_list = containerCenter.find(".news_and_trending_projects");
@@ -1116,7 +1161,8 @@ setup: function(c, inUseInitCategoryId, inIsAllGroups) {
 					items[cnt].short_description.toLowerCase().indexOf(toSrch) >= 0 ||
 					items[cnt].long_description.toLowerCase().indexOf(toSrch) >= 0 ||
 					items[cnt].keywords.toLowerCase().indexOf(toSrch) >= 0 ||
-					items[cnt].ontologies.toLowerCase().indexOf(toSrch) >= 0) {
+					items[cnt].ontologies.toLowerCase().indexOf(toSrch) >= 0 ||
+					items[cnt].projMembers.toLowerCase().indexOf(toSrch) >= 0) {
 					// Found a match for one of strings to search for.
 					filteredItems.push(items[cnt]);
 					break;
