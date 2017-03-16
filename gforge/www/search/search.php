@@ -178,16 +178,16 @@ $sql = "SELECT *,
 	LEFT JOIN (SELECT group_id, MAX(adddate) AS modified FROM group_history GROUP BY group_id) AS gh ON g.group_id=gh.group_id
 	LEFT JOIN (SELECT group_id as dls_group_id, downloads as dls_downloads from frs_dlstats_grouptotal_vw) as dls ON dls_group_id=g.group_id";
 
-if (!isset($_GET["all_groups"]) || $_GET["all_groups"] == 1) {
+//if (isset($_GET["all_groups"]) && $_GET["all_groups"] == 1) {
 	// Include both private and public projects by default.
 	$sql .= " WHERE status = 'A' " .
 		"AND NOT simtk_is_system IS NULL ";
-}
-else {
+//}
+//else {
 	// Include public projects only.
-	$sql .= " WHERE simtk_is_public = 1 AND status = 'A' " . 
-		"AND NOT simtk_is_system IS NULL ";
-}
+	//$sql .= " WHERE simtk_is_public = 1 AND status = 'A' " . 
+		//"AND NOT simtk_is_system IS NULL ";
+//}
 
 if (isset($cat_id) && trim($cat_id) != "") {
 	// Has category id.
@@ -311,6 +311,14 @@ else {
 	<form action="#">
 		<label for="select">Sort by:&nbsp;</label>
 		<select class="mySelect">
+<?php
+// For search pages (i.e. not category nor community pages), add "Most relevant" option.
+if (!isset($cat_id) || trim($cat_id) == "") {
+?>
+			<option value="Relevance">Most relevant</option>
+<?php
+}
+?>
 			<option value="Downloads">Most downloads</option>
 			<option value="Date">Date updated</option>
 			<option value="Title">Title</option>
@@ -563,19 +571,19 @@ if (isset($_GET["cat"])) {
 <?php
 }
 else {
-	if (!isset($_GET["all_groups"]) || $_GET["all_groups"] == 1) {
+	//if (isset($_GET["all_groups"]) && $_GET["all_groups"] == 1) {
 		// Include both private and public projects by default.
 ?>
 		SimtkFilters.setup($('#myCategoryContainer'), false, true);
 
 <?php
-	}
-	else {
+	//}
+	//else {
 		// Include public projects only.
 ?>
-		SimtkFilters.setup($('#myCategoryContainer'), false, false);
+		//SimtkFilters.setup($('#myCategoryContainer'), false, false);
 <?php
-	}
+	//}
 }
 ?>
 </script>

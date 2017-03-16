@@ -61,11 +61,13 @@ $sql = "SELECT *,
 
 if (isset($_GET["all_groups"]) && $_GET["all_groups"] == 1) {
 	// Includes both private and public projects.
-	$sql .= " WHERE status = 'A' ";
+	$sql .= " WHERE status = 'A' " .
+		"AND NOT simtk_is_system IS NULL ";
 }
 else {
 	// public projects only by default.
-	$sql .= " WHERE simtk_is_public = 1 AND status = 'A' ";
+	$sql .= " WHERE simtk_is_public = 1 AND status = 'A' " . 
+		"AND NOT simtk_is_system IS NULL ";
 }
 
 
@@ -187,8 +189,16 @@ $sql = "SELECT u.realname, home_group_id AS group_id  " .
 	"JOIN pfo_role pr " .
 	"ON pur.role_id=pr.role_id " .
 	"JOIN users u " .
-	"ON pur.user_id=u.user_id";
-$user_roles_res = db_query_params($sql, array());
+	"ON pur.user_id=u.user_id ";
+if (isset($cat_id) && trim($cat_id) != "" && $cat_id > 0) {
+	// Has category id.
+	$sql .= "WHERE group_id in " .
+		"(SELECT group_id FROM trove_group_link WHERE trove_cat_id=$1) ";
+	$user_roles_res = db_query_params($sql, array(pg_escape_string($cat_id)));
+}
+else {
+	$user_roles_res = db_query_params($sql, array());
+}
 $user_roles_count = db_numrows($user_roles_res);
 for ($i = 0; $i < $user_roles_count; $i++) {
 	$user_roles_row = pg_fetch_object($user_roles_res, $i);
