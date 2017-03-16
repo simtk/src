@@ -126,6 +126,9 @@ SimtkFilters = function(){
 				// Has other parameters. Only include up to the next "&".
 				strSearch = strSearch.substring(0, idxLast);
 
+				// Remove leading and trailing '+' characters (i.e. spaces).
+				strSearch = strSearch.replace(/^\++|\++$/gm,'');
+
 				// Handle '+' as space to do AND search if there are enclosing " or '.
 				// Strip leading and trailing " or '.
 				if ((strSearch.substring(0, 1) == '"' && 
@@ -334,7 +337,7 @@ setup: function(c, inUseInitCategoryId, inIsAllGroups) {
 		var strTitleSearch = $("#titleFilter").val();
 		if ($.trim(strTitleSearch) != "") {
 			var filteredItems = func.filterItemsByTitle(projects.items, strTitleSearch);
-			// Only filteredItems have match score property, but not projects.items.
+			// NOTE: Only filteredItems have match score property, but not projects.items.
 			// If there is text search filtering, after the text search filtering,
 			// set project items to use the filtered items to get the match score property.
 			projects.items = filteredItems;
@@ -578,7 +581,24 @@ setup: function(c, inUseInitCategoryId, inIsAllGroups) {
 		$(".news_and_trending_projects").hide().show(0);
 		$(".page_nav").hide().show(0);
 
+		var checked_els = $(".content input[type='checkbox']:not(.no-filter):checked");
+		var checked_ids = [];
+		checked_els.each(function(i, el){checked_ids.push(parseInt($(el).val()));});
+
 		if (projects) {
+			projects.reset();
+			projects.filter("trove_cats", checked_ids, func.projectFilter);
+
+			var strTitleSearch = $("#titleFilter").val();
+			if ($.trim(strTitleSearch) != "") {
+				var filteredItems = func.filterItemsByTitle(projects.items, strTitleSearch);
+				// NOTE: Only filteredItems have match score property, but not projects.items.
+				// If there is text search filtering, after the text search filtering,
+				// set project items to use the filtered items to get the match score property.
+				projects.items = filteredItems;
+		}
+
+		// Get project data categories and associated counts. HK.
 			projects.sort(comp);
 		}
 
@@ -913,7 +933,7 @@ setup: function(c, inUseInitCategoryId, inIsAllGroups) {
 			var strTitleSearch = $("#titleFilter").val();
 			if ($.trim(strTitleSearch) != "") {
 				var filteredItems = func.filterItemsByTitle(projects.items, strTitleSearch);
-				// Only filteredItems have match score property, but not projects.items.
+				// NOTE: Only filteredItems have match score property, but not projects.items.
 				// If there is text search filtering, after the text search filtering,
 				// set project items to use the filtered items to get the match score property.
 				projects.items = filteredItems;
