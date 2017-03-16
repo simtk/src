@@ -960,6 +960,25 @@ setup: function(c, inUseInitCategoryId, inIsAllGroups) {
 			return items;
 		}
 
+		// Get original search string as in search textfield.
+		strOrigSearchStr = false
+		var loc = window.location.href;
+		// Change back whitespaces first.
+		var strLoc = unescape(loc);
+		if (strLoc.indexOf("srch=") >= 0) {
+			// Has search string.
+			var idxSearch = strLoc.indexOf("srch=") + 5;
+			strSearch = strLoc.substring(idxSearch, strLoc.length);
+			var idxLast = strSearch.indexOf("&");
+			if (idxLast >=0) {
+				// Has other parameters. Only include up to the next "&".
+				strOrigSearchStr = strSearch.substring(0, idxLast);
+				// Change "+" to " " since " " is represented as "+" in URL.
+				strOrigSearchStr = strOrigSearchStr.replace("+", " ");
+			}
+		}
+
+		// Check for OR of words in search string.
 		var arrSearch = strTitleTextToSearch.split(",");
 		var filteredItems = [];
 		for (var cnt = 0; cnt < items.length; cnt++) {
@@ -984,6 +1003,20 @@ setup: function(c, inUseInitCategoryId, inIsAllGroups) {
 			for (idx = 0; idx < arrSearch.length; idx++) {
 				if (arrScores[idx] > 0) {
 					scoreMatch++;
+				}
+			}
+
+			// NOTE: Add 1000 to score to give significance to full match.
+			if (strOrigSearchStr != false) {
+				if (items[cnt].group_name.toLowerCase().indexOf(strOrigSearchStr) >= 0 ||
+					items[cnt].unix_group_name.toLowerCase().indexOf(strOrigSearchStr) >= 0 ||
+					items[cnt].short_description.toLowerCase().indexOf(strOrigSearchStr) >= 0 ||
+					items[cnt].long_description.toLowerCase().indexOf(strOrigSearchStr) >= 0 ||
+					items[cnt].keywords.toLowerCase().indexOf(strOrigSearchStr) >= 0 ||
+					items[cnt].ontologies.toLowerCase().indexOf(strOrigSearchStr) >= 0 ||
+					items[cnt].projMembers.toLowerCase().indexOf(strOrigSearchStr) >= 0) {
+					// Found full match of search string.
+					scoreMatch += 1000;
 				}
 			}
 
