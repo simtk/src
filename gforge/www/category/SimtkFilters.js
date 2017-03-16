@@ -910,6 +910,15 @@ setup: function(c, inUseInitCategoryId, inIsAllGroups) {
 			projects.reset();
 			projects.filter("trove_cats", checked_ids, func.projectFilter);
 
+			var strTitleSearch = $("#titleFilter").val();
+			if ($.trim(strTitleSearch) != "") {
+				var filteredItems = func.filterItemsByTitle(projects.items, strTitleSearch);
+				// Only filteredItems have match score property, but not projects.items.
+				// If there is text search filtering, after the text search filtering,
+				// set project items to use the filtered items to get the match score property.
+				projects.items = filteredItems;
+			}
+
 			// Sort projects. HK.
 			projects.sort(comp);
 
