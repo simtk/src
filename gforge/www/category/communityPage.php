@@ -178,7 +178,7 @@ $cntHasDownloads = 0;
 $sql = "SELECT *,
 	CASE WHEN g.group_id IN (SELECT group_id FROM frs_file ff LEFT JOIN frs_release fr ON ff.release_id = fr.release_id LEFT JOIN frs_package fp ON fp.package_id = fr.package_id WHERE fp.is_public=1 AND fp.status_id=1 AND fr.status_id=1) THEN 1 ELSE 0 END AS has_public_package,
 	0 as is_model
-	FROM trove_group_link AS t JOIN groups AS g ON t.group_id = g.group_id JOIN (SELECT group_id, MAX(adddate) AS modified FROM group_history GROUP BY group_id) AS gh ON t.group_id = gh.group_id LEFT JOIN (SELECT group_id as dls_group_id, downloads as dls_downloads from frs_dlstats_grouptotal_vw) as dls ON dls_group_id = t.group_id 
+	FROM trove_group_link AS t JOIN (SELECT group_id group_id, unix_group_name, group_name, simtk_logo_file, simtk_summary, simtk_short_description, status, simtk_is_public, simtk_is_system FROM groups) AS g ON t.group_id = g.group_id JOIN (SELECT group_id, MAX(adddate) AS modified FROM group_history GROUP BY group_id) AS gh ON t.group_id = gh.group_id LEFT JOIN (SELECT group_id as dls_group_id, downloads as dls_downloads from frs_dlstats_grouptotal_vw) as dls ON dls_group_id = t.group_id 
 	WHERE simtk_is_public = 1 AND status = 'A' AND trove_cat_id=$1 ORDER BY g.group_id";
 $db_res = db_query_params($sql, array(pg_escape_string($cat_id)));
 $db_count = db_numrows($db_res);
