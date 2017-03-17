@@ -838,7 +838,7 @@ echo $u->getFirstName();
                 echo '</div>';
 
 		echo '<div style="font-size:12px;">';
-		echo 'Version 2.0.10. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 5.3.2.';
+		echo 'Version 2.0.11. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 5.3.2.';
                 echo '</div>';
 
             echo '</div>';
@@ -1835,6 +1835,22 @@ echo $u->getFirstName();
 	return $res;
 */
 
+	// Look up current type of search.
+	$isSearchProj = true;
+	// Get URL.
+	$url = $_SERVER["REQUEST_URI"];
+	if (isset($url)) {
+		$idx = stripos($url, "type_of_search=");
+		$strTypeSearch = substr($url, $idx + 15);
+		if (stripos($strTypeSearch, "soft") === 0) {
+			// Projects search.
+			$isSearchProj = true;
+		}
+		else if (stripos($strTypeSearch, "people") === 0) {
+			// People search.
+			$isSearchProj = false;
+		}
+	}
 
 	$res = "
 <form id='searchBox' action='/search/search.php' method='get'>
@@ -1849,8 +1865,16 @@ echo $u->getFirstName();
 </div>
 	<div class = 'search_box_select'>
 		<select name='type_of_search' class='search_select' onChange='this.form.submit()'>
-		<option value='soft'>Projects</option>
-		<option value='people'>People</option>
+		<option value='soft' ";
+		if ($isSearchProj === true) {
+			$res .= "selected";
+		}
+		$res .= ">Projects</option>
+		<option value='people' ";
+		if ($isSearchProj === false) {
+			$res .= "selected";
+		}
+		$res .= ">People</option>
 		</select>
 	</div>
 </div>
