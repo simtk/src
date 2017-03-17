@@ -1827,21 +1827,13 @@ echo $u->getFirstName();
 	}
 	$defaultWords = htmlspecialchars($defaultWords);
 
-/*
-	$res = '<form id="searchBox" action="/search/search.php" method="get">';
-	$res .= '<input type="text" id="searchBox-words" placeholder="Search for projects" name="srch" value="' . $defaultWords . '" required="required" />' . "\n";
-	$res .= '<input type="hidden" value="soft" name="type_of_search" />' . "\n";
-	$res .= '</form>';
-	return $res;
-*/
-
 	// Look up current type of search.
 	$isSearchProj = true;
 	// Get URL.
 	$url = $_SERVER["REQUEST_URI"];
 	if (isset($url)) {
 		$idx = stripos($url, "type_of_search=");
-		$strTypeSearch = substr($url, $idx + 15);
+		$strTypeSearch = substr($url, $idx + 15); 
 		if (stripos($strTypeSearch, "soft") === 0) {
 			// Projects search.
 			$isSearchProj = true;
@@ -1854,106 +1846,29 @@ echo $u->getFirstName();
 
 	$res = "
 <form id='searchBox' action='/search/search.php' method='get'>
-<div>
-<div id='searchTextContainer'>
-	<div class = 'search_box_inputs'>
+	<div class='search_box_inputs'>
 		<input type='text' id='searchBox-words' 
 			placeholder='Search for' name='srch' 
 			value='$defaultWords' required='required' />
 		<input type='submit' name='Search' value='Search' />
 	</div>
-</div>
-	<div class = 'search_box_select'>
-		<select name='type_of_search' class='search_select' onChange='this.form.submit()'>
-		<option value='soft' ";
+	<span class='search_box_select'>
+		<input type='radio' name='type_of_search' value='soft' ";
 		if ($isSearchProj === true) {
-			$res .= "selected";
+			$res .= "checked='checked'";
 		}
-		$res .= ">Projects</option>
-		<option value='people' ";
+		$res .= " />&nbsp;<label>Projects</label>&nbsp;&nbsp;";
+
+		$res .= " <input type='radio' name='type_of_search' value='people' ";
 		if ($isSearchProj === false) {
-			$res .= "selected";
+			$res .= "checked='checked'";
 		}
-		$res .= ">People</option>
-		</select>
-	</div>
-</div>
+		$res .= " />&nbsp;<label>People</label>
+	</span>
 </form>
 	";
                 
 	return $res;
-
-
-/*
-
-		$res = "";
-		if (get_magic_quotes_gpc()) {
-			$defaultWords = stripslashes($words);
-		} else {
-			$defaultWords = $words;
-		}
-
-		$defaultWords = htmlspecialchars($defaultWords);
-
-		// if there is no search currently, set the default
-		if (!isset($type_of_search) ) {
-			$exact = 1;
-		}
-
-		$res .= '<form id="searchBox" action="'.util_make_uri('/search/').'" method="get">
-			<div>';
-                
-                
-		$parameters = array(
-			SEARCH__PARAMETER_GROUP_ID => $group_id,
-			SEARCH__PARAMETER_ARTIFACT_ID => $atid,
-			SEARCH__PARAMETER_FORUM_ID => $forum_id,
-			SEARCH__PARAMETER_GROUP_PROJECT_ID => $group_project_id
-			);
-
-		$searchManager =& getSearchManager();
-		$searchManager->setParametersValues($parameters);
-		$searchEngines =& $searchManager->getAvailableSearchEngines();
-                
-                
-                // Input and Button grouped in one class
-                // this Input
-                $res .= "<div class = 'search_box_inputs'> \n";
-		$res .= '<input type="text" id="searchBox-words" placeholder="Search" name="words" value="'
-			. $defaultWords . '" required="required" />' . "\n";
-                
-                // this  Buttons
-		$res .= '<input type="submit" name="Search" value="'._('Search').'" />' . "\n";
-                $res .= "</div> \n"; // end .search_box_inputs
-
-                // Select have it own Class
-                // Here is Select
-                $res .= "<div class = 'search_box_select'> \n";
-		$res .= '<select name="type_of_search" class="search_select">';
-		$res .= '<option value="soft">Projects</option>';
-        $res .= '<option value="people">People</option>';
-        $res .= '<option value="skill">Skills</option>';
-		
-		$res .= '</select>';
-                $res .= "</div> \n";
-
-		$parameters = $searchManager->getParameters();
-		foreach($parameters AS $name => $value) {
-			$res .= '<input type="hidden" value="'.$value.'" name="'.$name.'" />' . "\n";
-		}
-                
-		$res .= '</div>';
-		$res .= '</form>';
-                
-                if (isset($group_id) && $group_id) {
-                        $res .= '<span class="search_box_advanced_search">';
-			$res .= util_make_link('/search/advanced_search.php?group_id=' .
-					       $group_id, _('Advanced search'));
-                        $res .= '</span>';
-		}
-
-		return $res;
-*/
 	}
 }
 
