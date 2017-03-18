@@ -7399,11 +7399,16 @@ and open the template in the editor.
 }
 @media (min-width: 770px) {
   #searchBox .search_box_select {
-    width: 120px;
+    width: 200px;
     display: inline;
   }
   #searchBox .search_box_select label {
     font-size: 14px;
+  }
+}
+@media (min-width: 768px) and (max-width: 770px) {
+  #searchBox .search_box_select {
+    display: table-cell;
   }
 }
 #searchBox > .search_box_inputs select {
