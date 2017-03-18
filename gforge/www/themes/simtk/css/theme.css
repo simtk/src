@@ -7360,8 +7360,8 @@ and open the template in the editor.
   #searchBox > .search_box_inputs {
     padding-top: 2px;
     padding-bottom: 2px;
-    padding-left: 10px;
-    padding-right: 10px;
+    padding-left: 8px;
+    padding-right: 8px;
     -webkit-box-shadow: none;
     -moz-box-shadow: none;
     box-shadow: none;
@@ -7380,16 +7380,30 @@ and open the template in the editor.
   }
 }
 @media (max-width: 769px) {
+  #searchBox {
+    width: 480px;;
+  }
   #searchBox .search_box_select {
-    width: 120px;;
-    display: table-cell;
-    padding-top: 3px;
+    width: 250px;
+    display: inline-block;
+    vertical-align: top;
+    padding-top: 5px;
+  }
+  #searchBox .search_box_select label {
+    font-size: 12px;
+  }
+  #searchBox .search_box_inputs {
+    width: 140px;
+    display: inline-block;
   }
 }
 @media (min-width: 770px) {
   #searchBox .search_box_select {
     width: 120px;
-    display: table-cell;
+    display: inline;
+  }
+  #searchBox .search_box_select label {
+    font-size: 14px;
   }
 }
 #searchBox > .search_box_inputs select {
@@ -7463,11 +7477,6 @@ and open the template in the editor.
 @media (max-width: 870px) {
   .the_search_box {
     width: 180px;
-  }
-}
-@media (min-width: 870px) {
-  #searchBox .search_box_select {
-    display: inline;
   }
 }
 /*
