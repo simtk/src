@@ -7343,11 +7343,11 @@ and open the template in the editor.
 }
 @media (max-width: 769px) {
   #searchBox {
-    padding-left: 10px;
-    padding-right: 10px;
+    padding-left: 5px;
+    padding-right: 5px;
   }
 }
-#searchBox > div {
+#searchBox > .search_box_inputs {
   width: 100%;
   display: table;
   border: 1px solid #a7a7a7;
@@ -7357,115 +7357,116 @@ and open the template in the editor.
   border-radius: 20px;
 }
 @media (max-width: 769px) {
-  #searchBox > div {
+  #searchBox > .search_box_inputs {
     padding-top: 2px;
     padding-bottom: 2px;
-    padding-left: 10px;
-    padding-right: 10px;
+    padding-left: 8px;
+    padding-right: 8px;
     -webkit-box-shadow: none;
     -moz-box-shadow: none;
     box-shadow: none;
   }
 }
 @media (min-width: 770px) {
-  #searchBox > div {
-    padding-top: 3px;
-    padding-bottom: 3px;
-    padding-left: 20px;
-    padding-right: 20px;
+  #searchBox .search_box_inputs {
+    height:35px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-left: 10px;
+    padding-right: 10px;
     -webkit-box-shadow: inset 3px 1px 5px -1px rgba(0, 0, 0, 0.1);
     -moz-box-shadow: inset 3px 1px 5px -1px rgba(0, 0, 0, 0.1);
     box-shadow: inset 3px 1px 5px -1px rgba(0, 0, 0, 0.1);
   }
-  #searchTextContainer {
-    height: 24px;
-  }
-}
-#searchBox > div .search_box_inputs {
-  font-size: 1.3em;
-  display: table-cell;
-}
-#searchBox > div .search_box_select {
-  font-weight: 300;
-  font-size: 1.3em;
-  padding: 0px;
-  margin: 0px;
 }
 @media (max-width: 769px) {
-  #searchBox > div .search_box_select {
-    display: inline;
+  #searchBox {
+    width: 480px;;
   }
-  #searchBox > div .search_box_select > .search_select {
-    height: 24px;
-    width: 120px;
+  #searchBox .search_box_select {
+    width: 250px;
+    display: inline-block;
+    vertical-align: top;
+    padding-top: 5px;
   }
-  #searchBox > div .search_box_select > .search_select > .hasCustomSelect {
-    width: 120px;
+  #searchBox .search_box_select label {
+    font-size: 12px;
+  }
+  #searchBox .search_box_inputs {
+    width: 140px;
+    display: inline-block;
   }
 }
 @media (min-width: 770px) {
-  #searchBox > div .search_box_select {
-    width: 120px;
+  #searchBox .search_box_select {
+    width: 200px;
+    display: inline;
+  }
+  #searchBox .search_box_select label {
+    font-size: 14px;
+  }
+}
+@media (min-width: 768px) and (max-width: 770px) {
+  #searchBox .search_box_select {
     display: table-cell;
   }
 }
-#searchBox > div select {
+#searchBox > .search_box_inputs select {
   color: #505050;
 }
-#searchBox > div input[type=text] {
+#searchBox > .search_box_inputs input[type=text] {
   float: left;
   border: none;
   width: 100%;
 }
-#searchBox > div input[type=text]::-webkit-input-placeholder {
+#searchBox > .search_box_inputs input[type=text]::-webkit-input-placeholder {
   /* WebKit browsers */
   color: #e3e3e3;
   font-family: "Open Sans";
   font-size: 20px;
 }
-#searchBox > div input[type=text]:-moz-placeholder {
+#searchBox > .search_box_inputs input[type=text]:-moz-placeholder {
   /* Mozilla Firefox 4 to 18 */
   color: #e3e3e3;
   opacity: 1;
   font-family: "Open Sans";
   font-size: 20px;
 }
-#searchBox > div input[type=text]::-moz-placeholder {
+#searchBox > .search_box_inputs input[type=text]::-moz-placeholder {
   /* Mozilla Firefox 19+ */
   color: #e3e3e3;
   opacity: 1;
   font-family: "Open Sans";
   font-size: 20px;
 }
-#searchBox > div input[type=text]:-ms-input-placeholder {
+#searchBox > .search_box_inputs input[type=text]:-ms-input-placeholder {
   /* Internet Explorer 10+ */
   color: #e3e3e3;
   font-family: "Open Sans";
   font-size: 20px;
 }
 @media (max-width: 769px) {
-  #searchBox > div input[type=text] {
+  #searchBox > .search_box_inputs input[type=text] {
     margin-bottom: 0px;
   }
 }
 @media (min-width: 770px) {
-  #searchBox > div input[type=text] {
+  #searchBox > .search_box_inputs input[type=text] {
     margin-bottom: -7px;
   }
 }
-#searchBox > div input[type=submit] {
+#searchBox > .search_box_inputs input[type=submit] {
   display: none;
 }
 .the_search_box {
   width: 380px;
-  padding-bottom: 30px;
+  padding-bottom: 2px;
 }
 @media (min-width: 768px) {
   .the_search_box {
     position: relative;
     float: left;
     font-size: 15.5px;
-    padding-bottom: 21px;
     padding-left: 0px;
     padding-right: 0px;
     top: 5px;
