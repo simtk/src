@@ -50,7 +50,27 @@ if (isset($_GET["srch"])) {
 }
 
 $hasSpace = false;
-if (strpos($strSrch, ' ') !== false) {
+if (((strpos($strSrch, '"') === 0) && 
+	(strrpos($strSrch, '"') === strlen($strSrch) - 1)) ||
+	((strpos($strSrch, "'") === 0) && 
+	(strrpos($strSrch, "'") === strlen($strSrch) - 1))) {
+	// Strip leading and trailing " or '.
+	// Preserve the space in search.
+	$strSrch = substr($strSrch, 1, strlen($strSrch) - 2);
+}
+else if ((strpos($strSrch, '"') === 0) || 
+	(strpos($strSrch, "'") === 0)) {
+	// Strip leading " or '.
+	// Preserve the space in search.
+	$strSrch = substr($strSrch, 1);
+}
+else if ((strrpos($strSrch, '"') === strlen($strSrch) - 1) ||
+	(strrpos($strSrch, "'") === strlen($strSrch) - 1)) {
+	// Strip trailing " or '.
+	// Preserve the space in search.
+	$strSrch = substr($strSrch, 0, strlen($strSrch) - 1);
+}
+else if (strpos($strSrch, ' ') !== false) {
 	// Has space within search string.
 	$hasSpace = true;
 }
@@ -65,7 +85,8 @@ if ($hasSpace === false) {
 		"FROM users " .
 		"WHERE status='A' AND " .
 		"(firstname ilike $1 || '%' OR " .
-		"lastname ilike $1 || '%') " .
+		"lastname ilike $1 || '%' OR " .
+		"realname ilike $1) " .
 		"ORDER BY firstname, lastname"; 
 	$resPeople = db_query_params($sqlPeople, array($strSrch));
 }
@@ -86,6 +107,7 @@ else {
 		"WHERE status='A' AND " .
 		"(firstname ilike $1 || '%' OR " .
 		"lastname ilike $1 || '%' OR " .
+		"(lastname ilike $2 || '%' AND firstname ilike $3 || '%') OR " .
 		"(firstname ilike $2 || '%' AND lastname ilike $3 || '%')) " .
 		"ORDER BY firstname, lastname"; 
 	$resPeople = db_query_params($sqlPeople, array($strSrch, $strFirst, $strLast));

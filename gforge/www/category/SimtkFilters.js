@@ -67,15 +67,12 @@ SimtkFilters = function(){
 	var findQueryParam = function(param) {
 		var out="";
 
-		// Support hashchange returned from older browser when using History.js. HK.
-		//
 		// Use window.location.href instead of window.location.search.
 		// Look for last '?'. Then, replace commas "%2C" with ',' if present.
 		var strHref = window.location.href;
 		var strSearch = strHref.substring(strHref.lastIndexOf("?"), strHref.length);
 		var strSearch = decodeURIComponent(strSearch);
 		var queries = strSearch.slice(1).split("&");
-		//var queries = window.location.search.slice(1).split("&");
 		$.each(queries, function(i, item){
 			if (item.split("=")[0].toLowerCase() === param.toLowerCase())
 				out = item.split("=")[1]
@@ -86,66 +83,31 @@ SimtkFilters = function(){
 
 	// Handle loading of page.
 	// Support reading of parameters as specified in the URL given by the user.
-	// Also handle the backward and forward navigation given by "History."
 	var handlePageLoad = function() {
 		strCats = findQueryParam("cat");
-		if (projects && projects.items) {
-			var checkboxes = $(".content input[type='checkbox']:not(.myDisabled)");
-			checkboxes.prop("checked", null);
-			if (strCats && strCats != "") {
-				// Has category id.
-				$.each(strCats.split(","), function(i,item) {
-					checkboxes.filter("[value='" + item + "']").prop("checked", "checked");
-				});
-			}
-			if (containerLeft.find("input[type='checkbox']:not(.myDisabled):checked").length === 0) {
-				containerLeft.find(".no-filter").prop("checked", "checked");
-			}
+
+		// Set checkboxes.
+		var checkboxes = $(".content input[type='checkbox']:not(.myDisabled)");
+		checkboxes.prop("checked", null);
+		if (strCats && strCats != "") {
+			// Has category id.
+			$.each(strCats.split(","), function(i,item) {
+				checkboxes.filter("[value='" + item + "']").prop("checked", "checked");
+			});
+
+			// For search page, use sort by relevance as default.
+			$('.mySelect').val("Relevance").change();
 		}
 		else {
-			if (strCats == undefined || $.trim(strCats) == "") {
-				// Default: Checkboxes not checked. Download option is selected.
-				// Uncheck the checkboxes only when pre-selected category is not used.
-				// Otherwise, the pre-selected category box will not get checked.
-				containerLeft.find(".filter-by").prop("checked", null);
-			}
-
+			// Not category page nor community pages: use sort by download as default.
 			$('.mySelect').val("Download").change();
 		}
-		if (projects && projects.items) {
-			func.filterCategories();
+		if (containerLeft.find("input[type='checkbox']:not(.myDisabled):checked").length === 0) {
+			containerLeft.find(".no-filter").prop("checked", "checked");
 		}
 
-		// If History is sending page back to different 
-		// sorting criteria, click the new radio box.
-		// Note: Click only if not checked alrady.
-		var loc = window.location.href;
-		if (loc.indexOf("sort=date") >= 0) {
-			if (!$(".sort-date").is(":checked")) {
-				$(".sort-date").click();
-			}
-		}
-		else if (loc.indexOf("sort=project") >= 0) {
-			if (!$(".sort-project").is(":checked")) {
-				$(".sort-project").click();
-			}
-		}
-		else if (loc.indexOf("sort=downloads") >= 0) {
-			if (!$(".sort-downloads").is(":checked")) {
-				$(".sort-downloads").click();
-			}
-		}
-		else {
-			if (isAllGroups) {
-				// Including both private and public projects. Sort by downloads by default.
-				// "sort=" not specified. Select "sort-downloads".
-				$('.mySelect').val("Download").change();
-			}
-			else {
-				// Including public projects only. Sort by date by default.
-				// "sort=" not specified. Select "sort-date".
-				$('.mySelect').val("Date").change();
-			}
+		if (projects && projects.items) {
+			func.filterCategories();
 		}
 
 		// If History is sending page back to different 
@@ -163,13 +125,24 @@ SimtkFilters = function(){
 			if (idxLast >=0) {
 				// Has other parameters. Only include up to the next "&".
 				strSearch = strSearch.substring(0, idxLast);
-/*
-				// Handle space. Convert it into ','.
-				//strSearch = strSearch.split(" ").join(",");
-				//strSearch = strSearch.split("+").join(",");
-*/
-				// Handle '+' as space to do AND search. 
-				strSearch = strSearch.split("+").join(" ");
+
+				// Remove leading and trailing '+' characters (i.e. spaces).
+				strSearch = strSearch.replace(/^\++|\++$/gm,'');
+
+				// Handle '+' as space to do AND search if there are enclosing " or '.
+				// Strip leading and trailing " or '.
+				if ((strSearch.substring(0, 1) == '"' && 
+					strSearch.substring(strSearch.length-1) == '"') ||
+					(strSearch.substring(0, 1) == "'" && 
+					strSearch.substring(strSearch.length-1) == "'")) {
+
+					strSearch = strSearch.substring(1, strSearch.length - 1);
+					strSearch = strSearch.split("+").join(" ");
+				}
+				else {
+					// Handle '+' as space to do OR search. 
+					strSearch = strSearch.split("+").join(",");
+				}
 			}
 		}
 		$("#titleFilter").val(strSearch);
@@ -181,125 +154,11 @@ SimtkFilters = function(){
 
 	// Invoke text search click: handle user input and handle history playback.
 	var myTextSearchClick = function(isHistory) {
-		if (isHistory == false) { 
-			// User text input: Normal handling. Click the search and go button.
-			$(".search-go").click();
-		}
-		else {
-			// History playback.
-			// Invoke search click handler.
-			myTextSearchClickHandler();
-		}
+		// History playback.
+		// Invoke search click handler.
+		myTextSearchClickHandler();
 	};
 
-	// Replace within the given string all contents with the given prefix (followed by =)  
-	// with the replacement content. Return the new string containing the replacment(s).
-	var mySearchAndReplace = function(inLoc, prefix, separator, replacementContent) {
-
-		inLoc = unescape(inLoc);
-		inLoc = inLoc.toLowerCase();
-
-		var idxLast = inLoc.lastIndexOf("?"); 
-		inLoc = inLoc.substring(idxLast, inLoc.length);
-
-		prefix = prefix.toLowerCase();
-
-		// The concatenated prefix, separator, replacement string.
-		var strReplace = prefix + separator + replacementContent;
-
-		// Find first instance of prefix + separtor.
-		// Use the last occurrence of the match if there are multiple matches.
-		var idxStart = inLoc.lastIndexOf(prefix + separator); 
-		if (idxStart < 0) {
-
-			// Prefix + separator not present.
-
-			if (inLoc.lastIndexOf("&") == (inLoc.length - 1)) {
-				// Has trailing "&" already.
-				return inLoc + strReplace + "&";
-			}
-			else {
-				// Does not have trailing "&".
-				return inLoc + "&" + strReplace + "&";
-			}
-		}
-
-		// Prefix + separator is present.
-
-		var strOrig = inLoc.substring(idxStart, inLoc.length);
-		var idxEnd = strOrig.indexOf("&");
-		if (idxEnd >= 0) {
-			// Has "&" after the string occurrence. Strip "&".
-			strOrig = strOrig.substring(0, idxEnd);
-		}
-
-		if (strOrig == strReplace) {
-			// Prefix + separator has not changed.
-			return "";
-		}
-
-		var re = new RegExp(strOrig, "g");
-		inLoc = inLoc.replace(re, strReplace);
-
-		if (inLoc.lastIndexOf("&") == (inLoc.length - 1)) {
-			// Has trailing "&" already.
-			return inLoc;
-		}
-		else {
-			// Does not have trailing "&".
-			return inLoc + "&";
-		}
-	};
-
-
-	
-	// Replace within the given string all contents with the given prefix (followed by =)  
-	// with the replacement content. Return the new string containing the replacment(s).
-	// Append "page=0" to the end if there is change in text.
-	var mySearchAndReplaceWithPage = function(inLoc, prefix, separator, replacementContent) {
-
-		var tmpLoc = mySearchAndReplace(inLoc, prefix, separator, replacementContent);
-		if (tmpLoc == "") {
-			// No change in text.
-			return "";
-		}
-
-		// Has change in search string. Append "page=0" if not present already.
-		var tmpLocWithPage = mySearchAndReplace(tmpLoc, "page", separator, "0");
-		if (tmpLocWithPage == "") {
-			// Has "page=0" already.
-			tmpLocWithPage = tmpLoc;
-		}
-		else {
-			// Use the new string that has been appended with "page=0".
-		}
-
-		return tmpLocWithPage;
-	};
-
-	// Replace within the given string all contents with the given prefix (followed by =)  
-	// with the replacement content. Return the new string containing the replacment(s).
-	// Append "page=0" to the end if there is change in text.
-	// Using History, perform pushState with the location.
-	var myPushStateSearchAndReplaceWithPage = function(inLoc, 
-		prefix, separator, replacementContent) {
-
-/*
-		if (inLoc.indexOf("search=search") >= 0 && prefix == "srch") {
-			// NOTE: "search=search" is only present when entered From search page.
-			// ".titleFilter" is not present: Ignore "srch=" changes.
-			// Otherwise, just proceed as normal.
-			return inLoc;
-		}
-
-		if (History) {
-			var tmpLocWithPage = mySearchAndReplaceWithPage(inLoc, prefix, separator, replacementContent);
-			if (tmpLocWithPage != "") {
-				History.pushState({}, "", tmpLocWithPage);
-			}
-		}
-*/
-	}
 
 	// Click handler for text search input.
 	var myTextSearchClickHandler = function() {
@@ -307,14 +166,21 @@ SimtkFilters = function(){
 		// Save search text in history and reset page to first page.
 		var loc = window.location.href;
 		var strTitleSearch = $("#titleFilter").val();
-/*
-		// Handle space. Convert it into ','.
-		//strTitleSearch = strTitleSearch.split(" ").join(",");
-		//strTitleSearch = strTitleSearch.split("+").join(",");
-*/
-		// Handle '+' as space to do AND search. 
-		strTitleSearch = strTitleSearch.split("+").join(" ");
-		myPushStateSearchAndReplaceWithPage(loc, "srch", "=", strTitleSearch);
+
+		// Handle '+' as space to do AND search if there are enclosing " or '.
+		// Strip leading and trailing " or '.
+		if ((strTitleSearch.substring(0, 1) == '"' && 
+			strTitleSearch.substring(strTitleSearch.length-1) == '"') ||
+			(strTitleSearch.substring(0, 1) == "'" && 
+			strTitleSearch.substring(strTitleSearch.length-1) == "'")) {
+
+			strTitleSearch = strTitleSearch.substring(1, strTitleSearch.length - 1);
+			strTitleSearch = strTitleSearch.split("+").join(" ");
+		}
+		else {
+			// Handle '+' as space to do OR search. 
+			strTitleSearch = strTitleSearch.split("+").join(",");
+		}
 
 		var project_list = containerCenter.find(".news_and_trending_projects");
 		project_list.html("");
@@ -396,7 +262,6 @@ setup: function(c, inUseInitCategoryId, inIsAllGroups) {
 
 	containerCenter.append("<div class='after-categories' style='clear: both' /> ");
 	containerCenter.append("<div id='project-listing' class='news_and_trending_projects' /> ");
-	containerCenter.find(".after-categories").after("<div id='sort-projects' class='sort-bar'><span style='font-weight:bold'>Sort by</span> <input class='sort-by sort-date' type='radio' name='sort-by' id='sort-date'/> <label for='sort-date'>Date updated</label> <input class='sort-by sort-project' type='radio' name='sort-by' id='sort-project'/> <label for='sort-project'>Project title</label> <input class='sort-by sort-downloads' type='radio' name='sort-by' id='sort-downloads'/> <label for='sort-downloads'>Number of downloads</label></div>");
 
 	containerHeader = c.find(".category-header");
 	if (containerHeader.length > 0) {
@@ -415,6 +280,10 @@ setup: function(c, inUseInitCategoryId, inIsAllGroups) {
 			else if (selected == "Downloads") {
 				// Invoke sort by downloads.
 				mySortDownloads();
+			}
+			else if (selected == "Relevance") {
+				// Invoke sort by relevance.
+				mySortRelevance();
 			}
 		});
 	}
@@ -458,6 +327,21 @@ setup: function(c, inUseInitCategoryId, inIsAllGroups) {
 		var allCategories = {};
 
 		projects = FilterSearch.create({items: projectData, display: func.projectDisplay});
+
+		// NOTE: Do a one time set up of match scores if search string is present.
+		// This process needs to be done first, because otherwise, match scores
+		// calculation does not take place until the projects.display() method
+		// which is after project.sort() invocation. However, projects.sort()
+		// may need the match score data if sort by relevance is used.
+		// Get search string.
+		var strTitleSearch = $("#titleFilter").val();
+		if ($.trim(strTitleSearch) != "") {
+			var filteredItems = func.filterItemsByTitle(projects.items, strTitleSearch);
+			// NOTE: Only filteredItems have match score property, but not projects.items.
+			// If there is text search filtering, after the text search filtering,
+			// set project items to use the filtered items to get the match score property.
+			projects.items = filteredItems;
+		}
 
 		// Get project data categories and associated counts. HK.
 		$.each(projectData, function(index, value) {
@@ -521,37 +405,6 @@ setup: function(c, inUseInitCategoryId, inIsAllGroups) {
 		}
 		else {
 			containerLeft.find(".no-filter").prop("checked", "checked");
-		}
-
-		// Use "sort=" criteria if specified.
-		var loc = window.location.href;
-		if (loc.indexOf("sort=date") >= 0) {
-			// Has "sort=date" specified already.
-			if (!$(".sort-date").is(":checked")) {
-				$(".sort-date").click();
-			}
-		}
-		else if (loc.indexOf("sort=project") >= 0) {
-			// Has "sort=project" specified already.
-			if (!$(".sort-project").is(":checked")) {
-				$(".sort-project").click();
-			}
-		}
-		else if (loc.indexOf("sort=downloads") >= 0) {
-			// Has "sort=downloads" specified already.
-			if (!$(".sort-downloads").is(":checked")) {
-				$(".sort-downloads").click();
-			}
-		}
-		else {
-			if (isAllGroups) {
-				// "sort=" not specified. Select "sort-downloads".
-				$('.mySelect').val("Download").change();
-			}
-			else {
-				// "sort=" not specified. Select "sort-date".
-				$('.mySelect').val("Date").change();
-			}
 		}
 
 		d.resolve(projectData);
@@ -640,14 +493,11 @@ setup: function(c, inUseInitCategoryId, inIsAllGroups) {
 			projects.sort(comp);
 		}
 
-		var loc = window.location.href;
-		// Change to "sort=date" if not present already.
-		myPushStateSearchAndReplaceWithPage(loc, "sort", "=", "date");
-
 		if (projects) {
 			projects.display();
 		}
 	};
+	// Sort by project.
 	var mySortProject = function() {
 		// Change comparator function. HK.
 		comp = function(a,b) {
@@ -671,14 +521,11 @@ setup: function(c, inUseInitCategoryId, inIsAllGroups) {
 			projects.sort(comp);
 		}
 
-		var loc = window.location.href;
-		// Change to "sort=project" if not present already.
-		myPushStateSearchAndReplaceWithPage(loc, "sort", "=", "project");
-
 		if (projects) {
 			projects.display();
 		}
 	}
+	// Sort my downloads.
 	var mySortDownloads = function() {
 		// Change comparator function. HK.
 		comp = function(a,b) {
@@ -706,51 +553,69 @@ setup: function(c, inUseInitCategoryId, inIsAllGroups) {
 			projects.sort(comp);
 		}
 
-		var loc = window.location.href;
-		// Change to "sort=downloads" if not present already.
-		myPushStateSearchAndReplaceWithPage(loc, "sort", "=", "downloads");
+		if (projects) {
+			projects.display();
+		}
+	}
+	// Sort by relevance.
+	var mySortRelevance = function() {
+		// Change comparator function. HK.
+		comp = function(a,b) {
+			if (!a.scoreMatch || !b.scoreMatch)
+				return 0;
+			// Need to first convert to integer to sort correctly.
+			// The input is a string. HK.
+			var aScoreMatch = parseInt(a.scoreMatch);
+			var bScoreMatch = parseInt(b.scoreMatch);
+			if (aScoreMatch < bScoreMatch)
+				return 1;
+			if (bScoreMatch < aScoreMatch)
+				return -1;
+			if (!a.downloads || !b.downloads)
+				return 0;
+			// Need to first convert to integer to sort correctly.
+			// The input is a string. HK.
+			var aDownloads = parseInt(a.downloads);
+			var bDownloads = parseInt(b.downloads);
+			if (aDownloads < bDownloads)
+				return 1;
+			if (bDownloads < aDownloads)
+				return -1;
+			return 0;
+		};
+
+		var project_list = containerCenter.find(".news_and_trending_projects");
+		project_list.html("");
+		// NOTE: Hide/Show is necessary because Chrome has problem of caching old content.
+		// Hide/Show refreshes the page.
+		$(".news_and_trending_projects").hide().show(0);
+		$(".page_nav").hide().show(0);
+
+		var checked_els = $(".content input[type='checkbox']:not(.no-filter):checked");
+		var checked_ids = [];
+		checked_els.each(function(i, el){checked_ids.push(parseInt($(el).val()));});
+
+		if (projects) {
+			projects.reset();
+			projects.filter("trove_cats", checked_ids, func.projectFilter);
+
+			var strTitleSearch = $("#titleFilter").val();
+			if ($.trim(strTitleSearch) != "") {
+				var filteredItems = func.filterItemsByTitle(projects.items, strTitleSearch);
+				// NOTE: Only filteredItems have match score property, but not projects.items.
+				// If there is text search filtering, after the text search filtering,
+				// set project items to use the filtered items to get the match score property.
+				projects.items = filteredItems;
+		}
+
+		// Get project data categories and associated counts. HK.
+			projects.sort(comp);
+		}
 
 		if (projects) {
 			projects.display();
 		}
 	}
-
-	containerCenter.find(".sort-date").change(function(e){
-		// Invoke sort by date.
-		mySortDate();
-	});
-	containerCenter.find(".sort-project").change(function(e){
-		// Invoke sort by project.
-		mySortProject();
-	});
-	containerCenter.find(".sort-downloads").change(function(e){
-		// Invoke sort by downloads.
-		mySortDownloads();
-	});
-	containerCenter.find(".sort-date").click(function(e){
-		// Invoke sort by date.
-		mySortDate();
-	});
-	containerCenter.find(".sort-project").click(function(e){
-		// Invoke sort by project.
-		mySortProject();
-	});
-	containerCenter.find(".sort-downloads").click(function(e){
-		// Invoke sort by downloads.
-		mySortDownloads();
-	});
-
-	// Using "Search" text as filter.
-	$(".search-go").click(function(e){
-		// Fade out featured projects list on filter change.
-		// Close div. Change text to "&#9668;" which is left arrow.
-		$("#featured-projects").attr("title", "Click Here to See Featured Projects List");
-		$("#featured-projects>span").css("padding-left", "0px").html("&#9668;");
-		$(".featured-project-listing").fadeOut(500, "linear");
-
-		// Click handler for text search input.
-		myTextSearchClickHandler();
-	});
 
 	containerCenter.on("click", ".page_nav .page_back, .page_nav .page_next, .page_nav .page_number", function(e) {
 		e.preventDefault();
@@ -773,16 +638,6 @@ setup: function(c, inUseInitCategoryId, inIsAllGroups) {
 		else if ($(e.currentTarget).hasClass("page_number")) {
 			newPage = $(e.currentTarget).text() - 1;
 		}
-
-/*
-		if (History) {
-			// Update page to new page number.
-			var tmpLoc = mySearchAndReplace(loc, "page", "=", newPage);
-			if (tmpLoc != "") {
-				History.pushState({}, "", tmpLoc);
-			}
-		}
-*/
 
 		var project_list = containerCenter.find(".news_and_trending_projects");
 		project_list.html("");
@@ -1009,8 +864,9 @@ setup: function(c, inUseInitCategoryId, inIsAllGroups) {
 
 	projectFilter: function(item_cats, checked_ids) {
 		var item_ids = [];
-		for (var i = 0; item_cats && i < item_cats.length; i++)
+		for (var i = 0; item_cats && i < item_cats.length; i++) {
 			item_ids.push(item_cats[i].id);
+		}
 		for (var i = 0; checked_ids && i < checked_ids.length; i++) {
 			// indexOf operation is not supported by IE 8. 
 			// Replace by the section below. HK.
@@ -1021,9 +877,11 @@ setup: function(c, inUseInitCategoryId, inIsAllGroups) {
 					break;
 				}
 			}
-			if (foundIt === false)
+			if (foundIt === false) {
 				return false;
+			}
 		}
+
 		return true;
 	},
 
@@ -1066,9 +924,6 @@ setup: function(c, inUseInitCategoryId, inIsAllGroups) {
 			}
 		}
 
-		// Update categories if not present already.
-		myPushStateSearchAndReplaceWithPage(loc, "cat", "=", catQuery);
-
 		// Show projects after filter change.
 		if (projects) {
 			projects.display();
@@ -1084,6 +939,15 @@ setup: function(c, inUseInitCategoryId, inIsAllGroups) {
 		if (projects) {
 			projects.reset();
 			projects.filter("trove_cats", checked_ids, func.projectFilter);
+
+			var strTitleSearch = $("#titleFilter").val();
+			if ($.trim(strTitleSearch) != "") {
+				var filteredItems = func.filterItemsByTitle(projects.items, strTitleSearch);
+				// NOTE: Only filteredItems have match score property, but not projects.items.
+				// If there is text search filtering, after the text search filtering,
+				// set project items to use the filtered items to get the match score property.
+				projects.items = filteredItems;
+			}
 
 			// Sort projects. HK.
 			projects.sort(comp);
@@ -1106,9 +970,34 @@ setup: function(c, inUseInitCategoryId, inIsAllGroups) {
 			return items;
 		}
 
+		// Get original search string as in search textfield.
+		strOrigSearchStr = false
+		var loc = window.location.href;
+		// Change back whitespaces first.
+		var strLoc = unescape(loc);
+		if (strLoc.indexOf("srch=") >= 0) {
+			// Has search string.
+			var idxSearch = strLoc.indexOf("srch=") + 5;
+			strSearch = strLoc.substring(idxSearch, strLoc.length);
+			var idxLast = strSearch.indexOf("&");
+			if (idxLast >=0) {
+				// Has other parameters. Only include up to the next "&".
+				strOrigSearchStr = strSearch.substring(0, idxLast);
+				// Change "+" to " " since " " is represented as "+" in URL.
+				strOrigSearchStr = strOrigSearchStr.replace("+", " ");
+				strOrigSearchStr = strOrigSearchStr.toLowerCase();
+			}
+		}
+
+		// Check for OR of words in search string.
 		var arrSearch = strTitleTextToSearch.split(",");
 		var filteredItems = [];
 		for (var cnt = 0; cnt < items.length; cnt++) {
+			var scoreMatch = 0;
+			var arrScores = [];
+			for (var idx = 0; idx < arrSearch.length; idx++) {
+				arrScores[idx] = 0;
+			}
 			for (var cntSearch = 0; cntSearch < arrSearch.length; cntSearch++) {
 				var toSrch = arrSearch[cntSearch];
 				if (items[cnt].group_name.toLowerCase().indexOf(toSrch) >= 0 ||
@@ -1116,11 +1005,36 @@ setup: function(c, inUseInitCategoryId, inIsAllGroups) {
 					items[cnt].short_description.toLowerCase().indexOf(toSrch) >= 0 ||
 					items[cnt].long_description.toLowerCase().indexOf(toSrch) >= 0 ||
 					items[cnt].keywords.toLowerCase().indexOf(toSrch) >= 0 ||
-					items[cnt].ontologies.toLowerCase().indexOf(toSrch) >= 0) {
+					items[cnt].ontologies.toLowerCase().indexOf(toSrch) >= 0 ||
+					items[cnt].projMembers.toLowerCase().indexOf(toSrch) >= 0) {
 					// Found a match for one of strings to search for.
-					filteredItems.push(items[cnt]);
-					break;
+					arrScores[cntSearch]++;
 				}
+			}
+			for (idx = 0; idx < arrSearch.length; idx++) {
+				if (arrScores[idx] > 0) {
+					scoreMatch++;
+				}
+			}
+
+			// NOTE: Add 1000 to score to give significance to full match.
+			if (strOrigSearchStr != false) {
+				if (items[cnt].group_name.toLowerCase().indexOf(strOrigSearchStr) >= 0 ||
+					items[cnt].unix_group_name.toLowerCase().indexOf(strOrigSearchStr) >= 0 ||
+					items[cnt].short_description.toLowerCase().indexOf(strOrigSearchStr) >= 0 ||
+					items[cnt].long_description.toLowerCase().indexOf(strOrigSearchStr) >= 0 ||
+					items[cnt].keywords.toLowerCase().indexOf(strOrigSearchStr) >= 0 ||
+					items[cnt].ontologies.toLowerCase().indexOf(strOrigSearchStr) >= 0 ||
+					items[cnt].projMembers.toLowerCase().indexOf(strOrigSearchStr) >= 0) {
+					// Found full match of search string.
+					scoreMatch += 1000;
+				}
+			}
+
+			if (scoreMatch > 0) {
+				// Has at least one match.
+				items[cnt].scoreMatch = scoreMatch;
+				filteredItems.push(items[cnt]);
 			}
 		}
 		return filteredItems;
