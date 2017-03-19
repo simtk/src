@@ -571,6 +571,16 @@ setup: function(c, inUseInitCategoryId, inIsAllGroups) {
 				return 1;
 			if (bScoreMatch < aScoreMatch)
 				return -1;
+			if (!a.downloads || !b.downloads)
+				return 0;
+			// Need to first convert to integer to sort correctly.
+			// The input is a string. HK.
+			var aDownloads = parseInt(a.downloads);
+			var bDownloads = parseInt(b.downloads);
+			if (aDownloads < bDownloads)
+				return 1;
+			if (bDownloads < aDownloads)
+				return -1;
 			return 0;
 		};
 
@@ -975,6 +985,7 @@ setup: function(c, inUseInitCategoryId, inIsAllGroups) {
 				strOrigSearchStr = strSearch.substring(0, idxLast);
 				// Change "+" to " " since " " is represented as "+" in URL.
 				strOrigSearchStr = strOrigSearchStr.replace("+", " ");
+				strOrigSearchStr = strOrigSearchStr.toLowerCase();
 			}
 		}
 
