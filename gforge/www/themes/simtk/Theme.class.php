@@ -708,7 +708,7 @@ else {
 	}
 	$cnt = 0;
 	foreach ($arrCommunityNames as $catId=>$fullName) {
-		if ($cnt++ >= 3) {
+		if ($cnt++ >= 4) {
 			break;
 		}
 		echo '<li class="intend"><a href="/category/communityPage.php?cat=' . $catId . 
