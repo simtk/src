@@ -192,7 +192,7 @@ $sql = "SELECT u.realname, home_group_id AS group_id  " .
 	"ON pur.user_id=u.user_id ";
 if (isset($cat_id) && trim($cat_id) != "" && $cat_id > 0) {
 	// Has category id.
-	$sql .= "WHERE group_id in " .
+	$sql .= "WHERE home_group_id in " .
 		"(SELECT group_id FROM trove_group_link WHERE trove_cat_id=$1) ";
 	$user_roles_res = db_query_params($sql, array(pg_escape_string($cat_id)));
 }

@@ -86,7 +86,7 @@ if (isset($_GET["srch"])) {
 		session_redirect("/search/search.php?type_of_search=$typeSearch&srch=___ERROR___");
 	}
 }
-if ($typeSearch == "people") {
+if (isset($typeSearch) && $typeSearch == "people") {
 	// People search.
 	session_redirect("/search/searchPeople.php?type_of_search=$typeSearch&srch=$srch");
 }
