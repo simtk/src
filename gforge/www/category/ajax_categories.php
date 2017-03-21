@@ -55,7 +55,7 @@ $sql = "SELECT *,
 	END AS has_public_package,
 	0 as is_model
 	FROM trove_group_link AS t 
-	RIGHT JOIN (SELECT group_id group_id, unix_group_name, group_name, simtk_logo_file, simtk_summary, simtk_short_description, status, simtk_is_public, simtk_is_system FROM groups) AS g ON t.group_id=g.group_id 
+	RIGHT JOIN (SELECT group_id group_id, unix_group_name, group_name, simtk_logo_file, simtk_summary, short_description, status, simtk_is_public, simtk_is_system FROM groups) AS g ON t.group_id=g.group_id 
 	LEFT JOIN (SELECT group_id, MAX(adddate) AS modified FROM group_history GROUP BY group_id) AS gh ON g.group_id=gh.group_id 
 	LEFT JOIN (SELECT group_id as dls_group_id, downloads as dls_downloads from frs_dlstats_grouptotal_vw) as dls ON dls_group_id=g.group_id";
 
@@ -241,7 +241,7 @@ for ($i = 0; $i < $db_count; $i++) {
 	echo json_kv("group_name", $project->group_name). ",";
 	echo json_kv("logo_file", $project->simtk_logo_file) . ",";
 	echo json_kv("short_description", $project->simtk_summary) . ",";
-	echo json_kv("long_description", $project->simtk_short_description) . ",";
+	echo json_kv("long_description", $project->short_description) . ",";
 	echo json_kv("has_downloads", $project->has_public_package > 0) . ",";
 	// Check before filling in; keywords may not be present.
 	if (isset($keywords[$project->group_id])) {
