@@ -436,7 +436,7 @@ class User:
         # Create and acquire a lock for this user's profile file.
         # Do not read file if save() operation is in progress;
         # access file only after the save() operation is done.
-        locked_fd = open(self.__filename() + '_LOCK', 'w+')
+        locked_fd = open(os.path.join(self._cfg.user_dir + '/../../../../locks/', self.id or "...NONE...") + '_LOCK', 'w+')
         fcntl.lockf(locked_fd, fcntl.LOCK_EX)
 
         data = codecs.open(self.__filename(), "r", config.charset).readlines()
@@ -444,10 +444,6 @@ class User:
         # Done reading file.
         # Release the lock on this user's profile file.
         locked_fd.close()
-
-        if os.path.exists(self.__filename() + '_LOCK'):
-            # Remove the lock file.
-            os.remove(self.__filename() + '_LOCK')
 
         user_data = {'enc_password': ''}
         for line in data:
@@ -612,7 +608,7 @@ class User:
         # or even better, use locking
 
         # Create and acquire a lock for this user's profile file.
-        locked_fd = open(self.__filename() + '_LOCK', 'w+')
+        locked_fd = open(os.path.join(self._cfg.user_dir + '/../../../../locks/', self.id or "...NONE...") + '_LOCK', 'w+')
         fcntl.lockf(locked_fd, fcntl.LOCK_EX)
 
 	# If present, keep a backup copy of user profile file before changing.
@@ -698,10 +694,6 @@ class User:
 
         # Release the lock on this user's profile file.
         locked_fd.close()
-
-        if os.path.exists(self.__filename() + '_LOCK'):
-            # Remove the lock file.
-            os.remove(self.__filename() + '_LOCK')
 
     # -----------------------------------------------------------------
     # Time and date formatting
