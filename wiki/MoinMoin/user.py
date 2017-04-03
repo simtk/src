@@ -27,6 +27,7 @@ import uuid
 import subprocess
 import psycopg2
 import fcntl
+import errno
 
 try:
     import crypt
