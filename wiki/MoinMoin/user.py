@@ -436,13 +436,30 @@ class User:
         # Create and acquire a lock for this user's profile file.
         # Do not read file if save() operation is in progress;
         # access file only after the save() operation is done.
+        # NOTE: Retry acquiring lock for 30 times (about 3 seconds)
+        acquired_lock = False
         locked_fd = open(os.path.join(self._cfg.user_dir + '/../../../../locks/', self.id or "...NONE...") + '_LOCK', 'w+')
-        fcntl.lockf(locked_fd, fcntl.LOCK_EX)
+        for x in range(0, 30):
+            try:
+                fcntl.flock(locked_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                # Lock acquired.
+                acquired_lock = True
+                break
+            except IOError as e:
+                if e.errno != errno.EAGAIN:
+                    raise
+                else:
+                    time.sleep(0.1)
+
+        if acquired_lock != True:
+            # Cannot acquire lock.
+            return
 
         data = codecs.open(self.__filename(), "r", config.charset).readlines()
 
         # Done reading file.
         # Release the lock on this user's profile file.
+        fcntl.flock(locked_fd, fcntl.LOCK_UN)
         locked_fd.close()
 
         user_data = {'enc_password': ''}
@@ -608,8 +625,24 @@ class User:
         # or even better, use locking
 
         # Create and acquire a lock for this user's profile file.
+        # NOTE: Retry acquiring lock for 30 times (about 3 seconds)
+        acquired_lock = False
         locked_fd = open(os.path.join(self._cfg.user_dir + '/../../../../locks/', self.id or "...NONE...") + '_LOCK', 'w+')
-        fcntl.lockf(locked_fd, fcntl.LOCK_EX)
+        for x in range(0, 30):
+            try:
+                fcntl.flock(locked_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                # Lock acquired.
+                acquired_lock = True
+                break
+            except IOError as e:
+                if e.errno != errno.EAGAIN:
+                    raise
+                else:
+                    time.sleep(0.1)
+
+        if acquired_lock != True:
+            # Cannot acquire lock.
+            return
 
 	# If present, keep a backup copy of user profile file before changing.
 	if self.exists():
@@ -693,6 +726,7 @@ class User:
                 pass
 
         # Release the lock on this user's profile file.
+        fcntl.flock(locked_fd, fcntl.LOCK_UN)
         locked_fd.close()
 
     # -----------------------------------------------------------------
