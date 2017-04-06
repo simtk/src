@@ -277,7 +277,10 @@ $listname.':		"|'.$path_to_mailman.'/mail/wrapper post '.$listname.'"'."\n"
 .$listname.'-owner:	'.$listname.'-admin'."\n\n";
 	}
 
-	fwrite($h1, $list_str);
+	// added this check to prevent removal of alias after update - th 03/07/2017
+	if ($status != MAIL__MAILING_LIST_IS_UPDATED) {
+	   fwrite($h1, $list_str);
+	}
 }
 fclose($h1);
 
