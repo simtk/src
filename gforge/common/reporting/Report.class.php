@@ -36,7 +36,9 @@ class Report extends Error {
 //var $adjust_days=array('Sun'=>0, 'Sat'=>6, 'Fri'=>5, 'Thu'=>4, 'Wed'=>3, 'Tue'=>2, 'Mon'=>1);
 var $adjust_days = array('Sun'=>'0.0', 'Sat'=>1, 'Fri'=>2, 'Thu'=>3, 'Wed'=>4, 'Tue'=>5, 'Mon'=>6);
 var $month_start_arr = array();
+var $month_end_arr = array();
 var $month_start_arr_format = array();
+var $month_end_arr_format = array();
 var $week_start_arr = array();
 var $week_start_arr_format = array();
 var $site_start_date;
@@ -56,8 +58,10 @@ function Report() {
 	//
 	//	All reporting action will be done in GMT timezone
 	//
-	putenv('TZ=GMT');
-	date_default_timezone_set('GMT');
+	//putenv('TZ=GMT');
+	//putenv('TZ=America/Los_Angeles');
+	date_default_timezone_set('America/Los_Angeles');
+	//date_default_timezone_set('GMT');
 }
 
 /**
@@ -88,6 +92,7 @@ function setStartDate($startdate) {
 }
 
 function &getMonthStartArr() {
+    date_default_timezone_set('America/Los_Angeles');
 	if (count($this->month_start_arr) < 1) {
 		$min_date=$this->getMinDate();
 		for ($i=0; $i<$this->max_month; $i++) {
@@ -101,6 +106,24 @@ function &getMonthStartArr() {
 		sort($this->month_start_arr_format);
 	}
 	return $this->month_start_arr;
+}
+
+function &getMonthEndArr() {
+	
+	if (count($endArr) < 1) {
+		$min_date=$this->getMinDate();
+		for ($i=0; $i<$this->max_month; $i++) {
+			$this->month_end_arr[] = mktime(0,0,0,date('m')+2-$i,1,date('Y'));
+			$this->month_end_arr_format[] = date('Ym', $this->month_end_arr[$i]);
+			if ($this->month_end_arr[$i] < $min_date) {
+				break;
+			}
+		}
+		sort($this->month_end_arr);
+		sort($this->month_end_arr_format);
+		
+	}
+	return $this->month_end_arr;
 }
 
 function &getWeekStartArr() {

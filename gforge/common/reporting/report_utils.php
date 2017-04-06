@@ -604,6 +604,7 @@ function report_actgraph($type, $SPAN, $start, $end, $id, $area) {
 	if ($now < $end) {
 		$end = $now;
 	}
+	
 	switch ($type) {
 		case 'user': {
 			$report = new ReportUserAct($SPAN, $id, $start, $end);
@@ -644,10 +645,13 @@ function report_actgraph($type, $SPAN, $start, $end, $id, $area) {
 
 	if ($SPAN == REPORT_TYPE_DAILY) {
 		$i = 0;
-		$looptime = $start;
+		// added 3600 seconds to avoid duplicate tics
+		$looptime = $start + 3600;
 		while ($looptime < $end) {
-			$timeStampArr[$i] = $looptime;
+			$timeStampArr[$i] = $looptime;			
 			$looptime += REPORT_DAY_SPAN;
+			$looptime_end += REPORT_DAY_SPAN;
+			$timeStampEndArr[$i] = $looptime;
 			$i++;
 		}
 		$formatDate = 'Y/m/d';
@@ -655,7 +659,9 @@ function report_actgraph($type, $SPAN, $start, $end, $id, $area) {
 		$timeStampArr = $report->getWeekStartArr();
 		$formatDate = 'Y/W';
 	} elseif ($SPAN == REPORT_TYPE_MONTHLY) {
+	    $timeStampEndArr = array();
 		$timeStampArr = $report->getMonthStartArr();
+		$timeStampEndArr = $report->getMonthEndArr();
 		$formatDate = 'Y/m';
 	}
 
@@ -663,6 +669,7 @@ function report_actgraph($type, $SPAN, $start, $end, $id, $area) {
 	for ($j = 0; $j < $initialSizeOfTimeStampArr; $j++) {
 		if ($timeStampArr[$j] < $start || $timeStampArr[$j] >= $end) {
 			unset($timeStampArr[$j]);
+			unset($timeStampEndArr[$j]);
 		}
 	}
 
@@ -758,7 +765,27 @@ function report_actgraph($type, $SPAN, $start, $end, $id, $area) {
 			break;
 		}
 	}
-
+	$timeStampEndArr = array_values($timeStampEndArr);
+	$timeStampTempArr = array();
+	$rdatesTemp = array();
+	
+	if ($SPAN == REPORT_TYPE_DAILY) {
+	   for ($j = 0; $j < count($timeStampArr); $j++) {
+	     $timeStampTempArr[] = date("Ymd",$timeStampArr[$j]);
+	   }
+	   for ($y = 0; $y < count($rdates); $y++) {
+	     $rdatesTemp[] = date("Ymd",$rdates[$y]);
+	   }
+	}
+	if ($SPAN == REPORT_TYPE_MONTHLY) {
+	   for ($j = 0; $j < count($timeStampArr); $j++) {
+	     $timeStampTempArr[] = date("Ym",$timeStampArr[$j]);
+	   }
+	   for ($y = 0; $y < count($rdates); $y++) {
+	     $rdatesTemp[] = date("Ym",$rdates[$y]);
+	   }
+	}
+	
 	$chartid = 'report_actgraph_'.$id;
 	$yMax = 0;
 	echo '<script type="text/javascript">//<![CDATA['."\n";
@@ -771,8 +798,37 @@ function report_actgraph($type, $SPAN, $start, $end, $id, $area) {
 		echo 'values['.$z.'] = new Array();';
 		echo 'labels.push({label:\''.$label[$z].'\'});';
 	}
+	
 	switch ($SPAN) {
-		case REPORT_TYPE_DAILY:
+		case REPORT_TYPE_DAILY: 
+		case REPORT_TYPE_MONTHLY: {
+			for ($j = 0; $j < count($timeStampArr); $j++) {
+				for ($z = 0; $z < count($ydata); $z++) {
+				  for ($y = 0; $y < count($rdates); $y++) {
+					if (in_array($timeStampTempArr[$j], $rdatesTemp)) {
+						$thekey = $y;
+						if (isset($ydata[$z][$thekey])) {
+							if ($ydata[$z][$thekey] === false) {
+								$ydata[$z][$thekey] = 0;
+							}
+							if ($ydata[$z][$thekey] > $yMax) {
+								$yMax = $ydata[$z][$thekey];
+							}
+							echo 'values['.$z.'].push('.$ydata[$z][$thekey].');';
+						} else {
+							//echo 'values['.$z.'].push(0);';
+						}
+					} else {
+						//echo 'values['.$z.'].push(0);';
+					}
+				  }
+				}
+				echo 'ticks.push(\''.$tickArr[$j].'\');';
+			}
+			
+			break;
+		}
+		/*
 		case REPORT_TYPE_MONTHLY: {
 			for ($j = 0; $j < count($timeStampArr); $j++) {
 				for ($z = 0; $z < count($ydata); $z++) {
@@ -795,8 +851,10 @@ function report_actgraph($type, $SPAN, $start, $end, $id, $area) {
 				}
 				echo 'ticks.push(\''.$tickArr[$j].'\');';
 			}
+			
 			break;
 		}
+		*/
 		case REPORT_TYPE_WEEKLY : {
 			for ($j = 0; $j < count($rdates); $j++) {
 				$wrdates[$j] = date($formatDate, $rdates[$j]);
