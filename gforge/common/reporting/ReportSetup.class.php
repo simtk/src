@@ -3,7 +3,6 @@
  * FusionForge reporting system
  *
  * Copyright 2003-2004, Tim Perdue/GForge, LLC
- * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -438,6 +437,7 @@ class ReportSetup extends Report {
 		if (!$this->backfill_user_act_monthly(2)) {
 			return false;
 		}
+		//if (!$this->backfill_group_act_daily(46)) {
 		if (!$this->backfill_group_act_daily(1)) {
 			return false;
 		}
@@ -484,7 +484,7 @@ class ReportSetup extends Report {
 		while (true) {
 			$day=($today-($i*REPORT_DAY_SPAN));
 			if (!$this->users_added_daily($day)) {
-				$this->setError('backfill_users_added_daily:: Error adding daily row: '.db_error());
+				$this->setError('backfill_users_added_daily:: Error adding daily row: '.db_error() . ' i: ' . $i . ' count: ' . $count);
 				return false;
 			}
 			if ($day < $start_date) {
@@ -1171,7 +1171,11 @@ class ReportSetup extends Report {
 				array($day));
 
 		$end_day=$day+REPORT_DAY_SPAN-1;
-		
+                echo "function group_act_daily\n";
+                echo "day: " . $day . "\n";
+                echo "end_day: " . $end_day . "\n";
+                echo "month: " . date('Ym',$day) . "\n";
+
 		return db_query_params ('INSERT INTO rep_group_act_daily
 		SELECT group_id,day,coalesce(tracker_opened,0) AS tracker_opened,
 			coalesce(tracker_closed,0) AS tracker_closed,
@@ -1232,7 +1236,7 @@ class ReportSetup extends Report {
 				AND fr.release_id=ff.release_id
 				AND ff.file_id=fdf.file_id
 				AND fdf.month = $3 AND fdf.day = $4
-				GROUP BY fp.group_id,day ) docs USING (group_id,day)) foo4
+				GROUP BY fp.group_id,day ) docs_downloads USING (group_id,day)) foo4
 
 			FULL OUTER JOIN
 				(SELECT group_id, $1::int AS day, sum(commits) AS cvs_commits
@@ -1262,7 +1266,7 @@ class ReportSetup extends Report {
 				FROM activity_log al
 				JOIN (SELECT group_id FROM groups) AS g ON g.group_id=al.group_id
 				WHERE al.time BETWEEN $1 AND $2
-				GROUP BY al.group_id ) avisits USING (group_id,day)) foo8
+				GROUP BY al.group_id,day ) avisits USING (group_id,day)) foo8
 
 			FULL OUTER JOIN
 				(SELECT al.group_id, $1::int AS day, count(*) AS simtk_visits_stanford
@@ -1270,14 +1274,14 @@ class ReportSetup extends Report {
 				JOIN (SELECT group_id FROM groups) AS g ON g.group_id=al.group_id
 				WHERE al.time BETWEEN $1 AND $2
 				AND simtk_host_name LIKE \'%.stanford.edu\'
-				GROUP BY al.group_id ) avisits_stan USING (group_id,day)) foo9
+				GROUP BY al.group_id,day ) avisits_stan USING (group_id,day)) foo9
 
 			FULL OUTER JOIN
 				(SELECT al.group_id, $1::int AS day, count(DISTINCT simtk_ip_addr) AS simtk_visitors
 				FROM activity_log al
 				JOIN (SELECT group_id FROM groups) AS g ON g.group_id=al.group_id
 				WHERE al.time BETWEEN $1 AND $2
-				GROUP BY al.group_id ) avisitors USING (group_id,day)) foo10
+				GROUP BY al.group_id,day ) avisitors USING (group_id,day)) foo10
 
 			FULL OUTER JOIN
 				(SELECT al.group_id, $1::int AS day, count(DISTINCT simtk_ip_addr) AS simtk_visitors_stanford
@@ -1285,7 +1289,7 @@ class ReportSetup extends Report {
 				JOIN (SELECT group_id FROM groups) AS g ON g.group_id=al.group_id
 				WHERE al.time BETWEEN $1 AND $2
 				AND simtk_host_name LIKE \'%.stanford.edu\'
-				GROUP BY al.group_id ) avisitors_stan USING (group_id,day)) foo11
+				GROUP BY al.group_id,day ) avisitors_stan USING (group_id,day)) foo11
 
 			FULL OUTER JOIN
                                 (SELECT fp.group_id, $1::int AS day, count(*) AS simtk_downloads_stanford
@@ -1378,7 +1382,6 @@ class ReportSetup extends Report {
 
 		$arr = array_slice ($this->getMonthStartArr(), -$count-1);
 		rsort($arr);
-
 		for ($i=0; $i<count($arr); $i++) {
 			if (!$this->group_act_weekly($arr[$i])) {
 				$this->setError('backfill_user_act_weekly:: Error adding weekly row: '.db_error());

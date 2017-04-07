@@ -26,6 +26,8 @@ import md5crypt
 import uuid
 import subprocess
 import psycopg2
+import fcntl
+import errno
 
 try:
     import crypt
@@ -432,7 +434,35 @@ class User:
         if not self.exists():
             return
 
+        # Create and acquire a lock for this user's profile file.
+        # Do not read file if save() operation is in progress;
+        # access file only after the save() operation is done.
+        # NOTE: Retry acquiring lock for 30 times (about 3 seconds)
+        acquired_lock = False
+        locked_fd = open(os.path.join(self._cfg.user_dir + '/../../../../locks/', self.id or "...NONE...") + '_LOCK', 'w+')
+        for x in range(0, 30):
+            try:
+                fcntl.flock(locked_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                # Lock acquired.
+                acquired_lock = True
+                break
+            except IOError as e:
+                if e.errno != errno.EAGAIN:
+                    raise
+                else:
+                    time.sleep(0.1)
+
+        if acquired_lock != True:
+            # Cannot acquire lock.
+            return
+
         data = codecs.open(self.__filename(), "r", config.charset).readlines()
+
+        # Done reading file.
+        # Release the lock on this user's profile file.
+        fcntl.flock(locked_fd, fcntl.LOCK_UN)
+        locked_fd.close()
+
         user_data = {'enc_password': ''}
         for line in data:
             if line[0] == '#':
@@ -595,6 +625,33 @@ class User:
         # !!! should write to a temp file here to avoid race conditions,
         # or even better, use locking
 
+        # Create and acquire a lock for this user's profile file.
+        # NOTE: Retry acquiring lock for 30 times (about 3 seconds)
+        acquired_lock = False
+        locked_fd = open(os.path.join(self._cfg.user_dir + '/../../../../locks/', self.id or "...NONE...") + '_LOCK', 'w+')
+        for x in range(0, 30):
+            try:
+                fcntl.flock(locked_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                # Lock acquired.
+                acquired_lock = True
+                break
+            except IOError as e:
+                if e.errno != errno.EAGAIN:
+                    raise
+                else:
+                    time.sleep(0.1)
+
+        if acquired_lock != True:
+            # Cannot acquire lock.
+            return
+
+	# If present, keep a backup copy of user profile file before changing.
+	if self.exists():
+	    os.system('cp -p ' + self.__filename() + ' ' + self.__filename() + '_BAK_' + self.last_saved)
+            msgUserProf = self.last_saved + ': User profile updated in ' + self.__filename() + '\n'
+        else:
+            msgUserProf = self.last_saved + ': User profile created in ' + self.__filename() + '\n\n'
+
         data = codecs.open(self.__filename(), "w", config.charset)
         data.write("# Data saved '%s' for id '%s'\n" % (
             time.strftime(self._cfg.datetime_fmt, time.localtime(time.time())),
@@ -639,6 +696,39 @@ class User:
 
         # update page subscriber's cache after saving user preferences
         self.updatePageSubCache()
+
+        if os.path.exists(self.__filename() + '_BAK_' + self.last_saved):
+            # Existing user profile.
+            # Track whether the user's profile settings have changed or not.
+            # Ignore comments (i.e. lines starting with '#') and
+            # ignore 'last_saved' parameter (which changes every time).
+            strDiff = os.popen('diff -I "^#" -I "last_saved" ' + self.__filename() + ' ' + self.__filename() + '_BAK_' + self.last_saved).read()
+
+            # Remove the backup file.
+            os.system('rm ' + self.__filename() + '_BAK_' + self.last_saved)
+
+            # Strip any leading/trailing whitespace from the differences.
+            strDiff = strDiff.strip()
+
+            if strDiff != '':
+                # Log the differences from the update.
+                try:
+                    with open(self._cfg.data_dir + '/../../userprofsChanges.log', 'a+') as profLog:
+                        profLog.write(msgUserProf + strDiff + '\n\n')
+                except:
+                    pass
+        else:
+            # New user profile.
+            # Log that new user profile is created.
+            try:
+                with open(self._cfg.data_dir + '/../../userprofsChanges.log', 'a+') as profLog:
+                    profLog.write(msgUserProf)
+            except:
+                pass
+
+        # Release the lock on this user's profile file.
+        fcntl.flock(locked_fd, fcntl.LOCK_UN)
+        locked_fd.close()
 
     # -----------------------------------------------------------------
     # Time and date formatting
