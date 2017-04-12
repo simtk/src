@@ -702,7 +702,7 @@ class User:
             # Track whether the user's profile settings have changed or not.
             # Ignore comments (i.e. lines starting with '#') and
             # ignore 'last_saved' parameter (which changes every time).
-            strDiff = os.popen('diff -I "^#" -I "last_saved" ' + self.__filename() + ' ' + self.__filename() + '_BAK_' + self.last_saved).read()
+            strDiff = os.popen('diff -I "^#" -I "enc_password=" -I "show_nonexist_qm=" -I "last_saved" ' + self.__filename() + ' ' + self.__filename() + '_BAK_' + self.last_saved).read()
 
             # Remove the backup file.
             os.system('rm ' + self.__filename() + '_BAK_' + self.last_saved)
@@ -717,14 +717,14 @@ class User:
                         profLog.write(msgUserProf + strDiff + '\n\n')
                 except:
                     pass
-        else:
+        #else:
             # New user profile.
             # Log that new user profile is created.
-            try:
-                with open(self._cfg.data_dir + '/../../userprofsChanges.log', 'a+') as profLog:
-                    profLog.write(msgUserProf)
-            except:
-                pass
+            #try:
+                #with open(self._cfg.data_dir + '/../../userprofsChanges.log', 'a+') as profLog:
+                    #profLog.write(msgUserProf)
+            #except:
+                #pass
 
         # Release the lock on this user's profile file.
         fcntl.flock(locked_fd, fcntl.LOCK_UN)
