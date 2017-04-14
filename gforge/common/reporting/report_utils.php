@@ -675,7 +675,16 @@ function report_actgraph($type, $SPAN, $start, $end, $id, $area) {
 
 	$timeStampArr = array_values($timeStampArr);
 	for ($j = 0; $j < count($timeStampArr); $j++) {
-		$tickArr[] = date($formatDate, $timeStampArr[$j]);
+	    if ($SPAN == REPORT_TYPE_WEEKLY) {
+		   // add 1 to the ticks so that it starts on a Monday
+		   $tick = $timeStampArr[$j] + 86400;
+		   //echo "timestamp for tick: " . $tick . "<br />";
+		   //echo "tick: " . date($formatDate, $tick) . "<br />";
+		   //echo "time: " . date("Y-m-d h:i",$tick) . "<br />";
+		   $tickArr[] = date($formatDate, $tick);
+		} else {	    
+		   $tickArr[] = date($formatDate, $timeStampArr[$j]);
+		}
 	}
 
 	switch ($area) {
@@ -766,6 +775,30 @@ function report_actgraph($type, $SPAN, $start, $end, $id, $area) {
 		}
 	}
 	$timeStampEndArr = array_values($timeStampEndArr);
+	
+	/*
+	var_dump($ydata);
+    echo "<br />span: " . $SPAN . "<br />";
+	echo "rdates: <br />";
+	var_dump($rdates);
+	echo "<br />";
+	echo "time<br />";
+	echo "<br /><pre>";
+	var_dump($timeStampArr);
+	echo "</pre><br />";
+	echo "time end<br />";
+	echo "<br /><pre>";
+	var_dump($timeStampEndArr);
+	echo "</pre><br />";
+	echo "ticArr<br />";
+	echo "<br />";
+	var_dump($tickArr);
+	echo "<br />";
+	
+	echo "ydata_cnt: " . count($ydata) . "<br />";
+	echo "rdates_cnt: " . count($rdates) . "<br />";
+	*/
+	
 	$timeStampTempArr = array();
 	$rdatesTemp = array();
 	
@@ -785,6 +818,8 @@ function report_actgraph($type, $SPAN, $start, $end, $id, $area) {
 	     $rdatesTemp[] = date("Ym",$rdates[$y]);
 	   }
 	}
+	
+	
 	
 	$chartid = 'report_actgraph_'.$id;
 	$yMax = 0;
@@ -857,7 +892,9 @@ function report_actgraph($type, $SPAN, $start, $end, $id, $area) {
 		*/
 		case REPORT_TYPE_WEEKLY : {
 			for ($j = 0; $j < count($rdates); $j++) {
-				$wrdates[$j] = date($formatDate, $rdates[$j]);
+			    // add 1 day to match ticks.
+			    $rdates_tick = $rdates[$j] + 86400;
+				$wrdates[$j] = date($formatDate, $rdates_tick);
 			}
 			for ($j = 0; $j < count($tickArr); $j++) {
 				for ($z = 0; $z < count($ydata); $z++) {

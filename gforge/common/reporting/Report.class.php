@@ -130,6 +130,8 @@ function &getWeekStartArr() {
 	if (count($this->week_start_arr) < 1) {
 		$min_date=$this->getMinDate();
 		$start=mktime(0,0,0,date('m'),(date('d')+$this->adjust_days[date('D')]),date('Y'));
+		// start about 1 hour later to fix timezone issue
+		$start = $start + 3600;
 		for ($i=0; $i<$this->max_weeks; $i++) {
 			$this->week_start_arr[]=($start-REPORT_WEEK_SPAN*$i);
 			$this->week_start_arr_format[] = date('Y/W', $this->week_start_arr[$i]);
