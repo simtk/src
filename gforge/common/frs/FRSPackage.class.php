@@ -823,6 +823,14 @@ class FRSPackage extends Error {
 	}
 
 	public function createNewestReleaseFilesAsZip(){
+		// Do not generate zip file if Download Package button disabled.
+		if (!$this->isShowDownloadButton()) {
+			// NOTE: Remove the "latest" zip file if it is present.
+			$this->deleteNewestReleaseFilesAsZip();
+
+			return;
+		}
+
 		$release = $this->getNewestRelease();
 		$cntEmptyFiles = 0;
 		if ($release && class_exists('ZipArchive')) {
