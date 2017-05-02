@@ -81,18 +81,20 @@ function getNewsByProject($group_id,$sidebar=0,$details_condensed=1) {
 	$arrNews = array();
 
 	if (!$group_id) {
-		$group_id=forge_get_config('news_group');
+	   $group_id=forge_get_config('news_group');
 	}
+	
 	if ($sidebar) {
 	  $whereclause_sidebar = "AND plugin_simtk_news.simtk_sidebar_display=true";
 	} else {
 	  $whereclause_sidebar = "";
 	}
+	
 	$result = db_query_params ('
        SELECT groups.group_id, group_name, unix_group_name, plugin_simtk_news.id,plugin_simtk_news.summary, plugin_simtk_news.post_date, plugin_simtk_news.details, plugin_simtk_news.forum_id, picture_file, user_name, realname
        FROM plugin_simtk_news,groups,users WHERE (plugin_simtk_news.group_id=$1 AND plugin_simtk_news.is_approved <> 4)
 	   AND plugin_simtk_news.submitted_by = users.user_id
-       AND plugin_simtk_news.group_id=groups.group_id
+	   AND plugin_simtk_news.group_id=groups.group_id
        AND groups.status=$2 '.$whereclause_sidebar.' ORDER BY post_date DESC',
 				   array ($group_id,
 					  'A'));
@@ -135,6 +137,65 @@ function getNewsByProject($group_id,$sidebar=0,$details_condensed=1) {
 	return $arrNews;
 }
 
+function getNewsByDays($numdays,$sidebar=0) {
+
+    $arrNews = array();
+
+	// subtract number of days
+	$compare_date = strtotime("-".$numdays. " days");
+	
+	if ($sidebar) {
+	  $whereclause_sidebar = "AND plugin_simtk_news.simtk_sidebar_display=true";
+	} else {
+	  $whereclause_sidebar = "";
+	}
+	$result = db_query_params ('
+       SELECT groups.group_id, group_name, unix_group_name, plugin_simtk_news.id,plugin_simtk_news.summary, plugin_simtk_news.post_date, plugin_simtk_news.details, plugin_simtk_news.forum_id, picture_file, user_name, realname
+       FROM plugin_simtk_news,groups,users WHERE plugin_simtk_news.is_approved <> 4
+	   AND plugin_simtk_news.submitted_by = users.user_id
+       AND plugin_simtk_news.group_id=groups.group_id
+	   AND post_date >= ' . $compare_date . '
+       AND groups.status=$1 '.$whereclause_sidebar.' ORDER BY post_date DESC',
+				   array ('A'));
+	$rows=db_numrows($result);
+    //echo "rows: " . $rows . "<br>";
+	$return = '';
+
+	if (!$result || $rows < 1) {
+		$return .= false;
+		$return .= db_error();
+	} else {
+	    for ($i = 0; $i < $rows; $i++) {
+		   $arrNews[$i]['summary'] = db_result($result, $i, 'summary');
+		   //echo "summary: " . $arrNews[$i]['summary'] . "<br>";
+		   /*
+		   if ($details_condensed == 1) {
+		     $arrNews[$i]['details'] = get_news_detail_split(db_result($result, $i, 'details'));
+		   }
+		   else {
+		     $arrNews[$i]['details'] = db_result($result, $i, 'details');
+		   }
+		   */
+		   $arrNews[$i]['details'] = get_news_details_split(db_result($result, $i, 'details'));
+		   //echo "summary: " . $arrNews[$i]['details'] . "<br>";
+		   $arrNews[$i]['id'] = db_result($result, $i, 'id');
+		   //echo "id: " . $arrNews[$i]['id'] . "<br>";
+		   $arrNews[$i]['post_date'] = db_result($result, $i, 'post_date');
+		   //echo "date: " . $arrNews[$i]['post_date'] . " " . date('M d, Y',$arrNews[$i]['post_date']) . "<br>";
+		   
+		   $arrNews[$i]['picture_file'] = db_result($result, $i, 'picture_file');
+		   $arrNews[$i]['realname'] = db_result($result, $i, 'realname');
+		   $arrNews[$i]['user_name'] = db_result($result, $i, 'user_name');
+		   $arrNews[$i]['group_id'] = db_result($result, $i, 'group_id');
+		   $arrNews[$i]['group_name'] = db_result($result, $i, 'group_name');
+		   $arrNews[$i]['unix_group_name'] = db_result($result, $i, 'unix_group_name');
+		   
+	    }		
+
+	}
+	return $arrNews;
+
+}
 
 /**
  * Display news for project home page (frontpage).

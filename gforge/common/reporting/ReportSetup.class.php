@@ -437,14 +437,15 @@ class ReportSetup extends Report {
 		if (!$this->backfill_user_act_monthly(2)) {
 			return false;
 		}
-		//if (!$this->backfill_group_act_daily(46)) {
 		if (!$this->backfill_group_act_daily(1)) {
 			return false;
 		}
+		//if (!$this->backfill_group_act_weekly(49)) {
 		if (!$this->backfill_group_act_weekly(1)) {
 			return false;
 		}
 		if (!$this->backfill_group_act_monthly(2)) {
+		//if (!$this->backfill_group_act_monthly(40)) {
 			return false;
 		}
 		return true;
@@ -1171,10 +1172,10 @@ class ReportSetup extends Report {
 				array($day));
 
 		$end_day=$day+REPORT_DAY_SPAN-1;
-                echo "function group_act_daily\n";
-                echo "day: " . $day . "\n";
-                echo "end_day: " . $end_day . "\n";
-                echo "month: " . date('Ym',$day) . "\n";
+                //echo "function group_act_daily\n";
+                //echo "day: " . $day . "\n";
+                //echo "end_day: " . $end_day . "\n";
+                //echo "month: " . date('Ym',$day) . "\n";
 
 		return db_query_params ('INSERT INTO rep_group_act_daily
 		SELECT group_id,day,coalesce(tracker_opened,0) AS tracker_opened,
@@ -1312,6 +1313,9 @@ class ReportSetup extends Report {
 	/**
 	 *	Populate the group_act_daily report table.
 	 *
+	 *  To backfill from a particular date, replace line below with a hardcoded date
+	 *  example.....$today=mktime(0,0,0,1,27,2017);
+	 *
 	 *	@param int $count
 	 *	@return	boolean	Success.
 	 */
@@ -1349,6 +1353,13 @@ class ReportSetup extends Report {
 		db_query_params ('DELETE FROM rep_group_act_weekly WHERE week=$1',
 				array($week));
 
+	    //echo "group_act_weekly\n";
+	    //echo "week: " . $week . "\n";
+		$week_from = $week+REPORT_WEEK_SPAN-1;
+		//echo "week2: " . $week+REPORT_WEEK_SPAN-1 . "\n";
+		//echo "weekfrom: " . $week_from . "\n";
+
+		
 		return db_query_params ('
 	INSERT INTO rep_group_act_weekly (group_id, week, tracker_opened,
 			tracker_closed, forum, docs, downloads, cvs_commits, tasks_opened,
@@ -1369,7 +1380,7 @@ class ReportSetup extends Report {
 	WHERE DAY BETWEEN $1 AND $2
 	GROUP BY group_id, week',
 					array ($week,
-						$week+REPORT_WEEK_SPAN-1));
+						$week_from));
 	}
 
 	/**
@@ -1379,8 +1390,8 @@ class ReportSetup extends Report {
 	 *	@return boolean Success.
 	 */
 	function backfill_group_act_weekly($count=10000) {
-
-		$arr = array_slice ($this->getMonthStartArr(), -$count-1);
+        // changed from getMonthStartArr to getWeekStartArr fixed weekly reporting issue.
+		$arr = array_slice ($this->getWeekStartArr(), -$count-1);
 		rsort($arr);
 		for ($i=0; $i<count($arr); $i++) {
 			if (!$this->group_act_weekly($arr[$i])) {
@@ -1437,6 +1448,8 @@ class ReportSetup extends Report {
 		rsort($arr);
 
 		for ($i=1; $i<count($arr); $i++) {
+		    echo "month: " . $arr[$i] . "\n";
+			echo "end: " . $arr[$i-1]-1 . "\n";
 			if (!$this->group_act_monthly($arr[$i],($arr[$i-1]-1))) {
 				$this->setError('backfill_group_act_monthly:: Error adding monthly row: '.db_error());
 				return false;
