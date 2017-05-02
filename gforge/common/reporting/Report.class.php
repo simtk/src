@@ -92,7 +92,7 @@ function setStartDate($startdate) {
 }
 
 function &getMonthStartArr() {
-    date_default_timezone_set('America/Los_Angeles');
+    //date_default_timezone_set('America/Los_Angeles');
 	if (count($this->month_start_arr) < 1) {
 		$min_date=$this->getMinDate();
 		for ($i=0; $i<$this->max_month; $i++) {

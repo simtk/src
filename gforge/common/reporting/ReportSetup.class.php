@@ -445,6 +445,7 @@ class ReportSetup extends Report {
 			return false;
 		}
 		if (!$this->backfill_group_act_monthly(2)) {
+		//if (!$this->backfill_group_act_monthly(40)) {
 			return false;
 		}
 		return true;
@@ -1447,6 +1448,8 @@ class ReportSetup extends Report {
 		rsort($arr);
 
 		for ($i=1; $i<count($arr); $i++) {
+		    echo "month: " . $arr[$i] . "\n";
+			echo "end: " . $arr[$i-1]-1 . "\n";
 			if (!$this->group_act_monthly($arr[$i],($arr[$i-1]-1))) {
 				$this->setError('backfill_group_act_monthly:: Error adding monthly row: '.db_error());
 				return false;
