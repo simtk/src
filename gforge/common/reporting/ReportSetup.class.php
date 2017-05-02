@@ -440,12 +440,10 @@ class ReportSetup extends Report {
 		if (!$this->backfill_group_act_daily(1)) {
 			return false;
 		}
-		//if (!$this->backfill_group_act_weekly(49)) {
 		if (!$this->backfill_group_act_weekly(1)) {
 			return false;
 		}
 		if (!$this->backfill_group_act_monthly(2)) {
-		//if (!$this->backfill_group_act_monthly(40)) {
 			return false;
 		}
 		return true;

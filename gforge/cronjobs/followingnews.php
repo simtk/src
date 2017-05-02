@@ -85,6 +85,7 @@ foreach ($numdays as $days) {
   $arrNews = array();
   $arrNewsID = array();
   $arrUser = array();
+  $arrUserEmail = array();
   $arrNews = getNewsByDays($days,0);
   $compare_date = strtotime("-".$days. " days");
 
@@ -111,15 +112,16 @@ foreach ($numdays as $days) {
       if ($users_following) {
 	     while ($row = db_fetch_array($users_following)) {
 		     // assign the news id to each userid array
-             $arrUser[$row['email']][] = $news['id'];
+             $arrUser[$row['user_id']][] = $news['id'];
+			 $arrUserEmail[$row['user_id']] = $row['email'];
          }
 	  }	 
 	}
 
    // loop through each userid
    if ($arrUser) {
-      foreach($arrUser as $email => $value) {
-	     echo "\nSend email to: " . $email . "\r\n";
+      foreach($arrUser as $user_id => $value) {
+	     echo "\nSend email to: " . $arrUserEmail[$user_id] . "\r\n";
 		 $body = "";
 		 $body_news = "";
          foreach ($value as $key2 => $id) {
@@ -154,13 +156,13 @@ foreach ($numdays as $days) {
          $body .= $body_news;
 	     $body .= "</table>";
 	     // send email
-		 if ($email == "tod_hing@yahoo.com" || $email == "joyku@stanford.edu" || $email == "hykwong@stanford.edu") {
-            util_send_message($email,$subj, $body.$tail,'noreply@'.forge_get_config('web_host'),'','','',true);
+		 if ($arrUserEmail[$user_id] == "tod_hing@yahoo.com" || $arrUserEmail[$user_id] == "joyku@stanford.edu" || $arrUserEmail[$user_id] == "hykwong@stanford.edu") {
+            util_send_message($arrUserEmail[$user_id],$subj, $body.$tail,'noreply@'.forge_get_config('web_host'),'','','',true);
 	     }
 		  
 		 // update notification_sent field for user
 	     db_begin();
-	     $sql = "update users set notification_date = " . time() . " where email = '" . $email . "'";
+	     $sql = "update users set notification_date = " . time() . " where user_id = '" . $user_id . "'";
 	     $result_user = db_query_params($sql, array());				
 	     db_commit();
       } // foreach arrUser
