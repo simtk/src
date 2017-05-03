@@ -37,7 +37,11 @@ require_once $gfcommon.'include/pre.php';
 require $gfcommon.'include/cron_utils.php';
 
 // Get group access history from activity_log.
-$strActivityQuery = "SELECT group_id, simtk_ip_addr FROM activity_log";
+// Check for valid group id.
+$strActivityQuery = "SELECT a.group_id, simtk_ip_addr " .
+	"FROM activity_log a " .
+	"JOIN groups g " .
+	"ON a.group_id=g.group_id";
 $res = db_query_params($strActivityQuery, array());
 while ($row = db_fetch_array($res)) {
 	$groupId = $row["group_id"];
