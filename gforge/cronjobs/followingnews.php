@@ -86,6 +86,7 @@ foreach ($numdays as $days) {
   $arrNewsID = array();
   $arrUser = array();
   $arrUserEmail = array();
+  $arrUserName = array();
   $arrNews = getNewsByDays($days,0);
   $compare_date = strtotime("-".$days. " days");
 
@@ -114,6 +115,7 @@ foreach ($numdays as $days) {
 		     // assign the news id to each userid array
              $arrUser[$row['user_id']][] = $news['id'];
 			 $arrUserEmail[$row['user_id']] = $row['email'];
+			 $arrUserName[$row['user_id']] = $row['user_name'];
          }
 	  }	 
 	}
@@ -138,7 +140,7 @@ foreach ($numdays as $days) {
 						$arrNewsID[$id]['group_id'] . 
 						'&id='.$id . 
 						'" style="color:#5e96e1;">' . 
-						$news['summary'] . 
+						$arrNewsID[$id]['summary'] . 
 					'</a></strong><br />
 					<small><a href="'.util_make_url('/projects/') . 
 						$arrNewsID[$id]['unix_group_name'] . 
@@ -151,7 +153,8 @@ foreach ($numdays as $days) {
 			
 			
          }
-		 $body = "<p><b>Here's the latest news from the SimTK projects you are following:</b></p><br />";
+		 $body =  "<p>Hello " . $arrUserName[$user_id] . "</p><br />";
+		 $body .= "<p><b>Here's the latest news from the SimTK projects you are following:</b></p><br />";
 	     $body .= '<table cellpadding="5" cellspacing="5">';
          $body .= $body_news;
 	     $body .= "</table>";
