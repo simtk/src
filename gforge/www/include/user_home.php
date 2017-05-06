@@ -110,7 +110,11 @@ $countPosts = getNumPosts($user->getUnixName());
 if ($countPosts > 0) {
 //	echo "<span style='color:#a7a7a7;font-size:12px;'>" .
 	echo "<span>" .
-		"Total forum posts: " .
+		"Total " .
+		"<a style='color:#5e96e1;' " .
+		"href='/plugins/phpBB/search.php?" .
+		"author=" . $user->getUnixName() .
+		"'>" . "forum posts</a>: " .
 		$countPosts . 
 		"</span>";
 }
