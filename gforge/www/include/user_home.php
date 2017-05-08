@@ -112,7 +112,7 @@ if ($countPosts > 0) {
 	echo "<span>" .
 		"Total " .
 		"<a style='color:#5e96e1;' " .
-		"href='/plugins/phpBB/search.php?" .
+		"href='/plugins/phpBB/searchPhpbb.php?" .
 		"author=" . $user->getUnixName() .
 		"'>" . "forum posts</a>: " .
 		$countPosts . 
