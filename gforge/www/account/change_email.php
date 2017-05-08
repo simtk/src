@@ -77,6 +77,7 @@ if (getStringFromRequest('submit')) {
 site_user_header(array('title'=>_('Email change')));
 
 echo '<p>To update your email address, fill in the form below.  A confirmation link will be sent to the new email address.  Visiting this link will complete the update to your email address.</p>';
+echo '<span style="color:#f75236;">Do not use a Hotmail account. You will not receive the activation email.</span>';
 
 ?>
 
@@ -87,6 +88,7 @@ echo '<p>To update your email address, fill in the form below.  A confirmation l
     <label for="newemail">
         <input id="newemail" type="text" name="newemail" maxlength="255"/>
     </label>
+    <br/>
     <br/>
     <input type="submit" name="submit" value="<?php echo _('Send Confirmation to New Address') ?>" class="btn-cta" />
 </p>
