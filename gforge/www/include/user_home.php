@@ -109,12 +109,10 @@ require_once $gfwww.'project/project_utils.php';
 $countPosts = getNumPosts($user->getUnixName());
 if ($countPosts > 0) {
 //	echo "<span style='color:#a7a7a7;font-size:12px;'>" .
-	echo "<span>" .
-		"Total " .
-		"<a style='color:#5e96e1;' " .
+	echo "<span>" . "<a style='color:#5e96e1;' " .
 		"href='/plugins/phpBB/searchPhpbb.php?" .
 		"author=" . $user->getUnixName() .
-		"'>" . "forum posts</a>: " .
+		"'>Total forum posts: </a>" .
 		$countPosts . 
 		"</span>";
 }
