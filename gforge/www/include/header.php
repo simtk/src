@@ -95,9 +95,20 @@
 	    <!-- Decreased width of Search Box and moved to this location --->
 		<ul class="nav navbar-nav navbar-right">
 <div class="the_search_box">
-<form id="searchBox" action="/search/search.php" method="get"><input type="text" id="searchBox-words" placeholder="Search for projects" name="srch" value="" required="required">
-<input type="hidden" value="soft" name="type_of_search">
-</form></div>
+
+<form id='searchBox' action='/search/search.php' method='get'>
+	<div class='search_box_inputs'>
+		<input type='text' id='searchBox-words' 
+			placeholder='Search for' name='srch' 
+			value='' required='required' />
+		<input type='submit' name='Search' value='Search' />
+	</div>
+	<span class='search_box_select'>
+		<input type='radio' name='type_of_search' value='soft' checked='checked' />&nbsp;<label>Projects</label>&nbsp;&nbsp; <input type='radio' name='type_of_search' value='people'  />&nbsp;<label>People</label>
+	</span>
+</form>
+
+</div>
 
 
 <li class="dropdown">
