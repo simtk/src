@@ -136,6 +136,12 @@ function requestSimulationJob($theRemoteServerName,
 		return "***ERROR***" . " Problem with remote server: " . $theRemoteServerName;
 	}
 
+/*
+
+	// DISABLED!!! Do not invoke runSimulationJob() here
+	// because it uses SSL which interferes with PHP-Postgresql operations.
+	// Let cronjob launch the remote server simulation job.
+
 	// Run the simulation job.
 	$status = runSimulationJob($theRemoteServerName, $theUserName, $theGroupId, 
 		$theJobTimeStamp, $theModelName, $theModifyScriptName, 
@@ -144,6 +150,8 @@ function requestSimulationJob($theRemoteServerName,
 		$theSoftwareVersion, $theEmailAddr, $theJobName, $theMaxRunTime);
 
 	return $status;
+*/
+	return "";
 }
 
 
@@ -157,6 +165,9 @@ function isJobRequested($theRemoteServerName, $theUserName, $theGroupId, $theJob
 		"job_name='" . $theJobName . "'";
 
 	$resExistingJob = db_query_params($sqlExistingJob, array());
+	if (!$resExistingJob) {
+		return false;
+	}
 	$rowsExistingJob = db_numrows($resExistingJob);
 	if ($rowsExistingJob > 0) {
 		// Job entry is already present in the remote server.
@@ -198,6 +209,9 @@ function lookupNextSimulationJob($theRemoteServerName,
 		"ORDER BY job_id";
 
 	$resNextJob = db_query_params($sqlNextJob, array());
+	if (!$resNextJob) {
+		return false;
+	}
 	$rowsNextJob = db_numrows($resNextJob);
 	if ($rowsNextJob == 0) {
 		// No more jobs.
@@ -271,36 +285,64 @@ function runSimulationJob($theRemoteServerName,
 	$theSftp = getRemoteServerSftpAccess($theRemoteServerName, $strRemoteServerAddr,
 		$strRemoteUserName, $strRemotePassword, $intRemoteAuthMethod);
 	if ($theSftp === false) {
+		// Clean up by disconnecting.
+		$theSsh->disconnect();
+
 		// Cannot get Remote Server SFTP access.
 		return "***ERROR***" . "Cannot get Remote Server SFTP access: " . $theRemoteServerName;
 	}
-
-
-	// Record job started.
-	$status = recordRemoteServerJobStart($theRemoteServerName, $theUserName, $theGroupId, $theJobTimeStamp);
 
 
 	// Reserve remote server for simulation.
 	$statusAvail = reserveRemoteServer($theRemoteServerName, $theUserName, 
 		$theGroupId, $theJobTimeStamp, $theJobStartedTimeStamp, $theSoftwareName);
 	if ($statusAvail === false) {
+		// Clean up by disconnecting.
+		$theSsh->disconnect();
+		$theSftp->disconnect();
+
 		// A script is already running. Do not proceed.
 		return "***INFO***" .  "Simulation job has been submitted. " .
 			"There is currently a job running at $theRemoteServerName.";
 	}
 	else if ($statusAvail !== true) {
+		// Clean up by disconnecting.
+		$theSsh->disconnect();
+		$theSftp->disconnect();
+
 		// Has error. Do not proceed.
 		return $statusAvail;
 	}
 
-	// OK. Reserved remote server.
+	// OK. Successfully reserved remote server. Proceed with starting simulation.
+
+	// Record job started.
+	$status = recordRemoteServerJobStart($theRemoteServerName, $theUserName, $theGroupId, $theJobTimeStamp);
+
 
 	// Get group name.
-	$groupObj = group_get_object($theGroupId);
-	$groupName = $groupObj->getPublicName();
+	$groupName = $theGroupId;
+	$sql = "SELECT group_name FROM groups WHERE group_id=$1";
+	$result = db_query_params($sql, array($theGroupId));
+	$rows = db_numrows($result);
+	for ($i = 0; $i < $rows; $i++) {
+		$groupName = db_result($result, $i, 'group_name');
+	}
+	if ($result) {
+		db_free_result($result);
+	}
+
 	// Get user name.
-	$userObj = user_get_object_by_name($theUserName);
-	$realName = $userObj->getRealName();
+	$realName = $theUserName;
+	$sql = "SELECT realname FROM users WHERE user_name=$1";
+	$result = db_query_params($sql, array($theUserName));
+	$rows = db_numrows($result);
+	for ($i = 0; $i < $rows; $i++) {
+		$realName = db_result($result, $i, 'realname');
+	}
+	if ($result) {
+		db_free_result($result);
+	}
 
 	$theJobTimeStampVerbose = date('Y-m-d H:i:s', intval(substr($theJobTimeStamp, 0, -3)));
 	$theJobStartedTimeStampVerbose = date('Y-m-d H:i:s', intval(substr($theJobStartedTimeStamp, 0, -3)));
@@ -320,26 +362,6 @@ function runSimulationJob($theRemoteServerName,
 			}
 		}
 	}
-
-/*
-	$strJobStarted = "'$strRemoteServerAlias': Job \"$theJobName\" from " .  
-		"'$theUserName' (Group $theGroupId) started at $theJobStartedTimeStampVerbose. " .
-		"Job submitted at $theJobTimeStampVerbose.";
-*/
-	$strJobStarted = "<html><body>";
-	$strJobStarted .= "<table>";
-	$strJobStarted .= "<tr><td>Job Name:</td><td>$theJobName</td></tr>";
-	$strJobStarted .= "<tr><td>Server:</td><td>$strRemoteServerAlias</td></tr>";
-	$strJobStarted .= "<tr><td>User:</td><td>$realName</td></tr>";
-	$strJobStarted .= "<tr><td>Status:</td><td>Started</td></tr>";
-	$strJobStarted .= "<tr><td>Created:</td><td>$theJobTimeStampVerbose</td></tr>";
-	$strJobStarted .= "<tr><td>Started:</td><td>$theJobStartedTimeStampVerbose</td></tr>";
-	$strJobStarted .= "</table>";
-	$strJobStarted .= "<br/>To view the job status and/or view simulation results, visit <a href='https://" . $theServer . "/simulations/viewJobs.php?group_id=" . $theGroupId . "'>Simulations: View My Jobs</a>.";
-	$strJobStarted .= "</body></html>";
-
-	// Send email.
-	sendEmail($theEmailAddr, "Simulation Job Started for $groupName", $strJobStarted, "nobody@" . $theServer);
 
 	// Send configuration file if the config file is specified.
 	if (isset($theFullCfgName) && $theFullCfgName != "") {
@@ -364,6 +386,10 @@ function runSimulationJob($theRemoteServerName,
 		$theInstallDirName, $theModelName, $theSubmitScriptName, $thePostprocessScriptName,
 		$theModifyScriptName, $theFullCfgName, $theSoftwarePath, $theMaxRunTime);
 	if ($status != null) {
+		// Clean up by disconnecting.
+		$theSsh->disconnect();
+		$theSftp->disconnect();
+
 		// Error. Do not proceed.
 		return $status;
 	}
@@ -394,11 +420,29 @@ function runSimulationJob($theRemoteServerName,
 	// Execute simulation using simulation wrapper.
 	executeSimulation($theSsh, $jobId, $fullWrapperName, $theFullCfgName);
 
-/*
 	// Clean up by disconnecting.
 	$theSsh->disconnect();
 	$theSftp->disconnect();
+
+/*
+	$strJobStarted = "'$strRemoteServerAlias': Job \"$theJobName\" from " .  
+		"'$theUserName' (Group $theGroupId) started at $theJobStartedTimeStampVerbose. " .
+		"Job submitted at $theJobTimeStampVerbose.";
 */
+	$strJobStarted = "<html><body>";
+	$strJobStarted .= "<table>";
+	$strJobStarted .= "<tr><td>Job Name:</td><td>$theJobName</td></tr>";
+	$strJobStarted .= "<tr><td>Server:</td><td>$strRemoteServerAlias</td></tr>";
+	$strJobStarted .= "<tr><td>User:</td><td>$realName</td></tr>";
+	$strJobStarted .= "<tr><td>Status:</td><td>Started</td></tr>";
+	$strJobStarted .= "<tr><td>Created:</td><td>$theJobTimeStampVerbose</td></tr>";
+	$strJobStarted .= "<tr><td>Started:</td><td>$theJobStartedTimeStampVerbose</td></tr>";
+	$strJobStarted .= "</table>";
+	$strJobStarted .= "<br/>To view the job status and/or view simulation results, visit <a href='https://" . $theServer . "/simulations/viewJobs.php?group_id=" . $theGroupId . "'>Simulations: View My Jobs</a>.";
+	$strJobStarted .= "</body></html>";
+
+	// Send email.
+	sendEmail($theEmailAddr, "Simulation Job Started for $groupName", $strJobStarted, "nobody@" . $theServer);
 
 	return "Simulation job request has been successfully started.";
 }
@@ -433,14 +477,34 @@ function recordSimulationJob($theRemoteServerName,
 	for ($i = 0; $i < $rows; $i++) {
 		$theRemoteServerAlias = db_result($result, $i, 'server_alias');
 	}
-	db_free_result($result);
+	if ($result) {
+		db_free_result($result);
+	}
 
 	// Get group name.
-	$groupObj = group_get_object($theGroupId);
-	$groupName = $groupObj->getPublicName();
+	$groupName = $theGroupId;
+	$sql = "SELECT group_name FROM groups WHERE group_id=$1";
+	$result = db_query_params($sql, array($theGroupId));
+	$rows = db_numrows($result);
+	for ($i = 0; $i < $rows; $i++) {
+		$groupName = db_result($result, $i, 'group_name');
+	}
+	if ($result) {
+		db_free_result($result);
+	}
+
 	// Get user name.
-	$userObj = user_get_object_by_name($theUserName);
-	$realName = $userObj->getRealName();
+	$realName = $theUserName;
+	$sql = "SELECT realname FROM users WHERE user_name=$1";
+	$result = db_query_params($sql, array($theUserName));
+	$rows = db_numrows($result);
+	for ($i = 0; $i < $rows; $i++) {
+		$realName = db_result($result, $i, 'realname');
+	}
+	if ($result) {
+		db_free_result($result);
+	}
+
 
 	$theJobTimeStampVerbose = date('Y-m-d H:i:s', intval(substr($theJobTimeStamp, 0, -3)));
 
@@ -459,24 +523,6 @@ function recordSimulationJob($theRemoteServerName,
 			}
 		}
 	}
-
-/*
-	$strJobCreated = "'$theRemoteServerAlias': Job \"$theJobName\" from " .  
-		"'$theUserName' (Group $theGroupId) submitted at $theJobTimeStampVerbose.\n";
-*/
-	$strJobCreated = "<html><body>";
-	$strJobCreated .= "<table>";
-	$strJobCreated .= "<tr><td>Job Name:</td><td>$theJobName</td></tr>";
-	$strJobCreated .= "<tr><td>Server:</td><td>$theRemoteServerAlias</td></tr>";
-	$strJobCreated .= "<tr><td>User:</td><td>$realName</td></tr>";
-	$strJobCreated .= "<tr><td>Status:</td><td>Created</td></tr>";
-	$strJobCreated .= "<tr><td>Created:</td><td>$theJobTimeStampVerbose</td></tr>";
-	$strJobCreated .= "</table>";
-	$strJobCreated .= "<br/>To view the job status and/or view simulation results, visit <a href='https://" . $theServer . "/simulations/viewJobs.php?group_id=" . $theGroupId . "'>Simulations: View My Jobs</a>.";
-	$strJobCreated .= "</body></html>";
-
-	// Send email.
-	sendEmail($theEmailAddr, "Simulation Job Created for $groupName", $strJobCreated, "nobody@" . $theServer);
 
 	// Insert job request into simulation_jobs_details table.
 	// Note: status of 1 means job submitted.
@@ -515,6 +561,24 @@ function recordSimulationJob($theRemoteServerName,
 		return "***ERROR***" . "Cannot insert into simulation_jobs_details table: " . $sqlJobDetails;
 	}
 
+/*
+	$strJobCreated = "'$theRemoteServerAlias': Job \"$theJobName\" from " .  
+		"'$theUserName' (Group $theGroupId) submitted at $theJobTimeStampVerbose.\n";
+*/
+	$strJobCreated = "<html><body>";
+	$strJobCreated .= "<table>";
+	$strJobCreated .= "<tr><td>Job Name:</td><td>$theJobName</td></tr>";
+	$strJobCreated .= "<tr><td>Server:</td><td>$theRemoteServerAlias</td></tr>";
+	$strJobCreated .= "<tr><td>User:</td><td>$realName</td></tr>";
+	$strJobCreated .= "<tr><td>Status:</td><td>Created</td></tr>";
+	$strJobCreated .= "<tr><td>Created:</td><td>$theJobTimeStampVerbose</td></tr>";
+	$strJobCreated .= "</table>";
+	$strJobCreated .= "<br/>To view the job status and/or view simulation results, visit <a href='https://" . $theServer . "/simulations/viewJobs.php?group_id=" . $theGroupId . "'>Simulations: View My Jobs</a>.";
+	$strJobCreated .= "</body></html>";
+
+	// Send email.
+	sendEmail($theEmailAddr, "Simulation Job Created for $groupName", $strJobCreated, "nobody@" . $theServer);
+
 	return null;
 }
 
@@ -535,7 +599,9 @@ function lookupSoftwarePath($theSoftwareName, $theSoftwareVersion) {
 	for ($i = 0; $i < $rows; $i++) {
 		$theSoftwarePath = db_result($result, $i, 'software_path');
 	}
-	db_free_result($result);
+	if ($result) {
+		db_free_result($result);
+	}
 
 	return $theSoftwarePath;
 }
@@ -554,6 +620,9 @@ function checkRemoteServerJobCompletions($showOutput = true) {
 	$theJobStartedTimeStamp = "";
 
 	$resInProgress = db_query_params($sqlInProgress, array());
+	if (!$resInProgress) {
+		return;
+	}
 	$rowsInProgress = db_numrows($resInProgress);
 	if ($rowsInProgress == 0) {
 		// All rows have in_use=0.
@@ -625,6 +694,9 @@ function checkRemoteServerJobCompletions($showOutput = true) {
 	$sqlIdle = "SELECT server_name FROM simulation_requests WHERE in_use=0";
 	$theServerName = "";
 	$resIdle = db_query_params($sqlIdle, array());
+	if (!$resIdle) {
+		return;
+	}
 	$rowsIdle = db_numrows($resIdle);
 	for ($i = 0; $i < $rowsIdle; $i++) {
 
@@ -683,6 +755,9 @@ function getRemoteServerResultSummary($theServerName,
 	$theSftp = getRemoteServerSftpAccess($theServerName, $strRemoteServerAddr,
 		$strRemoteUserName, $strRemotePassword, $intRemoteAuthMethod);
 	if ($theSftp === false) {
+		// Clean up by disconnecting.
+		$theSsh->disconnect();
+
 		// Cannot get Remote Server SFTP access.
 		return "***ERROR***" .  "Cannot access remote server: " . $theServerName;
 	}
@@ -698,6 +773,10 @@ function getRemoteServerResultSummary($theServerName,
 		$strRemoteServerHomeDir . "/" . $strRemotePathResultFile, 
 		$strLocalPathResultFile);
 	if ($status === false) {
+		// Clean up by disconnecting.
+		$theSsh->disconnect();
+		$theSftp->disconnect();
+
 		// Error getting result file.
 		return false;
 	}
@@ -710,6 +789,10 @@ function getRemoteServerResultSummary($theServerName,
 		$strRemoteServerHomeDir . "/" . $strRemotePathResultFile, 
 		$strLocalPathResultFile);
 	if ($status === false) {
+		// Clean up by disconnecting.
+		$theSsh->disconnect();
+		$theSftp->disconnect();
+
 		// Error getting result file.
 		return false;
 	}
@@ -744,6 +827,10 @@ function getRemoteServerResultSummary($theServerName,
 		$strLocalPathResultFile);
 */
 
+	// Clean up by disconnecting.
+	$theSsh->disconnect();
+	$theSftp->disconnect();
+
 	return true;
 }
 
@@ -773,6 +860,9 @@ function getRemoteServerResults($theServerName, $theUserName, $theGroupId, $theJ
 	$theSftp = getRemoteServerSftpAccess($theServerName, $strRemoteServerAddr,
 		$strRemoteUserName, $strRemotePassword, $intRemoteAuthMethod);
 	if ($theSftp === false) {
+		// Clean up by disconnecting.
+		$theSsh->disconnect();
+
 		// Cannot get Remote Server SFTP access.
 		return "***ERROR***" .  "Cannot access remote server: " . $theServerName;
 	}
@@ -788,9 +878,17 @@ function getRemoteServerResults($theServerName, $theUserName, $theGroupId, $theJ
 		$strRemoteServerHomeDir . "/" . $strRemotePathResultFile, 
 		$strLocalPathResultFile);
 	if ($status === false) {
+		// Clean up by disconnecting.
+		$theSsh->disconnect();
+		$theSftp->disconnect();
+
 		// Error getting result file.
 		return false;
 	}
+
+	// Clean up by disconnecting.
+	$theSsh->disconnect();
+	$theSftp->disconnect();
 
 	return true;
 }
@@ -820,12 +918,10 @@ function checkRemoteServerJobCompletion($theRemoteServerName,
 	}
 
 	// Check whether simulation job has been completed.
-	$status =  checkJobCompletion($theSsh, $theUserName, $theGroupId, $theJobTimeStamp);
+	$status = checkJobCompletion($theSsh, $theUserName, $theGroupId, $theJobTimeStamp);
 
-/*
 	// Clean up by disconnecting.
 	$theSsh->disconnect();
-*/
 
 	return $status;
 }
@@ -845,7 +941,9 @@ function emailJobCompletion($theServerName, $theUserName, $theGroupId, $theJobTi
 	for ($i = 0; $i < $rows; $i++) {
 		$theRemoteServerAlias = db_result($result, $i, 'server_alias');
 	}
-	db_free_result($result);
+	if ($result) {
+		db_free_result($result);
+	}
 
 	// Retrieve email associated with the simulation job. 
 	$sqlEmail = "SELECT email, job_name FROM simulation_jobs_details WHERE " .
@@ -863,7 +961,9 @@ function emailJobCompletion($theServerName, $theUserName, $theGroupId, $theJobTi
 		$theEmailAddr = db_result($resEmail, $i, 'email');
 		$theJobName = db_result($resEmail, $i, 'job_name');
 	}
-	db_free_result($resEmail);
+	if ($resEmail) {
+		db_free_result($resEmail);
+	}
 
 	if ($theEmailAddr == "") {
 		// Cannot get email.
@@ -871,11 +971,29 @@ function emailJobCompletion($theServerName, $theUserName, $theGroupId, $theJobTi
 	}
 
 	// Get group name.
-	$groupObj = group_get_object($theGroupId);
-	$groupName = $groupObj->getPublicName();
+	$groupName = $theGroupId;
+	$sql = "SELECT group_name FROM groups WHERE group_id=$1";
+	$result = db_query_params($sql, array($theGroupId));
+	$rows = db_numrows($result);
+	for ($i = 0; $i < $rows; $i++) {
+		$groupName = db_result($result, $i, 'group_name');
+	}
+	if ($result) {
+		db_free_result($result);
+	}
+
 	// Get user name.
-	$userObj = user_get_object_by_name($theUserName);
-	$realName = $userObj->getRealName();
+	$realName = $theUserName;
+	$sql = "SELECT realname FROM users WHERE user_name=$1";
+	$result = db_query_params($sql, array($theUserName));
+	$rows = db_numrows($result);
+	for ($i = 0; $i < $rows; $i++) {
+		$realName = db_result($result, $i, 'realname');
+	}
+	if ($result) {
+		db_free_result($result);
+	}
+
 
 	$theJobTimeStampVerbose = date('Y-m-d H:i:s', intval(substr($theJobTimeStamp, 0, -3)));
 
@@ -1207,7 +1325,9 @@ function getSimulationLicense($groupId) {
 	for ($i = 0; $i < $rows; $i++) {
 		$license = db_result($result, $i, 'license_agreement');
 	}
-	db_free_result($result);
+	if ($result) {
+		db_free_result($result);
+	}
 
 	return $license;
 }
@@ -1224,7 +1344,9 @@ function getSimulationDescription($groupId) {
 	for ($i = 0; $i < $rows; $i++) {
 		$desc = db_result($result, $i, 'description');
 	}
-	db_free_result($result);
+	if ($result) {
+		db_free_result($result);
+	}
 
 	return $desc;
 }
@@ -1242,7 +1364,9 @@ function getSimulationQuota($userName, $groupId) {
 	for ($i = 0; $i < $rows; $i++) {
 		$quota = db_result($result, $i, 'quota');
 	}
-	db_free_result($result);
+	if ($result) {
+		db_free_result($result);
+	}
 
 	return $quota;
 }
@@ -1263,7 +1387,9 @@ function getSimulationUsage($userName, $groupId, $since=0) {
 		$strDuration = db_result($result, $i, 'duration');
 		$usage += intval($strDuration);
 	}
-	db_free_result($result);
+	if ($result) {
+		db_free_result($result);
+	}
 
 	return $usage;
 }

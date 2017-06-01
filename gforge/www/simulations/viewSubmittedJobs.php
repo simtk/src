@@ -37,8 +37,15 @@ require_once $gfcommon.'include/pre.php';
 require_once("util_submitted_jobs.php");
 require_once("util_simulations.php");
 
+/*
+
+// DISABLED!!! Do not invoke checkRemoteServerJobCompletions() here
+// because it uses SSL which interferes with PHP-Postgresql operations.
+// Let cronjob check for remote server job completions.
+
 // Check for completd jobs first.
 checkRemoteServerJobCompletions(false);
+*/
 
 // Retrieve user's submitted jobs data.
 getSubmittedJobs(user_getname(), $theJobs, $theGroupNames);
