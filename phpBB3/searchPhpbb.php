@@ -2,11 +2,11 @@
 
 /**
  *
- * getActivity.php
+ * searchPhpbb.php
  * 
- * Retrieve activity_log data.
- *
- * Copyright 2005-2017, SimTK Team
+ * Display phpBB search results.
+ * 
+ * Copyright 2005-2016, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -32,27 +32,43 @@
  * <http://www.gnu.org/licenses/>.
  */ 
  
-require (dirname(__FILE__).'/../www/env.inc.php');
-require_once $gfcommon.'include/pre.php';
-require $gfcommon.'include/cron_utils.php';
+// Display phpBB search results into an iframe.
 
-// Get group access history from activity_log.
-// Check for valid group id.
-$strActivityQuery = "SELECT a.group_id, simtk_ip_addr " .
-	"FROM activity_log a " .
-	"JOIN groups g " .
-	"ON a.group_id=g.group_id";
-$res = db_query_params($strActivityQuery, array());
-while ($row = db_fetch_array($res)) {
-	$groupId = $row["group_id"];
-	$ipAddr = $row["simtk_ip_addr"];
-	$ipAddr = trim($ipAddr);
-	if ($groupId != 0) {
-		echo $groupId . "," . $ipAddr . "\n";
-	}
+require_once '../../env.inc.php';
+require_once $gfcommon.'include/pre.php';
+
+// Display page header.
+$HTML->header(array());
+
+if (isset($_GET['author'])) {
+	$author = getStringFromRequest('author');
+}
+else {
+	return;
 }
 
-// Free result.
-db_free_result($res);
+// Cross launch into phpbb.
+
+$strPhpbbURL = "/plugins/phpBB/search.php?author=" . $author;
+
+
+// NOTE: rand() is needed to avoid browser caching logged in user.
+// Otherwise, even after the user has logged out, back button will
+// load information of previous user.
+echo '<iframe name="' . rand() . '" src="' . util_make_url($strPhpbbURL) . '" ' .
+	'frameborder="0" scrolling="no" width="100%" height="700px">' .
+	'</iframe>';
 
 ?>
+
+<script src='iframeAdjust.js'></script>
+
+<?php
+
+// Display page footer.
+$HTML->footer(array());
+
+// Local Variables:
+// mode: php
+// c-file-style: "bsd"
+// End:

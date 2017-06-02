@@ -70,7 +70,7 @@ function display_login_form($return_to = '/', $triggered = false, $full_page = f
 	if ($triggered) {
 		echo '<p>';
 		echo '<div class="warning">' ;
-		echo _('You\'ve been redirected to this login page because you have tried accessing a page that was not available to you as an anonymous user.');
+		echo _('You\'ve been redirected to this login page because you have tried accessing a page for which you do not have permissions to access.');
 		echo '</div> ' ;
 		echo '</p>';
 	}
