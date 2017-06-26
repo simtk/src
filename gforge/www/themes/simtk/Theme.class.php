@@ -711,7 +711,7 @@ else {
 		if ($cnt++ >= 5) {
 			break;
 		}
-		$dispCommName = $this->genAbbrDisplayName($fullName, 30);
+		$dispCommName = abbrGroupName($fullName);
 		echo '<li class="intend"><a href="/category/communityPage.php?cat=' . $catId . 
 			'&sort=date&page=0&srch=&" tabindex="-1">' . $dispCommName . '</a></li>';
 	}
@@ -1098,34 +1098,6 @@ echo $u->getFirstName();
 		$return .= '</tr></table><!-- end tabs -->';
 
 		return $return;
-	}
-
-	// Generate abbreviated display name.
-	function genAbbrDisplayName($dispName, $maxChars) {
-		if ($dispName == null) {
-			return $dispName;
-		}
-		if (trim($dispName) == "") {
-			return $dispName;
-		}
-		$theLen = strlen($dispName);
-		if ($theLen <= $maxChars) {
-			// No abbreviation needed.
-			return $dispName;
-		}
-		$lastDelimiter = false;
-		for ($idx = 0; $idx < $theLen && $idx < $maxChars; $idx++) {
-			if ($dispName[$idx] == " ") {
-				$lastDelimiter = $idx;
-			}
-		}
-		if ($lastDelimiter !== false) {
-			// Found space in string.
-			return substr($dispName, 0, $lastDelimiter) . "...";
-		}
-
-		// Return truncated original string.
-		return substr($dispName, 0, $maxChars);
 	}
 
 	// FusionForge and forum shares the same group name.
