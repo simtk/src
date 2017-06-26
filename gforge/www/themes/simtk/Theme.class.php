@@ -708,11 +708,12 @@ else {
 	}
 	$cnt = 0;
 	foreach ($arrCommunityNames as $catId=>$fullName) {
-		if ($cnt++ >= 4) {
+		if ($cnt++ >= 5) {
 			break;
 		}
+		$dispCommName = $this->genAbbrDisplayName($fullName, 30);
 		echo '<li class="intend"><a href="/category/communityPage.php?cat=' . $catId . 
-			'&sort=date&page=0&srch=&" tabindex="-1">' . $fullName . '</a></li>';
+			'&sort=date&page=0&srch=&" tabindex="-1">' . $dispCommName . '</a></li>';
 	}
 	echo '<li class="intend"><a href="/communities.php" tabindex="-1">All communities</a></li>';
 	if ($cntCommunityNames > 0) {
@@ -838,7 +839,7 @@ echo $u->getFirstName();
                 echo '</div>';
 
 		echo '<div style="font-size:12px;">';
-		echo 'Version 2.0.14. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 5.3.2.';
+		echo 'Version 2.0.15. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 5.3.2.';
                 echo '</div>';
 
             echo '</div>';
@@ -1099,6 +1100,33 @@ echo $u->getFirstName();
 		return $return;
 	}
 
+	// Generate abbreviated display name.
+	function genAbbrDisplayName($dispName, $maxChars) {
+		if ($dispName == null) {
+			return $dispName;
+		}
+		if (trim($dispName) == "") {
+			return $dispName;
+		}
+		$theLen = strlen($dispName);
+		if ($theLen <= $maxChars) {
+			// No abbreviation needed.
+			return $dispName;
+		}
+		$lastDelimiter = false;
+		for ($idx = 0; $idx < $theLen && $idx < $maxChars; $idx++) {
+			if ($dispName[$idx] == " ") {
+				$lastDelimiter = $idx;
+			}
+		}
+		if ($lastDelimiter !== false) {
+			// Found space in string.
+			return substr($dispName, 0, $lastDelimiter) . "...";
+		}
+
+		// Return truncated original string.
+		return substr($dispName, 0, $maxChars);
+	}
 
 	// FusionForge and forum shares the same group name.
 	// First convert group_id used in FusionForge to "unix_group_name".
