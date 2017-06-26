@@ -839,7 +839,7 @@ echo $u->getFirstName();
                 echo '</div>';
 
 		echo '<div style="font-size:12px;">';
-		echo 'Version 2.0.14. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 5.3.2.';
+		echo 'Version 2.0.15. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 5.3.2.';
                 echo '</div>';
 
             echo '</div>';
@@ -1108,9 +1108,12 @@ echo $u->getFirstName();
 		if (trim($dispName) == "") {
 			return $dispName;
 		}
-
-		$lastDelimiter = false;
 		$theLen = strlen($dispName);
+		if ($theLen <= $maxChars) {
+			// No abbreviation needed.
+			return $dispName;
+		}
+		$lastDelimiter = false;
 		for ($idx = 0; $idx < $theLen && $idx < $maxChars; $idx++) {
 			if ($dispName[$idx] == " ") {
 				$lastDelimiter = $idx;
