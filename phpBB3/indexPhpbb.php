@@ -49,6 +49,12 @@ else {
 }
 $pluginname = 'phpBB';
 
+// Get start page if present in parameter.
+$start = 0;
+if (isset($_GET['start'])) {
+	$start = getIntFromRequest('start');
+}
+
 // Check permission and prompt for login if needed.
 session_require_perm('project_read', $group_id);
 
@@ -143,6 +149,10 @@ $strPhpbbURL = '/plugins/phpBB/' .
 	'viewforumbyname.php?' .
 	'fname=' . $group->getPublicName() .
 	'&fid=' . $group_id;
+if ($start != 0) {
+	// Add start page.
+	$strPhpbbURL .= '&start=' . $start;
+}
 
 // get the session user
 
