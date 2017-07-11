@@ -50,6 +50,7 @@ else {
 $pluginname = 'phpBB';
 
 // Get start page if present in parameter.
+$start = 0;
 if (isset($_GET['start'])) {
 	$start = getIntFromRequest('start');
 }
