@@ -193,7 +193,10 @@ frs_admin_header(array('title'=>_('Quick Release System'),'group'=>$group_id));
 		</td>
 		<td>
 		<div class="important">
-		<?php printf(_('You can probably not upload files larger than about %.2f MiB in size.'), util_get_maxuploadfilesize() / 1048576); ?><br />
+		<?php printf(_('You can probably not upload files larger than about %.2f MiB in size.'), 
+//			util_get_maxuploadfilesize() / 1048576); 
+			getUploadFileSizeLimit($group_id) / 1048576); 
+		?><br />
 		</div>
 		<?php echo _('Upload a new file')._(': '); ?><input type="file" name="userfile"  size="30" />
 		<?php if (forge_get_config('use_ftp_uploads')) {
