@@ -333,7 +333,7 @@ header("X-UA-Compatible: IE=Edge");
 		$userObj = user_get_object($user_id);
 
 		// Display user info.
-		echo '<div class="team_member">';
+		echo '<div class="team_member" style="vertical-align:top;">';
 		echo '<a href="/users/' . $userObj->data_array['user_name'] . 
 			'"><img src="/userpics/';
 		if (!empty($userObj->data_array['picture_file'])) {
