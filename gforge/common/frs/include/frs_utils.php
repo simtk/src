@@ -269,7 +269,11 @@ function frs_add_file_from_form($release, $type_id, $processor_id, $release_date
 	$theGroupId = $release->getFRSPackage()->getGroup()->getID();
 	$fileSizeLimit = getUploadFileSizeLimit($theGroupId);
 	if ($userfile['size'] > $fileSizeLimit) {
-		return 'The uploaded file size (' . $userfile['size'] . ') exceeds the maximum file size (' . $fileSizeLimit . '). Contact the site admin to upload this big file, or use an alternate upload method (if available).';
+		return 'The uploaded file size (' . 
+			human_readable_bytes($userfile['size']) . 
+			') exceeds the maximum file size (' . 
+			human_readable_bytes($fileSizeLimit) . 
+			'). Contact the site admin to upload this big file, or use an alternate upload method (if available).';
 	}
 
 	if ($userfile && is_uploaded_file($userfile['tmp_name']) && util_is_valid_filename($userfile['name'])) {
@@ -281,7 +285,11 @@ function frs_add_file_from_form($release, $type_id, $processor_id, $release_date
 		switch ($userfile['error']) {
 			case UPLOAD_ERR_INI_SIZE:
 			case UPLOAD_ERR_FORM_SIZE:
-				return 'The uploaded file size (' . $userfile['size'] . ') exceeds the maximum file size (' . $fileSizeLimit . '). Contact the site admin to upload this big file, or use an alternate upload method (if available).';
+				return 'The uploaded file size (' . 
+					human_readable_bytes($userfile['size']) . 
+					') exceeds the maximum file size (' . 
+					human_readable_bytes($fileSizeLimit) . 
+					'). Contact the site admin to upload this big file, or use an alternate upload method (if available).';
 			break;
 			case UPLOAD_ERR_PARTIAL:
 				return _('The uploaded file was only partially uploaded.') ;
