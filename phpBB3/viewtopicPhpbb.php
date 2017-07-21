@@ -69,6 +69,8 @@ else {
 $pid = getIntFromRequest('p');
 $start = getIntFromRequest('start');
 $view = getStringFromRequest('view');
+// Retrieve session_id.
+$sid = getStringFromRequest('sid');
 $pluginname = 'phpBB';
 
 
@@ -136,7 +138,11 @@ $strPhpbbURL = '/plugins/phpBB/' .
 	'&start=' . $start .
 	'&view=' . $view;
 if (isset($pid) && $pid) {
-	$strPhpbbURL .= '&p=' . $pid;;
+	$strPhpbbURL .= '&p=' . $pid;
+}
+if (isset($sid) && $sid != "") {
+	// Include session_id if present.
+	$strPhpbbURL .= '&sid=' . $sid;
 }
 
 // get the session user
