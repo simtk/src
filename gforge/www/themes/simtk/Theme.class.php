@@ -179,6 +179,32 @@ $(window).bind("pageshow", function(event) {
 // consistent load behavior between Chrome, Safari, Firefox, and Opera.
 // See: http://stackoverflow.com/questions/12354865/image-onload-event-and-browser-cache
 $(window).load(function() {
+
+	// Set up href for Contact page.
+	$(".contact_href").click(function() {
+		// Get group_id if hidden DIV class "divGroupId" is present.
+		theGroupId = -1;
+		$(".divGroupId").each(function() {
+			theGroupId = $(this).text();
+		});
+		if (theGroupId != -1) {
+			// Has group_id.
+			location.href="/sendmessage.php?touser=101&group_id=" + theGroupId;
+		}
+		else {
+			// No group_id from class "divGroupId".
+			// Try extracting from URL.
+			location.href="/sendmessage.php?touser=101<?php
+				$groupIdFromURL = $this->extractGroupIdFromURL();
+				if ($groupIdFromURL !== false) {
+					// Has group_id in URL.
+					echo "&group_id=" . $groupIdFromURL;
+				}
+			?>";
+		}
+		event.preventDefault();
+	});
+
 	// Find and scale all img logos elements.
 	$("img").each(function() {
 		var theImage = new Image();
@@ -770,7 +796,7 @@ else {
 		<li class="intend"><a href="/whatIsSimtk.php">What is SimTK?</a></li>
 		<li class="intend"><a href='/features.php'>Features</a></li>
 		<li class="intend"><a href='/faq.php'>FAQ</a></li>
-		<li class="intend"><a href='/sendmessage.php?touser=101'>Contact</a></li>
+		<li class="intend"><a class="contact_href" href='/sendmessage.php?touser=101'>Contact</a></li>
 	</ul>
 </li>
 
@@ -888,8 +914,14 @@ echo $u->getFirstName();
 					location.href="/feedback.php?group_id=" + theGroupId;
 				}
 				else {
-					// No group_id.
-					location.href="/feedback.php";
+					// No group_id from class "divGroupId".
+					location.href="/feedback.php';
+					$groupIdFromURL = $this->extractGroupIdFromURL();
+					if ($groupIdFromURL !== false) {
+						// Has group_id in URL.
+						$res .=  "?group_id=" . $groupIdFromURL;
+					}
+					$res .= '";
 				}
 				event.preventDefault();
 			});
@@ -1869,6 +1901,66 @@ echo $u->getFirstName();
 	";
                 
 	return $res;
+	}
+
+
+	// Try extracting group id from URL.
+	function extractGroupIdFromURL() {
+
+		$strGroupId = false;
+	
+		// Get URL string.
+		$theURL = getStringFromServer('REQUEST_URI');
+
+		// Look for group_id as first parameter.
+		$idx1 = stripos($theURL, "?group_id=");
+		if ($idx1 !== false) {
+			// Has group_id.
+			$tmpStr = substr($theURL, $idx1 + 10);
+
+			// Get the group_id.
+			// Find "&" delimiter.
+			$idx2 = stripos($tmpStr, "&");
+			if ($idx2 !== false) {
+				// Has other following parameters.
+				$strGroupId = substr($tmpStr, 0, $idx2);
+			}
+			else {
+				// No other following parameters.
+				$strGroupId = $tmpStr;
+			}
+		}
+		else {
+			// Look for group_id among parameters in the URL.
+			$idx1 = stripos($theURL, "&group_id=");
+			if ($idx1 !== false) {
+				// Has group_id.
+				$tmpStr = substr($theURL, $idx1 + 10);
+
+				// Get the group_id.
+				// Find "&" delimiter.
+				$idx2 = stripos($tmpStr, "&");
+				if ($idx2 !== false) {
+					// Has other following parameters.
+					$strGroupId = substr($tmpStr, 0, $idx2);
+				}
+				else {
+					// No other following parameters.
+					$strGroupId = $tmpStr;
+				}
+			}
+		}
+		// Validate the group_id by looking up group object.
+		if ($strGroupId !== false) {
+			$group = group_get_object($strGroupId);
+			if ($group || is_object($group)) {
+				// Valid group object.
+				return $strGroupId;
+			}
+		}
+
+		// No valid group_id.
+		return false;
 	}
 }
 
