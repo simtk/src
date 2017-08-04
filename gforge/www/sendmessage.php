@@ -180,7 +180,7 @@ if ($touser == 101 && $group_id !== false && trim($group_id) !== "") {
 			// Uses forum.
 			echo 'For questions related to <b>this project ("' . 
 				$groupObj->getPublicName() . 
-				')</b>: We recommend posting to their ' .
+				'")</b>: We recommend posting to their ' .
 				'<a href="/plugins/phpBB/indexPhpbb.php?group_id=' . $group_id .
 				'&pluginname=phpBB">discussion forum</a>. ';
 
@@ -198,7 +198,7 @@ if ($touser == 101 && $group_id !== false && trim($group_id) !== "") {
 				// Has project lead(s).
 				echo 'For questions related to <b>this project ("' .
 					$groupObj->getPublicName() .
-					')</b>:" Contact the ' .
+					'")</b>:" Contact the ' .
 					'<a href="/sendmessage.php?touser=' .
 					$projectLeads[0]->getID() .
 					'&group_id=' . $group_id . '">project administrators</a>.'; 
