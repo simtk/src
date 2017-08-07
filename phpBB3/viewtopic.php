@@ -53,6 +53,8 @@ $start		= request_var('start', 0);
 $view		= request_var('view', '');
 $voted_id	= request_var('vote_id', array('' => 0));
 
+// Get the phpbb session_id.
+$the_sid	= request_var('sid', "");
 
 // Get the HTTP_REFERER URL to test if the URL of the page that contains
 // this iframe is "viewtopicPhpbb.php".
@@ -63,21 +65,20 @@ $voted_id	= request_var('vote_id', array('' => 0));
 $the_url_self = $request->server('HTTP_REFERER');
 if (stripos($the_url_self, 'viewtopicPhpbb.php') === false) {
 	// No, update the URL.
-	echo '
-	<script>
-	top.window.location.href = "/plugins/phpBB/viewtopicPhpbb.php' .
+	$tmpScriptStr = '<script>top.window.location.href = "/plugins/phpBB/viewtopicPhpbb.php' .
 		'?f=' . $forum_id . 
 		'&t=' . $topic_id . 
 		'&p=' . $post_id .
 		'&start=' . $start .
-		'&view=' . $view .
-		'";
-	</script>
-	';
+		'&view=' . $view;
+	if ($the_sid != "") {
+		// Pass along session_id if present.
+		$tmpScriptStr .= '&sid=' . $the_sid;
+	}
+	$tmpScriptStr .= '";</script>';
+	echo $tmpScriptStr;
 }
 
-// Get the phpbb session_id.
-$the_sid	= request_var('sid', "");
 $the_uid = getUserIdFromSid($db, $the_sid);
 
 $cur_uid = getUserIdFromSid($db, $_SID);
