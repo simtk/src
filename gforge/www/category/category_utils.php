@@ -47,7 +47,12 @@ function show_category_news($numNewsToShow, $categoryId, $suppressDetails=false)
 }
 
 function show_category_forum_posts($numPostsToShow, $categoryId, $suppressDetails=false) {
-	echo getCategoryPosts($numPostsToShow, $categoryId, $suppressDetails);
+	$strDiscussions = getCategoryPosts($numPostsToShow, $categoryId, $suppressDetails);
+	if (trim($strDiscussions) == "") {
+		$strDiscussions = "No Discussions Found";
+	}
+
+	echo $strDiscussions;
 }
 
 
@@ -125,6 +130,10 @@ function show_category_publications($numPublicationsToShow, $categoryId) {
 		$strResult .= "<p>" . $strPubLink . "</p>\n";
 
 		$strResult .= "</div>";
+	}
+
+	if (trim($strResult) == "") {
+		$strResult = "No Publications Found";
 	}
 
 	echo $strResult;

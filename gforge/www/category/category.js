@@ -239,6 +239,10 @@ var handleCategoryProjects = function(projectData, catId) {
 		$("#categories_home").append(strExtras);
 	}
 
+	if (projectData.length == 0) {
+		$("#categories_home").append("No Projects Found");
+	}
+
 	// Get featured projects.
 	// NOTE: category project data are passed to this method. 
 	getFeaturedProjects(projectData);

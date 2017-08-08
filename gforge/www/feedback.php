@@ -97,6 +97,8 @@ if ($group_id !== false) {
 ?>
 
 <h2>Feedback on SimTK</h2>
+If you have a question about a specific project hosted on the SimTK website (e.g., <a href="/projects/opensim">OpenSim</a>, <a href="/projects/simvascular">SimVascular</a>, <a href="/projects/openmm">OpenMM</a>), please contact the administrators of the specific project.
+<br/><br/>
 For general questions about the SimTK website, 
 visit our <a href="/faq.php">FAQ page</a>. 
 We also encourage you to post to and browse our 

@@ -383,7 +383,8 @@ td {
 	<tr>
 		<td>New File:
 		<?php echo '&nbsp;(max upload size: ' . 
-			human_readable_bytes(util_get_maxuploadfilesize()) . 
+//			human_readable_bytes(util_get_maxuploadfilesize()) . 
+			human_readable_bytes(getUploadFileSizeLimit($group_id)) . 
 			')'; ?>
 		</td>
 	</tr>

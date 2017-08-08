@@ -191,7 +191,10 @@ Edit the Release Notes or Change Log for this release of this package. These cha
 <tr>
 	<td colspan="2">
 		<strong><?php echo _('Upload Release Notes')._(':'); ?></strong>
-		<?php echo('('._('max upload size: '.human_readable_bytes(util_get_maxuploadfilesize())).')') ?>
+		<?php echo('('._('max upload size: '.
+//			human_readable_bytes(util_get_maxuploadfilesize())).')') 
+			human_readable_bytes(getUploadFileSizeLimit($group_id))).')') 
+		?>
 	</td>
 </tr>
 <tr>
@@ -205,7 +208,10 @@ Edit the Release Notes or Change Log for this release of this package. These cha
 <tr>
 	<td colspan="2">
 		<strong><?php echo _('Upload Change Log')._(':'); ?></strong>
-		<?php echo('('._('max upload size: '.human_readable_bytes(util_get_maxuploadfilesize())).')') ?>
+		<?php echo('('._('max upload size: '.
+//			human_readable_bytes(util_get_maxuploadfilesize())).')') 
+			human_readable_bytes(getUploadFileSizeLimit($group_id))).')') 
+		?>
 	</td>
 </tr>
 <tr>
