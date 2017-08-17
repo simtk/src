@@ -4,6 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @copyright 2016, Henry Kwong, Tod Hing - SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -28,6 +29,22 @@ $auth->acl($user->data);
 $forum_id	= request_var('f', 0);
 $mark_read	= request_var('mark', '');
 $start		= request_var('start', 0);
+$mywatch	= request_var('watch', '');
+$myunwatch	= request_var('unwatch', '');
+
+if ($mywatch == '' && $myunwatch == '') {
+	// Neither "Follow forum" nor "Unfollow" is specified.
+	// Redirect to indexPhpbb.php, which has access control and header of the project.
+	if ($start != 0) {
+		// Start page is specified.
+		echo '<script>top.window.location.href = "/plugins/phpBB/indexPhpbb.php?f=' . $forum_id . 
+			'&start=' . $start . '";</script>';
+	}
+	else {
+		echo '<script>top.window.location.href = "/plugins/phpBB/indexPhpbb.php?f=' . $forum_id . '";</script>';
+	}
+	return;
+}
 
 $default_sort_days	= (!empty($user->data['user_topic_show_days'])) ? $user->data['user_topic_show_days'] : 0;
 $default_sort_key	= (!empty($user->data['user_topic_sortby_type'])) ? $user->data['user_topic_sortby_type'] : 't';
