@@ -25,7 +25,9 @@ require_once $gfcommon.'include/cron_utils.php';
 
 $err='';
 
-$today_formatted=date('Ymd',(time()-(30*60*60*24)));
+//$today_formatted=date('Ymd',(time()-(30*60*60*24)));
+// Changed from 30 to 200 days.
+$today_formatted=date('Ymd',(time()-(200*60*60*24)));
 
 db_begin();
 

@@ -210,7 +210,7 @@ $(function() {
 			//$("#selConfigFileName").removeAttr("disabled");
 			$(".configText").removeAttr("disabled");
 			$(".configText").css({"color":"black", "background-color":"white"});
-			$("#instrConfigText").html('<small>Change the numerical values below to modify the model to be simulated</small>');
+			$("#instrConfigText").html('<small>Change the values below to modify the model to be simulated</small>');
 		}
 		else {
 			// Hide the config file name selection and config text area.
@@ -342,6 +342,10 @@ function mySubmit() {
 	var arrPostprocessScriptNames = arrModelInfo["modelPostprocessScriptNames"];
 	var postprocessScriptName = arrPostprocessScriptNames[selModelName];
 
+	// Get execution check string  associated with the model.
+	var arrExecChecks = arrModelInfo["modelExecChecks"];
+	var execCheck = arrExecChecks[selModelName];
+
 	// Get max runtime associated with the model.
 	var arrMaxRunTimes = arrModelInfo["modelMaxRunTimes"];
 	var maxRunTime = arrMaxRunTimes[selModelName];
@@ -377,6 +381,7 @@ function mySubmit() {
 	theData.push({name: "ModifyScriptName", value: modifyScriptName});
 	theData.push({name: "SubmitScriptName", value: submitScriptName});
 	theData.push({name: "PostprocessScriptName", value: postprocessScriptName});
+	theData.push({name: "ExecCheck", value: execCheck});
 	theData.push({name: "MaxRunTime", value: maxRunTime});
 	theData.push({name: "InstallDirName", value: installDirName});
 
@@ -800,7 +805,7 @@ function updateConfigFileNames() {
 
 <tr>
 <td id='labelModelConfigFile'>
-<strong>Model Configuration File:</strong>
+<strong>Model configuration file:</strong>
 </td>
 <td id='contentModelConfigFile'>
 <select id='selConfigFileName'>
@@ -811,7 +816,7 @@ function updateConfigFileNames() {
 <tr>
 <td id='labelConfigText'><br/></td>
 <td id='contentConfigText'>
-	<div id='instrConfigText'><small>To change the values, select ‘Yes’ for “Modify File” above.</small></div>
+	<div id='instrConfigText'><small>To change the values, select ‘Yes’ for “Modify model” above.</small></div>
 	<textarea class='configText' disabled='disabled' style='width:450px;color:gray;background-color:white;'></textarea>
 </td>
 </tr>

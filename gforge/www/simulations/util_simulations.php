@@ -80,6 +80,7 @@ function requestSimulationJob($theRemoteServerName,
 	$theSoftwareVersion,
 	$theCfgName,
 	$theCfgText,
+	$theExecCheck,
 	$theMaxRunTime,
 	$theModifyModel) {
 
@@ -130,7 +131,7 @@ function requestSimulationJob($theRemoteServerName,
 		$theInstallDirName, $theFullCfgName,
 		$theSoftwareName, $theSoftwareVersion, 
 		$theJobTimeStamp, $theFullCfgPathName, 
-		$theMaxRunTime, $theModifyModel);
+		$theExecCheck, $theMaxRunTime, $theModifyModel);
 	if ($status != null) {
 		// Problem with remote server. Do not proceed.
 		return "***ERROR***" . " Problem with remote server: " . $theRemoteServerName;
@@ -147,7 +148,7 @@ function requestSimulationJob($theRemoteServerName,
 		$theJobTimeStamp, $theModelName, $theModifyScriptName, 
 		$theSubmitScriptName, $thePostprocessScriptName, $theInstallDirName,
 		$theFullCfgName, $theFullCfgPathName, $theSoftwareName, 
-		$theSoftwareVersion, $theEmailAddr, $theJobName, $theMaxRunTime);
+		$theSoftwareVersion, $theEmailAddr, $theJobName, $theExecCheck, $theMaxRunTime);
 
 	return $status;
 */
@@ -196,16 +197,19 @@ function lookupNextSimulationJob($theRemoteServerName,
 	&$theSoftwareVersion,
 	&$theEmailAddr,
 	&$theJobName,
+	&$theExecCheck,
 	&$theMaxRunTime) {
 
 	// Retrieve details on next simulation job.
+	// status=1 means job submitted, but not started yet.
 	$sqlNextJob = "SELECT user_name, group_id, job_timestamp, " .
 		"model_name, script_name_modify, script_name_submit, " .
 		"script_name_postprocess, install_dir, " .
 		"cfg_name_1, cfg_pathname_1, software_name, " .
-		"software_version, email, job_name, max_runtime " .
+		"software_version, email, job_name, exec_check, max_runtime, status " .
 		"FROM simulation_jobs_details WHERE " .
-		"server_name='" . $theRemoteServerName . "' AND duration='-1' " .
+		"server_name='" . $theRemoteServerName . "' AND " .
+		"duration='-1' AND status=1" .
 		"ORDER BY job_id";
 
 	$resNextJob = db_query_params($sqlNextJob, array());
@@ -236,7 +240,9 @@ function lookupNextSimulationJob($theRemoteServerName,
 		$theSoftwareVersion = db_result($resNextJob, 0, 'software_version');
 		$theEmailAddr = db_result($resNextJob, 0, 'email');
 		$theJobName = db_result($resNextJob, 0, 'job_name');
+		$theExecCheck = db_result($resNextJob, 0, 'exec_check');
 		$theMaxRunTime = db_result($resNextJob, 0, 'max_runtime');
+		$theJobStatus = db_result($resNextJob, 0, 'status');
 	}
 	db_free_result($resNextJob);
 
@@ -260,6 +266,7 @@ function runSimulationJob($theRemoteServerName,
 	$theSoftwareVersion,
 	$theEmailAddr,
 	$theJobName,
+	$theExecCheck,
 	$theMaxRunTime) {
 
 	// Retrieve authentication info for login to remote server.
@@ -295,7 +302,8 @@ function runSimulationJob($theRemoteServerName,
 
 	// Reserve remote server for simulation.
 	$statusAvail = reserveRemoteServer($theRemoteServerName, $theUserName, 
-		$theGroupId, $theJobTimeStamp, $theJobStartedTimeStamp, $theSoftwareName);
+		$theGroupId, $theJobTimeStamp, $theJobStartedTimeStamp, $theSoftwareName, 
+		$theMaxRunTime, $theExecCheck);
 	if ($statusAvail === false) {
 		// Clean up by disconnecting.
 		$theSsh->disconnect();
@@ -363,16 +371,18 @@ function runSimulationJob($theRemoteServerName,
 		}
 	}
 
+	// Generate job identifier.
+	$jobId = $theUserName . "_" . $theGroupId . "_" . $theJobTimeStamp;
+
+	// Create directory for execution job.
+	$strResMkdir =  sshExec($theSsh, 'mkdir ./' . $jobId);
+
 	// Send configuration file if the config file is specified.
 	if (isset($theFullCfgName) && $theFullCfgName != "") {
 		sftpPut($theSftp, 
 			$strRemoteServerHomeDir . "/" . $theFullCfgName, 
 			$theFullCfgPathName);
 	}
-
-	// Generate job identifier.
-	$jobId = $theUserName . "_" . $theGroupId . "_" . $theJobTimeStamp;
-
 
 	// Generate full simulation wrapper file name and pathname.
 	$fullWrapperName = "SimulationWrapper_" . $jobId;
@@ -384,7 +394,7 @@ function runSimulationJob($theRemoteServerName,
 	// Build simulation wrapper file.
 	$status = buildSimulationWrapper($localDirName, $fullWrapperName, $jobId, 
 		$theInstallDirName, $theModelName, $theSubmitScriptName, $thePostprocessScriptName,
-		$theModifyScriptName, $theFullCfgName, $theSoftwarePath, $theMaxRunTime);
+		$theModifyScriptName, $theFullCfgName, $theSoftwarePath, $theExecCheck, $theMaxRunTime);
 	if ($status != null) {
 		// Clean up by disconnecting.
 		$theSsh->disconnect();
@@ -399,16 +409,17 @@ function runSimulationJob($theRemoteServerName,
 		$strRemoteServerHomeDir . "/" . $fullWrapperName, 
 		$localDirName . $fullWrapperName);
 
-	// Send simulation check file to remote server.
-	sftpPut($theSftp, 
-		$strRemoteServerHomeDir . "/" . $jobId . "_check", 
-		$localDirName . $jobId . "_check");
-
 	// Clean up simulation wrapper file from local server.
 	unlink($localDirName . $fullWrapperName);
 
-	// Clean up simulation check file from local server.
-	unlink($localDirName . $jobId . "_check");
+
+	// Send execution check file to remote server.
+	$status = sendExecutionCheck($theSsh, $theSftp, $strRemoteServerHomeDir,
+		$localDirName, $jobId, $theMaxRunTime, $theExecCheck);
+	if ($status != null) {
+		return $status;
+	}
+
 
 /*
 	// Clean up configuration file from local server.
@@ -464,6 +475,7 @@ function recordSimulationJob($theRemoteServerName,
 	$theSoftwareVersion,
 	$theJobTimeStamp,
 	$theFullCfgPathName,
+	$theExecCheck,
 	$theMaxRunTime,
 	$theModifyModel) {
 
@@ -532,7 +544,7 @@ function recordSimulationJob($theRemoteServerName,
 		"script_name_modify, script_name_submit, " .
 		"script_name_postprocess, install_dir, " .
 		"cfg_name_1, cfg_pathname_1, software_name, " .
-		"software_version, job_timestamp, max_runtime, modify_model, " .
+		"software_version, job_timestamp, exec_check, max_runtime, modify_model, " .
 		"last_updated) " .
 		"VALUES (" .
 		"1, " .
@@ -551,6 +563,7 @@ function recordSimulationJob($theRemoteServerName,
 		"'" . $theSoftwareName . "', " . 
 		"'" . $theSoftwareVersion . "', " . 
 		"'" . $theJobTimeStamp . "', " . 
+		"'" . $theExecCheck . "', " . 
 		"'" . $theMaxRunTime . "', " . 
 		"'" . $theModifyModel . "', " . 
 		"'" . time() . "' " . 
@@ -610,7 +623,8 @@ function lookupSoftwarePath($theSoftwareName, $theSoftwareVersion) {
 // If completed, update time spent and make remote server available again.
 function checkRemoteServerJobCompletions($showOutput = true) {
 
-	$sqlInProgress = "SELECT server_name, user_name, group_id, job_timestamp, job_started_timestamp " .
+	$sqlInProgress = "SELECT server_name, user_name, group_id, " .
+		"job_timestamp, job_started_timestamp, max_runtime, exec_check " .
 		"FROM simulation_requests WHERE in_use=1";
 
 	$theServerName = "";
@@ -618,6 +632,8 @@ function checkRemoteServerJobCompletions($showOutput = true) {
 	$theGroupId = -1;
 	$theJobTimeStamp = "";
 	$theJobStartedTimeStamp = "";
+	$theMaxRunTime = -1;
+	$theExecCheck = "";
 
 	$resInProgress = db_query_params($sqlInProgress, array());
 	if (!$resInProgress) {
@@ -636,6 +652,16 @@ function checkRemoteServerJobCompletions($showOutput = true) {
 		$theGroupId = db_result($resInProgress, $i, 'group_id');
 		$theJobTimeStamp = db_result($resInProgress, $i, 'job_timestamp');
 		$theJobStartedTimeStamp = db_result($resInProgress, $i, 'job_started_timestamp');
+		$theMaxRunTime = db_result($resInProgress, $i, 'max_runtime');
+		$theExecCheck = db_result($resInProgress, $i, 'exec_check');
+
+		if ($theMaxRunTime == 0) {
+			// Job cancellation request.
+			// Update job check file setting max_runtime to 0.
+			updateExecutionCheckWithCancellation($theServerName, 
+				$theUserName, $theGroupId, $theJobTimeStamp, 
+				$theExecCheck);
+		}
 
 		// Check if job has been completed at remote server. Get time spent.
 
@@ -710,7 +736,7 @@ function checkRemoteServerJobCompletions($showOutput = true) {
 			$nextPostprocessScriptName, $nextInstallDirName, 
 			$nextFullCfgName, $nextFullCfgPathName,
 			$nextSoftwareName, $nextSoftwareVersion,
-			$nextEmailAddr, $nextJobName, $nextMaxRunTime)) {
+			$nextEmailAddr, $nextJobName, $nextExecCheck, $nextMaxRunTime)) {
 
 			// Run the simulation job.
 			runSimulationJob($theServerName, $nextUserName, $nextGroupId, 
@@ -718,7 +744,7 @@ function checkRemoteServerJobCompletions($showOutput = true) {
 				$nextSubmitScriptName, $nextPostprocessScriptName, 
 				$nextInstallDirName, $nextFullCfgName, $nextFullCfgPathName, 
 				$nextSoftwareName, $nextSoftwareVersion,
-				$nextEmailAddr, $nextJobName, $nextMaxRunTime);
+				$nextEmailAddr, $nextJobName, $nextExecCheck, $nextMaxRunTime);
 		}
 	}
 	db_free_result($resIdle);
@@ -894,6 +920,56 @@ function getRemoteServerResults($theServerName, $theUserName, $theGroupId, $theJ
 }
 
 
+// Update the execution check with cancellation by setting
+// the max_runtime to 0.
+function updateExecutionCheckWithCancellation($theRemoteServerName, 
+	$theUserName, $theGroupId, $theJobTimeStamp, 
+	$theExecCheck) {
+
+	// Retrieve authentication info for login to remote server.
+	$status = getRemoteUserAuthentication($theRemoteServerName, 
+		$strRemoteUserName, $strRemotePassword, $intRemoteAuthMethod,
+		$strRemoteServerAddr, $strRemoteServerAlias);
+	if ($status != null) {
+		// Error. Do not proceed.
+		return false;
+	}
+
+	// Get remote server ssh access.
+	$theSsh = getRemoteServerSshAccess($theRemoteServerName, $strRemoteServerAddr,
+		$strRemoteUserName, $strRemotePassword, $intRemoteAuthMethod, 
+		$strRemoteServerHomeDir);
+	if ($theSsh === false) {
+		// Error. Do not proceed.
+		return false;
+	}
+
+	// Get remote server sftp access.
+	$theSftp = getRemoteServerSftpAccess($theRemoteServerName, $strRemoteServerAddr,
+		$strRemoteUserName, $strRemotePassword, $intRemoteAuthMethod);
+	if ($theSftp === false) {
+		// Clean up by disconnecting.
+		$theSsh->disconnect();
+
+		// Cannot get Remote Server SFTP access.
+		return "***ERROR***" . "Cannot get Remote Server SFTP access: " . $theRemoteServerName;
+	}
+
+	// Update execution check file.
+
+	$localDirName = "./configData/";
+	// Generate job identifier.
+	$jobId = $theUserName . "_" . $theGroupId . "_" . $theJobTimeStamp;
+	$status = sendExecutionCheck($theSsh, $theSftp, $strRemoteServerHomeDir,
+		$localDirName, $jobId, 0, $theExecCheck);
+
+	// Clean up by disconnecting.
+	$theSsh->disconnect();
+	$theSftp->disconnect();
+
+	return $status;
+}
+
 
 // Check whether simulatoin job has been completed at the remote server.
 function checkRemoteServerJobCompletion($theRemoteServerName, 
@@ -946,7 +1022,7 @@ function emailJobCompletion($theServerName, $theUserName, $theGroupId, $theJobTi
 	}
 
 	// Retrieve email associated with the simulation job. 
-	$sqlEmail = "SELECT email, job_name FROM simulation_jobs_details WHERE " .
+	$sqlEmail = "SELECT email, job_name, max_runtime FROM simulation_jobs_details WHERE " .
 		"server_name='" . $theServerName . "' AND " .
 		"user_name='" . $theUserName . "' AND " .
 		"group_id=" . $theGroupId . " AND " .
@@ -954,12 +1030,14 @@ function emailJobCompletion($theServerName, $theUserName, $theGroupId, $theJobTi
 
 	$theEmailAddr = "";
 	$theJobName = "";
+	$theMaxRunTime = 0;
 
 	$resEmail = db_query_params($sqlEmail, array());
 	$rowsEmail = db_numrows($resEmail);
 	for ($i = 0; $i < $rowsEmail; $i++) {
 		$theEmailAddr = db_result($resEmail, $i, 'email');
 		$theJobName = db_result($resEmail, $i, 'job_name');
+		$theMaxRunTime = db_result($resEmail, $i, 'max_runtime');
 	}
 	if ($resEmail) {
 		db_free_result($resEmail);
@@ -1013,6 +1091,14 @@ function emailJobCompletion($theServerName, $theUserName, $theGroupId, $theJobTi
 		}
 	}
 
+	if ($theMaxRunTime != 0) {
+		// Job completed.
+		$strCompletionStatus = "Completed";
+	}
+	else {
+		// Job cancelled.
+		$strCompletionStatus = "Cancelled";
+	}
 /*
 	$strJobCompleted = date("F j, Y, g:i a") .  " '" .  $theRemoteServerAlias . 
 		"'\nJob \"$theJobName\" from " .  "'$theUserName' (Group $theGroupId) completed.\n" . 
@@ -1024,17 +1110,17 @@ function emailJobCompletion($theServerName, $theUserName, $theGroupId, $theJobTi
 	$strJobCompleted .= "<tr><td>Job Name:</td><td>$theJobName</td></tr>";
 	$strJobCompleted .= "<tr><td>Server:</td><td>$theRemoteServerAlias</td></tr>";
 	$strJobCompleted .= "<tr><td>User:</td><td>$realName</td></tr>";
-	$strJobCompleted .= "<tr><td>Status:</td><td>Completed</td></tr>";
+	$strJobCompleted .= "<tr><td>Status:</td><td>$strCompletionStatus</td></tr>";
 	$strJobCompleted .= "<tr><td>Created:</td><td>$theJobTimeStampVerbose</td></tr>";
 	$strJobCompleted .= "<tr><td>Started:</td><td>$theJobStartedTimeStampVerbose</td></tr>";
-	$strJobCompleted .= "<tr><td>Completed:</td><td>" . date("Y-m-d H:i:s") . "</td></tr>";
+	$strJobCompleted .= "<tr><td>" . $strCompletionStatus . ":</td><td>" . date("Y-m-d H:i:s") . "</td></tr>";
 	$strJobCompleted .= "<tr><td>Duration:</td><td>" . $duration . " seconds</td></tr>";
 	$strJobCompleted .= "</table>";
 	$strJobCompleted .= "<br/>To view the job status and/or view simulation results, visit <a href='https://" . $theServer . "/simulations/viewJobs.php?group_id=" . $theGroupId . "'>Simulations: View My Jobs</a>.";
 	$strJobCompleted .= "</body></html>";
 
 	// Send email.
-	sendEmail($theEmailAddr, "Simulation Job Completed for $groupName", $strJobCompleted, "nobody@" . $theServer);
+	sendEmail($theEmailAddr, "Simulation Job " . $strCompletionStatus . " for $groupName", $strJobCompleted, "nobody@" . $theServer);
 
 	return null;
 }
@@ -1062,9 +1148,27 @@ function checkJobCompletion($theSsh, $theUserName, $theGroupId, $theJobTimeStamp
 	$strTimeDone =  "cat $jobId/" . $jobIdDone;
 	$resTimeDone =  sshExec($theSsh, $strTimeDone);
 
+	// Check gzip of tar file completion.
+	//
+	// If neither tar nor tar.gz is not present (tar not started), or
+	// if tar.gz is not present but tar is present (gzip not started),
+	// if both tar and tar.gz are present (gzip is in progress), or
+	// gzip of tar file is not completed.
+	$strGzipCheck = "/bin/bash -c '( " .
+		"( ! [ -e $jobId/$jobId" . ".tar.gz ] && ! [ -e $jobId/$jobId" . ".tar ] ) " .
+		" || " .
+		"( ! [ -e $jobId/$jobId" . ".tar.gz ] && [ -e $jobId/$jobId" . ".tar ] ) " .
+		" || " .
+		"( [ -e $jobId/$jobId" . ".tar.gz ] && [ -e $jobId/$jobId" . ".tar ] ) " .
+		" ) && " .
+		"echo Not done'";
+	$resGzipCheck = sshExec($theSsh, $strGzipCheck);
+	$resGzipCheck = trim($resGzipCheck);
+
 	$resTimeStart = trim($resTimeStart);
 	$resTimeDone = trim($resTimeDone);
-	if ($resTimeDone != "" && 
+	if ($resGzipCheck != "Not done" &&
+		$resTimeDone != "" && 
 		$resTimeStart != "" &&
 		is_numeric($resTimeDone) &&
 		is_numeric($resTimeStart)) {
@@ -1074,6 +1178,185 @@ function checkJobCompletion($theSsh, $theUserName, $theGroupId, $theJobTimeStamp
 
 	// Job not completed yet.
 	return -1;
+}
+
+// Cancel simulation job.
+function cancelRemoteServerJob($theRemoteServerName, $theUserName, $theGroupId, $theJobTimeStamp) {
+
+	// Update the simulation_jobs_details table first, in case the 
+	// corresponding simlation job entry is not yet populated into 
+	// the simulation_requests table and hence is not yet in progress.
+
+	$cancelSubmitted = false;
+	$cancelStarted = false;
+
+	// Update status to 3 ("Completed") 
+	// if job has been submitted (status=1) but not started (status=2) yet.
+	// Set duration to 0 also, because job has not been run.
+	$sqlUpdate = "UPDATE simulation_jobs_details SET " .
+		"max_runtime=0, " .
+		"last_updated='" . time() . "', " .
+		"duration=0, " .
+		"status=3 " .
+		"WHERE (" . 
+		"server_name='" . $theRemoteServerName . "' AND " .
+		"user_name='" . $theUserName . "' AND " . 
+		"group_id=" . $theGroupId . " AND " . 
+		"job_timestamp='" . $theJobTimeStamp . "' AND " . 
+		"status=1" .
+		")";
+	$resUpdate = db_query_params($sqlUpdate, array());
+	if (!$resUpdate) {
+		// Cannot update status.
+		return "***ERROR***" . "Cannot update simulation_jobs_details table";
+	}
+	if (db_affected_rows($resUpdate) >= 1) {
+		$cancelSubmitted = true;
+	}
+
+	// For job that has been started (status=2) already.
+	$sqlUpdate = "UPDATE simulation_jobs_details SET " .
+		"max_runtime=0, " .
+		"last_updated='" . time() . "' " .
+		"WHERE (" . 
+		"server_name='" . $theRemoteServerName . "' AND " .
+		"user_name='" . $theUserName . "' AND " . 
+		"group_id=" . $theGroupId . " AND " . 
+		"job_timestamp='" . $theJobTimeStamp . "' AND " . 
+		"status=2" .
+		")";
+	$resUpdate = db_query_params($sqlUpdate, array());
+	if (!$resUpdate) {
+		// Cannot update status.
+		return "***ERROR***" . "Cannot update simulation_jobs_details table";
+	}
+	if (db_affected_rows($resUpdate) >= 1) {
+		$cancelStarted = true;
+	}
+
+
+	// Update the simulation_requests table.
+	$sqlUpdate = "UPDATE simulation_requests SET " .
+		"max_runtime=0 " .
+		"WHERE (" . 
+		"server_name='" . $theRemoteServerName . "' AND " .
+		"user_name='" . $theUserName . "' AND " . 
+		"group_id=" . $theGroupId . " AND " . 
+		"job_timestamp='" . $theJobTimeStamp . "' " . 
+		")";
+	$resUpdate = db_query_params($sqlUpdate, array());
+	if (!$resUpdate) {
+		// Cannot update status.
+		return "***ERROR***" . "Cannot update simulation_requests table";
+	}
+
+
+	// Retrieve email associated with the simulation job. 
+	$sqlEmail = "SELECT email, job_name FROM simulation_jobs_details WHERE " .
+		"server_name='" . $theRemoteServerName . "' AND " .
+		"user_name='" . $theUserName . "' AND " .
+		"group_id=" . $theGroupId . " AND " .
+		"job_timestamp='" . $theJobTimeStamp . "'";
+
+	$theEmailAddr = "";
+	$theJobName = "";
+
+	$resEmail = db_query_params($sqlEmail, array());
+	$rowsEmail = db_numrows($resEmail);
+	for ($i = 0; $i < $rowsEmail; $i++) {
+		$theEmailAddr = db_result($resEmail, $i, 'email');
+		$theJobName = db_result($resEmail, $i, 'job_name');
+	}
+	if ($resEmail) {
+		db_free_result($resEmail);
+	}
+
+	if ($theEmailAddr == "") {
+		// Cannot get email.
+		return "***ERROR***" . "Cannot get email from simulation_jobs_details table";
+	}
+
+	// Get group name.
+	$groupName = $theGroupId;
+	$sql = "SELECT group_name FROM groups WHERE group_id=$1";
+	$result = db_query_params($sql, array($theGroupId));
+	$rows = db_numrows($result);
+	for ($i = 0; $i < $rows; $i++) {
+		$groupName = db_result($result, $i, 'group_name');
+	}
+	if ($result) {
+		db_free_result($result);
+	}
+
+	// Retrieve server alias.
+	$sql = "SELECT server_alias FROM simulation_servers " .
+		"WHERE server_name='" . $theRemoteServerName . "'";
+
+	$strRemoteServerAlias = $theRemoteServerName;
+	$result = db_query_params($sql, array());
+	$rows = db_numrows($result);
+	for ($i = 0; $i < $rows; $i++) {
+		$strRemoteServerAlias = db_result($result, $i, 'server_alias');
+	}
+	if ($result) {
+		db_free_result($result);
+	}
+
+	// Get user name.
+	$realName = $theUserName;
+	$sql = "SELECT realname FROM users WHERE user_name=$1";
+	$result = db_query_params($sql, array($theUserName));
+	$rows = db_numrows($result);
+	for ($i = 0; $i < $rows; $i++) {
+		$realName = db_result($result, $i, 'realname');
+	}
+	if ($result) {
+		db_free_result($result);
+	}
+
+	$theJobTimeStampVerbose = date('Y-m-d H:i:s', intval(substr($theJobTimeStamp, 0, -3)));
+
+	$theServer = false;
+	if (isset($_SERVER['SERVER_NAME'])) {
+		$theServer = $_SERVER['SERVER_NAME'];
+	}
+	else {
+		// Parse configuration to get web_host.
+		if (file_exists("/etc/gforge/config.ini.d/debian-install.ini")) {
+			// The file debian-install.ini is present.
+			$arrConfig = parse_ini_file("/etc/gforge/config.ini.d/debian-install.ini");
+			// Check for each parameter's presence.
+			if (isset($arrConfig["web_host"])) {
+				$theServer = $arrConfig["web_host"];
+			}
+		}
+	}
+
+	if ($cancelSubmitted === true) {
+		$strStatusCancel = "Cancelled";
+	}
+	else if ($cancelStarted === true) {
+		$strStatusCancel = "Cancelling";
+	}
+
+	$strJobCancelled = "<html><body>";
+	$strJobCancelled .= "<table>";
+	$strJobCancelled .= "<tr><td>Job Name:</td><td>$theJobName</td></tr>";
+	$strJobCancelled .= "<tr><td>Server:</td><td>$strRemoteServerAlias</td></tr>";
+	$strJobCancelled .= "<tr><td>User:</td><td>$realName</td></tr>";
+	$strJobCancelled .= "<tr><td>Status:</td><td>$strStatusCancel</td></tr>";
+	$strJobCancelled .= "<tr><td>Created:</td><td>$theJobTimeStampVerbose</td></tr>";
+	$strJobCancelled .= "<tr><td>" . $strStatusCancel . ":</td><td>" . date("Y-m-d H:i:s") . "</td></tr>";
+	$strJobCancelled .= "</table>";
+	$strJobCancelled .= "<br/>To view the job status and/or view simulation results, visit <a href='https://" . $theRemoteServerName . "/simulations/viewJobs.php?group_id=" . $theGroupId . "'>Simulations: View My Jobs</a>.";
+	$strJobCancelled .= "</body></html>";
+
+	if ($cancelSubmitted === true || $cancelStarted === true) {
+		// Send email.
+		sendEmail($theEmailAddr, "Simulation Job " . $strStatusCancel . " for $groupName", $strJobCancelled, "nobody@" . $theServer);
+	}
+
+	return null;
 }
 
 // Record simulation job start.
@@ -1134,7 +1417,8 @@ function recordRemoteServerJobCompletion($theRemoteServerName,
 
 // Reserve simulation server by setting in_use to 1.
 function reserveRemoteServer($theRemoteServerName, $theUserName, 
-	$theGroupId, $theJobTimeStamp, &$theJobStartedTimeStamp, $theSoftwareName) {
+	$theGroupId, $theJobTimeStamp, &$theJobStartedTimeStamp, $theSoftwareName, 
+	$theMaxRunTime, $theExecCheck) {
 
 	$theJobStartedTimeStamp = time() . '000';
 	$sqlInProgress = "UPDATE simulation_requests SET " .
@@ -1143,7 +1427,9 @@ function reserveRemoteServer($theRemoteServerName, $theUserName,
 		"group_id=" . $theGroupId . ", " . 
 		"job_timestamp='" . $theJobTimeStamp . "', " . 
 		"job_started_timestamp='" . $theJobStartedTimeStamp . "', " . 
-		"software_name='" . $theSoftwareName . "' " .
+		"software_name='" . $theSoftwareName . "', " .
+		"max_runtime=" . $theMaxRunTime . ", " .
+		"exec_check='" . $theExecCheck . "' " .
 		"WHERE (" . 
 		"server_name='" . $theRemoteServerName . "' AND " .
 		"in_use=0 " .
@@ -1175,7 +1461,9 @@ function doneRemoteServer($theRemoteServerName) {
 		"group_id=-1, " . 
 		"job_timestamp='', " . 
 		"job_started_timestamp='', " . 
-		"software_name='' " .
+		"software_name='', " .
+		"max_runtime=-1, " .
+		"exec_check='' " .
 		"WHERE " . 
 		"server_name='" . $theRemoteServerName . "' ";
 	$resInProgress = db_query_params($sqlInProgress, array());
@@ -1199,6 +1487,7 @@ function buildSimulationWrapper($localDirName,
 	$theModifyScriptName,
 	$theFullCfgName,
 	$theSoftwarePath,
+	$theExecCheck,
 	$theMaxRunTime) {
 
 
@@ -1246,6 +1535,13 @@ function buildSimulationWrapper($localDirName,
 	//fwrite($fp, "rm $theJobId/$theWrapperName" . "\n");
 	fclose($fp);
 
+	return null;
+}
+
+
+// Send execution check file to remote server.
+function sendExecutionCheck($theSsh, $theSftp, $strRemoteServerHomeDir, 
+	$localDirName, $theJobId, $theMaxRunTime, $theExecCheck) {
 
 	// Write file for checking whether simulation exceeds allowable runtime.
 	// If file exists, overwrite existing contents.
@@ -1257,25 +1553,40 @@ function buildSimulationWrapper($localDirName,
 	}
 	fwrite($fp, "if [ ! -e " . $theJobId . "_done ]; then " .  "\n");
 	fwrite($fp, "if (( `date +%s` - `cat " . $theJobId . "_start` > $theMaxRunTime )); then" .  "\n");
-	fwrite($fp, "pkill -f " . $theSubmitScriptName . "\n");
+	if ($theMaxRunTime > 0) {
+		fwrite($fp, "if [ ! -e post_process.txt ]; then " .
+			"echo -e \"Max runtime exceeded. Job cancelled at `date +'%m/%d/%Y %H:%M:%S'`\\n\" >> " .
+			"post_process.txt; fi" .  "\n");
+	}
+	else {
+		fwrite($fp, "if [ ! -e post_process.txt ]; then " .
+			"echo -e \"Job cancelled at `date +'%m/%d/%Y %H:%M:%S'`\\n\" >> " .
+			"post_process.txt; fi" .  "\n");
+	}
+	fwrite($fp, "pkill -9 -f '" . $theExecCheck . "'\n");
 	fwrite($fp, "fi" .  "\n");
 	fwrite($fp, "fi" .  "\n");
 	fclose($fp);
 
+	// Send simulation check file to remote server.
+	sftpPut($theSftp, 
+		$strRemoteServerHomeDir . "/" . $theJobId . "_check", 
+		$localDirName . $theJobId . "_check");
+
+	// Clean up simulation check file from local server.
+	unlink($localDirName . $theJobId . "_check");
+
+	$strResChmod =  sshExec($theSsh, 'chmod a+x ' . $theJobId . '_check');
+	$strResMv =  sshExec($theSsh, 'mv ' . $theJobId . '_check' . ' ./' . $theJobId);
+
 	return null;
 }
-
 
 // Execute simulation job on remote server.
 function executeSimulation($theSsh, $theJobId, $theFullWrapperName, $theFullCfgName) {
 
-	$strResMkdir =  sshExec($theSsh, 'mkdir ./' . $theJobId);
-
 	$strResChmod =  sshExec($theSsh, 'chmod a+x ' . $theFullWrapperName);
 	$strResMv =  sshExec($theSsh, 'mv ' . $theFullWrapperName . ' ./' . $theJobId);
-
-	$strResChmod =  sshExec($theSsh, 'chmod a+x ' . $theJobId . '_check');
-	$strResMv =  sshExec($theSsh, 'mv ' . $theJobId . '_check' . ' ./' . $theJobId);
 
 	if (isset($theFullCfgName) && $theFullCfgName != "") {
 		// Modify configuration file.

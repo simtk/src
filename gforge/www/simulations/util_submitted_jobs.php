@@ -45,7 +45,7 @@ function getSubmittedJobs($theUserName, &$theJobs, &$theGroupNames) {
 	$sqlUserJobs = "SELECT status, d.server_name, email, d.group_id, " .
 		"model_name, d.software_name, d.software_version, " .
 		"job_timestamp, duration, cfg_pathname_1, " .
-		"job_name, last_updated, server_alias " .
+		"job_name, last_updated, server_alias, max_runtime " .
 		"FROM simulation_jobs_details AS d " .
 		"JOIN simulation_servers s " .
 		"ON d.group_id=s.group_id " .
@@ -74,6 +74,19 @@ function getSubmittedJobs($theUserName, &$theJobs, &$theGroupNames) {
 		else if ($jobStatus == 3) {
 			$strJobStatus = "Completed";
 		}
+
+		// Check max_runtime.
+		// If max_runtime is 0, the job has been cancelled.
+		$max_runtime = db_result($resUserJobs, $i, 'max_runtime');
+		if ($max_runtime == 0) {
+			if ($strJobStatus == "Completed") {
+				$strJobStatus = "Cancelled";
+			}
+			else {
+				$strJobStatus = "Cancelling";
+			}
+		}
+
 		$jobInfo['status'] = $strJobStatus;
 		$jobInfo['server_name']  = db_result($resUserJobs, $i, 'server_alias');
 		$jobInfo['email']  = db_result($resUserJobs, $i, 'email');
@@ -98,7 +111,9 @@ function getSubmittedJobs($theUserName, &$theJobs, &$theGroupNames) {
 			$theJobName = date('Y-m-d H:i:s', intval(substr($jobInfo['job_timestamp'], 0, -3)));
 		}
 
-		if ($strJobStatus == "Completed") {
+		if ($strJobStatus == "Completed" || 
+			$strJobStatus == "Cancelled" ||
+			$strJobStatus == "Cancelling") {
 			// Get summary data.
 			getSubmittedJobSummary($theUserName, $theJobName, $jobSummaryData);
 
