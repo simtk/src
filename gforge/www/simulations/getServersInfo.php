@@ -42,14 +42,21 @@ $serverNames = array();
 $serverAliases = array();
 $softwareNames = array();
 $softareVersions = array();
-$sql = "SELECT server_name, software_name, software_version, server_alias FROM simulation_servers WHERE group_id=" . $groupId;
+$sql = "SELECT s.server_name serverName, " .
+	"s.software_name softwareName, " .
+	"software_version softwareVersion, " .
+	"server_alias serverAlias " .
+	"FROM simulation_servers s " .
+	"JOIN simulation_requests r " .
+	"ON s.server_name=r.server_name " .
+	"WHERE s.group_id=" . $groupId;
 $result = db_query_params($sql, array());
 $rows = db_numrows($result); 
 for ($i = 0; $i < $rows; $i++) {
-	$tmpServerName = db_result($result, $i, 'server_name');
+	$tmpServerName = db_result($result, $i, 'serverName');
 	$serverNames[$tmpServerName] = $tmpServerName;
 
-	$tmpServerAlias = db_result($result, $i, 'server_alias');
+	$tmpServerAlias = db_result($result, $i, 'serverAlias');
 	$serverAliases[$tmpServerAlias] = $tmpServerName;
 
 	if (!isset($softwareNames[$tmpServerName])) {
@@ -57,14 +64,14 @@ for ($i = 0; $i < $rows; $i++) {
 		$softwareNames[$tmpServerName] = array();
 	}
 	// Insert entry into the array for the given server.
-	$softwareNames[$tmpServerName][] = db_result($result, $i, 'software_name');
+	$softwareNames[$tmpServerName][] = db_result($result, $i, 'softwareName');
 
 	if (!isset($softwareVersions[$tmpServerName])) {
 		// Not present yet. Add an array.
 		$softwareVersions[$tmpServerName] = array();
 	}
 	// Insert entry into the array for the given server.
-	$softwareVersions[$tmpServerName][] = db_result($result, $i, 'software_version');
+	$softwareVersions[$tmpServerName][] = db_result($result, $i, 'softwareVersion');
 }
 db_free_result($result);
 

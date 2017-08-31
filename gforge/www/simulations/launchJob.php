@@ -73,6 +73,7 @@ $installDirName = $_POST["InstallDirName"];
 $softwareName = $_POST["SoftwareName"];
 $softwareVersion = $_POST["SoftwareVersion"];
 $cfgName = $_POST["ConfigFileName"];
+$execCheck = $_POST["ExecCheck"];
 $maxRunTime = $_POST["MaxRunTime"];
 $modifyModel = $_POST["ModifyModel"];
 
@@ -98,6 +99,7 @@ $resJobRequest = requestSimulationJob(
 	$softwareVersion,
 	$cfgName,
 	$cfgText,
+	$execCheck,
 	$maxRunTime,
 	$modifyModel);
 
