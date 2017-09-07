@@ -48,7 +48,7 @@
 			<a href="/account/register.php">Join</a>
 		</div>
 	</div>
-	<div style="font-size:12px;">Version 2.0.17. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 5.3.2.
+	<div style="font-size:12px;">Version 2.0.18. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 5.3.2.
 	</div>
 </div></div>
 
@@ -75,7 +75,8 @@
 		});
 	});
 	$(document).ready(function() {
-		$(".feedback_href, .feedback_button").click(function() {
+		$(".feedback_href, .feedback_button").click(function(event) {
+			event.preventDefault();
 			// Get group_id if hidden DIV class "divGroupId" is present.
 			theGroupId = -1;
 			$(".divGroupId").each(function() {
@@ -89,7 +90,6 @@
 				// No group_id.
 				location.href="/feedback.php";
 			}
-			event.preventDefault();
 		});
 	});
 </script>
