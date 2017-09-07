@@ -34,19 +34,19 @@
  
 require_once 'env.inc.php';
 require_once $gfcommon.'include/pre.php';
-$HTML->header(array());
 
 // Get group_id if present.
 $group_id = false;
 if (isset($_GET["group_id"])) {
 	$group_id = $_GET["group_id"];
 }
-if ($group_id !== false) {
-
+// Display header.
+$HTML->header(array());
+if ($group_id !== false && trim($group_id) !== "") {
 	// Has group_id. Look up group object.
 	$groupObj = group_get_object($group_id);
 	// Get project leads.
-	$projectLeads = $groupObj->getLeads();
+	$projectLeads = $groupObj->getAdmins();
 
 	// Check if forum is used in project.
 	$useForum = false;
@@ -62,35 +62,44 @@ if ($group_id !== false) {
 		}
 	}
 
-	echo "<h2>Feedback on " . $groupObj->getPublicName() . "</h2>";
-
-	if ($useForum === true) {
-		// Uses forum.
-		echo 'For questions related to "' . 
-			$groupObj->getPublicName() . 
-			'", we recommend posting to their ' .
-			'<a href="/plugins/phpBB/indexPhpbb.php?group_id=' . $group_id .
-			'&pluginname=phpBB">discussion forum</a>. ';
-
-		if (count($projectLeads) > 0) {
-			// Has project lead(s).
-			echo 'For questions not addressed in the forum, you can contact the ' .
-				'<a href="/sendmessage.php?touser=' .
-				$projectLeads[0]->getID() .
-				'">project administrators</a>.'; 
+	// Check permission first.
+	if (forge_check_perm('project_read', $group_id)) {
+		echo "<h2>Feedback on " . $groupObj->getPublicName() . "</h2>";
+		if ($useForum === true) {
+			// Uses forum.
+			echo 'For questions related to "' . 
+				$groupObj->getPublicName() . 
+				'", we recommend posting to their ' .
+				'<a href="/plugins/phpBB/indexPhpbb.php?group_id=' . $group_id .
+				'&pluginname=phpBB">discussion forum</a>. ';
+	
+			if (count($projectLeads) > 0) {
+				// Has project lead(s).
+				// Note: include group_id in parameter list.
+				echo 'For questions not addressed in the forum, you can contact the ' .
+					'<a href="/sendmessage.php?touser=' .
+					$projectLeads[0]->getID() .
+					'&group_id=' . $group_id . '">project administrators</a>.'; 
+			}
+		}
+		else {
+			// Does not use forum.
+			// Note: include group_id in parameter list.
+			if (count($projectLeads) > 0) {
+				// Has project lead(s).
+				echo 'For questions related to "' .
+					$groupObj->getPublicName() .
+					'", contact the ' .
+					'<a href="/sendmessage.php?touser=' .
+					$projectLeads[0]->getID() .
+					'&group_id=' . $group_id . '">project administrators</a>.'; 
+			}
 		}
 	}
 	else {
-		// Does not use forum.
-		if (count($projectLeads) > 0) {
-			// Has project lead(s).
-			echo 'For questions related to "' .
-				$groupObj->getPublicName() .
-				'", contact the ' .
-				'<a href="/sendmessage.php?touser=' .
-				$projectLeads[0]->getID() .
-				'">project administrators</a>.'; 
-		}
+		// No permission.
+		echo "<h2>Feedback on " . $groupObj->getPublicName() . "</h2>";
+		echo "This is a private project. Only project members who are logged into SimTK can provide feedback.";
 	}
 }
 
@@ -109,12 +118,25 @@ To report suggestions or bugs on the SimTK website,
 you can file a <a href="/tracker?atid=1960&group_id=11&func=add">new issue</a>.
 <br/><br/>
 
-For any other concerns, contact the <a href="/sendmessage.php?touser=101">SimTK webmaster</a>.
+For any other concerns, contact the <a href="/sendmessage.php?touser=101<?php
+	if ($group_id !== false && trim($group_id) !== "") {
+		echo "&group_id=" . $group_id;
+	}
+?>">SimTK webmaster</a>.
 <br/><br/>
 
 Thanks in advance for your feedback and interest in SimTK.
 <br/><br/>
 
 <?php
+
+if ($group_id !== false && trim($group_id) !== "") {
+	// Has group_id. Look up group object.
+	$groupObj = group_get_object($group_id);
+
+	echo "<hr/>";
+	echo "<a href='projects/" . $groupObj->getUnixName() . "'>Go back to " . $groupObj->getPublicName() . "</a>";
+}
+
 $HTML->footer(array());
 ?>
