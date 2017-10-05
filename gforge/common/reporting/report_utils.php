@@ -155,7 +155,13 @@ function report_area_box($name='area', $selected='1', $Group=false) {
 	
 	if ($use_pageviews) {
 		$arr[]='pageviews';
-		$arr2[]=_('Page Views');
+		$arr2[]=_('Page Hits');
+		$arr[]='stanfordpageviews';
+		$arr2[]='Stanford Page Hits';
+		$arr[]='visitors';
+		$arr2[]='Visitors';
+		$arr[]='stanfordvisitors';
+		$arr2[]='Stanford Visitors';
 	}
 
 	if (is_object($Group) && $Group->getID()) {
@@ -668,8 +674,13 @@ function report_actgraph($type, $SPAN, $start, $end, $id, $area) {
 	$initialSizeOfTimeStampArr = count($timeStampArr);
 	for ($j = 0; $j < $initialSizeOfTimeStampArr; $j++) {
 		if ($timeStampArr[$j] < $start || $timeStampArr[$j] >= $end) {
-			unset($timeStampArr[$j]);
-			unset($timeStampEndArr[$j]);
+			// Check before unsetting.
+			if (isset($timeStampArr[$j])) {
+				unset($timeStampArr[$j]);
+			}
+			if (isset($timeStampEndArr[$j])) {
+				unset($timeStampEndArr[$j]);
+			}
 		}
 	}
 
@@ -710,6 +721,24 @@ function report_actgraph($type, $SPAN, $start, $end, $id, $area) {
 			$ydata[] =& $report->getPageViews();
 			$areaname = _('Page Views');
 			$label[] = _('Page Views');
+			break;
+		}
+		case 'stanfordpageviews': {
+			$ydata[] =& $report->getStanfordPageViews();
+			$areaname = 'Stanford Page Views';
+			$label[] = 'Stanford Page Views';
+			break;
+		}
+		case 'visitors': {
+			$ydata[] =& $report->getVisitors();
+			$areaname = 'Visitors';
+			$label[] = 'Visitors';
+			break;
+		}
+		case 'stanfordvisitors': {
+			$ydata[] =& $report->getStanfordVisitors();
+			$areaname = 'Stanford Visitors';
+			$label[] = 'Stanford Visitors';
 			break;
 		}
 		case 'taskman': {
@@ -837,28 +866,40 @@ function report_actgraph($type, $SPAN, $start, $end, $id, $area) {
 	switch ($SPAN) {
 		case REPORT_TYPE_DAILY: 
 		case REPORT_TYPE_MONTHLY: {
+			// Keep track of number days to show. Initialize to 0.
+			$maxEntries = 0;
 			for ($j = 0; $j < count($timeStampArr); $j++) {
 				for ($z = 0; $z < count($ydata); $z++) {
-				  for ($y = 0; $y < count($rdates); $y++) {
-					if (in_array($timeStampTempArr[$j], $rdatesTemp)) {
-						$thekey = $y;
-						if (isset($ydata[$z][$thekey])) {
-							if ($ydata[$z][$thekey] === false) {
-								$ydata[$z][$thekey] = 0;
+					if (count($rdates) > $maxEntries) {
+						// Update max number of days available to show.
+						$maxEntries = count($rdates);
+					}
+					for ($y = 0; $y < count($rdates); $y++) {
+						if (in_array($timeStampTempArr[$j], $rdatesTemp)) {
+							$thekey = $y;
+							if (isset($ydata[$z][$thekey])) {
+								if ($ydata[$z][$thekey] === false) {
+									$ydata[$z][$thekey] = 0;
+								}
+								if ($ydata[$z][$thekey] > $yMax) {
+									$yMax = $ydata[$z][$thekey];
+								}
+								echo 'values['.$z.'].push('.$ydata[$z][$thekey].');';
 							}
-							if ($ydata[$z][$thekey] > $yMax) {
-								$yMax = $ydata[$z][$thekey];
+							else {
+								//echo 'values['.$z.'].push(0);';
 							}
-							echo 'values['.$z.'].push('.$ydata[$z][$thekey].');';
-						} else {
+						}
+						else {
 							//echo 'values['.$z.'].push(0);';
 						}
-					} else {
-						//echo 'values['.$z.'].push(0);';
 					}
-				  }
 				}
-				echo 'ticks.push(\''.$tickArr[$j].'\');';
+				if ($j < $maxEntries) {
+					// Only show label up to number of available days.
+					// Otherwise, the uninitialized y-axis data shown is undetermined.
+					echo 'ticks.push(\''.$tickArr[$j].'\');';
+				}
 			}
 			
 			break;
