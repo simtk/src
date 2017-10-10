@@ -43,7 +43,7 @@ if (!$group || !is_object($group)) {
 }
 
 if (!$group->usesPlugin("phpBB")) {
-	exit_error(sprintf(_('First activate the %s plugin through the Project\'s Admin Interface'), "phpBB"), '');
+	exit_error("To view forum statistics, first activate the Forums plugin through Admin->Tools->Enable/Disable", '');
 }
 
 // Retrieve forum id, which may be different from group_id.
@@ -134,10 +134,10 @@ function displayPostStats($arrUser,
 	echo "<tbody>";
 	echo "<tr>" .
 		"<th class='info'>User name</th>" .
-		"<th class='info'>Posts total</th>" .
-		"<th class='info'>Posts last month</th>" .
-		"<th class='info'>Topics total</th>" .
-		"<th class='info'>Topics last month</th>" .
+		"<th class='info'>Posts<br/>(total)</th>" .
+		"<th class='info'>Posts<br/>(previous 30 days)</th>" .
+		"<th class='info'>Topics<br/>(total)</th>" .
+		"<th class='info'>Topics<br/>(previous 30 days)</th>" .
 		"</tr>";
 
 	foreach ($arrUser as $id=>$name) {
