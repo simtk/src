@@ -719,14 +719,14 @@ function report_actgraph($type, $SPAN, $start, $end, $id, $area) {
 		}
 		case 'pageviews': {
 			$ydata[] =& $report->getPageViews();
-			$areaname = _('Page Views');
-			$label[] = _('Page Views');
+			$areaname = _('Page Hits');
+			$label[] = _('Page Hits');
 			break;
 		}
 		case 'stanfordpageviews': {
 			$ydata[] =& $report->getStanfordPageViews();
-			$areaname = 'Stanford Page Views';
-			$label[] = 'Stanford Page Views';
+			$areaname = 'Stanford Page Hits';
+			$label[] = 'Stanford Page Hits';
 			break;
 		}
 		case 'visitors': {
