@@ -6,7 +6,7 @@
  * 
  * Utility file to handle forum access.
  *
- * Copyright 2005-2016, SimTK Team
+ * Copyright 2005-2017, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -431,6 +431,133 @@ function getModerators($groupId) {
 	pg_free_result($res);
 
 	return $arrUserNames;
+}
+
+// Look up forum id given group id and public name.
+function lookupForumId($groupId, $groupName) {
+
+	// Get forum_id given the forum name.
+	$forum_id = -1;
+
+	// "'" is a delimiter in db. If there is "'" in forum name, escape it first.
+	$inGroupName = str_replace("'", "''", $groupName);
+	$strQuery = "SELECT forum_id FROM phpbb_forums WHERE forum_name='" . $inGroupName . "' limit 1";
+	$res = queryForum($strQuery);
+	while ($row = pg_fetch_array($res, null, PGSQL_ASSOC)) {
+		$forum_id = $row['forum_id'];
+	}
+	// Free resultset.
+	pg_free_result($res);
+
+	if ($forum_id == -1) {
+		// In some cases, a forum name is not the same as the group name.
+		// If the above lookup fails, try setting the forum id to be the group_id.
+		// We use this process here because in some cases, the forum_id 
+		// is not the same as the group_id.
+		// Given this problem, we try looking up a forum by group_name first.
+		// If it fails, we look up by group_id.
+		$strQuery = "SELECT forum_id FROM phpbb_forums WHERE forum_id=" . $groupId . " limit 1";
+		$res = queryForum($strQuery);
+		while ($row = pg_fetch_array($res, null, PGSQL_ASSOC)) {
+			$forum_id = $row['forum_id'];
+		}
+		// Free resultset.
+		pg_free_result($res);
+	}
+
+	return $forum_id;
+}
+
+
+// Retrieve post statistics of specified forum.
+function getPostStats($forumId, &$arrUser, 
+	&$arrPostCntAllTime, &$arrPostCntLastMonth, 
+	&$arrTopicCntAllTime, &$arrTopicCntLastMonth) {
+
+	// Retrieve all-time post count per user for given forum.
+	// NOTE: The "admin" user does not have entry in phpbb_user table.
+	$strQuery = "SELECT * FROM (" .
+		"(SELECT poster_id, user_yim user_name, count(*) post_cnt FROM phpbb_posts pp " .
+		"JOIN phpbb_users pu " .
+		"ON pp.poster_id=pu.user_id " .
+		"WHERE forum_id=" . $forumId . " " .
+		"AND post_visibility=1 " .
+		"GROUP BY poster_id, user_yim) " .
+		"UNION " .
+		"(SELECT 102, 'SimTK Admin', count(*) post_cnt FROM phpbb_posts " .
+		"WHERE forum_id=" . $forumId . " " .
+		"AND post_visibility=1 " .
+		"AND poster_id=102) " .
+		") subq " .
+		"ORDER BY subq.post_cnt DESC, subq.user_name";
+	$res = queryForum($strQuery);
+	while ($row = pg_fetch_array($res, null, PGSQL_ASSOC)) {
+		$poster_id = $row['poster_id'];
+		$user_name = $row['user_name'];
+		$post_cnt = $row['post_cnt'];
+
+		$arrUser[$poster_id] = $user_name;
+		$arrPostCntAllTime[$poster_id] = $post_cnt;
+	}
+
+	// Free resultset.
+	pg_free_result($res);
+
+
+	// Timestamp - 30 days.
+	$lastMonth = time() - 86400 * 30;
+
+	// Retrieve last month post count per user for given forum.
+	$strQuery = "SELECT poster_id, count(*) post_cnt FROM phpbb_posts " .
+		"WHERE forum_id=" . $forumId . " " .
+		"AND post_visibility=1 " .
+		"AND post_time > " . $lastMonth . " " .
+		"GROUP BY poster_id";
+	$res = queryForum($strQuery);
+	while ($row = pg_fetch_array($res, null, PGSQL_ASSOC)) {
+		$poster_id = $row['poster_id'];
+		$post_cnt = $row['post_cnt'];
+
+		$arrPostCntLastMonth[$poster_id] = $post_cnt;
+	}
+
+	// Free resultset.
+	pg_free_result($res);
+
+
+	// Retrieve all-time topic count per user for given forum.
+	$strQuery = "SELECT poster_id, count(distinct topic_id) topic_cnt FROM phpbb_posts " .
+		"WHERE forum_id=" . $forumId . " " .
+		"AND post_visibility=1 " .
+		"GROUP BY poster_id";
+	$res = queryForum($strQuery);
+	while ($row = pg_fetch_array($res, null, PGSQL_ASSOC)) {
+		$poster_id = $row['poster_id'];
+		$topic_cnt = $row['topic_cnt'];
+
+		$arrTopicCntAllTime[$poster_id] = $topic_cnt;
+	}
+
+	// Free resultset.
+	pg_free_result($res);
+
+
+	// Retrieve last month topic count per user for given forum.
+	$strQuery = "SELECT poster_id, count(distinct topic_id) topic_cnt FROM phpbb_posts " .
+		"WHERE forum_id=" . $forumId . " " .
+		"AND post_visibility=1 " .
+		"AND post_time > " . $lastMonth . " " .
+		"GROUP BY poster_id";
+	$res = queryForum($strQuery);
+	while ($row = pg_fetch_array($res, null, PGSQL_ASSOC)) {
+		$poster_id = $row['poster_id'];
+		$topic_cnt = $row['topic_cnt'];
+
+		$arrTopicCntLastMonth[$poster_id] = $topic_cnt;
+	}
+
+	// Free resultset.
+	pg_free_result($res);
 }
 
 ?>

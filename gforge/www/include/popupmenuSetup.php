@@ -6,7 +6,7 @@
  *
  * Contains functions to build project menu with links and titles.
  * 
- * Copyright 2005-2016, SimTK Team
+ * Copyright 2005-2017, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -380,6 +380,12 @@ function sectionSubMenuItems($sectionName, $theSubMenuTitle, $groupId,
 			   
 			   $submenuTitles[] = 'Geography of Use';
 			   $submenuUrls[] = '/plugins/reports/usagemap.php?group_id=' . $groupId;
+
+		// Display Forum Statistics submenu if Forum plugin is enabled.
+		if ($groupObj->usesPlugin("phpBB")) {
+			$submenuTitles[] = 'Forum Statistics';
+			$submenuUrls[] = '/project/stats/forum_stats.php?group_id=' . $groupId;
+		}
 	
     } else if ($sectionName == "About" && $theSubMenuTitle == "Members") {
 			

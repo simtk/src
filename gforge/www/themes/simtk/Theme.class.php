@@ -4,7 +4,7 @@
  *
  * Theme.class.php
  * 
- * Copyright 2005-2016, SimTK Team
+ * Copyright 2005-2017, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -179,6 +179,34 @@ $(window).bind("pageshow", function(event) {
 // consistent load behavior between Chrome, Safari, Firefox, and Opera.
 // See: http://stackoverflow.com/questions/12354865/image-onload-event-and-browser-cache
 $(window).load(function() {
+
+	// Set up href for Contact page.
+	$(".contact_href").click(function(event) {
+		// Invoke event.preventDefault() first.
+		event.preventDefault();
+
+		// Get group_id if hidden DIV class "divGroupId" is present.
+		theGroupId = -1;
+		$(".divGroupId").each(function() {
+			theGroupId = $(this).text();
+		});
+		if (theGroupId != -1) {
+			// Has group_id.
+			location.href="/feedback.php?touser=101&group_id=" + theGroupId;
+		}
+		else {
+			// No group_id from class "divGroupId".
+			// Try extracting from URL.
+			location.href="/feedback.php?touser=101<?php
+				$groupIdFromURL = $this->extractGroupIdFromURL();
+				if ($groupIdFromURL !== false) {
+					// Has group_id in URL.
+					echo "&group_id=" . $groupIdFromURL;
+				}
+			?>";
+		}
+	});
+
 	// Find and scale all img logos elements.
 	$("img").each(function() {
 		var theImage = new Image();
@@ -770,7 +798,7 @@ else {
 		<li class="intend"><a href="/whatIsSimtk.php">What is SimTK?</a></li>
 		<li class="intend"><a href='/features.php'>Features</a></li>
 		<li class="intend"><a href='/faq.php'>FAQ</a></li>
-		<li class="intend"><a href='/sendmessage.php?touser=101'>Contact</a></li>
+		<li class="intend"><a class="contact_href" href='/feedback.php?touser=101'>Contact</a></li>
 	</ul>
 </li>
 
@@ -839,7 +867,7 @@ echo $u->getFirstName();
                 echo '</div>';
 
 		echo '<div style="font-size:12px;">';
-		echo 'Version 2.0.17. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 5.3.2.';
+		echo 'Version 2.0.18. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 5.3.2.';
                 echo '</div>';
 
             echo '</div>';
@@ -877,7 +905,9 @@ echo $u->getFirstName();
                 });';
             $res .=
                 '$(document).ready(function() {
-			$(".feedback_href, .feedback_button").click(function() {
+			$(".feedback_href, .feedback_button").click(function(event) {
+				// Invoke event.preventDefault() first.
+				event.preventDefault();
 				// Get group_id if hidden DIV class "divGroupId" is present.
 				theGroupId = -1;
 				$(".divGroupId").each(function() {
@@ -888,10 +918,15 @@ echo $u->getFirstName();
 					location.href="/feedback.php?group_id=" + theGroupId;
 				}
 				else {
-					// No group_id.
-					location.href="/feedback.php";
+					// No group_id from class "divGroupId".
+					location.href="/feedback.php';
+					$groupIdFromURL = $this->extractGroupIdFromURL();
+					if ($groupIdFromURL !== false) {
+						// Has group_id in URL.
+						$res .=  "?group_id=" . $groupIdFromURL;
+					}
+					$res .= '";
 				}
-				event.preventDefault();
 			});
                 });';
             $res .= "\n</script>\n";
@@ -1407,6 +1442,9 @@ echo $u->getFirstName();
 			case "/plugins/reports/usagemap.php":
 				$pageTitle = "Statistics: Geography of Use";
 				break;
+			case "/project/stats/forum_stats.php":
+				$pageTitle = "Statistics: Forum Statistics";
+				break;
 			default:
 				$pageTitle = "Project Statistics";
 				break;
@@ -1556,7 +1594,13 @@ echo $u->getFirstName();
 			}
 			if (stripos($theUri, $theLink) !== false) {
 				// Found it.
-				return $title_arr[$idx];
+				if (isset($title_arr[$idx])) {
+					return $title_arr[$idx];
+				}
+				else {
+					// No subtitle available.
+					return "";
+				}
 			}
 			else if (stripos($theUri, "/index.php?") !== false) {
 				// Try removing "index.php" from "/index.php?" and retry search
@@ -1869,6 +1913,66 @@ echo $u->getFirstName();
 	";
                 
 	return $res;
+	}
+
+
+	// Try extracting group id from URL.
+	function extractGroupIdFromURL() {
+
+		$strGroupId = false;
+	
+		// Get URL string.
+		$theURL = getStringFromServer('REQUEST_URI');
+
+		// Look for group_id as first parameter.
+		$idx1 = stripos($theURL, "?group_id=");
+		if ($idx1 !== false) {
+			// Has group_id.
+			$tmpStr = substr($theURL, $idx1 + 10);
+
+			// Get the group_id.
+			// Find "&" delimiter.
+			$idx2 = stripos($tmpStr, "&");
+			if ($idx2 !== false) {
+				// Has other following parameters.
+				$strGroupId = substr($tmpStr, 0, $idx2);
+			}
+			else {
+				// No other following parameters.
+				$strGroupId = $tmpStr;
+			}
+		}
+		else {
+			// Look for group_id among parameters in the URL.
+			$idx1 = stripos($theURL, "&group_id=");
+			if ($idx1 !== false) {
+				// Has group_id.
+				$tmpStr = substr($theURL, $idx1 + 10);
+
+				// Get the group_id.
+				// Find "&" delimiter.
+				$idx2 = stripos($tmpStr, "&");
+				if ($idx2 !== false) {
+					// Has other following parameters.
+					$strGroupId = substr($tmpStr, 0, $idx2);
+				}
+				else {
+					// No other following parameters.
+					$strGroupId = $tmpStr;
+				}
+			}
+		}
+		// Validate the group_id by looking up group object.
+		if ($strGroupId !== false) {
+			$group = group_get_object($strGroupId);
+			if ($group || is_object($group)) {
+				// Valid group object.
+				return $strGroupId;
+			}
+		}
+
+		// No valid group_id.
+		return false;
 	}
 }
 

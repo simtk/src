@@ -67,6 +67,12 @@ if ($job_launched == 1) {
 	$feedback = "You have submitted a job and will receive email updates on the status of the job.";
 }
 
+$job_cancelled = getIntFromRequest('job_cancelled');
+if ($job_cancelled == 1) {
+	// Display feedback message after job cancelled.
+	$feedback = "You have cancelled a job and will receive email updates on the status of the job.";
+}
+
 html_use_jqueryui();
 site_project_header(array('title'=>'Simulations', 
 	'h1' => '', 
@@ -145,10 +151,30 @@ function loadSimulationResults(groupId) {
 				strRes += "</td>";
 
 				strRes += "<td>";
-				strRes += itemInfo['status'];
+				var jobStatus = itemInfo['status'];
+				if (jobStatus != "Completed" && 
+					jobStatus != "Cancelled" &&
+					jobStatus != "Cancelling") {
+
+					// Set up link for job cancellation.
+					strRes += "<a " +
+						"title='Click to cancel job' " +
+						"class='rmrole' " +
+						"style='background-color:#81a5d4; color:#ffffff; font-size:14px; white-space: nowrap;'" +
+						"href='cancelJob.php?" +
+						"JobName=" + jobName + "&" + 
+						"GroupId=" + groupId +
+						"'>&nbsp;X&nbsp;</a>&nbsp;";
+					strRes += jobStatus;
+				}
+				else {
+					strRes += jobStatus;
+				}
 				strRes += "</td>";
 
-				if (itemInfo['status'] == "Completed") {
+				if (itemInfo['status'] == "Completed" ||
+					itemInfo['status'] == "Cancelled" ||
+					itemInfo['status'] == "Cancelling") {
 					// Get reference to model; strip space.
 					var modelName = itemInfo["model_name"];
 					var softwareName = itemInfo["software_name"];
@@ -202,7 +228,7 @@ function loadSimulationResults(groupId) {
 					if (theSummary != "" && theSummary.split('\n').length <= 1) {
 						// Display summary content if content is one line only.
 						theSummaryText = theSummary;
-						strRes += "<i>Summary:</i> " + theSummaryText + "<br/>";
+						strRes += "<i>Summary:</i> " + theSummaryText + "<br/><br/>";
 					}
 					else {
 						var userName = "<?php echo $userName; ?>";
@@ -232,7 +258,7 @@ function loadSimulationResults(groupId) {
 							strRes += "<a href='" + 
 								"/simulations/" + file1 + 
 								"' title='Download file'>";
-							strRes += "<img src='/themes/simtk/images/docman/download-directory-zip.png' alt='downloadaszip' style='margin:0;float:none;width:22px;height:22px;'></a><br/>";
+							strRes += "<img src='/themes/simtk/images/docman/download-directory-zip.png' alt='downloadaszip' style='margin:0;float:none;width:22px;height:22px;'></a><br/><br/>";
 
 /*
 							// "femur_kinematics.txt"
@@ -308,7 +334,7 @@ function loadSimulationResults(groupId) {
 							", " + timeDel.getFullYear() +
 							"</span>";
 						if (timeToDelete > timeNow) {
-							strRes += "<br/><span>Raw data ";
+							strRes += "<span>Raw data ";
 							strRes += "<a href='/simulations/" + rawFile + 
 								"' title='Download raw output as a ZIP'>";
 							strRes += "<img src='/themes/simtk/images/docman/download-directory-zip.png' alt='downloadaszip' style='margin:0;float:none;width:22px;height:22px;'></a><br/>";
