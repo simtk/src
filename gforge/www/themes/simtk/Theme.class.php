@@ -4,7 +4,7 @@
  *
  * Theme.class.php
  * 
- * Copyright 2005-2016, SimTK Team
+ * Copyright 2005-2017, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -1441,6 +1441,9 @@ echo $u->getFirstName();
 				break;	
 			case "/plugins/reports/usagemap.php":
 				$pageTitle = "Statistics: Geography of Use";
+				break;
+			case "/project/stats/forum_stats.php":
+				$pageTitle = "Statistics: Forum Statistics";
 				break;
 			default:
 				$pageTitle = "Project Statistics";

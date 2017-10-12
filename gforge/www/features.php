@@ -54,11 +54,14 @@ $HTML->header(array());
 <div class="features">
 <ul>
 <li><b>Cloud-based storage:</b>  Access files from your laptop or your mobile device from anywhere you have an Internet connection.</li><br/>
+<li><b>Cloud-based execution of code (beta):</b> Let others run your code in the cloud. They can reproduce your results or use a web-based form to update your code and generate new results. Click on the “Simulations” link in the <a href="/projects/openknee">OpenKnee project</a> to see how this works.</li><br/>
 <li><b>Customized privacy options:</b>  You choose what to share and with whom.</li><br/>
 <li><b>Automated statistics:</b>  Track visits to your project webpages and file downloads.</li><br/>
 <li><b>A plethora of tools for sharing and communicating with users:</b>  Post downloads and documents to share. Plus each project can create a repository with version control, a wiki, mailing lists, discussion forums, and issue trackers.</li><br/>
+<li><b>Integration of GitHub:</b> You can connect your public GitHub repository to your SimTK project. Automatically download files from your GitHub repository to disseminate through your SimTK project.</li><br/>
 <li><b>Automated backups:</b>  SimTK has multiple layers of backup, so your data is safe and secure.</li><br/>
 <li><b>Assignment of DOIs to your files:</b>  Comply with publishers’ data-sharing policies by just checking a box and requesting a permanent identifier (a DOI) for any publicly shared resource on SimTK.</li><br/>
+<li><b>Communities created around projects:</b> Create a collection of projects and automatically keep abreast of the latest news, publications, and discussions happening within that community. Check out the <a href="/category/communityPage.php?cat=1001&sort=date&page=0&srch=&">OpenSim community</a>.</li><br/>
 <li><b>Project recommendations:</b>  SimTK automatically links your projects with other projects on the site through the “People also viewed” feature, increasing the visibility of your work.</li><br/>
 </ul>
 <br/><br/>

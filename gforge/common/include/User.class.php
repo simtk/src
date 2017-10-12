@@ -7,7 +7,7 @@
  * Copyright 2011, Franck Villaume - Capgemini
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * Copyright (C) 2012 Alain Peyrat - Alcatel-Lucent
- * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2017, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -318,24 +318,29 @@ class GFUser extends Error {
 			return false;
 		}
 		if (!forge_get_config('require_unique_email')) {
-			if (!$unix_name) {
+			if (!$unix_name || trim($unix_name) == "") {
 				$this->setError(_('unix_name^' . 'You must supply a username'));
 				return false;
 			}
 		}
-		if (!$firstname) {
+		if (!$firstname || trim($firstname) == "") {
 			$this->setError(_('firstname^' . 'You must supply a first name'));
 			return false;
 		}
-		if (!$lastname) {
+		if (!$lastname || trim($lastname) == "") {
 			$this->setError(_('lastname^' . 'You must supply a last name'));
 			return false;
 		}
-		if (!$university_name) {
+		if ((preg_match('/[A-Za-z]/', $firstname) && preg_match('/[0-9]/', $firstname)) ||
+			(preg_match('/[A-Za-z]/', $lastname) && preg_match('/[0-9]/', $lastname))) {
+			$this->setError('Please check that all fields are filled out properly');
+			return false;
+		}
+		if (!$university_name || trim($university_name) == "") {
 			$this->setError(_('university_name^' . 'You must supply a university/institution name'));
 			return false;
 		}
-		if (!$password1) {
+		if (!$password1 || trim($password1) == "") {
 			$this->setError(_('password1^' . 'You must supply a password'));
 			return false;
 		}
@@ -678,6 +683,26 @@ account will be deleted.',
 		$mail_site = $mail_site ? 1 : 0;
 		$mail_va = $mail_va ? 1 : 0;
 		$block_ratings = $use_ratings ? 0 : 1;
+
+
+		// Check parameter validity.
+		if (!$firstname || trim($firstname) == "") {
+			$this->setError(_('firstname^' . 'You must supply a first name'));
+			return false;
+		}
+		if (!$lastname || trim($lastname) == "") {
+			$this->setError(_('lastname^' . 'You must supply a last name'));
+			return false;
+		}
+		if ((preg_match('/[A-Za-z]/', $firstname) && preg_match('/[0-9]/', $firstname)) ||
+			(preg_match('/[A-Za-z]/', $lastname) && preg_match('/[0-9]/', $lastname))) {
+			$this->setError('Please check that all fields are filled out properly');
+			return false;
+		}
+		if (!$university_name || trim($university_name) == "") {
+			$this->setError(_('university_name^' . 'You must supply a university/institution name'));
+			return false;
+		}
 
 		// Put the user picture someplace permanent
                 $the_pic_file_type = false;
