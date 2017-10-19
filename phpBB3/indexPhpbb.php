@@ -75,19 +75,6 @@ $params['title'] = 'phpBB' ;
 $params['pagename'] = $pluginname;
 $params['sectionvals'] = array ($group->getPublicName());
 
-// Page header.
-site_project_header($params);
-
-// Submenu title information.
-$subMenuTitle = array();
-$subMenuUrl = array();
-$subMenuTitle[] = 'View Forum';
-$subMenuUrl[]='/plugins/phpBB/indexPhpbb.php?group_id=' . $group_id . '&pluginname=phpBB';
-// Show the submenu.
-echo $HTML->beginSubMenu();
-echo $HTML->printSubMenu($subMenuTitle, $subMenuUrl, array());
-echo $HTML->endSubMenu();
-
 // Get moderators from forum database.
 $arrModerators = getModerators($group_id);
 $arrFullNames = array();
@@ -103,10 +90,26 @@ foreach ($arrModerators as $key=>$username) {
 	}
 }
 $strModerators = implode(", ", $arrFullNames);
+
+// Page header.
+site_project_header($params);
+
+// Submenu title information.
+$subMenuTitle = array();
+$subMenuUrl = array();
+$subMenuTitle[] = 'View Forum';
+$subMenuUrl[]='/plugins/phpBB/indexPhpbb.php?group_id=' . $group_id . '&pluginname=phpBB';
+
+// Show the submenu.
+echo $HTML->beginSubMenu();
+echo $HTML->printSubMenu($subMenuTitle, $subMenuUrl, array());
 if (!empty($strModerators)) {
 	// Has moderators.
 	echo "<p>Moderators: " . $strModerators . "</p>";
 }
+// Link to Forum statiscis page.
+echo "<a href='/project/stats/forum_stats.php?group_id=" . $group_id . "'>Forum Statistics and Usage</a>";
+echo $HTML->endSubMenu();
 
 // Store $group_id in $_COOKIE.
 //
