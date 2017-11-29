@@ -1009,6 +1009,8 @@ myReq.done(function(strPageData) {
 		$("#pagelocation").remove();
 		$("#pagetrail").remove();
 
+		window.setTimeout(myresize, 300);
+
 		// Scale image logos.
 		$("img").each(function() {
 			var theImage = new Image();
@@ -1024,8 +1026,8 @@ myReq.done(function(strPageData) {
 				// Image loaded.
 
 				// Get element's dimenions.
-				var elemWidth = myThis.width();
-				var elemHeight = myThis.height();
+				var elemWidth = 86;
+				var elemHeight = 86;
 
 				// Get image file's dimensions.
 				var theNaturalWidth = theImage.width;
@@ -1058,6 +1060,10 @@ myReq.done(function(strPageData) {
 			};
 		});
 	});
+
+	function myresize() {
+		$(window).resize();
+	}
 
 	// NOTE: left and width information are available only after 
 	// $(window).resize() is invoked!!!
