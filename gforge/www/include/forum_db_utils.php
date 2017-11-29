@@ -184,7 +184,13 @@ function getCategoryPosts($numPostsToShow, $categoryId, $suppressDetails=false) 
 
 	if (isset($categoryId) && $categoryId != "") {
 		// Has category id.
-		$strQueryGroup .= 'AND trove_cat_id=$1';
+		// NOTE: Retrieve directly related communities from trove_cat_link (one-level deep).
+		$strQueryGroup .= 'AND (' .
+		'trove_cat_id=$1 OR ' .
+		'tgl.trove_cat_id IN (' .
+		'SELECT linked_trove_cat_id FROM trove_cat_link ' .
+		'WHERE trove_cat_id=$1)' .
+		')';
 		$resGroups = db_query_params($strQueryGroup, array($categoryId));
 	}
 	else {

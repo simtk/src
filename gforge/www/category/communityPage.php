@@ -235,6 +235,13 @@ header("X-UA-Compatible: IE=Edge");
 	</div><!-- categories_featured -->
 	</div><!-- featured_projs -->
 
+	<div class="communities" style="Display: none;">
+	<h2 class='underlined'>Related communities</h2>
+
+	<div class="related_communities" id="related_communities">
+	</div><!-- related_communities -->
+	</div><!-- communities -->
+
 	<h2 class='underlined'>Recently updated projects</h2>
 
 	<div class="categories_home" id="categories_home">
