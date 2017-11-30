@@ -66,6 +66,54 @@ var getFeaturedProjects = function(projectData) {
 };
 
 
+// Get related communities.
+var getRelatedCommunities = function(projectData) {
+
+	$("#communities").html("Loading...");
+
+	// Get related communities.
+	var catId = findQueryParam("cat");
+	cats = catId.split(",");
+
+	// Retrieve related communities.
+	var theURL = "/category/getCommunities.php?cat=" + cats[0];
+	$.ajax({
+		url: theURL,
+		success: function(strCommunities) {
+
+			var communitiesDiv = $("#communities");
+			$("#communities").html("");
+
+			// Get communities as a comma-separated string.
+			if (strCommunities.indexOf("***ERROR***") !== -1) {
+				// Error retrieving from communities.
+				console.log("Error retrieving communities.!!!");
+				return;
+			}
+
+			// Convert JSON string to object.
+			communityData = JSON.parse(strCommunities);
+
+			// Add communities.
+			numCommunitiesToShow = communityData.length;
+			for (var cnt = 0; cnt < numCommunitiesToShow; cnt++) {
+				renderCommunityInfo("related_communities", "item_home_categories", 
+					communityData[cnt], false);
+			}
+
+			if (numCommunitiesToShow == 0) {
+				// Hide DIV for related communities.
+				$(".communities").hide();
+			}
+			else {
+				// Show DIV for related communities.
+				$(".communities").show();
+			}
+		}
+	});
+};
+
+
 // Get category projects.
 var getCategoryProjects = function() {
 
@@ -82,8 +130,6 @@ var getCategoryProjects = function() {
 		dataType: "json",
 		url: theURL
 	}).done(function(projectData) {
-
-		// Display featured projects.
 		handleCategoryProjects(projectData, cats[0]);
 	});
 };
@@ -246,6 +292,9 @@ var handleCategoryProjects = function(projectData, catId) {
 	// Get featured projects.
 	// NOTE: category project data are passed to this method. 
 	getFeaturedProjects(projectData);
+
+	// Get related communities.
+	getRelatedCommunities();
 };
 
 
@@ -325,5 +374,46 @@ var renderProjectInfo = function(targetDivId, itemName, projectItem, use_thumb) 
 	return pDiv;
 };
 
+
+// Display community item.
+var renderCommunityInfo = function(targetDivId, itemName, communityItem, use_thumb) {
+
+	if (typeof(use_thumb) === 'undefined') {
+		use_thumb = true;
+	}
+
+	var pDiv = $("#" + targetDivId);
+
+	var strToAdd = "<div class='" + itemName + "'>";
+
+	var theLink = communityItem.link;
+	// Provide default logo if logo is not found.
+	if (use_thumb) {
+		strToAdd += "<div class='categories_img'>" + 
+			"<img alt='pic' src='/logos/" + communityItem.logo_file + 
+			"_thumb' onerror=\"this.src='/logos/_thumb'\"/>" + 
+			"</div>";
+	}
+	else {
+		strToAdd += "<div class='categories_img'>" +
+			"<img alt='pic' src='/logos/" + communityItem.logo_file + 
+			"' onerror=\"this.src='/logos/_thumb'\"/>" +
+			"</div>";
+	}
+
+	strToAdd += "<div class='categories_text'>" + 
+		"<h4><a href='" + theLink + "' class='title'>" + 
+			communityItem.community_name + "</a></h4>" + 
+		"<p>" + $.trim(communityItem.description) + "</p>" +
+		"</div>";
+
+	strToAdd += "<div style='clear: both;'></div>";
+
+	strToAdd += "</div'>";
+
+	pDiv.append(strToAdd);
+
+	return pDiv;
+};
 
 
