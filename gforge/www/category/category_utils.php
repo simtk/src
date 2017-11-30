@@ -87,7 +87,14 @@ function show_category_publications($numPublicationsToShow, $categoryId) {
 		"WHERE g.simtk_is_public=1 ";
 	if (isset($categoryId) && $categoryId != "") {
 		// Has category id.
-		$sqlQueryPub = $sqlQueryPub . "AND tgl.trove_cat_id=$1 ";
+		// NOTE: Retrieve directly related communities from trove_cat_link (one-level deep).
+		$sqlQueryPub = $sqlQueryPub . 
+			"AND " . "(" .
+			"tgl.trove_cat_id=$1 OR " .
+			"tgl.trove_cat_id IN (" .
+			"SELECT linked_trove_cat_id FROM trove_cat_link " .
+			"WHERE trove_cat_id=$1)" .
+			")";
 	}
 	$sqlQueryPub = $sqlQueryPub . 
 		"AND g.status='A' " .
