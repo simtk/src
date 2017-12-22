@@ -103,8 +103,8 @@ function displayStatsBlock($groupObj) {
 			$total_followers = $public_following_count + $private_following_count;
 		}
 		if ($total_followers > 0) {
-			echo '<div style="font-size:13px;line-height:17px;color:#a7a7a7; margin-bottom:8px">' . 
-				$total_followers . ' followers</div>';
+			echo '<a style="color:#5e96e1;font-size:24px;font-weight:400;" href="/plugins/following/index.php?group_id=' . $group_id . '">' . $total_followers . '</a>';
+			echo '<p style="font-size:13px;line-height:17px;color:#a7a7a7;margin-top:-5px;">followers</p>';
 		}
 	}
 

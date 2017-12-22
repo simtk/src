@@ -565,14 +565,14 @@ $(window).load(function() {
 		$url = $group->getSocialURL("facebook");
 		if ($url !== false && trim($url) != "") {
 			// Found Facebook URL for group.
-			echo '<a class="popup" href="' . $url .
+			echo '<a target="_blank" class="popup" href="' . $url .
 				'"><img src="/themes/simtk/images/demonstration/social-facebook.png" class="social_icon social_facebook"/></a>&nbsp;';
 		}
 		// Twitter.
 		$url = $group->getSocialURL("twitter");
 		if ($url !== false && trim($url) != "") {
 			// Found Twitter URL for group.
-			echo '<a class="popup" href="' . $url .
+			echo '<a target="_blank" class="popup" href="' . $url .
 				'"><img src="/themes/simtk/images/demonstration/social-twitter.png" class="social_icon social_twitter"/></a>&nbsp;';
 		}
 ?>
