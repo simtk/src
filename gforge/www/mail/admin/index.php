@@ -41,6 +41,22 @@ require_once $gfcommon.'mail/MailingListFactory.class.php';
 
 <?php
 $group_id = getIntFromRequest('group_id');
+if ($group_id == 0) {
+	// group_id is not set; try getting list_name.
+	$list_name = getStringFromRequest('list_name');
+	$list_name = strtolower(trim($list_name));
+	if ($list_name != "") {
+		// Lookup group_id using list_name.
+		$strQuery = "SELECT group_id FROM mail_group_list " .
+			"WHERE lower(list_name)=$1";
+		$res = db_query_params($strQuery, array($list_name));
+		if ($res || db_numrows($res) > 0) {
+			// The list_name should be unique.
+			// Just in case, get the first one.
+			$group_id = db_result($res, 0, 'group_id');
+		}
+	}
+}
 
 if ($group_id) {
 	$group = group_get_object($group_id);

@@ -115,149 +115,161 @@ class Following extends Error {
 	 */
 	function getFollowing($group_id) {
 
-		$res = db_query_params("SELECT * FROM project_follows,users WHERE users.user_name = project_follows.user_name and users.status = 'A' and group_id= ". $group_id ." AND follows = true",array());
-
-		if (!$res || db_numrows($res) < 1) {
+		$strQuery = "SELECT * FROM project_follows pf " .
+			"JOIN users u " .
+			"ON u.user_name=pf.user_name " .
+			"AND u.status='A' " .
+			"AND pf.group_id=$1 " .
+			"AND pf.follows=true";
+		$res = db_query_params($strQuery, array($group_id));
+		if (!$res) {
 			return false;
 		}
-
-                $results = array();
-
-                while ($row = db_fetch_array($res)) {
-                   $result = new DALQueryResultFollow();
-
-                   foreach ($row as $k=>$v){
-                      $result->$k = $v;
-                   }
-
-                   $results[] = $result;
-
-                }
-
+		$results = array();
+		while ($row = db_fetch_array($res)) {
+			$result = new DALQueryResultFollow();
+			foreach ($row as $k=>$v) {
+				$result->$k = $v;
+			}
+			$results[] = $result;
+		}
 		db_free_result($res);
 
 		return $results;
-
 	}
 
-	
-	/**
-	 *  isFollowing() - get all rows for this following from the database.
-	 *
-	 *	@return	arrray  The array of Followings 
-	 */
-	function isFollowing($group_id,$user_name) {
 
-		$res = db_query_params("SELECT * FROM project_follows WHERE group_id='". $group_id ."' AND follows = true AND user_name = '" . $user_name . "'",array());
+	// Is user following this group either publicly or privately?
+	// Optional parameter: "public" or "private" follower only.
+	function isFollowing($group_id, $user_name, $follow_type="") {
 
+		$strQuery = "SELECT user_name FROM project_follows " .
+			"WHERE group_id=$1 " .
+			"AND follows=true " .
+			"AND user_name=$2 ";
+		if ($follow_type == "public") {
+			$strQuery .= "AND public=true";
+		}
+		else if ($follow_type == "private") {
+			$strQuery .= "AND public=false";
+		}
+		$res = db_query_params($strQuery, 
+			array($group_id, $user_name));
 		if (!$res || db_numrows($res) < 1) {
 			return false;
 		}
 
-        return true;
-
+		return true;
 	}
 
 	
 
-    /**
-	 *  getFollowing() - get all rows for this following from the database.
+	/**
+	 *  getPrivateFollowing() - get private following rows.
 	 *
-	 *	@return	arrray  The array of Followings 
+	 *	@return	arrray  The array of private followers. 
 	 */
 	function getPrivateFollowing($group_id) {
 
-		$res = db_query_params("SELECT * FROM project_follows,users WHERE users.user_name = project_follows.user_name and users.status = 'A' and group_id='". $group_id ."' AND follows = true AND public = false",array());
-
-		if (!$res || db_numrows($res) < 1) {
+		$strQuery = "SELECT * FROM project_follows pf " .
+			"JOIN users u " .
+			"ON u.user_name=pf.user_name " .
+			"AND u.status='A' " .
+			"AND pf.group_id=$1 " .
+			"AND pf.follows=true " .
+			"AND pf.public=false";
+		$res = db_query_params($strQuery, array($group_id));
+		if (!$res) {
 			return false;
 		}
-
-                $results = array();
-
-                while ($row = db_fetch_array($res)) {
-                   $result = new DALQueryResultFollow();
-
-                   foreach ($row as $k=>$v){
-                      $result->$k = $v;
-                   }
-
-                   $results[] = $result;
-
-                }
-
+		$results = array();
+		while ($row = db_fetch_array($res)) {
+			$result = new DALQueryResultFollow();
+			foreach ($row as $k=>$v) {
+				$result->$k = $v;
+			}
+			$results[] = $result;
+		}
 		db_free_result($res);
 
 		return $results;
-
 	}
 
 
-	/**
-	 *  getFollowing() - get all rows for this following from the database.
-	 *
-	 *	@return	arrray  The array of Followings 
-	 */
+	// Get count of private followers.
 	function getPrivateFollowingCount($group_id) {
 
-		$res = db_query_params("SELECT * FROM project_follows,users WHERE users.user_name = project_follows.user_name and users.status = 'A' and group_id='". $group_id ."' AND follows = true AND public = false",array());
-
-		if (!$res || db_numrows($res) < 1) {
+		$strQuery = "SELECT count(*) FROM project_follows pf " .
+			"JOIN users u " .
+			"ON u.user_name=pf.user_name " .
+			"AND u.status='A' " .
+			"AND pf.group_id=$1 " .
+			"AND pf.follows=true " .
+			"AND pf.public=false";
+		$res = db_query_params($strQuery, array($group_id));
+		if (!$res) {
 			return 0;
 		}
+		$count = 0;
+		while ($row = db_fetch_array($res)) {
+			$count = $row['count'];
+		}
 
-		return db_numrows($res);
+		return $count;
 	}
 
-
-	/**
-	 *  getFollowing() - get all rows for this following from the database.
-	 *
-	 *	@return	arrray  The array of Followings 
-	 */
+	// Get count of public followers.
 	function getPublicFollowingCount($group_id) {
 
-		$res = db_query_params("SELECT * FROM project_follows,users WHERE users.user_name = project_follows.user_name and users.status = 'A' and group_id='". $group_id ."' AND follows = true AND public = true",array());
-
-		if (!$res || db_numrows($res) < 1) {
+		$strQuery = "SELECT count(*) FROM project_follows pf " .
+			"JOIN users u " .
+			"ON u.user_name=pf.user_name " .
+			"AND u.status='A' " .
+			"AND pf.group_id=$1 " .
+			"AND pf.follows=true " .
+			"AND pf.public=true";
+		$res = db_query_params($strQuery, array($group_id));
+		if (!$res) {
 			return 0;
 		}
+		$count = 0;
+		while ($row = db_fetch_array($res)) {
+			$count = $row['count'];
+		}
 
-		return db_numrows($res);
+		return $count;
 	}
 
 
 	/**
-	/**
-	 *  getFollowing() - get all rows for this following from the database.
+	 *  getPublicFollowing() - get public following rows.
 	 *
-	 *	@return	arrray  The array of Followings 
+	 *	@return	arrray  The array of public followers. 
 	 */
 	function getPublicFollowing($group_id) {
 
-		$res = db_query_params("SELECT * FROM project_follows,users WHERE users.user_name = project_follows.user_name and users.status = 'A' and group_id='". $group_id ."' AND follows = true AND public = true",array());
-
-		if (!$res || db_numrows($res) < 1) {
+		$strQuery = "SELECT * FROM project_follows pf " .
+			"JOIN users u " .
+			"ON u.user_name=pf.user_name " .
+			"AND u.status='A' " .
+			"AND pf.group_id=$1 " .
+			"AND pf.follows=true " .
+			"AND pf.public=true";
+		$res = db_query_params($strQuery, array($group_id));
+		if (!$res) {
 			return false;
 		}
-
-                $results = array();
-
-                while ($row = db_fetch_array($res)) {
-                   $result = new DALQueryResultFollow();
-
-                   foreach ($row as $k=>$v){
-                      $result->$k = $v;
-                   }
-
-                   $results[] = $result;
-
-                }
-
+		$results = array();
+		while ($row = db_fetch_array($res)) {
+			$result = new DALQueryResultFollow();
+			foreach ($row as $k=>$v) {
+				$result->$k = $v;
+			}
+			$results[] = $result;
+		}
 		db_free_result($res);
 
 		return $results;
-
 	}
 
 

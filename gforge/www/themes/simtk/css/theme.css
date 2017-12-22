@@ -8499,6 +8499,15 @@ Project layout at some othe styles
   text-align: center;
   display: block;
 }
+
+.project_share table {
+  margin: auto;
+}
+.project_share table tr td {
+  padding-bottom: 2px;
+  text-align: left;
+}
+
 .project_share .social_buttons {
   vertical-align: top;
   padding-bottom: 5px;
@@ -8521,7 +8530,7 @@ Project layout at some othe styles
   .project_share {
     padding-top: 30px;
     text-align: center;
-    width: 155px;
+    width: 220px;
     padding-left: 0px;
     padding-right: 15px;
     display: table-cell;
@@ -10603,5 +10612,19 @@ h2#mapheader {
     padding: 2px 10px;
     font-size: 18px;
   }
+}
+
+.followDropdownItemChecked::before {
+	position: absolute;
+	left: .4rem;
+	content: '✓';
+	font-weight: 600;
+}
+.followDropdownCaret {
+	background: url('/themes/simtk/images/header/icons.png') no-repeat right -25px;
+	width: 22px;
+	height: 15px;
+	margin-left: 5px;
+	display: inline-block;
 }
 

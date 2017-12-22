@@ -61,12 +61,12 @@ html_use_jqueryui();
 		<li><p><b>Private follower:</b> Your name and profile will NOT be displayed in the list of followers. The number of private followers is displayed at the top of the follower list.</p></li>
 		</ul>
 		
-		<p>To see the list of public followers on a project, click on the number next to the Follow button.</p>
+		<p>To see the list of public followers on a project, click on the number next to the “Follow: SimTK” label.</p>
 
 		<br />
 		<h4>How to Follow</h4>
 		
-		<p>In order to follow a project, you must be a <a href="/account/register.php">member</a> of SimTK. Clicking on the "Follow" button in the top right of every project page will give you the option to follow the project as a public or private follower. If you are already following a project, the button allows you to unfollow the project.</p>
+		<p>In order to follow a project, you must be a <a href="/account/register.php">member</a> of SimTK. Use the drop-down menu next to the “Follow: SimTK” label in the top right of every project page to follow the project as a public or private follower or to unfollow the project.</p>
 		
         </div>
     </div>
