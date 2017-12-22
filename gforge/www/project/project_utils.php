@@ -6,7 +6,7 @@
  * 
  * Utility file to handle project display.
  *
- * Copyright 2005-2016, SimTK Team
+ * Copyright 2005-2017, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -77,9 +77,36 @@ function displayStatsBlock($groupObj) {
 	echo '<a style="color:#5e96e1;font-size:24px;font-weight:400;" href="/plugins/reports/index.php?type=group&group_id=' . $group_id . '&reports=reports">' . $totalDownloads . '</a>';
 	echo '<p style="font-size:13px;line-height:17px;color:#a7a7a7;margin-top:-5px">downloads</p>';
 	
-	// Forum posts.
-	echo '<a style="color:#5e96e1;font-size:24px;font-weight:400;" href="/plugins/phpBB/indexPhpbb.php?group_id=' . $group_id . '&pluginname=phpBB">' . $forumPosts . '</a>';
-	echo '<p style="font-size:13px;line-height:17px;color:#a7a7a7;margin-top:-5px;">forum posts</p>';
+	if ($groupObj->usesPlugin("phpBB")) {
+		// Uses forums.
+		// Forum posts.
+		echo '<a style="color:#5e96e1;font-size:24px;font-weight:400;" href="/plugins/phpBB/indexPhpbb.php?group_id=' . $group_id . '&pluginname=phpBB">' . $forumPosts . '</a>';
+		echo '<p style="font-size:13px;line-height:17px;color:#a7a7a7;margin-top:-5px;">forum posts</p>';
+	}
+
+	$following = new Following($groupObj);
+	if (!$following || !is_object($following)) {
+	}
+	elseif ($following->isError()) {
+	}
+	else {
+		$result = $following->getFollowing($group_id);
+		if (!$result) {
+			$total_followers = 0;
+		}
+		else {
+			// get public count
+			$public_following_count = $following->getPublicFollowingCount($group_id);
+
+			// get private count
+			$private_following_count = $following->getPrivateFollowingCount($group_id);
+			$total_followers = $public_following_count + $private_following_count;
+		}
+		if ($total_followers > 0) {
+			echo '<a style="color:#5e96e1;font-size:24px;font-weight:400;" href="/plugins/following/index.php?group_id=' . $group_id . '">' . $total_followers . '</a>';
+			echo '<p style="font-size:13px;line-height:17px;color:#a7a7a7;margin-top:-5px;">followers</p>';
+		}
+	}
 
 	// Project last updated.
 	if ($lastUpdated) {
