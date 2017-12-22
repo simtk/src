@@ -57,6 +57,12 @@ if (!$group || !is_object($group)) {
 }
 $following = new Following($group);
         
+$followtype = getIntFromRequest('followtype');
+if ($followtype == 1 || $followtype == 2) {
+	// Following project requires user to be logged in.
+	session_require_login();
+}
+
 if (session_loggedin()) {
         // get user
         $user = session_get_user(); // get the session user
@@ -89,8 +95,8 @@ site_project_header(array('title'=>$title, 'group'=>$group_id, 'toptab'=>'follow
 ?>
 
 <div class="project_overview_main">
-    <div style="display: table; width: 100%;"> 
-        <div class="main_col">
+	<div style="display: table; width: 100%;">
+		<div class="main_col">
 
 <?php
 
@@ -98,90 +104,101 @@ site_project_header(array('title'=>$title, 'group'=>$group_id, 'toptab'=>'follow
 	$unfollow = getIntFromRequest('unfollow');
 	$pluginname = getStringFromRequest('pluginname');
 
-		// DO THE STUFF FOR THE PROJECT PART HERE
+	// DO THE STUFF FOR THE PROJECT PART HERE
 
+	if ($unfollow == 1) {
+		$following->unfollow($group_id,$user_name);
+		$homepage = "/projects/" . $group->getUnixName() . "/";
+		header("Location: $homepage");
+		exit;
+	}
+	else if ($followtype == 1) {
+		// Public following.
+		$following->follow($user_name, "true", $group_id,$user_name);
+		$homepage = "/projects/" . $group->getUnixName() . "/";
+		header("Location: $homepage");
+		exit;
+	}
+	else if ($followtype == 2) {
+		// Private following.
+		$following->follow($user_name, "false", $group_id,$user_name);
+		$homepage = "/projects/" . $group->getUnixName() . "/";
+		header("Location: $homepage");
+		exit;
+	}
 
-		if ($unfollow == 1) {
-			$following->unfollow($group_id,$user_name);
-			$homepage = "/projects/" . $group->getUnixName() . "/";
-			header("Location: $homepage");
-			exit;
+	// Check permissions before showing further contents.
+	if (forge_check_perm('project_read', $group_id)) {
+		$result = $following->getFollowing($group_id);
+		if ($result === false) {
+			// Cannot fetch information.
+			echo '<p class="warning_msg">Followers information is not available.</p>';
 		}
+		else {
+			// get public count
+			$public_following_count = $following->getPublicFollowingCount($group_id);
+			// get private count
+			$private_following_count = $following->getPrivateFollowingCount($group_id);
 
-		// Check permissions before showing further contents.
-		if (forge_check_perm('project_read', $group_id)) {
+			echo "<h3>$public_following_count public followers and $private_following_count private followers</h3>";
+			echo "<p><a href='follow-info.php?group_id=$group_id'>What does it mean to follow a project?</a></p>";
 
-                        $result = $following->getFollowing($group_id);
+			if ($public_following_count > 0) {
+				// Display users.
+				$public_result = $following->getPublicFollowing($group_id);
 
-                        if (!$result) {
-                          echo '<p class="information">'._('There are 0 public followers and 0 private followers').'</p>';
-                        }
-                        else {
-                          // get public count
-                          $public_following_count = $following->getPublicFollowingCount($group_id);
+				echo '<div class="container">';
+				foreach ($public_result as $public_result_list) {
+					$user = user_get_object_by_name($public_result_list->user_name);
+					if (!$user || 
+						!is_object($user) || 
+						$user->isError() || 
+						!$user->isActive()) {
+						continue;
+					}
 
-                          // get private count
-                          $private_following_count = $following->getPrivateFollowingCount($group_id);
+					$picture_file = $user->getPictureFile();
+					if (empty($picture_file)) {
+						$picture_file = "user_profile.jpg";
+					}
+					echo '<div class="row">';
+					echo '<div class="col-md-2">';
+					echo '<div class="following_member">';
+					echo '<a href="/users/' . 
+						$public_result_list->user_name . '">' .
+						'<img ' .
+						' onError="this.onerror=null;this.src=' . 
+						"'" . '/userpics/user_profile.jpg' . "';" . '"' .
+						' src="/userpics/' . $picture_file . '"' .
+						' alt="Image not available" /></a>';
+					echo "</div> <!-- /.following_member -->";
+					echo "</div>";
+					echo '<div class="col-md-10">';
 
-                          echo "<h3>$public_following_count public followers and $private_following_count private followers</h3>";
+					echo '<br /><a href="/users/' . 
+						$public_result_list->user_name . 
+						'">' . $user->getRealName() . 
+						'</a><p>';
+					$interest = $user->getSimTKInterest();
+					if (!empty($interest)) {
+						echo $interest . "<br />";
+					}
+					$university = $user->getUniversityName();
+					if (isset($university)) {
+						echo 'Institution: ' . $university;
+					}
+					echo "</p></div>";
+					echo "</div>";
+				} // foreach
 
-						  echo "<p><a href='follow-info.php?group_id=$group_id'>What does it mean to follow a project?</a></p>";
-						  
-                          if ($public_following_count > 0) {
-                            // display users
-                            $public_result = $following->getPublicFollowing($group_id);
-							echo '<div class="container">';
-                            foreach ($public_result as $public_result_list) {
-							   $user = user_get_object_by_name($public_result_list->user_name);
-							   
-                               if (!$user || !is_object($user) || $user->isError() || !$user->isActive()) {
-                                 //exit_error(_('That user does not exist.'));
-								 continue;
-                               } 
-							  
-							   $picture_file = $user->getPictureFile();
-							   if (empty($picture_file)) {
-//							      $picture_file = "tmp_team";
-							      $picture_file = "user_profile.jpg";
-							   }
-							   echo '<div class="row">';
-							   echo '<div class="col-md-2">';
-							   echo '<div class="following_member">';							   
-                               echo '<a href="/users/' . $public_result_list->user_name . '">' .
-					'<img ' .
-					' onError="this.onerror=null;this.src=' . "'" . '/userpics/user_profile.jpg' . "';" . '"' .
-					' src="/userpics/' . $picture_file . '"' . 
-					' alt="Image not available" /></a>';     
-                               echo "</div> <!-- /.following_member -->";	
-                               echo "</div>";	
-                               echo '<div class="col-md-10">';							   
-							   echo '<br /><a href="/users/' . $public_result_list->user_name . '">' . $user->getRealName() . '</a><p>';
-							   $interest = $user->getSimTKInterest();
-							   if (!empty($interest)) {
-								  echo $interest . "<br />";
-							   }
-							   $university = $user->getUniversityName();
-							   if (isset($university)) {
-							      echo 'Institution: ' . $university;
-							   }
-							   echo "</p></div>";
-							   echo "</div>";
-                            } // foreach
-                            echo "</div>";
-
-                          } // if public_following_count
-
-                        } // get public count
-
-		}
-
+				echo "</div>";
+			} // if public_following_count
+		} // if has followers
+	}
 ?>
-
-        </div>
-    </div>
+		</div>
+	</div>
 </div>
-
-
 
 <?php
 

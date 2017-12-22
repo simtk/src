@@ -1684,6 +1684,64 @@ class Group extends Error {
 	}
 
 
+	// Get count of number of social media URLs for group.
+	function countSocialURLs() {
+
+		$count = 0;
+		$strQuery = "SELECT count(url) FROM group_social_urls " .
+			"WHERE group_id=" . $this->getID();
+		$resGroup = db_query_params($strQuery, array());
+		while ($theRow = db_fetch_array($resGroup)) {
+			$count = $theRow['count'];
+		}
+
+		return $count;
+	}
+
+	// Save social media URL.
+	function saveSocialURL($socialname, $url="") {
+
+                db_begin();
+
+		$strUpdate = 'UPDATE group_social_urls ' .
+			'SET url=$3 ' .
+			'WHERE group_id=$1 ' .
+			'AND socialmedia=$2';
+		$res = db_query_params($strUpdate, 
+			array($this->getID(), $socialname, $url));
+		if (!$res || db_affected_rows($res) < 1) {
+			$strInsert = 'INSERT INTO group_social_urls ' .
+				'(group_id, socialmedia, url) ' .
+				'VALUES ($1, $2, $3)';
+			$res = db_query_params($strInsert, 
+				array($this->getID(), $socialname, $url));
+			if (!$res || db_affected_rows($res) < 1) {
+				// Cannot insert entry.
+				db_rollback();
+				return false;
+			}
+		}
+
+		db_commit();
+		return true;
+	}
+
+	// FusionForge and forum shares the same group name.
+	// Retrieve social media URL for group, if present.
+	function getSocialURL($socialname) {
+
+		$url = "";
+		$strQuery = "SELECT url FROM group_social_urls " .
+			"WHERE group_id=" . $this->getID() . " " .
+			"AND socialmedia=$1";
+		$resGroup = db_query_params($strQuery, array($socialname));
+		while ($theRow = db_fetch_array($resGroup)) {
+			$url = $theRow['url'];
+		}
+
+		return $url;
+	}
+
 	// Get GitHub accses URL.
 	function getGitHubAccessURL() {
 

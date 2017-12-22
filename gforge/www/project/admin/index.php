@@ -165,7 +165,7 @@ function HidePopup()
 <?php } ?>
 
 <h2><?php echo _('Project Title'); ?></h2>
-<p><b>Restrictions: 3-80 characters</b>.
+<p><b>Restrictions: 3-80 characters</b>
 </p>
 
 <p>
@@ -173,7 +173,7 @@ function HidePopup()
 </p>
 
 <h2><?php echo _('Summary'); ?></h2>
-<p>Your project summary appears on your project overview page and in the search results. <b>Restrictions:  10-255 characters</b>.</p>
+<p>Your project summary appears on your project overview page and in the search results. <b>Restrictions:  10-255 characters</b></p>
 
 <p>
 <textarea cols="80" rows="3" name="form_summary">
@@ -229,11 +229,16 @@ function HidePopup()
 <h2><?php echo _('Privacy'); ?></h2>
 
 <p>
-<input type="checkbox" name="private" value="0" <?php if (!$group->isPublic()) { echo 'checked="checked"'; } ?>/> Make entire project private - only title is publicly viewable.
+<input type="checkbox" name="private" value="0" <?php if (!$group->isPublic()) { echo 'checked="checked"'; } ?>/> Make entire project private - only title is publicly viewable
 </p>
 
 <p><b>This option is discouraged. Instead, we suggest independently limiting access to individual sections of the project.</b>
 </p>
+
+<h2>Social Media (Beta)</h2>
+<p>To add social media links to your SimTK project, <a href="/sendmessage.php?touser=101&subject=<?php
+        echo urlencode("Add project's social media pages to " . $group->getPublicName() . ".");
+?>">contact the SimTK Webmaster</a>.</p>
 
 <?php
 // This function is used to render checkboxes below

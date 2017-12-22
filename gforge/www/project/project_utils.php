@@ -84,6 +84,30 @@ function displayStatsBlock($groupObj) {
 		echo '<p style="font-size:13px;line-height:17px;color:#a7a7a7;margin-top:-5px;">forum posts</p>';
 	}
 
+	$following = new Following($groupObj);
+	if (!$following || !is_object($following)) {
+	}
+	elseif ($following->isError()) {
+	}
+	else {
+		$result = $following->getFollowing($group_id);
+		if (!$result) {
+			$total_followers = 0;
+		}
+		else {
+			// get public count
+			$public_following_count = $following->getPublicFollowingCount($group_id);
+
+			// get private count
+			$private_following_count = $following->getPrivateFollowingCount($group_id);
+			$total_followers = $public_following_count + $private_following_count;
+		}
+		if ($total_followers > 0) {
+			echo '<div style="font-size:13px;line-height:17px;color:#a7a7a7; margin-bottom:8px">' . 
+				$total_followers . ' followers</div>';
+		}
+	}
+
 	// Project last updated.
 	if ($lastUpdated) {
 		echo '<div style="font-size:13px;line-height:17px;color:#a7a7a7; margin-bottom:8px">Last updated<br/>' . $lastUpdated . '</div>';
