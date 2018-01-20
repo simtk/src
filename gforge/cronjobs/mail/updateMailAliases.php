@@ -51,14 +51,36 @@ for ($cnt = 0; $cnt < $numRows; $cnt++) {
 	}
 }
 
-if (count($arrMissingMailList) > 0) {
+// Find all deleted mailing lists.
+$arrDeletedMailList = array();
+$strQuery = "SELECT mailing_list_name FROM deleted_mailing_lists " .
+	"WHERE isdeleted=1";
+$res = db_query_params($strQuery, array());
+$numRows = db_numrows($res);
+for ($cnt = 0; $cnt < $numRows; $cnt++) {
+	$strMailList = strtolower(db_result($res, $cnt, 'mailing_list_name'));
+	if (findMailListAddr($strMailList) === TRUE) {
+		// Deleted mailing list is still present in /etc/aliases file.
+		// Remember this deleted missing list.
+		// Add a leading space and ending '"' to search for entry. 
+		$arrDeletedMailList[] = " " . $strMailList . '"';
+	}
+}
 
-	// Has missing mailing lists.
+if (count($arrMissingMailList) > 0 ||
+	count($arrDeletedMailList) > 0) {
+
+	// Has missing mailing lists or deleted mailing lists 
+	// that are still present in /etc/aliases.
+
 	// Make a copy of /etc/aliases file first.
 	copy("/etc/aliases", "/etc/aliases_" . date('Y_m_d_H_i'));
 
 	$strMissing = "";
-	$strEmail = "The following mailing lists were missing from /etc/aliases. Fixed.<br/>" . PHP_EOL;
+	$strEmail = "";
+	if (count($arrMissingMailList) > 0) {
+		$strEmail .= "The following mailing lists were missing from /etc/aliases. Fixed.<br/>" . PHP_EOL;
+	}
 	foreach ($arrMissingMailList as $strMailList) {
 		$strEmail .= $strMailList . "<br/>" . PHP_EOL;
 
@@ -97,13 +119,28 @@ if (count($arrMissingMailList) > 0) {
 
 	$fh = fopen("/etc/aliases", "r");
 	while (($line = fgets($fh)) !== false) {
-		if ($startTail === FALSE) {
-			// Get head.
-			$strHead .= $line;
+
+		// Check each entry to see if it has a deleted mailing list.
+		$isDeleted = FALSE;
+		foreach ($arrDeletedMailList as $strMailList) {
+			if (strpos($line, $strMailList) !== FALSE) {
+				// Found a mailing list that has been deleted.
+				// Do not include in /etc/aliases.
+				$isDeleted = TRUE;
+				break;
+			}
 		}
-		else {
-			// Get tail.
-			$strTail .= $line;
+
+		if ($isDeleted === FALSE) {
+			// This entry has not been deleted. Include in /etc/aliases.
+			if ($startTail === FALSE) {
+				// Get head.
+				$strHead .= $line;
+			}
+			else {
+				// Get tail.
+				$strTail .= $line;
+			}
 		}
 
 		// Put lines after the line that starts with 
@@ -124,8 +161,17 @@ if (count($arrMissingMailList) > 0) {
 	//echo $strBuff;
 	file_put_contents("/etc/aliases", $strBuff, LOCK_EX);
 
-	// Send notification email about missing lists.
-	sendEmail("webmaster@simtk.org", "Fixed missing mailing list", $strEmail);
+	fclose($fh);
+
+	if (count($arrDeletedMailList) > 0) {
+		$strEmail .= "Deleted the following mailing lists from /etc/aliases.<br/>" . PHP_EOL;
+		foreach ($arrDeletedMailList as $strMailList) {
+			$strEmail .= $strMailList . "<br/>" . PHP_EOL;
+		}
+	}
+
+	// Send notification email about fixing mailing lists.
+	sendEmail("webmaster@simtk.org", "Fixed mailing lists in /etc/aliases", $strEmail);
 }
 
 // Send email.
