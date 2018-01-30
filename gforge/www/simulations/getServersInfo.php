@@ -35,7 +35,7 @@
 require_once "../env.inc.php";
 require_once $gfcommon.'include/pre.php';
 
-$groupId = $_POST["GroupId"];
+$groupId = getIntFromPost("GroupId");
 
 // Get names of servers, software names, and versions.
 $serverNames = array();
@@ -49,8 +49,8 @@ $sql = "SELECT s.server_name serverName, " .
 	"FROM simulation_servers s " .
 	"JOIN simulation_requests r " .
 	"ON s.server_name=r.server_name " .
-	"WHERE s.group_id=" . $groupId;
-$result = db_query_params($sql, array());
+	"WHERE s.group_id=$1";
+$result = db_query_params($sql, array($groupId));
 $rows = db_numrows($result); 
 for ($i = 0; $i < $rows; $i++) {
 	$tmpServerName = db_result($result, $i, 'serverName');

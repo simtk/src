@@ -36,10 +36,8 @@ require_once '../env.inc.php';
 require_once $gfcommon.'include/pre.php';
 
 
-if ( $_GET['group_id'] )
-   $group_id = $_GET['group_id'];
-			
-if (!isset($group_id) || !is_numeric($group_id)) {
+$group_id = getIntFromRequest("group_id");
+if ($group_id == 0) {
     exit_error("GROUP PROBLEM","MISSING GROUP ID");
 }
 

@@ -37,14 +37,11 @@ require_once $gfcommon.'include/pre.php';
 require_once $gfcommon.'include/escapingUtils.php';
 
 // Get category id.
-if (isset($_GET["cat"])) {
-	$cat_id = intval($_GET["cat"]);
-}
-
+$cat_id = getIntFromRequest("cat");
 
 echo "[";
 
-if (isset($cat_id) && trim($cat_id) != "") {
+if ($cat_id != 0) {
 
 	// Retrieve community information.
 	$sql = "SELECT trove_cat_id, fullname, simtk_intro_text FROM trove_cat " .

@@ -42,11 +42,21 @@ $theUserName = user_getname();
 $theJobName = $_POST["JobName"];
 
 // Check whether job name is already present for the user.
-$sqlExistingJobName = "SELECT job_name FROM simulation_jobs_details WHERE " .
-		"user_name='" . $theUserName . "' AND " .
-		"job_name='" . $theJobName . "'";
+$sqlExistingJobName = "SELECT job_name FROM simulation_jobs_details " .
+	"WHERE user_name=$1 " .
+	"AND job_name=$2";
+if (!preg_match('/^[0-9a-zA-Z :\-\/]+$/', $theJobName)) {
+	// Invalid job name.
+	$theResult["isJobValid"] = false;
+	// Encode the result.
+	$strRes = json_encode($theResult);
 
-$resExistingJobName = db_query_params($sqlExistingJobName, array());
+	echo $strRes;
+	return;
+}
+
+$resExistingJobName = db_query_params($sqlExistingJobName, 
+	array($theUserName, $theJobName));
 $rowsExistingJobName = db_numrows($resExistingJobName);
 
 $theResult["UserName"] = $theUserName;

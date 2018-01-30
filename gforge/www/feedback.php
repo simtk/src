@@ -36,13 +36,11 @@ require_once 'env.inc.php';
 require_once $gfcommon.'include/pre.php';
 
 // Get group_id if present.
-$group_id = false;
-if (isset($_GET["group_id"])) {
-	$group_id = $_GET["group_id"];
-}
+$group_id = getIntFromRequest("group_id");
+
 // Display header.
 $HTML->header(array());
-if ($group_id !== false && trim($group_id) !== "") {
+if ($group_id != 0) {
 	// Has group_id. Look up group object.
 	$groupObj = group_get_object($group_id);
 	// Get project leads.

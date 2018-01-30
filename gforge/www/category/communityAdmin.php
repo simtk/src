@@ -37,7 +37,7 @@ require_once $gfcommon.'include/pre.php';
 require_once $gfwww.'include/trove.php';
 require_once $gfwww.'category/communityAdminUtils.php';
 
-$cat_id = $_GET["cat"];
+$cat_id = getIntFromRequest("cat");
 
 // Check permission for community page administration.
 $cntUsers = 0;

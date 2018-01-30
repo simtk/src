@@ -37,9 +37,8 @@ require_once $gfcommon.'include/pre.php';
 require_once $gfcommon.'include/escapingUtils.php';
 
 // Get category id.
-if (isset($_GET["cat"])) {
-	$cat_id = intval($_GET["cat"]);
-}
+$cat_id = getIntFromRequest("cat");
+$all_groups = getIntFromRequest("all_groups");
 
 echo "[";
 $sql = "SELECT *,
@@ -59,7 +58,7 @@ $sql = "SELECT *,
 	LEFT JOIN (SELECT group_id, MAX(adddate) AS modified FROM group_history GROUP BY group_id) AS gh ON g.group_id=gh.group_id 
 	LEFT JOIN (SELECT group_id as dls_group_id, downloads as dls_downloads from frs_dlstats_grouptotal_vw) as dls ON dls_group_id=g.group_id";
 
-if (isset($_GET["all_groups"]) && $_GET["all_groups"] == 1) {
+if ($all_groups == 1) {
 	// Includes both private and public projects.
 	$sql .= " WHERE status = 'A' " .
 		"AND NOT simtk_is_system IS NULL ";
@@ -71,7 +70,7 @@ else {
 }
 
 
-if (isset($cat_id) && trim($cat_id) != "" && $cat_id > 0) {
+if ($cat_id > 0) {
 	// Has category id.
 	$sql .= "AND trove_cat_id=$1 ";
 }
@@ -79,7 +78,7 @@ if (isset($cat_id) && trim($cat_id) != "" && $cat_id > 0) {
 $sql .= "ORDER BY g.group_id";
 
 
-if (isset($cat_id) && trim($cat_id) != "" && $cat_id > 0) {
+if ($cat_id > 0) {
 	// Has category id.
 	$db_res = db_query_params($sql, array(pg_escape_string($cat_id)));
 }
@@ -96,7 +95,7 @@ $sql = "SELECT t1.group_id, t2.trove_cat_id, c.fullname FROM trove_group_link t1
 	JOIN trove_group_link t2 ON t1.group_id=t2.group_id 
 	JOIN trove_cat c ON t2.trove_cat_id=c.trove_cat_id ";
 
-if (isset($cat_id) && trim($cat_id) != "" && $cat_id > 0) {
+if ($cat_id > 0) {
 	// Has category id.
 	$sql .= "WHERE t1.trove_cat_id=$1 ";
 }
@@ -104,7 +103,7 @@ if (isset($cat_id) && trim($cat_id) != "" && $cat_id > 0) {
 
 $sql .= "ORDER BY t1.group_id, t2.trove_cat_id";
 
-if (isset($cat_id) && trim($cat_id) != "" && $cat_id > 0) {
+if ($cat_id > 0) {
 	// Has category id.
 	$trove_res = db_query_params($sql, array(pg_escape_string($cat_id)));
 }
@@ -119,14 +118,14 @@ $trove_inc = 0;
 // Get "keywords" for categories.
 $sql = "SELECT keyword, project_id FROM project_keywords ";
 
-if (isset($cat_id) && trim($cat_id) != "" && $cat_id > 0) {
+if ($cat_id > 0) {
 	// Has category id.
 	$sql .= "WHERE project_id IN (SELECT group_id FROM trove_group_link WHERE trove_cat_id=$1) ";
 }
 
 $sql .= "ORDER BY project_id";
 
-if (isset($cat_id) && trim($cat_id) != "" && $cat_id > 0) {
+if ($cat_id > 0) {
 	// Has category id.
 	$keywords_res = db_query_params($sql, array(pg_escape_string($cat_id)));
 }
@@ -151,14 +150,14 @@ for ($i = 0; $i < $keywords_count; $i++) {
 // Get "Ontology" terms for categories.
 $sql = "SELECT bro_resource, project_id FROM project_bro_resources ";
 
-if (isset($cat_id) && trim($cat_id) != "" && $cat_id > 0) {
+if ($cat_id > 0) {
 	// Has category id.
 	$sql .= "WHERE project_id in (SELECT group_id FROM trove_group_link WHERE trove_cat_id=$1) ";
 }
 
 $sql .= "ORDER BY project_id";
 
-if (isset($cat_id) && trim($cat_id) != "" && $cat_id > 0) {
+if ($cat_id > 0) {
 	// Has category id.
 	$ontology_res = db_query_params($sql, array(pg_escape_string($cat_id)));
 }
@@ -190,7 +189,7 @@ $sql = "SELECT u.realname, home_group_id AS group_id  " .
 	"ON pur.role_id=pr.role_id " .
 	"JOIN users u " .
 	"ON pur.user_id=u.user_id ";
-if (isset($cat_id) && trim($cat_id) != "" && $cat_id > 0) {
+if ($cat_id > 0) {
 	// Has category id.
 	$sql .= "WHERE home_group_id in " .
 		"(SELECT group_id FROM trove_group_link WHERE trove_cat_id=$1) ";

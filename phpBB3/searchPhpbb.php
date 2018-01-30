@@ -42,6 +42,9 @@ $HTML->header(array());
 
 if (isset($_GET['author'])) {
 	$author = getStringFromRequest('author');
+	if (!preg_match('/^[a-z0-9][-a-z0-9_\.]+\z/', $author)) {
+                return;
+        }
 }
 else {
 	return;
