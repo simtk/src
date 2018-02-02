@@ -237,7 +237,7 @@ class DocumentManager extends Error {
 
                     $localDf->setStateID('4');
                     $d_arr_hidden =& $localDf->getDocuments();
-                    if ($localdocs != NULL && $d_arr_hidden != NULL) {
+                    if (isset($localdocs) && $localdocs != NULL && $d_arr_hidden != NULL) {
 	                   $localdocs = array_merge($localdocs, $d_arr_hidden);
                     } elseif ($d_arr_hidden != NULL) {
 	                  $localdocs = $d_arr_hidden;
@@ -245,7 +245,7 @@ class DocumentManager extends Error {
 
                     $localDf->setStateID('5');
                     $d_arr_private =& $localDf->getDocuments();
-                    if ($localdocs != NULL && $d_arr_private != NULL) {
+                    if (isset($localdocs) && $localdocs != NULL && $d_arr_private != NULL) {
 	                   $localdocs = array_merge($localdocs, $d_arr_private);
                     } elseif ($d_arr_private != NULL) {
 	                  $localdocs = $d_arr_private;
@@ -259,10 +259,12 @@ class DocumentManager extends Error {
                     $redirecturl = $baseredirecturl.'&view='.$linkmenu.'&dirid='.$dirid;
                     $actionlistfileurl = '?group_id='.$this->Group->getID().'&amp;view='.$linkmenu.'&amp;dirid='.$dirid;
 
-					foreach ($localdocs as $doc) {
-			           $nested_docs[$doc->getDocGroupID()][] = $doc;				   
-		            }
-		            $numFiles = $localDg->getNumberOfDocuments(1); 
+					if (isset($localdocs)) {
+						foreach ($localdocs as $doc) {
+							$nested_docs[$doc->getDocGroupID()][] = $doc;
+						}
+					}
+					$numFiles = $localDg->getNumberOfDocuments(1); 
 					
 					echo "<!-- START Panel --->"."\n";
 	                echo '<div>'."\n";
@@ -304,12 +306,12 @@ class DocumentManager extends Error {
 	                if (forge_check_perm('docman', $localDg->getID(), 'approve')) {
 		               echo '<div id="editdocgroup" style="display:none;">';
 		               echo '<h4 class="docman_h4">'. _('Edit this folder') .'</h4>';
-		               include ($gfcommon.'docman/views/editdocgroup.php');
+		               //include ($gfcommon.'docman/views/editdocgroup.php');
 		               echo '</div>';
 	                }
 	                if (forge_check_perm('docman', $localDg->getID(), 'submit')) {
 		               echo '<div id="additem" style="display:none">';
-		               include ($gfcommon.'docman/views/additem.php');
+		               //include ($gfcommon.'docman/views/additem.php');
 		               echo '</div>';
 	                }
 					
@@ -329,6 +331,7 @@ class DocumentManager extends Error {
 					
 					//echo '<div class="content'.$localDg->getID().'">';
 					
+					if (isset($nested_docs[$dirid])) {
 					foreach ($nested_docs[$dirid] as $d) {
 					   echo '<div class="content'.$dirid.'">';
 					   
@@ -346,8 +349,8 @@ class DocumentManager extends Error {
 		               }
 					   
 					   
+					   $admininfo = "";
 					   if (forge_check_perm('docman', $this->Group->getID(), 'approve')) {
-					      $admininfo = "";
 						  if ($d->getFileType() == "URL") {
 						     $admininfo = " (URL)";
 						  } else {
@@ -415,6 +418,7 @@ class DocumentManager extends Error {
 					   
 					  echo '</div><br />'."\n";
 					} // end of foreach
+					} // end of if (isset($nested_docs[$dirid]))...
 					
 				} else {
 					echo '<li id="leaf-'.$subGroupIdValue.'" class="'.$liclass.'">'.util_make_link($link, $localDg->getName()).$nbDocsLabel;
