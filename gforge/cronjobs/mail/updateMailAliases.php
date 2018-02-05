@@ -54,7 +54,9 @@ for ($cnt = 0; $cnt < $numRows; $cnt++) {
 // Find all deleted mailing lists.
 $arrDeletedMailList = array();
 $strQuery = "SELECT mailing_list_name FROM deleted_mailing_lists " .
-	"WHERE isdeleted=1";
+	"WHERE isdeleted=1 " .
+	"AND mailing_list_name NOT IN " .
+	"(SELECT list_name FROM mail_group_list WHERE status=3);";
 $res = db_query_params($strQuery, array());
 $numRows = db_numrows($res);
 for ($cnt = 0; $cnt < $numRows; $cnt++) {
