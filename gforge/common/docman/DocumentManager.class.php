@@ -175,7 +175,8 @@ class DocumentManager extends Error {
 		//echo "<br />sizeof subgroup: " . sizeof($subGroupIdArr) . "<br />";
 		//var_dump($subGroupIdArr);
 		
-		if (sizeof($subGroupIdArr)) {
+		$cntSubGroup = sizeof($subGroupIdArr);
+		if ($cntSubGroup) {
 		    echo "<!-- START Package --->"."\n";
             echo '<div class="download_package" style="background:none">'."\n";
 			foreach ($subGroupIdArr as $subGroupIdValue) {
@@ -266,6 +267,21 @@ class DocumentManager extends Error {
 					}
 					$numFiles = $localDg->getNumberOfDocuments(1); 
 					
+					// Check whether there are documents to show for the project.
+					//
+					// NOTE: If "Uncategorized Submissions" is the only subgroup 
+					// available to show and if it is empty too (i.e. there is not 
+					// any other document available in the project), display the message
+					// about no documents are present.
+					// Also, skip and do not display the rest of this panel.
+					if ($cntSubGroup === 1 &&
+						$localDg->getName() == "Uncategorized Submissions" &&
+						$numFiles == 0) {
+						echo '<div class="content' . $localDg->getID() . 
+							'">This project has no documents.</div>';
+						continue;
+					}
+
 					echo "<!-- START Panel --->"."\n";
 	                echo '<div>'."\n";
 					/*
@@ -434,6 +450,10 @@ class DocumentManager extends Error {
 			}
 			echo "</div>"."\n";
             echo "<!-- END Package --->"."\n";
+		}
+		else {
+			// No documents are present.
+			echo '<div class="content">This project has no documents.</div>';
 		}
 	}
 
