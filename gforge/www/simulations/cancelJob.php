@@ -38,16 +38,17 @@ require_once 'util_simulations.php';
 
 // Retrieve parameters.
 $theUserName = user_getname();
-$theJobName = $_GET["JobName"];
-$theGroupId = $_GET["GroupId"];
+$theJobName = getStringFromRequest("JobName");
+$theGroupId = getIntFromRequest("GroupId");
 
 // Look up simulation job for the user.
 $sqlJob = "SELECT server_name, job_timestamp FROM simulation_jobs_details " .
-	"WHERE user_name='" . $theUserName . "' AND " .
-	"group_id=" . $theGroupId . " AND " .
-	"job_name='" . $theJobName . "'";
+	"WHERE user_name='" . $theUserName . "' " .
+	"AND group_id=$1 " .
+	"AND job_name=$2";
 
-$resJob = db_query_params($sqlJob, array());
+$resJob = db_query_params($sqlJob, 
+	array($theGroupId, $theJobName));
 $rowsJob = db_numrows($resJob);
 
 $theResult["Status"] = false;

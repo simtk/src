@@ -68,9 +68,11 @@ if($content_type != $default_content_type) {
 $HTML->header(array('title'=>'Community','pagename'=>''));
 
 global $cat_id, $rows;
-$cat_id = $_GET["cat"];
+$cat_id = getIntFromRequest("cat");
+
 $featured_cat_id = 407;
 
+/*
 // The parameter "cat" can be a comma separated string upon user selecting different categories.
 // The originally selected cateogry remains at the beginning.
 // Only pick the first value after exploding this array to get the cateogry. Otherwise, the
@@ -79,7 +81,7 @@ $catIds = explode(',', $cat_id);
 if (count($catIds) > 0) {
         $cat_id = $catIds[0];
 }
-
+*/
 
 $sql = "SELECT trove_cat_id,
 		shortname,

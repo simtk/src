@@ -110,7 +110,7 @@ function &getMonthStartArr() {
 
 function &getMonthEndArr() {
 	
-	if (count($endArr) < 1) {
+	if (count($this->month_end_arr) < 1) {
 		$min_date=$this->getMinDate();
 		for ($i=0; $i<$this->max_month; $i++) {
 			$this->month_end_arr[] = mktime(0,0,0,date('m')+2-$i,1,date('Y'));

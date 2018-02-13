@@ -656,7 +656,7 @@ function report_actgraph($type, $SPAN, $start, $end, $id, $area) {
 		while ($looptime < $end) {
 			$timeStampArr[$i] = $looptime;			
 			$looptime += REPORT_DAY_SPAN;
-			$looptime_end += REPORT_DAY_SPAN;
+			//$looptime_end += REPORT_DAY_SPAN;
 			$timeStampEndArr[$i] = $looptime;
 			$i++;
 		}
@@ -803,7 +803,9 @@ function report_actgraph($type, $SPAN, $start, $end, $id, $area) {
 			break;
 		}
 	}
-	$timeStampEndArr = array_values($timeStampEndArr);
+	if (isset($timeStampEndArr)) {
+		$timeStampEndArr = array_values($timeStampEndArr);
+	}
 	
 	/*
 	var_dump($ydata);

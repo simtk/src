@@ -66,16 +66,14 @@ $auth->acl($user->data);
 $user->setup(); 
 
 // Select user.
-$strUsersQuery = "SELECT user_id, user_name, status FROM users";
-if (isset($theUserName)) {
-	$strUsersQuery = $strUsersQuery . " WHERE user_name='" . $theUserName . "'";
-}
-else {
+if (!isset($theUserName)) {
 	echo "user name not set\n";
 	exit;
 }
 
-$result = db_query_params($strUsersQuery, array());
+$strUsersQuery = "SELECT user_id, user_name, status FROM users " .
+	"WHERE user_name=$1";
+$result = db_query_params($strUsersQuery, array($theUserName));
 if (!$result) {
      die("Error in SQL query");
 }

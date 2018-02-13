@@ -117,22 +117,14 @@ echo $HTML->endSubMenu();
 // {THE_FORUM_ID} which is passed to the template search_body.html 
 // to constrain the search to the current forum.
 // Otherwise, all forums will be search.
-if (isset($_GET["group_id"])) {
-	$group_id = $_GET["group_id"];
-}
-else if (isset($_GET["f"])) {
-	$group_id = $_GET["f"];
-}
-else {
-	return;
-}
+
 if ($group_id != 0) {
 	// group_id is NOT 0. Set group_id cookie (i.e. "f_curr").
 	if (isset($_GET["group_id"])) {
-		$group_id = $_GET["group_id"];
+		$group_id = getIntFromRequest('group_id');
 	}
 	else if (isset($_GET["f"])) {
-		$group_id = $_GET["f"];
+		$group_id = getIntFromRequest('f');
 	}
 	else {
 		return;
