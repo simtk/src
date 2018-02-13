@@ -47,6 +47,12 @@ $srch = "";
 if (isset($_GET["srch"])) {
 	// Get search string.
 	$srch = $_GET["srch"];
+	$theRegex = '/[^a-z0-9_ :\-"\']/i';
+	$notValid = preg_match($theRegex, $srch);
+	if ($notValid) {
+		// Ignore input.
+		session_redirect("/search/searchPeople.php?type_of_search=people&srch=___ERROR___");
+	}
 }
 
 // Force IE NOT to go into "Compatibility" mode.

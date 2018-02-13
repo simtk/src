@@ -35,10 +35,9 @@
 require_once "../env.inc.php";
 require_once $gfcommon.'include/pre.php';
 
-$groupId = $_POST["GroupId"];
-$softwareName = $_POST["SoftwareName"];
-$softwareVersion = $_POST["SoftwareVersion"];
-
+$groupId = getIntFromPost("GroupId");
+$softwareName = getStringFromPost("SoftwareName");
+$softwareVersion = getStringFromPost("SoftwareVersion");
 
 $modelNames = array();
 $modelCfgNames = array();
@@ -52,11 +51,12 @@ $sql = "SELECT model_name, cfg_name_1, script_name_modify, " .
 	"script_name_submit, script_name_postprocess, " .
 	"install_dir, exec_check, max_runtime " .
 	"FROM simulation_specifications " .
-	"WHERE group_id=" . $groupId . " AND " . 
-	"software_name='" . $softwareName . "' AND " .
-	"software_version='" . $softwareVersion . "'";
+	"WHERE group_id=$1 " . 
+	"AND software_name=$2 " .
+	"AND software_version=$3";
 
-$result = db_query_params($sql, array());
+$result = db_query_params($sql, 
+	array($groupId, $softwareName, $softwareVersion));
 $rows = db_numrows($result); 
 for ($i = 0; $i < $rows; $i++) {
 	$tmpModelName = db_result($result, $i, 'model_name');

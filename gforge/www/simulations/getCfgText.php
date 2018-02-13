@@ -35,22 +35,30 @@
 require_once "../env.inc.php";
 require_once $gfcommon.'include/pre.php';
 
-$groupId = $_POST["GroupId"];
-$softwareName = $_POST["SoftwareName"];
-$cfgName = $_POST["ConfigFileName"];
+$groupId = getIntFromPost("GroupId");
+$softwareName = getStringFromPost("SoftwareName");
+$cfgName = getStringFromPost("ConfigFileName");
 
-// Try getting file content using group id and config file name.
-$fullPathName = "./configData/" . $groupId . "_" . $softwareName . "_" . $cfgName;
-
-$cfgText = @file_get_contents($fullPathName);
-if ($cfgText === false) {
-	// Cannot get file conten. Send back error string.
-	$cfgText = "***ERROR***" . "Cannot get contents of $fullPathName";
+if (!preg_match('/^[0-9a-zA-Z_.\-]+$/', $softwareName)) {
+	// Invalid software name.
+	$cfgText = "***ERROR***" . "Invalid software name";
+}
+else if (!preg_match('/^[0-9a-zA-Z_.\-]+$/', $cfgName)) {
+	// Invalid config file name.
+	$cfgText = "***ERROR***" . "Invalid config file name";
+}
+else {
+	// Try getting file content using group id and config file name.
+	$fullPathName = "./configData/" . $groupId . "_" . $softwareName . "_" . $cfgName;
+	$cfgText = @file_get_contents($fullPathName);
+	if ($cfgText === false) {
+		// Cannot get file content. Send back error string.
+		$cfgText = "***ERROR***" . "Cannot get contents of $fullPathName";
+	}
 }
 
 $res = array();
 $res["cfgText"] = $cfgText;
-
 echo json_encode($res);
 
 ?>

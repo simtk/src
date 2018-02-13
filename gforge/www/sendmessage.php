@@ -142,14 +142,12 @@ if ($realname == "Local GForge Admin") {
 $subject = getStringFromRequest('subject');
 
 // Get group_id if present.
-$group_id = false;
-if (isset($_GET["group_id"])) {
-	$group_id = $_GET["group_id"];
-}
+$group_id = getIntFromRequest("group_id");
+
 // Display header.
 $HTML->header(array('title' => forge_get_config('forge_name').' '._('Contact')));
 
-if ($touser == 101 && $group_id !== false && trim($group_id) !== "") {
+if ($touser == 101 && $group_id != 0) {
 	// Display when sending to SimTK WebMaster when group_id is present.
 	echo "<h2>Feedback on SimTK</h2>";
 	echo "<span><b>For general questions about the SimTK website:</b> Send message to $realname using the form below. All fields are required.</span>";
@@ -224,7 +222,7 @@ else {
 <input type="hidden" name="name" value="<?php echo $name; ?>" />
 <input type="hidden" name="email" value="<?php echo $email; ?>" />
 <?php
-if ($group_id !== false && trim($group_id) !== "") {
+if ($group_id != 0) {
 	// Pass along group_id if present.
 	echo '<input type="hidden" name="group_id" value="' . $group_id . '" />';
 }

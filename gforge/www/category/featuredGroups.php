@@ -37,9 +37,7 @@ require_once $gfcommon.'include/pre.php';
 require_once $gfcommon.'include/escapingUtils.php';
 
 // Get category id.
-if (isset($_GET["cat"])) {
-        $cat_id = intval($_GET["cat"]);
-}
+$cat_id = getIntFromRequest("cat");
 
 // Get featured projects.
 $resStr = "";

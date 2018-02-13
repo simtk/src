@@ -160,12 +160,19 @@ function requestSimulationJob($theRemoteServerName,
 function isJobRequested($theRemoteServerName, $theUserName, $theGroupId, $theJobName) {
 
 	$sqlExistingJob = "SELECT job_id FROM simulation_jobs_details WHERE " .
-		"server_name='" . $theRemoteServerName . "' AND " .
-		"user_name='" . $theUserName . "' AND " .
-		"group_id=" . $theGroupId . " AND " .
-		"job_name='" . $theJobName . "'";
+		"server_name=$1 " .
+		"AND user_name=$2 " .
+		"AND group_id=$3 " .
+		"AND job_name=$4 ";
 
-	$resExistingJob = db_query_params($sqlExistingJob, array());
+	$resExistingJob = db_query_params($sqlExistingJob, 
+		array(
+			$theRemoteServerName,
+			$theUserName,
+			$theGroupId,
+			$theJobName
+		)
+	);
 	if (!$resExistingJob) {
 		return false;
 	}
@@ -208,11 +215,11 @@ function lookupNextSimulationJob($theRemoteServerName,
 		"cfg_name_1, cfg_pathname_1, software_name, " .
 		"software_version, email, job_name, exec_check, max_runtime, status " .
 		"FROM simulation_jobs_details WHERE " .
-		"server_name='" . $theRemoteServerName . "' AND " .
+		"server_name=$1 AND " .
 		"duration='-1' AND status=1" .
 		"ORDER BY job_id";
 
-	$resNextJob = db_query_params($sqlNextJob, array());
+	$resNextJob = db_query_params($sqlNextJob, array($theRemoteServerName));
 	if (!$resNextJob) {
 		return false;
 	}
@@ -481,10 +488,10 @@ function recordSimulationJob($theRemoteServerName,
 
 	// Retrieve server alias.
 	$sql = "SELECT server_alias FROM simulation_servers " .
-		"WHERE server_name='" . $theRemoteServerName . "'";
+		"WHERE server_name=$1 ";
 
 	$theRemoteServerAlias = $theRemoteServerName;
-	$result = db_query_params($sql, array());
+	$result = db_query_params($sql, array($theRemoteServerName));
 	$rows = db_numrows($result);
 	for ($i = 0; $i < $rows; $i++) {
 		$theRemoteServerAlias = db_result($result, $i, 'server_alias');
@@ -507,7 +514,7 @@ function recordSimulationJob($theRemoteServerName,
 
 	// Get user name.
 	$realName = $theUserName;
-	$sql = "SELECT realname FROM users WHERE user_name=$1";
+	$sql = "SELECT realname FROM users WHERE user_name=$1 ";
 	$result = db_query_params($sql, array($theUserName));
 	$rows = db_numrows($result);
 	for ($i = 0; $i < $rows; $i++) {
@@ -547,28 +554,32 @@ function recordSimulationJob($theRemoteServerName,
 		"software_version, job_timestamp, exec_check, max_runtime, modify_model, " .
 		"last_updated) " .
 		"VALUES (" .
-		"1, " .
-		"'" . $theRemoteServerName . "', " . 
-		"'" . $theUserName . "', " . 
-		"'" . $theEmailAddr . "', " . 
-		"'" . $theJobName . "', " . 
-		$theGroupId . ", " . 
-		"'" . $theModelName . "', " . 
-		"'" . $theModifyScriptName . "', " . 
-		"'" . $theSubmitScriptName . "', " . 
-		"'" . $thePostprocessScriptName . "', " . 
-		"'" . $theInstallDirName . "', " . 
-		"'" . $theFullCfgName . "', " . 
-		"'" . $theFullCfgPathName . "', " . 
-		"'" . $theSoftwareName . "', " . 
-		"'" . $theSoftwareVersion . "', " . 
-		"'" . $theJobTimeStamp . "', " . 
-		"'" . $theExecCheck . "', " . 
-		"'" . $theMaxRunTime . "', " . 
-		"'" . $theModifyModel . "', " . 
-		"'" . time() . "' " . 
+		"1, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, " .
+		"$11, $12, $13, $14, $15, $16, $17, $18, $19 " .
 		")";
-	$resJobDetails = db_query_params($sqlJobDetails, array());
+	$resJobDetails = db_query_params($sqlJobDetails, 
+		array(
+			$theRemoteServerName,
+			$theUserName,
+			$theEmailAddr,
+			$theJobName,
+			$theGroupId,
+			$theModelName,
+			$theModifyScriptName,
+			$theSubmitScriptName,
+			$thePostprocessScriptName,
+			$theInstallDirName,
+			$theFullCfgName,
+			$theFullCfgPathName,
+			$theSoftwareName,
+			$theSoftwareVersion,
+			$theJobTimeStamp,
+			$theExecCheck,
+			$theMaxRunTime,
+			$theModifyModel,
+			time()
+		)
+	);
 	if (!$resJobDetails) {
 		// Cannot insert into job table
 		return "***ERROR***" . "Cannot insert into simulation_jobs_details table: " . $sqlJobDetails;
@@ -601,13 +612,18 @@ function recordSimulationJob($theRemoteServerName,
 function lookupSoftwarePath($theSoftwareName, $theSoftwareVersion) {
 
 	// Retrieve software path
-	$sql = "SELECT software_path FROM simulation_software WHERE " .
-		"software_name='" . $theSoftwareName . "' and " .
-		"software_version='" . $theSoftwareVersion . "'";
+	$sql = "SELECT software_path FROM simulation_software " .
+		"WHERE software_name=$1 " .
+		"AND software_version=$2 ";
 
 	$theSoftwarePath = "";
 
-	$result = db_query_params($sql, array());
+	$result = db_query_params($sql, 
+		array(
+			$theSoftwareName,
+			$theSoftwareVersion
+		)
+	);
 	$rows = db_numrows($result);
 	for ($i = 0; $i < $rows; $i++) {
 		$theSoftwarePath = db_result($result, $i, 'software_path');
@@ -1009,10 +1025,10 @@ function emailJobCompletion($theServerName, $theUserName, $theGroupId, $theJobTi
 
 	// Retrieve server alias.
 	$sql = "SELECT server_alias FROM simulation_servers " .
-		"WHERE server_name='" . $theServerName . "'";
+		"WHERE server_name=$1 ";
 
 	$theRemoteServerAlias = $theServerName;
-	$result = db_query_params($sql, array());
+	$result = db_query_params($sql, array($theServerName));
 	$rows = db_numrows($result);
 	for ($i = 0; $i < $rows; $i++) {
 		$theRemoteServerAlias = db_result($result, $i, 'server_alias');
@@ -1022,17 +1038,24 @@ function emailJobCompletion($theServerName, $theUserName, $theGroupId, $theJobTi
 	}
 
 	// Retrieve email associated with the simulation job. 
-	$sqlEmail = "SELECT email, job_name, max_runtime FROM simulation_jobs_details WHERE " .
-		"server_name='" . $theServerName . "' AND " .
-		"user_name='" . $theUserName . "' AND " .
-		"group_id=" . $theGroupId . " AND " .
-		"job_timestamp='" . $theJobTimeStamp . "'";
+	$sqlEmail = "SELECT email, job_name, max_runtime FROM simulation_jobs_details " .
+		"WHERE server_name=$1 " .
+		"AND user_name=$2 " .
+		"AND group_id=$3 " .
+		"AND job_timestamp=$4 ";
 
 	$theEmailAddr = "";
 	$theJobName = "";
 	$theMaxRunTime = 0;
 
-	$resEmail = db_query_params($sqlEmail, array());
+	$resEmail = db_query_params($sqlEmail, 
+		array(
+			$theServerName,
+			$theUserName,
+			$theGroupId,
+			$theJobTimeStamp
+		)
+	);
 	$rowsEmail = db_numrows($resEmail);
 	for ($i = 0; $i < $rowsEmail; $i++) {
 		$theEmailAddr = db_result($resEmail, $i, 'email');
@@ -1199,13 +1222,20 @@ function cancelRemoteServerJob($theRemoteServerName, $theUserName, $theGroupId, 
 		"duration=0, " .
 		"status=3 " .
 		"WHERE (" . 
-		"server_name='" . $theRemoteServerName . "' AND " .
-		"user_name='" . $theUserName . "' AND " . 
-		"group_id=" . $theGroupId . " AND " . 
-		"job_timestamp='" . $theJobTimeStamp . "' AND " . 
-		"status=1" .
+		"server_name=$1 " .
+		"AND user_name=$2 " . 
+		"AND group_id=$3 " . 
+		"AND job_timestamp=$4 " . 
+		"AND status=1 " .
 		")";
-	$resUpdate = db_query_params($sqlUpdate, array());
+	$resUpdate = db_query_params($sqlUpdate, 
+		array(
+			$theRemoteServerName,
+			$theUserName,
+			$theGroupId,
+			$theJobTimeStamp
+		)
+	);
 	if (!$resUpdate) {
 		// Cannot update status.
 		return "***ERROR***" . "Cannot update simulation_jobs_details table";
@@ -1219,13 +1249,20 @@ function cancelRemoteServerJob($theRemoteServerName, $theUserName, $theGroupId, 
 		"max_runtime=0, " .
 		"last_updated='" . time() . "' " .
 		"WHERE (" . 
-		"server_name='" . $theRemoteServerName . "' AND " .
-		"user_name='" . $theUserName . "' AND " . 
-		"group_id=" . $theGroupId . " AND " . 
-		"job_timestamp='" . $theJobTimeStamp . "' AND " . 
-		"status=2" .
+		"server_name=$1 " .
+		"AND user_name=$2 " . 
+		"AND group_id=$3 " . 
+		"AND job_timestamp=$4 " . 
+		"AND status=2 " .
 		")";
-	$resUpdate = db_query_params($sqlUpdate, array());
+	$resUpdate = db_query_params($sqlUpdate, 
+		array(
+			$theRemoteServerName,
+			$theUserName,
+			$theGroupId,
+			$theJobTimeStamp
+		)
+	);
 	if (!$resUpdate) {
 		// Cannot update status.
 		return "***ERROR***" . "Cannot update simulation_jobs_details table";
@@ -1239,12 +1276,19 @@ function cancelRemoteServerJob($theRemoteServerName, $theUserName, $theGroupId, 
 	$sqlUpdate = "UPDATE simulation_requests SET " .
 		"max_runtime=0 " .
 		"WHERE (" . 
-		"server_name='" . $theRemoteServerName . "' AND " .
-		"user_name='" . $theUserName . "' AND " . 
-		"group_id=" . $theGroupId . " AND " . 
-		"job_timestamp='" . $theJobTimeStamp . "' " . 
+		"server_name=$1 " .
+		"AND user_name=$2 " . 
+		"AND group_id=$3 " . 
+		"AND job_timestamp=$4 " . 
 		")";
-	$resUpdate = db_query_params($sqlUpdate, array());
+	$resUpdate = db_query_params($sqlUpdate, 
+		array(
+			$theRemoteServerName,
+			$theUserName,
+			$theGroupId,
+			$theJobTimeStamp
+		)
+	);
 	if (!$resUpdate) {
 		// Cannot update status.
 		return "***ERROR***" . "Cannot update simulation_requests table";
@@ -1252,16 +1296,23 @@ function cancelRemoteServerJob($theRemoteServerName, $theUserName, $theGroupId, 
 
 
 	// Retrieve email associated with the simulation job. 
-	$sqlEmail = "SELECT email, job_name FROM simulation_jobs_details WHERE " .
-		"server_name='" . $theRemoteServerName . "' AND " .
-		"user_name='" . $theUserName . "' AND " .
-		"group_id=" . $theGroupId . " AND " .
-		"job_timestamp='" . $theJobTimeStamp . "'";
+	$sqlEmail = "SELECT email, job_name FROM simulation_jobs_details " .
+		"WHERE server_name=$1 " .
+		"AND user_name=$2 " .
+		"AND group_id=$3 " .
+		"AND job_timestamp=$4 ";
 
 	$theEmailAddr = "";
 	$theJobName = "";
 
-	$resEmail = db_query_params($sqlEmail, array());
+	$resEmail = db_query_params($sqlEmail, 
+		array(
+			$theRemoteServerName,
+			$theUserName,
+			$theGroupId,
+			$theJobTimeStamp
+		)
+	);
 	$rowsEmail = db_numrows($resEmail);
 	for ($i = 0; $i < $rowsEmail; $i++) {
 		$theEmailAddr = db_result($resEmail, $i, 'email');
@@ -1290,10 +1341,10 @@ function cancelRemoteServerJob($theRemoteServerName, $theUserName, $theGroupId, 
 
 	// Retrieve server alias.
 	$sql = "SELECT server_alias FROM simulation_servers " .
-		"WHERE server_name='" . $theRemoteServerName . "'";
+		"WHERE server_name=$1 ";
 
 	$strRemoteServerAlias = $theRemoteServerName;
-	$result = db_query_params($sql, array());
+	$result = db_query_params($sql, array($theRemoteServerName));
 	$rows = db_numrows($result);
 	for ($i = 0; $i < $rows; $i++) {
 		$strRemoteServerAlias = db_result($result, $i, 'server_alias');
@@ -1367,12 +1418,19 @@ function recordRemoteServerJobStart($theRemoteServerName, $theUserName, $theGrou
 		"status=2, " .
 		"last_updated='" . time() . "' " .
 		"WHERE (" . 
-		"server_name='" . $theRemoteServerName . "' AND " .
-		"user_name='" . $theUserName . "' AND " . 
-		"group_id=" . $theGroupId . " AND " . 
-		"job_timestamp='" . $theJobTimeStamp . "' " . 
+		"server_name=$1 " .
+		"AND user_name=$2 " . 
+		"AND group_id=$3 " . 
+		"AND job_timestamp=$4 " . 
 		")";
-	$resUpdate = db_query_params($sqlUpdate, array());
+	$resUpdate = db_query_params($sqlUpdate, 
+		array(
+			$theRemoteServerName,
+			$theUserName,
+			$theGroupId,
+			$theJobTimeStamp
+		)
+	);
 	if (!$resUpdate) {
 		// Cannot update status.
 		return "***ERROR***" . "Cannot update simulation_jobs_details table";
@@ -1400,12 +1458,19 @@ function recordRemoteServerJobCompletion($theRemoteServerName,
 
 	$sqlDuration = $sqlDuration . 
 		"WHERE (" . 
-		"server_name='" . $theRemoteServerName . "' AND " .
-		"user_name='" . $theUserName . "' AND " . 
-		"group_id=" . $theGroupId . " AND " . 
-		"job_timestamp='" . $theJobTimeStamp . "' " . 
+		"server_name=$1 " .
+		"AND user_name=$2 " . 
+		"AND group_id=$3 " . 
+		"AND job_timestamp=$4 " . 
 		")";
-	$resDuration = db_query_params($sqlDuration, array());
+	$resDuration = db_query_params($sqlDuration, 
+		array(
+			$theRemoteServerName,
+			$theUserName,
+			$theGroupId,
+			$theJobTimeStamp
+		)
+	);
 	if (!$resDuration) {
 		// Cannot update duration.
 		return "***ERROR***" . "Cannot update simulation_jobs_details table";
@@ -1423,19 +1488,30 @@ function reserveRemoteServer($theRemoteServerName, $theUserName,
 	$theJobStartedTimeStamp = time() . '000';
 	$sqlInProgress = "UPDATE simulation_requests SET " .
 		"in_use=1, " .
-		"user_name='" . $theUserName . "', " . 
-		"group_id=" . $theGroupId . ", " . 
-		"job_timestamp='" . $theJobTimeStamp . "', " . 
-		"job_started_timestamp='" . $theJobStartedTimeStamp . "', " . 
-		"software_name='" . $theSoftwareName . "', " .
-		"max_runtime=" . $theMaxRunTime . ", " .
-		"exec_check='" . $theExecCheck . "' " .
+		"user_name=$1, " . 
+		"group_id=$2, " . 
+		"job_timestamp=$3, " . 
+		"job_started_timestamp=$4, " . 
+		"software_name=$5, " .
+		"max_runtime=$6, " .
+		"exec_check=$7 " .
 		"WHERE (" . 
-		"server_name='" . $theRemoteServerName . "' AND " .
-		"in_use=0 " .
+		"server_name=$8 " .
+		"AND in_use=0 " .
 		")";
 
-	$resInProgress = db_query_params($sqlInProgress, array());
+	$resInProgress = db_query_params($sqlInProgress, 
+		array(
+			$theUserName,
+			$theGroupId,
+			$theJobTimeStamp,
+			$theJobStartedTimeStamp,
+			$theSoftwareName,
+			$theMaxRunTime,
+			$theExecCheck,
+			$theRemoteServerName
+		)
+	);
 	if (!$resInProgress) {
 		// Cannot update simulation_requests table.
 		return "***ERROR***" . "Cannot update simulation_requests table: Reserve";
@@ -1465,8 +1541,9 @@ function doneRemoteServer($theRemoteServerName) {
 		"max_runtime=-1, " .
 		"exec_check='' " .
 		"WHERE " . 
-		"server_name='" . $theRemoteServerName . "' ";
-	$resInProgress = db_query_params($sqlInProgress, array());
+		"server_name=$1 ";
+	$resInProgress = db_query_params($sqlInProgress, 
+		array($theRemoteServerName));
 	if (!$resInProgress) {
 		// Cannot update simulation_requests table.
 		return "***ERROR***" . "Cannot update simulation_requests table: Done";
