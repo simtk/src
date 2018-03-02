@@ -947,7 +947,7 @@ echo $u->getFirstName();
             echo '<div class="cont_footer">';
                 echo '<div class="footer_row">';
                     echo '<div class="footer_information">';
-                        echo '<p>SimTK is maintained through Grant R01 GM107340 from the National Institutes of Health (NIH). It was initially developed as part of the Simbios project funded by the NIH as part of the NIH Roadmap for Medical Research, Grant U54 GM072970.';
+                        echo '<p>SimTK is maintained through Grant R01GM124443 01A1 from the National Institutes of Health (NIH). It was initially developed as part of the Simbios project funded by the NIH as part of the NIH Roadmap for Medical Research, Grant U54 GM072970.';
                         echo '</p>';
                     echo '</div>';
                     echo '<div class="footer-right">';
@@ -963,7 +963,7 @@ echo $u->getFirstName();
                 echo '</div>';
 
 		echo '<div style="font-size:12px;">';
-		echo 'Version 2.0.22. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 5.3.2.';
+		echo 'Version 2.0.23. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 5.3.2.';
                 echo '</div>';
 
             echo '</div>';
