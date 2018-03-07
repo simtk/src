@@ -3972,7 +3972,8 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
 .navbar {
   position: relative;
   min-height: 50px;
-  margin-bottom: 24px;
+  /* 0px bottom margin; otherwise, Internet Exlorer displays with too much bottom gap */
+  margin-bottom: 0px;
   border: 1px solid transparent;
 }
 @media (min-width: 768px) {
@@ -7382,20 +7383,21 @@ and open the template in the editor.
 }
 @media (max-width: 769px) {
   #searchBox {
-    width: 480px;;
+    width: 480px;
   }
+  /* Use block display to work properly in Internet Explorer */
   #searchBox .search_box_select {
     width: 250px;
-    display: inline-block;
+    display: block;
     vertical-align: top;
     padding-top: 5px;
   }
   #searchBox .search_box_select label {
     font-size: 12px;
   }
+  /* Use this setting to display input text field properly in Internet Explorer */ 
   #searchBox .search_box_inputs {
-    width: 140px;
-    display: inline-block;
+    width: 180px;
   }
 }
 @media (min-width: 770px) {
@@ -7440,15 +7442,16 @@ and open the template in the editor.
   font-family: "Open Sans";
   font-size: 20px;
 }
+/* Internet Explorer 10+ */
 #searchBox > .search_box_inputs input[type=text]:-ms-input-placeholder {
-  /* Internet Explorer 10+ */
   color: #e3e3e3;
   font-family: "Open Sans";
   font-size: 20px;
 }
 @media (max-width: 769px) {
+  /* Reduce gap between textbox and radio buttons */
   #searchBox > .search_box_inputs input[type=text] {
-    margin-bottom: 0px;
+    margin-bottom: -1px;
   }
 }
 @media (min-width: 770px) {
@@ -7480,9 +7483,19 @@ and open the template in the editor.
     width: 280px;
   }
 }
-@media (max-width: 870px) {
+@media (min-width: 1px) and (max-width: 870px) {
   .the_search_box {
     width: 180px;
+  }
+}
+@media (max-width: 0px) {
+  /* Need to set width; Internet Explorer is sometimes intialized with max-width of 0px */
+  .the_search_box {
+    width: 280px;
+  }
+  /* Use this width to display input text field properly in Internet Explorer */ 
+  #searchBox .search_box_inputs {
+    width: 280px;
   }
 }
 /*
