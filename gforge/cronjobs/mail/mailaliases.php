@@ -100,7 +100,9 @@ if (forge_get_config('use_forum')) {
 
 		if (array_key_exists($forname, $aliases)) {
 			// A GForge alias was found outside the markers
-			unset($aliases[$forname]);
+			// NOTE: Do not unset the entry since it will not be replaced with "forum_gateway.php" invocation.
+			//unset($aliases[$forname]);
+	
 		}
 
 		// NOTE: Disabled generation of aliases with "forum_gateway.php".
@@ -131,7 +133,8 @@ if (forge_get_config('use_tracker')) {
 
 		if (array_key_exists($trackername, $aliases)) {
 			// A GForge alias was found outside the markers
-			unset($aliases[$trackername]);
+			// NOTE: Do not unset the entry since it will not be replaced with "tracker_gateway.php" invocation.
+			//unset($aliases[$trackername]);
 		}
 
 		// NOTE: Disabled generation of aliases with "tracker_gateway.php".
