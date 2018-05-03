@@ -103,7 +103,8 @@ if (forge_get_config('use_forum')) {
 			unset($aliases[$forname]);
 		}
 
-		$gforge_aliases[$forname] = '"|'.$php_command." ".$path_to_cronjobs."/forum_gateway.php ".db_result($resforum,$forres,'unix_group_name')." ".strtolower(db_result($resforum,$forres,'forum_name')).'"';
+		// NOTE: Disabled generation of aliases with "forum_gateway.php".
+		//$gforge_aliases[$forname] = '"|'.$php_command." ".$path_to_cronjobs."/forum_gateway.php ".db_result($resforum,$forres,'unix_group_name')." ".strtolower(db_result($resforum,$forres,'forum_name')).'"';
 	}
 }
 
@@ -133,7 +134,8 @@ if (forge_get_config('use_tracker')) {
 			unset($aliases[$trackername]);
 		}
 
-		$gforge_aliases[$trackername] = '"|'.$php_command." ".$path_to_cronjobs."/tracker_gateway.php ".db_result($restracker,$forres,'unix_group_name')." ".strtolower(db_result($restracker,$forres,'group_artifact_id')).'"';
+		// NOTE: Disabled generation of aliases with "tracker_gateway.php".
+		//$gforge_aliases[$trackername] = '"|'.$php_command." ".$path_to_cronjobs."/tracker_gateway.php ".db_result($restracker,$forres,'unix_group_name')." ".strtolower(db_result($restracker,$forres,'group_artifact_id')).'"';
 	}
 }
 
