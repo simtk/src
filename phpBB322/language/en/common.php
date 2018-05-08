@@ -4,6 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -140,13 +141,13 @@ $lang = array_merge($lang, array(
 	),
 	'BUTTON_EDIT'			=> 'Edit',
 	'BUTTON_FORUM_LOCKED'	=> 'Locked',
-	'BUTTON_NEW_TOPIC'		=> 'New Topic',
+	'BUTTON_NEW_TOPIC'		=> 'NEW TOPIC',
 	'BUTTON_PM'				=> 'PM',
 	'BUTTON_PM_FORWARD'		=> 'Forward',
 	'BUTTON_PM_NEW'			=> 'New PM',
 	'BUTTON_PM_REPLY'		=> 'Send Reply',
 	'BUTTON_PM_REPLY_ALL'	=> 'Reply All',
-	'BUTTON_POST_REPLY'		=> 'Post Reply',
+	'BUTTON_POST_REPLY'		=> 'POST REPLY',
 	'BUTTON_QUOTE'			=> 'Quote',
 	'BUTTON_TOPIC_LOCKED'	=> 'Locked',
 	'BYTES'					=> 'Bytes',
@@ -716,9 +717,9 @@ $lang = array_merge($lang, array(
 	'SPLIT_TOPIC'				=> 'Split topic',
 	'SQL_ERROR_OCCURRED'		=> 'An SQL error occurred while fetching this page. Please contact the %sBoard Administrator%s if this problem persists.',
 	'STATISTICS'				=> 'Statistics',
-	'START_WATCHING_FORUM'		=> 'Subscribe forum',
+	'START_WATCHING_FORUM'		=> 'Follow forum',
 	'START_WATCHING_TOPIC'		=> 'Subscribe topic',
-	'STOP_WATCHING_FORUM'		=> 'Unsubscribe forum',
+	'STOP_WATCHING_FORUM'		=> 'Unfollow',
 	'STOP_WATCHING_TOPIC'		=> 'Unsubscribe topic',
 	'STRING_LIST_MULTI'			=> '%1$s, and %2$s',
 	'STRING_LIST_SIMPLE'		=> '%1$s and %2$s',

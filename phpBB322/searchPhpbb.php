@@ -2,9 +2,9 @@
 
 /**
  *
- * ucp.php
+ * searchPhpbb.php
  * 
- * Blank UI for user control panel.
+ * Display phpBB search results.
  * 
  * Copyright 2005-2018, SimTK Team
  *
@@ -32,4 +32,46 @@
  * <http://www.gnu.org/licenses/>.
  */ 
  
+// Display phpBB search results into an iframe.
+
+require_once '../../env.inc.php';
+require_once $gfcommon.'include/pre.php';
+
+// Display page header.
+$HTML->header(array());
+
+if (isset($_GET['author'])) {
+	$author = getStringFromRequest('author');
+	if (!preg_match('/^[a-z0-9][-a-z0-9_\.]+\z/', $author)) {
+                return;
+        }
+}
+else {
+	return;
+}
+
+// Cross launch into phpbb.
+
+$strPhpbbURL = "/plugins/phpBB/search.php?author=" . $author;
+
+
+// NOTE: rand() is needed to avoid browser caching logged in user.
+// Otherwise, even after the user has logged out, back button will
+// load information of previous user.
+echo '<iframe name="' . rand() . '" src="' . util_make_url($strPhpbbURL) . '" ' .
+	'frameborder="0" scrolling="no" width="100%" height="700px">' .
+	'</iframe>';
+
 ?>
+
+<script src='iframeAdjust.js'></script>
+
+<?php
+
+// Display page footer.
+$HTML->footer(array());
+
+// Local Variables:
+// mode: php
+// c-file-style: "bsd"
+// End:

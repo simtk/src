@@ -61,6 +61,8 @@ class main_listener implements EventSubscriberInterface
 	/** @var \robertheim\topictags\service\tagcloud_manager */
 	protected $tagcloud_manager;
 
+	const NUM_OF_TAGS_PER_TOPIC = 8;
+
 	/**
 	 * Constructor
 	 */
@@ -161,9 +163,16 @@ class main_listener implements EventSubscriberInterface
 				$this->user->add_lang_ext('robertheim/topictags', 'topictags');
 				$data['error'][] = $this->user->lang('RH_TOPICTAGS_TAGS_INVALID', join(', ', $invalid_tags));
 			}
+			else if (sizeof($all_tags['valid']) > self::NUM_OF_TAGS_PER_TOPIC)
+			{
+				$this->user->add_lang_ext('robertheim/topictags', 'topictags');
+				$data['error'][] = "Too many tags assigned to post; please use only up to " .
+					self::NUM_OF_TAGS_PER_TOPIC . " tags.";
+			}
 
 			$event->set_data($data);
 		}
+
 	}
 
 	/**
@@ -287,6 +296,9 @@ class main_listener implements EventSubscriberInterface
 			$tags = $this->tags_manager->get_assigned_tags($topic_id);
 		}
 
+		// Find all section names defined for tags in the current forum.
+		$section_names = $this->tags_manager->get_tag_section_names();
+
 		$page_data['RH_TOPICTAGS'] = base64_encode(rawurlencode(json_encode($tags)));
 
 		$page_data['RH_TOPICTAGS_ALLOWED_TAGS_REGEX'] = $this->config[prefixes::CONFIG . '_allowed_tags_regex'];
@@ -297,13 +309,39 @@ class main_listener implements EventSubscriberInterface
 		if ($this->config[prefixes::CONFIG . '_whitelist_enabled'])
 		{
 			$page_data['S_RH_TOPICTAGS_WHITELIST_ENABLED'] = true;
-			$tags = $this->tags_manager->get_whitelist_tags();
-			for ($i = 0, $size = sizeof($tags); $i < $size; $i++)
+
+			if (count($section_names) > 0)
 			{
-				$this->template->assign_block_vars('rh_topictags_whitelist', array(
-					'LINK' => '#',
-					'NAME' => $tags[$i],
-				));
+				// Use section names.
+				foreach ($section_names as $section_name)
+				{
+					$tags = $this->tags_manager->get_whitelist_tags($section_name);
+					for ($i = 0, $size = sizeof($tags); $i < $size; $i++)
+					{
+						$this->template->assign_block_vars(
+							'rh_topictags_whitelist_' . $section_name, 
+							array(
+								'LINK' => '#',
+								'NAME' => $tags[$i],
+							)
+						);
+					}
+				}
+			}
+			else
+			{
+				// No section names.
+				$tags = $this->tags_manager->get_whitelist_tags();
+				for ($i = 0, $size = sizeof($tags); $i < $size; $i++)
+				{
+					$this->template->assign_block_vars(
+						'rh_topictags_whitelist', 
+						array(
+							'LINK' => '#',
+							'NAME' => $tags[$i],
+						)
+					);
+				}
 			}
 		}
 		else
@@ -341,7 +379,7 @@ class main_listener implements EventSubscriberInterface
 				{
 					// we cannot use assign_block_vars('topicrow.tags', ...) here, because the block 'topicrow' is not yet assigned
 					// add links
-					$this->assign_tags_to_template('rh_tags_tmp', $tags);
+					$this->assign_tags_to_template('rh_tags_tmp', $tags, $forum_id);
 					// small_tag.html might want to use our extension's css.
 					$this->template->assign_var('S_RH_TOPICTAGS_INCLUDE_CSS', true);
 					$rendered_tags = $this->template->assign_display('@robertheim_topictags/small_tag.html');
@@ -363,15 +401,27 @@ class main_listener implements EventSubscriberInterface
 	 * @param string $block_name the name of the template block
 	 * @param array $tags the tags to assign
 	 */
-	private function assign_tags_to_template($block_name, array $tags)
+	private function assign_tags_to_template($block_name, array $tags, $forum_id=false)
 	{
 		foreach ($tags as $tag)
 		{
+			$tmpLink = $this->helper->route('robertheim_topictags_show_tag_controller', 
+				array('tags'  => urlencode($tag)));
+			$tmpLink = str_replace("/app.php/", "/appPhpbb.php/", $tmpLink);
+			if ($forum_id != false)
+			{
+				if (strpos($tmpLink, "?") != false)
+				{
+					$tmpLink .= "&f=" . $forum_id;
+				}
+				else
+				{
+					$tmpLink .= "?f=" . $forum_id;
+				}
+			}
 			$this->template->assign_block_vars($block_name, array (
 				'NAME'	=> $tag,
-				'LINK'	=> $this->helper->route('robertheim_topictags_show_tag_controller', array(
-					'tags'	=> urlencode($tag),
-				)),
+				'LINK'	=> $tmpLink,
 			));
 		}
 	}
@@ -394,7 +444,7 @@ class main_listener implements EventSubscriberInterface
 			$tags = $this->tags_manager->get_assigned_tags($topic_id);
 			if (!empty($tags))
 			{
-				$this->assign_tags_to_template('rh_topic_tags', $tags);
+				$this->assign_tags_to_template('rh_topic_tags', $tags, $forum_id);
 				$this->template->assign_vars(array(
 					'RH_TOPICTAGS_SHOW'	=> true,
 					'META'				=> '<meta name="keywords" content="' . join(', ', $tags) . '">',

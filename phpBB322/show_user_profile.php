@@ -2,9 +2,9 @@
 
 /**
  *
- * ucp.php
+ * show_user_profile.php
  * 
- * Blank UI for user control panel.
+ * Display user profile.
  * 
  * Copyright 2005-2018, SimTK Team
  *
@@ -32,4 +32,37 @@
  * <http://www.gnu.org/licenses/>.
  */ 
  
+require_once '../../env.inc.php';
+require_once $gfcommon.'include/pre.php';
+require_once $gfwww.'include/forum_db_utils.php';
+
+$userName = null;
+$userId = $_REQUEST["userId"];
+if (isset($userId) && $userId != null && $userId != "") {
+	// For security reasons, use phpbb_users user_id instead username.
+	// NOTE: this parameter is visible in the URL.
+	$query = "SELECT username from phpbb_users where user_id=" . $userId;
+	$res = queryForum($query);
+	if (!$res) {
+		return;
+	}
+	while ($row = pg_fetch_array($res)) {
+		$userName = $row["username"];
+	}
+	pg_free_result($res);
+}
+else {
+	// Last resort.
+	// Try getting user name from $_REQUEST.
+	$userName = $_REQUEST["userName"];
+}
+
+// Display the SimTK user profile.
+// Note: Since phpBB is in a plugin, need to use the top window to show the profile.
+// Note: Need to use replace() method to not alter the history.
+echo "<script>window.top.location.replace('/users/" . $userName . "');</script>";
+
+exit;
+
 ?>
+

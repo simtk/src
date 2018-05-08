@@ -618,11 +618,104 @@ class tags_manager
 	}
 
 	/**
-	 * Gets all tags from the whitelist
+	 * Get whitelist tags.
 	 */
-	public function get_whitelist_tags()
+	public function get_whitelist_tags($section_name=null)
 	{
-		return json_decode($this->config_text->get(prefixes::CONFIG . '_whitelist'), true);
+		if (!isset($this->the_forum_id) || 
+			$this->the_forum_id == false) {
+
+			// Forum id not set. Get all whitelist tags.
+			return json_decode($this->config_text->get(prefixes::CONFIG . '_whitelist'), true);
+		}
+
+		// Retrieve array of whitelist tags.
+		$arrRes = array();
+
+		// Look up all whitelist tags.
+		$arrWhiteList = json_decode($this->config_text->get(prefixes::CONFIG . '_whitelist'), true);
+
+		foreach ($arrWhiteList as $theTag) {
+			if ($this->is_whitelist_tag_for_forum($this->the_forum_id, $theTag, $section_name)) {
+
+				// The whitelist tag is for the specified forum and section.
+				$arrRes[] = $theTag;
+			}
+		}
+
+		return $arrRes;
+	}
+
+
+	// Find all section names for tags.
+	public function get_tag_section_names() {
+
+		$arrRes = array();
+
+		if (!isset($this->the_forum_id) || 
+			$this->the_forum_id == false) {
+
+			// Forum id not set. Ignore section names query.
+			return $arrRes;
+		}
+
+		// Get distinct section names of given forum.
+		$sql_array = array(
+			'SELECT'	=> 'section_name',
+			'FROM'		=> array(
+				'phpbb_forum_topictags' => 'ft',
+			),
+			'WHERE'		=> 'ft.forum_id=' . $this->the_forum_id,
+		);
+		$sql = $this->db->sql_build_query('SELECT_DISTINCT', $sql_array);
+		$result = $this->db->sql_query($sql);
+
+		while ($row = $this->db->sql_fetchrow($result)) {
+			$the_section_name = $row['section_name'];
+
+			// Ignore empty section name.
+			$the_section_name = trim($the_section_name);
+			if ($the_section_name != "") {
+				$arrRes[] = $the_section_name;
+			}
+		}
+		$this->db->sql_freeresult($result);
+
+		return $arrRes;
+	}
+
+	// Check whether the specified whitelist tag is allowed for the specified forum and section.
+	private function is_whitelist_tag_for_forum($forum_id, $tag, $section_name) {
+
+		if ($forum_id == false) {
+			// Forum not set; do not check.
+			return true;
+		}
+
+		$sqlSection = "";
+		if ($section_name != null && $section_name != "") {
+			// Section name is set.
+			// Look up tags for the specified section of the given forum.
+			$sqlSection = " AND ft.section_name='" . $section_name . "'";
+		}
+		else {
+			// Section name is not set.
+			// Look up all tags of the given forum.
+		}
+
+		$sql_array = array(
+			'SELECT'	=> 'COUNT(DISTINCT tag_lowercase) as tag_in_forum',
+			'FROM'		=> array(
+				'phpbb_forum_topictags' => 'ft',
+			),
+			'WHERE'		=> "ft.tag_lowercase='" . 
+				utf8_strtolower($tag) . "' " .
+				"AND ft.forum_id=" . $forum_id . $sqlSection,
+		);
+		$sql = $this->db->sql_build_query('SELECT', $sql_array);
+		$tag_in_forum = (int) $this->db_helper->get_field($sql, 'tag_in_forum');
+
+		return $tag_in_forum != 0;
 	}
 
 	/**
@@ -640,6 +733,11 @@ class tags_manager
 			$tag = $this->clean_tag($tag);
 		}
 
+		/*
+		// NOTE:
+		// Do not check pattern here yet. Only check the pattern if a tag
+		// is not whitelisted or blacklisted. Checking in this manner allows
+		// admin to specify a tag that does not conform to the regex.
 		$pattern = $this->config[prefixes::CONFIG.'_allowed_tags_regex'];
 		$tag_is_valid = preg_match($pattern, $tag);
 
@@ -648,6 +746,7 @@ class tags_manager
 			// non conform to regex is always invalid.
 			return false;
 		}
+		*/
 
 		// from here on: tag is regex conform
 
@@ -656,6 +755,7 @@ class tags_manager
 		{
 			if ($this->is_on_blacklist($tag))
 			{
+				// NOTE: See change above.
 				// tag is regex-conform, but blacklisted => invalid
 				return false;
 			}
@@ -669,10 +769,21 @@ class tags_manager
 		{
 			if ($this->is_on_whitelist($tag))
 			{
+				// NOTE: See change above.
 				// tag is regex-conform not blacklisted and in the whitelist => valid
 				return true;
 			}
 			// not on whitelist, but whitelist enabled => invalid
+			// NOTE: Allow user to use non-whitelisted tags.
+			//return false;
+		}
+
+		// NOTE: Change regex now.
+		$pattern = $this->config[prefixes::CONFIG.'_allowed_tags_regex'];
+		$tag_is_valid = preg_match($pattern, $tag);
+		if (!$tag_is_valid)
+		{
+			// non conform to regex is always invalid.
 			return false;
 		}
 
@@ -733,6 +844,9 @@ class tags_manager
 	 */
 	public function is_tagging_enabled_in_forum($forum_id)
 	{
+		// Remember this forum id to facilate other access later.
+		$this->the_forum_id = $forum_id;
+
 		$field = 'rh_topictags_enabled';
 		$sql = "SELECT $field
 			FROM " . FORUMS_TABLE . '

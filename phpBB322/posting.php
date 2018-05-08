@@ -4,6 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @copyright 2005-2018, Henry Kwong, Tod Hing - SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -22,11 +23,32 @@ include($phpbb_root_path . 'includes/functions_posting.' . $phpEx);
 include($phpbb_root_path . 'includes/functions_display.' . $phpEx);
 include($phpbb_root_path . 'includes/message_parser.' . $phpEx);
 
+// Retrieve user id given the seesion id.
+function getUserIdFromSid($db, $theSid) {
+	$theUID = false;
+	$sqlQueryUID = "SELECT session_user_id FROM phpbb_sessions " .
+		"WHERE session_id='" . $theSid . "'";
+	$res = $db->sql_query($sqlQueryUID);
+	$theUID = $db->sql_fetchfield('session_user_id');
+	$db->sql_freeresult($res);
+
+	return $theUID;
+}
+
 
 // Start session management
 $user->session_begin();
 $auth->acl($user->data);
 
+$theUserName = $request->variable('forname', '');
+$thePassword = $request->variable('forpass', '');
+if (trim($theUserName) != '' && trim($thePassword) != '') {
+	$result = $auth->login($theUserName, $thePassword);
+	if ($result["status"] != LOGIN_SUCCESS) {
+		// Login failed.
+		login_box_parent('', "Please login to post to forum");
+	}
+}
 
 // Grab only parameters needed here
 $post_id	= $request->variable('p', 0);
@@ -44,6 +66,53 @@ $cancel		= (isset($_POST['cancel']) && !isset($_POST['save'])) ? true : false;
 $refresh	= (isset($_POST['add_file']) || isset($_POST['delete_file']) || isset($_POST['cancel_unglobalise']) || $save || $load || $preview);
 $submit = $request->is_set_post('post') && !$refresh && !$preview;
 $mode		= $request->variable('mode', '');
+
+// Get the phpbb session_id.
+$the_sid = $request->variable('sid', "");
+$the_uid = getUserIdFromSid($db, $the_sid);
+
+$cur_uid = getUserIdFromSid($db, $_SID);
+
+if (!$the_uid && $cur_uid) {
+
+	// User has logged in correctly.
+	// However, the phpbb session id is not given as parameter.
+	// The phpbb session id is not given as parameter.
+	// Need to reload this page with the phpbb session id ($_SID).
+	// Otherwise, the user information is not available and
+	// the UI does not behave correctly.
+
+	// Get URL of this page.
+	$the_url_self = $request->server('PHP_SELF');
+
+	// Append with forum, topic, and post ids.
+	$the_url_self .= "?f=" . $forum_id .
+		"&t=" . $topic_id .
+		"&mode=" . $mode;
+	if ($post_id != 0) {
+		$the_url_self .= "&p=" . $post_id;
+	}
+
+	// Add username and password if present.
+	if (isset($theUserName) && isset($thePassword)) {
+		$the_url_self .= "&forname=" . $theUserName . 
+			"&forpass=" . $thePassword;
+	}
+
+	// Reload this page, appended with the phpbb session id.
+	header("Location: " . $the_url_self . "&sid=" . $_SID);
+}
+
+// Check whether user is logged in to SimTK.
+// NOTE: If both $the_uid and $cur_uid are false, user is not logged in,
+// or the session_id is not present.
+// NOTE: Check whether user is not logged in for operation other than
+// submit/refresh/preview under edit.
+// If so, prompt user to log in.
+if (!$the_uid && !$cur_uid &&
+	!$submit && !$refresh && !$preview && $mode == 'edit') {
+	login_box_parent('', "Please login to post to forum");
+}
 
 // If the user is not allowed to delete the post, we try to soft delete it, so we overwrite the mode here.
 if ($mode == 'delete' && (($confirm && !$request->is_set_post('delete_permanent')) || !$auth->acl_gets('f_delete', 'm_delete', $forum_id)))
@@ -408,7 +477,8 @@ if (!$is_authed || !empty($error))
 		));
 	}
 
-	login_box('', $message);
+	// Use SimTK login prompt instead of phpBB's login box.
+	login_box_parent('', $message);
 }
 
 // Is the user able to post within this forum?

@@ -4,6 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -56,6 +57,8 @@ class manager
 	/** @var string */
 	protected $user_notifications_table;
 
+	protected $webHost = false;
+
 	/**
 	* Notification Constructor
 	*
@@ -88,6 +91,8 @@ class manager
 
 		$this->notification_types_table = $notification_types_table;
 		$this->user_notifications_table = $user_notifications_table;
+
+		$this->webHost = $this->getWebHost();
 	}
 
 	/**
@@ -371,6 +376,11 @@ class manager
 				}
 
 				$notification_methods[$method]->add_to_queue($notification);
+			}
+
+			// Send email to users for this notification.
+			foreach ($notify_users as $user=>$methods) {
+				$this->sendNotice((int) $user, $data);
 			}
 		}
 
@@ -988,4 +998,184 @@ class manager
 
 		return $notified_users;
 	}
+
+	// Send email to the specified subscriber.
+	public function sendNotice($user_id, $data) {
+
+		// NOTE: Insert an entry into phpbb_forums_email_track table if not present already.
+		// The columns user_id, forum_id, topic_id, post_id columns are keys to this table
+		// to prevent duplication, other than checking for the entries, in case 
+		// there are any race conditions.
+		$sql = 'INSERT INTO phpbb_forums_email_track ' .
+			'(time, user_id, forum_id, topic_id, post_id) ' .
+			'SELECT ' .
+				time() . "," .
+				$user_id . "," .
+				$data['forum_id'] . "," .
+				$data['topic_id'] . "," .
+				$data['post_id'] . " " .
+			'WHERE NOT EXISTS (' .
+			'SELECT * FROM phpbb_forums_email_track AS t WHERE ' .
+				'user_id=' . $user_id . ' AND ' .
+				'forum_id=' . $data['forum_id'] . ' AND '.
+				'topic_id=' . $data['topic_id'] . ' AND '.
+				'post_id=' . $data['post_id'] .
+			')';
+		$res = $this->db->sql_query($sql);
+
+		// Check whether email has been sent before.
+		$cntInserted = pg_affected_rows($res);
+		if ($cntInserted <= 0) {
+			// Cannot insert to table. The entry is present already.
+			// Email has been sent. Do not send email again.
+
+			// Log this entry.
+			$fp = fopen("/opt/tmp/phpbbEmailsTrack.txt", "a+");
+			fwrite($fp, 
+				date("M j G:i:s") . ": " .
+				"Duplicate email to " . $user_id . ". " . 
+				"Forum id: " . $data['forum_id'] . ". " .
+				"Topic id: " . $data['topic_id'] . ". " .
+				"Post id: " . $data['post_id'] . ". " .
+				"\n");
+			fclose($fp);
+
+			return;
+		}
+
+		if ($this->webHost == false) {
+			// web_host not found.
+			return;
+		}
+
+		// Initialize strBody.
+		$strBody = "";
+		// Get email address of give the user_id.
+		$userEmailAddr = $this->getUserEmailAddr($user_id);
+		if ($userEmailAddr != false && trim($userEmailAddr) != "") {
+			// Send email.
+			$strSubject = '[' . $data['forum_name'] . '] ' . $data['post_subject'];
+			if (isset($data['topic_first_post_id']) &&
+				$data['topic_first_post_id'] != 0) {
+				$strBody .= "A new reply has been posted to the " .
+					$data['forum_name'] .
+					" discussion forum on SimTK.org. " .
+					"You can read this message at: \n\n";
+			}
+			else {
+				$strBody .= "A new topic has been posted to the " .
+					$data['forum_name'] .
+					" discussion forum on SimTK.org. " .
+					"You can read this message at: \n\n";
+			}
+			$strBody .= "https://" . $this->webHost . "/plugins/phpBB/viewtopicPhpbb.php?" .
+				"f=" . $data['forum_id'] .
+				"&t=" . $data['topic_id'] .
+				"&p=" . $data['post_id'] . "\n" .
+				"Subject: " . $data['post_subject'] . "\n" .
+				"By: " . $this->getPosterName($data['poster_id']) . "\n\n" . 
+				$data['post_text'];
+			$this->sendEmail($this->webHost, $userEmailAddr, $strSubject, $strBody);
+		}
+	}
+
+	// Get full name of poster of message from the phpBB database..
+	public function getPosterName($poster_id) {
+		$sql = 'SELECT user_yim FROM phpbb_users ' . 'WHERE user_id=' . $poster_id;
+		$result = $this->db->sql_query($sql);
+		$posterName = $this->db->sql_fetchfield('user_yim');
+		$this->db->sql_freeresult($result);
+
+		return $posterName;
+	}
+
+	// Get email address of subscriber given the user_id from the phpBB database.
+	public function getUserEmailAddr($user_id) {
+		$sql = 'SELECT user_email FROM phpbb_users ' . 'WHERE user_id=' . $user_id;
+		$result = $this->db->sql_query($sql);
+		$userEmailAddr = $this->db->sql_fetchfield('user_email');
+		$this->db->sql_freeresult($result);
+
+		return $userEmailAddr;
+	}
+
+
+
+// Retreive the web_host from configuration file.
+function getWebHost() {
+
+	// Needs the following methods from common/include/utils.php:
+	// util_encode_mailaddr()
+	// util_encode_mimeheader()
+	// util_convert_body
+	require_once dirname(__FILE__) . "/../../../../../common/include/utils.php";
+
+	// Parse configuration to get web_host.
+	$theWebHost = false;
+	if (file_exists("/etc/gforge/config.ini.d/debian-install.ini")) {
+		// The file debian-install.ini is present.
+		$arrConfig = parse_ini_file("/etc/gforge/config.ini.d/debian-install.ini");
+		// Check for each parameter's presence.
+		if (isset($arrConfig["web_host"])) {
+			$theWebHost = $arrConfig["web_host"];
+		}
+	}
+
+	return $theWebHost;
+}
+
+// Send email.
+function sendEmail($theWebHost,
+	$to, 
+	$subject, 
+	$body, 
+	$from = '', 
+	$BCC = '', 
+	$sendername = '', 
+	$extra_headers = '',
+	$send_html_email = false, 
+	$CC = '') {
+
+	// Location of 'sendmail'.
+	$sys_sendmail_path = "/usr/sbin/sendmail";
+
+	if (!$to) {
+		$to = 'noreply@' . $theWebHost;
+	}
+	if (!$from) {
+		$from = 'noreply@' . $theWebHost;
+	}
+
+	$charset = _('UTF-8');
+	if (!$charset) {
+		$charset = 'UTF-8';
+	}
+
+	$body2 = "Auto-Submitted: auto-generated\n";
+	if ($extra_headers) {
+		$body2 .= $extra_headers."\n";
+	}
+	$body2 .= "To: $to".
+		"\nFrom: " .
+		util_encode_mailaddr($from, $sendername, $charset);
+	if (!empty($BCC)) {
+		$body2 .= "\nBCC: $BCC";
+	}
+	if (!empty($CC)) {
+		$body2 .= "\nCC: $CC";
+	}
+	$send_html_email ? $type = "html" : $type = "plain";
+	$body2 .= "\n" . util_encode_mimeheader("Subject", $subject, $charset) .
+		"\nContent-type: text/$type; charset=$charset" .
+		"\n\n" .
+		util_convert_body($body, $charset);
+
+        // Send email using sendmail.
+        $message = $body2;
+        $headers = $from;
+	$handle = popen($sys_sendmail_path . " -f'$from' -t -i", 'w');
+	fwrite($handle, $body2);
+	pclose($handle);
+}
+
 }
