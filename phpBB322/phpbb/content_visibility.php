@@ -128,7 +128,11 @@ class content_visibility
 			return (int) $data[$mode . '_approved'];
 		}
 
-		return (int) $data[$mode . '_approved'] + (int) $data[$mode . '_unapproved'] + (int) $data[$mode . '_softdeleted'];
+		// ORIGINAL:
+		//return (int) $data[$mode . '_approved'] + (int) $data[$mode . '_unapproved'] + (int) $data[$mode . '_softdeleted'];
+		// NOTE: Do not include soft-deleted or unapproved topics in forum's display.
+		// Skip this topic.
+		return (int) $data[$mode . '_approved'];
 	}
 
 

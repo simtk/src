@@ -4,6 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @copyright 2005-2018, Henry Kwong, Tod Hing - SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -22,6 +23,18 @@ include($phpbb_root_path . 'includes/functions_display.' . $phpEx);
 include($phpbb_root_path . 'includes/bbcode.' . $phpEx);
 include($phpbb_root_path . 'includes/functions_user.' . $phpEx);
 
+// Retrieve user id given the seesion id.
+function getUserIdFromSid($db, $theSid) {
+	$theUID = false;
+	$sqlQueryUID = "SELECT session_user_id FROM phpbb_sessions " .
+		"WHERE session_id='" . $theSid . "'";
+	$res = $db->sql_query($sqlQueryUID);
+	$theUID = $db->sql_fetchfield('session_user_id');
+	$db->sql_freeresult($res);
+
+	return $theUID;
+}
+
 // Start session management
 $user->session_begin();
 $auth->acl($user->data);
@@ -34,9 +47,125 @@ $voted_id	= $request->variable('vote_id', array('' => 0));
 
 $voted_id = (count($voted_id) > 1) ? array_unique($voted_id) : $voted_id;
 
+$mywatch	= $request->variable('watch', '');
+$myunwatch	= $request->variable('unwatch', '');
 
 $start		= $request->variable('start', 0);
 $view		= $request->variable('view', '');
+
+// Get the phpbb session_id.
+$the_sid	= $request->variable('sid', "");
+
+if ($mywatch == '' && $myunwatch == '') {
+
+	// Neither "Subscribe topic" nor "Unsubscribe topic" is specified.
+	
+	$theUserName = $request->variable('forname', '');
+	$thePassword = $request->variable('forpass', '');
+	$result = $auth->login($theUserName, $thePassword);
+	if ($result["status"] != LOGIN_SUCCESS) {
+		// Login failed.
+		$user->session_kill();
+
+		// Restart session management
+		$user->session_begin();
+		$auth->acl($user->data);
+	}
+
+	if ($post_id != 0 && ($topic_id == 0 || $forum_id == 0)) {
+		// Try to fill in forum id and topic id if post id is known.
+		$sql = "SELECT forum_id, topic_id FROM " . POSTS_TABLE . " " .
+			"WHERE post_id = $post_id";
+		$result = $db->sql_query_limit($sql, 1);
+		$row = $db->sql_fetchrow($result);
+		$db->sql_freeresult($result);
+		if ($row != false) {
+			$fid = $row['forum_id'];
+			$tid = $row['topic_id'];
+			if ($forum_id != 0 && $fid != $forum_id) {
+				trigger_error("Forum mismatch for post #" . $post_id . ": " . $forum_id);
+			}
+			if ($topic_id != 0 && $tid != $topic_id) {
+				trigger_error("Topic mismatch for post #" . $post_id . ": " . $topic_id);
+			}
+			// Update forum id and topic id.
+			$forum_id = $fid;
+			$topic_id = $tid;
+		}
+	}
+
+	if ($topic_id != 0 && $forum_id == 0) {
+		// Try to fill in forum id if topic id is known.
+		$sql = "SELECT forum_id FROM " . TOPICS_TABLE . " " .
+			"WHERE topic_id = $topic_id";
+		$result = $db->sql_query_limit($sql, 1);
+		$row = $db->sql_fetchrow($result);
+		$db->sql_freeresult($result);
+		if ($row != false) {
+			$fid = $row['forum_id'];
+			if ($forum_id != 0 && $fid != $forum_id) {
+				trigger_error("Forum mismatch for post #" . $post_id . ": " . $forum_id);
+			}
+			// Update forum id.
+			$forum_id = $fid;
+		}
+	}
+
+	// Get the HTTP_REFERER URL to test if the URL of the page that contains
+	// this iframe is "viewtopicPhpbb.php".
+	// If not, update the URL to be "viewtopicPhpbb.php" such that 
+	// the page's URL can be copied and referrred upon.
+	// Otherwise, "indexPhpbb.php" may be shown instead, which does not show
+	// the more specific topic id in the forum.
+	$the_url_self = $request->server('HTTP_REFERER');
+	if (stripos($the_url_self, 'viewtopicPhpbb.php') === false) {
+		// No, update the URL.
+		$tmpScriptStr = '<script>top.window.location.href = "/plugins/phpBB/viewtopicPhpbb.php' .
+			'?f=' . $forum_id . 
+			'&t=' . $topic_id . 
+			'&p=' . $post_id .
+			'&start=' . $start .
+			'&view=' . $view;
+		if ($the_sid != "") {
+			// Pass along session_id if present.
+			$tmpScriptStr .= '&sid=' . $the_sid;
+		}
+		$tmpScriptStr .= '";</script>';
+		echo $tmpScriptStr;
+	}
+
+	$the_uid = getUserIdFromSid($db, $the_sid);
+	$cur_uid = getUserIdFromSid($db, $_SID);
+
+	if ($result["status"] == LOGIN_SUCCESS && 
+		!$the_uid && $cur_uid) {
+
+		// User has logged in correctly.
+		// However, the phpbb session id is not given as parameter.
+		// Need to reload this page with the phpbb session id ($_SID).
+		// Otherwise, the user information is not available and
+		// the UI does not behave correctly.
+
+		// Get URL of this page.
+		$the_url_self = $request->server('PHP_SELF');
+
+		// Append with forum, topic, and post ids.
+		$the_url_self .= "?f=" . $forum_id .
+			"&t=" . $topic_id .
+			"&p=" . $post_id .
+			"&start=" . $start .
+			"&view=" . $view;
+
+		// Add username and password if present.
+		if (isset($theUserName) && isset($thePassword)) {
+			$the_url_self .= "&forname=" . $theUserName . 
+				"&forpass=" . $thePassword;
+		}
+
+		// Reload this page, appended with the phpbb session id.
+		header("Location: " . $the_url_self . "&sid=" . $_SID);
+	}
+}
 
 $default_sort_days	= (!empty($user->data['user_post_show_days'])) ? $user->data['user_post_show_days'] : 0;
 $default_sort_key	= (!empty($user->data['user_post_sortby_type'])) ? $user->data['user_post_sortby_type'] : 't';
@@ -1932,7 +2061,7 @@ for ($i = 0, $end = count($post_list); $i < $end; ++$i)
 		'RANK_IMG_SRC'		=> $user_cache[$poster_id]['rank_image_src'],
 		'POSTER_JOINED'		=> $user_cache[$poster_id]['joined'],
 		'POSTER_POSTS'		=> $user_cache[$poster_id]['posts'],
-		'POSTER_AVATAR'		=> $user_cache[$poster_id]['avatar'],
+		'POSTER_AVATAR'		=> "<img src='/userpics/" . $row['username'] . "_thumb' width='75' height='75' onError='this.src=" . '"' . "/userpics/user_profile.jpg" . '"' . ";' alt='User avatar'>",
 		'POSTER_WARNINGS'	=> $auth->acl_get('m_warn') ? $user_cache[$poster_id]['warnings'] : '',
 		'POSTER_AGE'		=> $user_cache[$poster_id]['age'],
 		'CONTACT_USER'		=> $user_cache[$poster_id]['contact_user'],
