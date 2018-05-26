@@ -128,7 +128,7 @@ Thanks in advance for your feedback and interest in SimTK.
 
 <?php
 
-if ($group_id !== false && trim($group_id) !== "") {
+if ($group_id != false && trim($group_id) !== "") {
 	// Has group_id. Look up group object.
 	$groupObj = group_get_object($group_id);
 
