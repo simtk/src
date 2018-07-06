@@ -6,7 +6,7 @@
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * http://fusionforge.org/
- * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -440,15 +440,28 @@ if ($frsp->getUseAgreement() != 0) {
 	<td></td>
 	</tr>
 
+<?php
+	$strMailingListPopup = frs_show_mailinglist_popup($group_id, 'group_list_id');
+	if ($strMailingListPopup != false && trim($strMailingListPopup) != "") {
+		echo '
 	<tr>
-	<td style="padding-left:30px;"><input class="upFile" type="checkbox" id="use_mail_list" name="use_mail_list" value="1" checked="checked" />&nbsp;Ask user to join mailing list:&nbsp;
-	<?php print frs_show_mailinglist_popup($group_id, 'group_list_id'); ?></td>
+	<td style="padding-left:30px;"><input class="upFile" type="checkbox" id="use_mail_list" name="use_mail_list" value="1" ';
+		echo "checked='checked'";
+ 		echo ' />&nbsp;';
+
+		echo "Ask user to join mailing list:&nbsp;";
+		echo $strMailingListPopup;
+		echo '
+	</td>
 	</tr>
 	<tr>
 		<td style="padding-left:30px;">
 			-->"Collect user information" must be checked to use mailing lists.
 		</td>
 	</tr>
+		';
+	}
+?>
 
 	</table>
 	</td>
