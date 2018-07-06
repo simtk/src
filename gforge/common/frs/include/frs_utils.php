@@ -8,7 +8,7 @@
  * Copyright 2011, Franck Villaume - Capgemini
  * Copyright 2013, Franck Villaume - TrivialDev
  * http://fusionforge.org/
- * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -241,6 +241,10 @@ function frs_show_mailinglist_popup ($group_id, $name='group_list_id', $checked_
 		"WHERE group_id=$group_id AND list_name!='$unix_group_name" . "-commits' " .
 		"ORDER BY list_name";
 	$resMailingLists = db_query_params($strQuery, array());
+	if (db_numrows($resMailingLists) == 0) {
+		// No valid mailing list found.
+		return false;
+	}
 
 	return html_build_select_box ($resMailingLists,$name,$checked_val,false);
 }

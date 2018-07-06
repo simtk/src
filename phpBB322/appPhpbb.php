@@ -157,13 +157,13 @@ $strPhpbbURL = implode(
 // NOTE: rand() is needed to avoid browser caching logged in user.
 // Otherwise, even after the user has logged out, back button will
 // load information of previous user.
-echo '<iframe name="' . rand() . '" src="' . $strPhpbbURL . '" ' .
+echo '<iframe name="' . rand() . '" src="' . util_make_url($strPhpbbURL) . '" ' .
 	'frameborder="0" scrolling="no" width="100%" height="700px">' .
 	'</iframe>';
 
 ?>
 
-<script src='iframeAdjust.js'></script>
+<script src='/plugins/phpBB/iframeAdjust.js'></script>
 
 <?php
 

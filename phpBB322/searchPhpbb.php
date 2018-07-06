@@ -64,7 +64,7 @@ echo '<iframe name="' . rand() . '" src="' . util_make_url($strPhpbbURL) . '" ' 
 
 ?>
 
-<script src='iframeAdjust.js'></script>
+<script src='/plugins/phpBB/iframeAdjust.js'></script>
 
 <?php
 

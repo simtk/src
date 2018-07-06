@@ -262,7 +262,16 @@ $(window).load(function() {
 			});
 		};
 	});
+
+	// NOTE: The following is needed for displaying submenu under a menu item.
+	$('.dropdown>.dropdown-menu>.intend>a.dropdown-toggle').on('click', function(e) {
+		$(this).next('ul').toggle();
+		e.stopPropagation();
+		e.preventDefault();
+	});
 });
+
+
 </script>
 		
 <?php
@@ -480,15 +489,36 @@ $(window).load(function() {
 				"&unfollow=1'>Unfollow</a>";
 			echo "</li>";
 
+			// "See followers menu item and its submenu of "List/Map".
+			echo "<li class='intend'>";
+			// Link to map of followers.
+			echo "<a " .
+				"href='/plugins/following/followersmap.php?group_id=" . 
+				$group_id .
+				"'>" .
+				"See followers (" . $total_followers . ")" .
+				"</a>";
+			echo "</li>";
+			echo "<div>";
 			echo "<li class='intend'>";
 			// Link to page of followers.
 			echo "<a class='share_text_link' " .
 				"href='/plugins/following/index.php?group_id=" . 
 				$group_id .
 				"'>" .
-				"See followers ($total_followers)" .
+				"List" .
 				"</a>";
 			echo "</li>";
+			echo "<li class='intend'>";
+			// Link to map of followers.
+			echo "<a class='share_text_link' " .
+				"href='/plugins/following/followersmap.php?group_id=" . 
+				$group_id .
+				"'>" .
+				"Map" .
+				"</a>";
+			echo "</li>";
+			echo "</div>";
 
 			// More information.
 			echo "<li class='intend'>";
@@ -496,8 +526,6 @@ $(window).load(function() {
 			echo "</li>";
 
 			echo '</ul>';
-
-			echo '</div>';
 		}
 		else {
 			// Not logged-in or user is not following.
@@ -532,15 +560,35 @@ $(window).load(function() {
 				"&unfollow=1'>Unfollow</a>";
 			echo "</li>";
 
+			// "See followers menu item and its submenu of "List/Map".
+			echo "<li class='intend'>";
+			// Link to map of followers.
+			echo "<a " .
+				"href='/plugins/following/followersmap.php?group_id=" . 
+				$group_id .
+				"'>" .
+				"See followers (" . $total_followers . ")" .
+				"</a>";
+			echo "</li>";
+			echo "<div>";
 			echo "<li class='intend'>";
 			// Link to page of followers.
 			echo "<a class='share_text_link' " .
 				"href='/plugins/following/index.php?group_id=" . 
 				$group_id .
 				"'>" .
-				"See followers ($total_followers)" .
+				"List" .
+				"</a>";
+			echo "<li class='intend'>";
+			// Link to map of followers.
+			echo "<a class='share_text_link' " .
+				"href='/plugins/following/followersmap.php?group_id=" . 
+				$group_id .
+				"'>" .
+				"Map" .
 				"</a>";
 			echo "</li>";
+			echo "</div>";
 
 			// More information.
 			echo "<li class='intend'>";
@@ -548,9 +596,9 @@ $(window).load(function() {
 			echo "</li>";
 
 			echo '</ul>';
-
-			echo '</div>';
 		}
+
+		echo '</div>';
 
 		echo '</td>';
 		echo '</tr>';
@@ -963,7 +1011,7 @@ echo $u->getFirstName();
                 echo '</div>';
 
 		echo '<div style="font-size:12px;">';
-		echo 'Version 2.0.24. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 5.3.2.';
+		echo 'Version 2.0.25. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 5.3.2.';
                 echo '</div>';
 
             echo '</div>';

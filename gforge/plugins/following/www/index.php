@@ -36,6 +36,7 @@ require_once $gfcommon.'include/HTTPRequest.class.php';
 require_once $gfcommon.'widget/WidgetLayoutManager.class.php';
 
 require_once $gfplugins.'following/www/following-utils.php';
+require_once $gfwww . 'project/project_utils.php';
 require_once $gfplugins.'following/include/Following.class.php';
 require_once $gfcommon.'include/User.class.php';
 
@@ -89,10 +90,11 @@ if (session_loggedin()) {
 
 html_use_jqueryui();
 
-
 site_project_header(array('title'=>$title, 'group'=>$group_id, 'toptab'=>'following'));
 
 ?>
+
+<link rel='stylesheet' type='text/css' href='followers.css'>
 
 <div class="project_overview_main">
 	<div style="display: table; width: 100%;">
@@ -141,7 +143,18 @@ site_project_header(array('title'=>$title, 'group'=>$group_id, 'toptab'=>'follow
 			$private_following_count = $following->getPrivateFollowingCount($group_id);
 
 			echo "<h3>$public_following_count public followers and $private_following_count private followers</h3>";
-			echo "<p><a href='follow-info.php?group_id=$group_id'>What does it mean to follow a project?</a></p>";
+			echo "<a href='follow-info.php?group_id=$group_id'>What does it mean to follow a project?</a>";
+
+			echo "<div style='float: right; margin-right: 70px;'";
+
+			echo "<span style='float: right;'><b>Display followers in:</b>&nbsp;";
+			echo "<select onchange='location=this.value;'>";
+			echo "<option id='optList' value='/plugins/following/index.php?group_id=" . $group_id . "'>List</option>";
+			echo "<option id='optMap' value='/plugins/following/followersmap.php?group_id=" . $group_id . "'>Map</option>";
+			echo "</select>";
+
+			echo "</div>";
+
 
 			if ($public_following_count > 0) {
 				// Display users.
@@ -196,9 +209,25 @@ site_project_header(array('title'=>$title, 'group'=>$group_id, 'toptab'=>'follow
 		} // if has followers
 	}
 ?>
-		</div>
-	</div>
-</div>
+		</div> <!-- main_col -->
+
+<?php
+
+		// "side_bar".
+		constructSideBar($group);
+
+?>
+
+	</div> <!-- display: table; width: 100% -->
+</div> <!-- project_overview_main -->
+
+<script>
+$(document).ready(function () {
+	// Select the Map option by default here.
+	// Otherwise, on reload, the option may not get selected in Chrome.
+	$('#optList').attr('selected', 'selected');
+})
+</script>
 
 <?php
 

@@ -3331,6 +3331,9 @@ tbody.collapse.in {
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
   background-clip: padding-box;
 }
+tr>td>.dropdown>.dropdown-menu {
+  min-width: 210px;
+}
 .dropdown-menu.pull-right {
   right: 0;
   left: auto;
@@ -7917,6 +7920,9 @@ and open the template in the editor.
 }
 .dropdown-menu li.intend > a {
   padding-left: 33px;
+}
+.dropdown-menu div > li.intend > a {
+  padding-left: 53px;
 }
 .dropdown-menu > li > a.action:hover,
 .dropdown-menu > li > a.action:focus,
