@@ -54,12 +54,24 @@ function following_Project_Header($params,$id) {
 	site_project_header($params);
 }
 
-/*
-function news_footer($params) {
-	GLOBAL $HTML;
-	$HTML->footer($params);
+// Construct side bar
+function constructSideBar($groupObj) {
+
+	if ($groupObj == null) {
+		// Group object not available.
+		return;
+	}
+
+	echo '<div style="padding-top:20px;" class="side_bar">';
+
+	// Statistics.
+	displayStatsBlock($groupObj);
+
+	// Get project leads.
+	$project_admins = $groupObj->getLeads();
+	displayCarouselProjectLeads($project_admins);
+	echo '</div>';
 }
-*/
 
 
 // Local Variables:

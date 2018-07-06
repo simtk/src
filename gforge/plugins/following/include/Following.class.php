@@ -95,7 +95,19 @@ class Following extends Error {
 	 */
 	function fetchData($pubId) {
 
-		$res=db_query_params("SELECT * FROM project_follows,users WHERE users.user_name = project_follows.user_name and users.user_name = 'A' and follow = true AND group_id='". $this->group->getID() ."'",array());
+		$res=db_query_params("SELECT pf.* FROM project_follows pf " .
+			"JOIN users u " .
+			"ON u.user_name=pf.user_name " .
+			"JOIN " .
+			"(SELECT user_name, group_id, max(time) last_time FROM project_follows " .
+			"GROUP BY group_id, user_name) lq " .
+			"ON pf.user_name=lq.user_name " .
+			"AND pf.group_id=lq.group_id " .
+			"AND pf.time=lq.last_time " .
+			"AND u.status='A' " .
+			"AND pf.follows=true " .
+			"AND pf.group_id='". $this->group->getID() ."'",
+			array());
 
 		if (!$res || db_numrows($res) < 1) {
 			$this->setError(_('following: fetch error'));
@@ -118,6 +130,12 @@ class Following extends Error {
 		$strQuery = "SELECT * FROM project_follows pf " .
 			"JOIN users u " .
 			"ON u.user_name=pf.user_name " .
+			"JOIN " .
+			"(SELECT user_name, group_id, max(time) last_time FROM project_follows " .
+			"GROUP BY group_id, user_name) lq " .
+			"ON pf.user_name=lq.user_name " .
+			"AND pf.group_id=lq.group_id " .
+			"AND pf.time=lq.last_time " .
 			"AND u.status='A' " .
 			"AND pf.group_id=$1 " .
 			"AND pf.follows=true";
@@ -143,10 +161,16 @@ class Following extends Error {
 	// Optional parameter: "public" or "private" follower only.
 	function isFollowing($group_id, $user_name, $follow_type="") {
 
-		$strQuery = "SELECT user_name FROM project_follows " .
-			"WHERE group_id=$1 " .
-			"AND follows=true " .
-			"AND user_name=$2 ";
+		$strQuery = "SELECT pf.user_name FROM project_follows pf " .
+			"JOIN " .
+			"(SELECT user_name, group_id, max(time) last_time FROM project_follows " .
+			"GROUP BY group_id, user_name) lq " .
+			"ON pf.user_name=lq.user_name " .
+			"AND pf.group_id=lq.group_id " .
+			"AND pf.time=lq.last_time " .
+			"WHERE pf.group_id=$1 " .
+			"AND pf.follows=true " .
+			"AND pf.user_name=$2 ";
 		if ($follow_type == "public") {
 			$strQuery .= "AND public=true";
 		}
@@ -174,10 +198,17 @@ class Following extends Error {
 		$strQuery = "SELECT * FROM project_follows pf " .
 			"JOIN users u " .
 			"ON u.user_name=pf.user_name " .
+			"JOIN " .
+			"(SELECT user_name, group_id, max(time) last_time FROM project_follows " .
+			"GROUP BY group_id, user_name) lq " .
+			"ON pf.user_name=lq.user_name " .
+			"AND pf.group_id=lq.group_id " .
+			"AND pf.time=lq.last_time " .
 			"AND u.status='A' " .
 			"AND pf.group_id=$1 " .
 			"AND pf.follows=true " .
-			"AND pf.public=false";
+			"AND pf.public=false " .
+			"ORDER BY lastname, firstname";
 		$res = db_query_params($strQuery, array($group_id));
 		if (!$res) {
 			return false;
@@ -202,6 +233,12 @@ class Following extends Error {
 		$strQuery = "SELECT count(*) FROM project_follows pf " .
 			"JOIN users u " .
 			"ON u.user_name=pf.user_name " .
+			"JOIN " .
+			"(SELECT user_name, group_id, max(time) last_time FROM project_follows " .
+			"GROUP BY group_id, user_name) lq " .
+			"ON pf.user_name=lq.user_name " .
+			"AND pf.group_id=lq.group_id " .
+			"AND pf.time=lq.last_time " .
 			"AND u.status='A' " .
 			"AND pf.group_id=$1 " .
 			"AND pf.follows=true " .
@@ -224,6 +261,12 @@ class Following extends Error {
 		$strQuery = "SELECT count(*) FROM project_follows pf " .
 			"JOIN users u " .
 			"ON u.user_name=pf.user_name " .
+			"JOIN " .
+			"(SELECT user_name, group_id, max(time) last_time FROM project_follows " .
+			"GROUP BY group_id, user_name) lq " .
+			"ON pf.user_name=lq.user_name " .
+			"AND pf.group_id=lq.group_id " .
+			"AND pf.time=lq.last_time " .
 			"AND u.status='A' " .
 			"AND pf.group_id=$1 " .
 			"AND pf.follows=true " .
@@ -251,10 +294,17 @@ class Following extends Error {
 		$strQuery = "SELECT * FROM project_follows pf " .
 			"JOIN users u " .
 			"ON u.user_name=pf.user_name " .
+			"JOIN " .
+			"(SELECT user_name, group_id, max(time) last_time FROM project_follows " .
+			"GROUP BY group_id, user_name) lq " .
+			"ON pf.user_name=lq.user_name " .
+			"AND pf.group_id=lq.group_id " .
+			"AND pf.time=lq.last_time " .
 			"AND u.status='A' " .
 			"AND pf.group_id=$1 " .
 			"AND pf.follows=true " .
-			"AND pf.public=true";
+			"AND pf.public=true " .
+			"ORDER BY lastname, firstname";
 		$res = db_query_params($strQuery, array($group_id));
 		if (!$res) {
 			return false;
@@ -270,6 +320,35 @@ class Following extends Error {
 		db_free_result($res);
 
 		return $results;
+	}
+
+
+	function getPublicFollowers($group_id) {
+
+		$user_ids = array();
+
+		$strQuery = "SELECT user_id FROM project_follows pf " .
+			"JOIN users u " .
+			"ON u.user_name=pf.user_name " .
+			"JOIN " .
+			"(SELECT user_name, group_id, max(time) last_time FROM project_follows " .
+			"GROUP BY group_id, user_name) lq " .
+			"ON pf.user_name=lq.user_name " .
+			"AND pf.group_id=lq.group_id " .
+			"AND pf.time=lq.last_time " .
+			"AND u.status='A' " .
+			"AND pf.group_id=$1 " .
+			"AND pf.follows=true " .
+			"AND pf.public=true " .
+			"ORDER BY lastname, firstname";
+		$res = db_query_params($strQuery, array($group_id));
+		$rows = db_numrows($res);
+		for ($cnt = 0; $cnt < $rows; $cnt++) {
+                        $user_ids[] = db_result($res, $cnt, 'user_id');
+                }
+		db_free_result($res);
+
+                return user_get_objects(array_unique($user_ids));
 	}
 
 
