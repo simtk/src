@@ -5,7 +5,7 @@
  * 
  * The class which contains all methods for the following plugin.
  *
- * Copyright 2005-2016, SimTK Team
+ * Copyright 2005-2018, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -385,11 +385,15 @@ class Following extends Error {
 
 		$perm =& $this->group->getPermission( session_get_user() );
 
-		// removed check for !$perm->isMember() - Tod Hing 05-19-15
 		if (!$perm || !is_object($perm)) {
 			$this->setPermissionDeniedError();
 			return false;
-
+		}
+		if (!$this->group->isPublic() && 
+			!$perm->isMember()) {
+			// Do not allow non-member to follow private project.
+			$this->setPermissionDeniedError();
+			return false;
 		}
 
                 $sqlCmd="UPDATE project_follows SET follows = true, public = " . $public .  
