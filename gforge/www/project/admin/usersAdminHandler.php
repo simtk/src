@@ -6,7 +6,7 @@
  * 
  * File to handle users administration.
  *
- * Copyright 2005-2016, SimTK Team
+ * Copyright 2005-2018, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -33,6 +33,7 @@
  */ 
  
 require_once $gfplugins.'phpBB/www/userPermsSetup.php';
+require_once $gfplugins.'following/include/Following.class.php';
 
 $group_id = getIntFromRequest('group_id');
 
@@ -184,6 +185,14 @@ if (getStringFromRequest('submitConfirm')) {
 		if (!$role->removeUser (user_get_object ($user_id))) {
 			$error_msg = $role->getErrorMessage() ;
 		} else {
+
+			if (!$group->isPublic()) {
+				// Private project.
+				// Remove user from following.
+				$following = new Following($group);
+				$following->unfollow($group_id, $theUserName);
+			}
+
 			// Update display order, since a role has been removed.
 			regenerateDisplayOrder($group_id);
 
