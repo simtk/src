@@ -440,9 +440,31 @@ $(window).load(function() {
 
 		// Get user - included in common/include/pre.php
 		$user_name = "";
+		$showFollow = true;
 		if (session_get_user()) {
+			// User is logged in.
 			$user_name = session_get_user()->getUnixName();
+
+			if (!$group->isPublic()) {
+				// Private project.
+				$perm =& $group->getPermission(session_get_user());
+				if ($perm && is_object($perm) && !$perm->isMember()) {
+					// Not a member. Do not show Follow section.
+					$showFollow = false;
+				}
+			}
 		}
+		else {
+			// User is not logged in.
+			if (!$group->isPublic()) {
+				// Private project.
+				// Do not show Follow section.
+				$showFollow = false;
+			}
+		}
+
+		// Show "Follow" section.
+		if ($showFollow === true) {
 
 		echo '<tr>';
 		echo '<td>Follow&nbsp</td>';
@@ -602,6 +624,8 @@ $(window).load(function() {
 
 		echo '</td>';
 		echo '</tr>';
+
+		} // $showFollow is true.
 ?>
 
 		<tr>
