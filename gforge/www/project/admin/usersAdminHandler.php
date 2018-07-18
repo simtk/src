@@ -186,11 +186,13 @@ if (getStringFromRequest('submitConfirm')) {
 			$error_msg = $role->getErrorMessage() ;
 		} else {
 
-			if (!$group->isPublic()) {
+			if ($user_object !== false && !$group->isPublic()) {
 				// Private project.
-				// Remove user from following.
 				$following = new Following($group);
-				$following->unfollow($group_id, $theUserName);
+				if ($following->isFollowing($group_id, $theUserName)) {
+					// Remove user from following.
+					$following->unfollow($group_id, $theUserName);
+				}
 			}
 
 			// Update display order, since a role has been removed.
