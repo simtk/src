@@ -312,7 +312,7 @@ if (getStringFromRequest('submitConfirm')) {
 		}
 	} elseif (getStringFromRequest('updateOrder')) {
 		// Update order of display in project overview.
-		$userId = getStringFromRequest('user_id');
+		$user_id = getStringFromRequest('user_id');
 		$user_object = user_get_object($user_id);
 		$user_name = null;
 		if ($user_object !== false) {
@@ -324,7 +324,7 @@ if (getStringFromRequest('submitConfirm')) {
 		$displayOrder = getStringFromRequest('displayOrder');
 
 		// Update user display order in the group.
-		updateOrder($group_id, $userId, $isShow, $displayOrder);
+		updateOrder($group_id, $user_id, $isShow, $displayOrder);
 
 		$feedback = "Display order updated";
 	}
