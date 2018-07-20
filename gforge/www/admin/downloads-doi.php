@@ -154,6 +154,7 @@ td {
 
 
 <h2>Admin DOI</h2>
+<h4>Note: Enter the identifier only in DOI Identifier, not the full URL.</h4>
 
 <h3>DOI Pending</h3>
 
