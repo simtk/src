@@ -64,7 +64,7 @@ if (getStringFromRequest('submit')) {
 		
 		if ($file_user_id) {
 		   $message = "The DOI has been assigned for the following:\n\n" . "Project: " . $group_name . "\nFilename: " . $filename . "\n" . "DOI Identifier: " . $doi_identifier;
-		   $message .= "\n\nThe information for the DOI citation were based upon the information in your project.  Go to https://doi.org/" . $doi_identifier . "\nto see how your resource is listed.  If you would like to add ORCIDs or funding institutions, or if any of the information needs to be updated, please email us at webmaster@simtk.org.";
+		   $message .= "\n\nThe information for the DOI citation were based upon the information in your project.  Go to https://doi.org/" . $doi_identifier . "\nto see your resource.\n\nPlease also verify the accuracy of your resource’s description at https://search.datacite.org/works?query=" . $doi_identifier . " (or go to https://search.datacite.org and enter the DOI in the search box).  If you would like to add ORCIDs or funding institutions, or if any of the information needs to be updated, please email us at webmaster@simtk.org.";
 		   util_send_message($user_email, sprintf(_('DOI Assigned')), $message);
 		}
 		
