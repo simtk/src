@@ -589,7 +589,7 @@ class Group extends Error {
 		}
 
 		// Validate some values
-		if ($this->getPublicName() != $group_name) {
+		if (strtolower($this->getPublicName()) != strtolower($group_name)) {
 			if (!$this->validateGroupName($group_name)) {
 				return false;
 			}
@@ -1226,7 +1226,7 @@ class Group extends Error {
 		}
 
 		// Validate some values
-		if ($this->getPublicName() != $group_name) {
+		if (strtolower($this->getPublicName()) != strtolower($group_name)) {
 			if (!$this->validateGroupName($group_name)) {
 				return false;
 			}

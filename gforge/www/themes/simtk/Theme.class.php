@@ -440,9 +440,31 @@ $(window).load(function() {
 
 		// Get user - included in common/include/pre.php
 		$user_name = "";
+		$showFollow = true;
 		if (session_get_user()) {
+			// User is logged in.
 			$user_name = session_get_user()->getUnixName();
+
+			if (!$group->isPublic()) {
+				// Private project.
+				$perm =& $group->getPermission(session_get_user());
+				if ($perm && is_object($perm) && !$perm->isMember()) {
+					// Not a member. Do not show Follow section.
+					$showFollow = false;
+				}
+			}
 		}
+		else {
+			// User is not logged in.
+			if (!$group->isPublic()) {
+				// Private project.
+				// Do not show Follow section.
+				$showFollow = false;
+			}
+		}
+
+		// Show "Follow" section.
+		if ($showFollow === true) {
 
 		echo '<tr>';
 		echo '<td>Follow&nbsp</td>';
@@ -602,6 +624,8 @@ $(window).load(function() {
 
 		echo '</td>';
 		echo '</tr>';
+
+		} // $showFollow is true.
 ?>
 
 		<tr>
@@ -1011,7 +1035,7 @@ echo $u->getFirstName();
                 echo '</div>';
 
 		echo '<div style="font-size:12px;">';
-		echo 'Version 2.0.25. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 5.3.2.';
+		echo 'Version 2.0.26. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 5.3.2.';
                 echo '</div>';
 
             echo '</div>';

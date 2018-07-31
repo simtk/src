@@ -278,6 +278,30 @@ class ArtifactFile extends Error {
 	}
 
 	/**
+	 * loadFileFromDB = retrieve file contents from database and create file.
+        **/
+	function loadFileFromDB() {
+		// If file contents are in bin_data column, fetch data and store in file.
+		if (isset($this->data_array["bin_data"]) && 
+			trim($this->data_array["bin_data"]) != "") {
+
+			// Need to decode the string first.
+			$theFileContent = base64_decode($this->data_array["bin_data"]);
+
+			$theDir = dirname($this->getFile());
+			if (!file_exists($theDir)) {
+				// Its parent directory does not exist yet. Create it.
+				mkdir($theDir);
+			}
+
+			// Create the file for future use.
+			$fp = fopen($this->getFile(), "w+");
+			fwrite($fp, $theFileContent);
+			fclose($fp);
+		}
+	}
+
+	/**
 	 * getFile - get the file.
 	 *
 	 * @return	string	full pathname of file in storage.
