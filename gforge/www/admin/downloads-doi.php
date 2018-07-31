@@ -5,7 +5,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2012-2014, Franck Villaume - TrivialDev
- * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -64,7 +64,7 @@ if (getStringFromRequest('submit')) {
 		
 		if ($file_user_id) {
 		   $message = "The DOI has been assigned for the following:\n\n" . "Project: " . $group_name . "\nFilename: " . $filename . "\n" . "DOI Identifier: " . $doi_identifier;
-		   $message .= "\n\nThe information for the DOI citation were based upon the information in your project.  Go to http://ezid.cdlib.org/id/doi:" . $doi_identifier . "\nto see how your resource is listed.  If you would like to add ORCIDs or funding institutions, or if any of the information needs to be updated, please email us at webmaster@simtk.org.";
+		   $message .= "\n\nThe information for the DOI citation were based upon the information in your project.  Go to https://doi.org/" . $doi_identifier . "\nto see your resource.\n\nPlease also verify the accuracy of your resource’s description at https://search.datacite.org/works?query=" . $doi_identifier . " (or go to https://search.datacite.org and enter the DOI in the search box).  If you would like to add ORCIDs or funding institutions, or if any of the information needs to be updated, please email us at webmaster@simtk.org.";
 		   util_send_message($user_email, sprintf(_('DOI Assigned')), $message);
 		}
 		
@@ -154,6 +154,7 @@ td {
 
 
 <h2>Admin DOI</h2>
+<h4>Note: Enter the identifier only in DOI Identifier, not the full URL.</h4>
 
 <h3>DOI Pending</h3>
 

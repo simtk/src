@@ -5,7 +5,7 @@
  *
  * This file contains the form which allows user to add a new publication.
  * 
- * Copyright 2005-2016, SimTK Team
+ * Copyright 2005-2018, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -33,8 +33,8 @@
 error_reporting(-1);
 ini_set('display_errors', 'On');
 
-require_once $gfplugins.'env.inc.php';
-//require_once '../../../env.inc.php';
+//require_once $gfplugins.'env.inc.php';
+require_once '../../../env.inc.php';
 require_once $gfcommon.'include/pre.php';
 require_once $gfplugins.'publications/www/publications-utils.php';
 require_once $gfplugins.'publications/include/Publications.class.php';
@@ -118,17 +118,17 @@ if (session_loggedin()) {
 		
 		<strong>'._('Publication')._(': ').'</strong>'.utils_requiredField().'<br />
 		<p>
-	        <textarea required="required" name="publication" rows="5" cols="50">'.$details.'</textarea>
+	        <textarea required="required" name="publication" rows="5" cols="50"></textarea>
                 <p>
 		<strong>'._('Abstract')._(': ').'</strong><br />
 		<p>
-	        <textarea name="abstract" rows="5" cols="50">'.$details.'</textarea>
+	        <textarea name="abstract" rows="5" cols="50"></textarea>
                 <p>
 		<strong>'._('Year')._(': ').'</strong>'.utils_requiredField().'<br />
-		<input required="required" type="text" name="year" value="'.$summary.'" size="80" /></p>
+		<input required="required" type="text" name="year" value="" size="80" /></p>
 		<p>
 		<strong>'._('URL')._(': ').'</strong><br />
-		<input type="text" name="url" value="'.$summary.'" size="80" /></p>
+		<input type="text" name="url" value="" size="80" /></p>
 		<p>';
 
 	

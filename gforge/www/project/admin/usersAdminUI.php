@@ -198,6 +198,9 @@ if (isset($subMenuTitle) && isset($subMenuUrl) && isset($subMenuAttr)) {
 
 		$i = 1;
 		foreach ($arrUsers as $id=>$theOrder) {
+			if (!isset($members[$id])) {
+				continue;
+			}
 			$user = $members[$id];
 			genUserEntry($HTML, $group, $group_id, $user, $i++, $arrUsers);
 		}

@@ -5,7 +5,7 @@
  *
  * This file contains the form which allows admin to edit a publication.
  * 
- * Copyright 2005-2016, SimTK Team
+ * Copyright 2005-2018, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -31,7 +31,8 @@
  * <http://www.gnu.org/licenses/>.
  */ 
 
-require_once $gfplugins.'env.inc.php';
+//require_once $gfplugins.'env.inc.php';
+require_once '../../../env.inc.php';
 require_once $gfcommon.'include/pre.php';
 require_once '../publications-utils.php';
 require_once $gfplugins.'publications/include/Publications.class.php';
