@@ -6,7 +6,7 @@
  * 
  * Utiliy to handle file downloads.
  *
- * Copyright 2005-2016, SimTK Team
+ * Copyright 2005-2018, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -287,9 +287,9 @@ function genAgreedSubmitButton($frsPackage) {
 	// Note: the custom agreement is the saved agreement.
 	// Note: Check to ensure use agreement is not 0 ("None") first.
 	if ($frsPackage->getUseAgreement() != 0) {
-		echo '<div class="download_package" style="background-image:none;margin-bottom:20px;">' .
-			'<pre>' . $frsPackage->getCustomAgreement() . '</pre>'. 
-			'</div>';
+		echo "<Textarea disabled style='margin-top:5px;' rows='10' cols='50' >" . 
+			html_entity_decode($frsPackage->getCustomAgreement()) . 
+			"</Textarea><br/>";
 	}
 
 	echo INPUT_AGREED_SUBMIT;

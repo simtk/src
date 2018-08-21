@@ -9,7 +9,7 @@
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * http://fusionforge.org/
- * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -67,6 +67,12 @@ if (getStringFromRequest('submit')) {
 
 	// Check for uploaded logo
 	$exec_changes = true;
+	if ($packageUseAgreement !== 0 &&
+		stripos($packageCustomAgreement,
+		"[Insert Year(s)], [Insert organization or names of copyright holder(s)]") !== FALSE) {
+		$exec_changes = false;
+		$warning_msg = "Please insert organization or names of copyright holder(s) in license agreement";
+	}
 	if ($packageLogo["tmp_name"]) {
 		if (!is_uploaded_file($packageLogo['tmp_name'])) {
 			exit_error(_('Attempted File Upload Attack'),'frs');
@@ -228,7 +234,6 @@ For code, we recommend that you add a license agreement as a comment header in e
 </td>
 <td>
 	<ul>
-	<li>
 		<strong><label>Open Source Licenses</label></strong>
 		<a href="#" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-trigger="hover" data-content="
 * Allows others to use your data/documentation/software for any purpose, commercial or non-commercial, make modifications, and redistribute it.<br/>
@@ -237,7 +242,6 @@ For code, we recommend that you add a license agreement as a comment header in e
 
 These licenses differ in the additional obligations they place on the users.
 ">?</a>
-	</li>
 
 	<li>
 		<input type="radio" name="use_agreement" class="use_agreement" value="2" checked="checked" ><label>MIT</label>
@@ -263,10 +267,8 @@ These licenses differ in the additional obligations they place on the users.
 		<a href="#" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-trigger="hover" data-content="Others can share and adapt the file(s) for any purpose, even commercially, but they must give proper attribution.  Similar to MIT license but applies to works beyond just software and related documentation.  Also, it provides more terms and conditions.">?</a>
 	</li>
 	
-	<li>
 		<strong><label>Other licenses</label></strong>
 		<a href="#" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-trigger="hover" data-content='Many other licenses can be used. See <a href="http://en.wikipedia.org/wiki/Comparison_of_free_software_licenses" target="_blank">Wikipedia</a> and <a href="http://creativecommons.org/licenses" target="_blank">Creative Commons</a>. For complex licenses, we recommend that you enter a URL for the license, e.g., "The [project name] license agreement can be read here: http://XXX."'>?</a>
-	</li>
 
 	<li>
 		<input type="radio" name="use_agreement" class="use_agreement" value="5" ><label>Creative Commons Attribution-Non-Commercial</label>
@@ -285,6 +287,14 @@ These licenses differ in the additional obligations they place on the users.
 		</input>
 	</li>
 	</ul>
+</td>
+</tr>
+
+<tr>
+<td>
+</td>
+<td style="width:500px;">
+	<span class="edit_notice" style="color:#f75236;">Update first line of license with (1) copyright year and (2) organization or copyright holder</span>
 </td>
 </tr>
 
