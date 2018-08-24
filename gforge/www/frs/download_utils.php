@@ -36,7 +36,7 @@ DEFINE('INPUT_EXPECTED_USE', '<div style="font-weight: normal;">' .
 	'Please describe how you expect to use this software:' .
 	'</div>' . 
 	'<div>' .
-	'<textarea class="expected_use" name="expected_use" cols="40" rows="5" style="margin-left: 30px;">');
+	'<textarea class="expected_use" name="expected_use" cols="50" rows="5">');
 
 DEFINE('INPUT_MAIL_LIST', '<p style="font-weight: bold; margin-bottom: 1.2em;">' .
 	'<input type="checkbox" name="add_to_mailing_list" checked="">&nbsp;' .
@@ -45,11 +45,11 @@ DEFINE('INPUT_MAIL_LIST', '<p style="font-weight: bold; margin-bottom: 1.2em;">'
 
 DEFINE('INPUT_AGREED_SUBMIT', 
 	'<input type="hidden" name="agreed" value="1" />' .
-	'<input type="submit" name="submit" value="I Agree & Download Now" class="btn-cta" />');
+	'<br/><input type="submit" name="submit" value="I Agree & Download Now" class="btn-cta" />');
 
 DEFINE('INPUT_SUBMIT', 
 	'<input type="hidden" name="agreed" value="0" />' .
-	'<input type="submit" name="submit" value="Download Now" class="btn-cta" />');
+	'<br/><input type="submit" name="submit" value="Download Now" class="btn-cta" />');
 
 // Check whether the logged in user is member of the mail list
 // specified for this file.
@@ -273,7 +273,7 @@ function genMailListUI($listName) {
 function genDownloadNotesUI($frsPackage) {
 	if (trim($frsPackage->getDownloadNotes()) != "") {
 		echo '<div class="download_package" style="background-image:none;margin-bottom:20px;">';
-		echo '<label>Download Notes.</label>';
+		echo '<label>Download Notes:</label>';
 		echo '<div style="font-weight: normal;">' . 
 			$frsPackage->getDownloadNotes() . 
 			'</div>';
@@ -287,7 +287,8 @@ function genAgreedSubmitButton($frsPackage) {
 	// Note: the custom agreement is the saved agreement.
 	// Note: Check to ensure use agreement is not 0 ("None") first.
 	if ($frsPackage->getUseAgreement() != 0) {
-		echo "<Textarea disabled style='margin-top:5px;' rows='10' cols='50' >" . 
+		echo "<div style='margin-top:5px;'><strong>License Agreement:</strong></div>";
+		echo "<Textarea disabled rows='10' cols='50' >" . 
 			html_entity_decode($frsPackage->getCustomAgreement()) . 
 			"</Textarea><br/>";
 	}

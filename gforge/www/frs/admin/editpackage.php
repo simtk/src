@@ -337,6 +337,7 @@ These licenses differ in the additional obligations they place on the users.
 <td>
 </td>
 <td>
+<input type="hidden" class="custom_license" value="<?php echo $frsp->getCustomAgreement(); ?>" />
 <textarea class='license_preview' style='margin-top:5px;' rows='10' cols='50' name='license_preview' title='Preview license'><?php echo $frsp->getCustomAgreement(); ?></textarea>
 </td>
 </tr>

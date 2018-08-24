@@ -77,7 +77,14 @@ $(function() {
 		}
 		if (license == 1) {
 			// Custom.
-			$(".license_preview").val('Copyright (c) [Insert Year(s)], [Insert organization or names of copyright holder(s)]\r\r');
+			var strLicense = $(".custom_license").val();
+			if (strLicense !== undefined &&
+				strLicense.trim() != "") {
+				$(".license_preview").val(strLicense);
+			}
+			else {
+				$(".license_preview").val("Copyright (c) [Insert Year(s)], [Insert organization or names of copyright holder(s)]\r\r");
+			}
 		}
 		else if (license == 0) {
 			$(".license_preview").val('');
