@@ -92,7 +92,7 @@ if (getStringFromRequest('submit')) {
 		$error_msg .= 'Missing Role Name';
 	}
 	else if (strtolower(trim($role_name)) == "admin") {
-		$error_msg .= 'Admin role cannot be edited';
+		$error_msg .= 'Admin role settings cannot be edited';
 	}
 	else {
 		if (!$role_id) {
@@ -169,6 +169,7 @@ if (strtolower(trim($role->getName())) != "admin") {
 }
 else {
 	// Disable all inputs and selects when role is "Admin", i.e. the page is view-only.
+	echo '<p>View only.  Admin role settings cannot be edited.</p>';
 	echo '
 	<script>
 	$(document).ready(function() {
