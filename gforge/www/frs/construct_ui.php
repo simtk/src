@@ -353,8 +353,6 @@ function constructReleaseUI($HTML, $groupId, $groupObj,
 	// Output string in format of "DEC 12,2015".
 
 	if ($isLatestRelease) {
-		// Display license.
-		echo "<div>" . genLicenseLink($packId) . "</div>";
 		echo '<div class="download_subtitle">' . $relName . '</div>';
 	}
 	else {
@@ -374,6 +372,8 @@ function constructReleaseUI($HTML, $groupId, $groupObj,
 			'<a href="/frs/shownotes.php?release_id=' . $relId . '">Notes</a>' .
 			'</span>';
 	}
+	// Display license.
+	echo "&nbsp;&nbsp;" . genLicenseLink($packId);
 	echo '</p>';
 
 	// Download Package button is only shown for the latest release.
@@ -732,7 +732,7 @@ function genLicenseLink($packId) {
 		$strLicense = '<a href="javascript://" id="package' . $packId . 
 			'" data-content="' . $strLicense . 
 			'" title="' . $strUseAgreement . ' Use Agreement" ' .
-			'rel="popover">' . 'See License' . '</a>';
+			'rel="popover">' . 'View License' . '</a>';
 		$strLicense .= '<script>$("#package' . $packId . 
 			'").popover({ ' . 
 			"title: 'Use Agreement', html: 'true', trigger: 'focus' });</script>";

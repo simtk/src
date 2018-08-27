@@ -369,12 +369,13 @@ function constructReleaseUI($HTML, $groupId, $groupObj,
 	// Add horizontal row of space before release.
 	echo '<div>&nbsp;</div>';
 	if ($isLatestRelease) {
+		echo '<div class="download_subtitle">RELEASE: ' . $relName;
 		// Display license.
-		echo "<div>" . genLicenseLink($packId) . "</div>";
-		echo '<div class="download_subtitle">RELEASE: ' . $relName . '</div>';
+		echo '&nbsp;&nbsp;' . genLicenseLink($packId);
+		echo '</div><br/>';
 	}
 	else {
-		echo '<div class="download_subtitle2">RELEASE: ' . $relName . '</div>';
+		echo '<div class="download_subtitle2">RELEASE: ' . $relName . '</div><br/>';
 	}
 
 	// Generate links to edit/delete/arrange specified release.
@@ -735,7 +736,7 @@ function genLicenseLink($packId) {
 		$strLicense = '<a href="javascript://" id="package' . $packId . 
 			'" data-content="' . $strLicense . 
 			'" title="' . $strUseAgreement . ' Use Agreement" ' .
-			'rel="popover">' . 'See License' . '</a>';
+			'rel="popover">' . 'View License' . '</a>';
 		$strLicense .= '<script>$("#package' . $packId . 
 			'").popover({ ' . 
 			"title: 'Use Agreement', html: 'true', trigger: 'focus' });</script>";
