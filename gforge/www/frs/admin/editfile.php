@@ -211,10 +211,14 @@ if (getStringFromRequest('submit') && $func=="edit_file" && $file_id) {
 			// set doi for package
 			$frsp->setDoi($doi);
 			$doi_confirm = 1;
-			$message = "\n" . _('Please visit the following URL to assign DOI')._(': '). "\n" . 
+			$real_name = $user->getRealName();
+			$message = "\nPlease visit the following URL to assign DOI: \n" . 
 				util_make_url('/admin/downloads-doi.php');
-			util_send_message("webmaster@simtk.org", sprintf(_('DOI for %s File Requested'), $disp_name), $message);
-			$feedback = _('Your file has been uploaded and your DOI will be emailed within 72 hours. ');
+			util_send_message("webmaster@simtk.org", 
+				sprintf('DOI for %s file requested by %s', $disp_name, $real_name), 
+				$message);
+
+			$feedback = 'Your file has been uploaded and your DOI will be emailed within 72 hours. ';
 		}
 		else {
 			if ($isDocTypeGitHubArchive === true) {

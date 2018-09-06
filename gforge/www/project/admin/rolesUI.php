@@ -6,7 +6,7 @@
  * 
  * File for setting up roles.
  *
- * Copyright 2005-2016, SimTK Team
+ * Copyright 2005-2018, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -56,15 +56,25 @@ foreach ($roles as $theRole) {
 		'.$theRole->getDisplayableName($group).'
 	</div><div style="float:right;padding:2px;">
 		<input type="hidden" name="role_id" value="'.$theRole->getID().'" />
-		<input type="submit" name="edit" value="'._("Edit Permissions").'" class="btn-blue" />
-	</div>
+		<input style="width:160px;" type="submit" name="edit" ';
+	if ($theRole->getDisplayableName($group) == "Admin") {
+		echo 'value="View Permissions" class="btn-blue" />';
+	}
+	else {
+		echo 'value="Edit Permissions" class="btn-blue" />';
+	}
+	echo '</div>
 	</form>';
 
 	if ($theRole->getHomeProject() != NULL && $theRole->getHomeProject()->getId() == $group_id) {
 		echo '<form action="/project/admin/roledelete.php?group_id='. $group_id .'" method="post">
         <div style="float:right;padding:2px;">
 		<input type="hidden" name="role_id" value="'.$theRole->getID().'" />
-		<input type="submit" name="delete" value="'._("Delete role").'" class="btn-blue" />
+		<input type="submit" name="delete" ';
+	if ($theRole->getDisplayableName($group) == "Admin") {
+		echo 'disabled ';
+	}
+	echo 'value="'._("Delete role").'" class="btn-blue" />
 	</div>
 	</form>';
 	}
