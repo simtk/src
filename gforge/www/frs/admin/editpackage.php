@@ -6,7 +6,7 @@
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * http://fusionforge.org/
- * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -73,6 +73,20 @@ if (getStringFromRequest('submit')) {
 
 	// Check for uploaded logo
 	$exec_changes = true;
+	if ($packageUseAgreement !== 0) {
+		if (stripos($packageCustomAgreement, "[Insert Year(s)], [Insert organization or names of copyright holder(s)]") !== FALSE) {
+			$exec_changes = false;
+			$warning_msg = "Please update copyright years and organization or names of copyright holder(s) in license agreement";
+		}
+		else if (stripos($packageCustomAgreement, "[Insert Year(s)]") !== FALSE) {
+			$exec_changes = false;
+			$warning_msg = "Please update copyright year(s) in license agreement";
+		}
+		else if (stripos($packageCustomAgreement, "[Insert organization or names of copyright holder(s)]") !== FALSE) {
+			$exec_changes = false;
+			$warning_msg = "Please update organization or names of copyright holder(s) in license agreement";
+		}
+	}
 	if ($packageLogo["tmp_name"]) {
 		if (!is_uploaded_file($packageLogo['tmp_name'])) {
 			exit_error(_('Attempted File Upload Attack'),'frs');
@@ -250,7 +264,6 @@ For code, we recommend that you add a license agreement as a comment header in e
 <td>
 
 	<ul>
-	<li>
 		<strong><label>Open Source Licenses</label></strong>
 		<a href="#" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-trigger="hover" data-content="
 * Allows others to use your data/documentation/software for any purpose, commercial or non-commercial, make modifications, and redistribute it.<br/>
@@ -259,7 +272,6 @@ For code, we recommend that you add a license agreement as a comment header in e
 
 These licenses differ in the additional obligations they place on the users.
 ">?</a>
-	</li>
 
 	<li>
 		<input type="radio" name="use_agreement" class="use_agreement" value="2" <?php if ($frsp->getUseAgreement() === "2") echo "checked='checked'"; ?> ><label>MIT</label>
@@ -285,10 +297,8 @@ These licenses differ in the additional obligations they place on the users.
 		<a href="#" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-trigger="hover" data-content="Others can share and adapt the file(s) for any purpose, even commercially, but they must give proper attribution.  Similar to MIT license but applies to works beyond just software and related documentation.  Also, it provides more terms and conditions.">?</a>
 	</li>
 	
-	<li>
 		<strong><label>Other licenses</label></strong>
 		<a href="#" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-trigger="hover" data-content='Many other licenses can be used. See <a href="http://en.wikipedia.org/wiki/Comparison_of_free_software_licenses" target="_blank">Wikipedia</a> and <a href="http://creativecommons.org/licenses" target="_blank">Creative Commons</a>. For complex licenses, we recommend that you enter a URL for the license, e.g., "The [project name] license agreement can be read here: http://XXX."'>?</a>
-	</li>
 
 	<li>
 		<input type="radio" name="use_agreement" class="use_agreement" value="5" <?php if ($frsp->getUseAgreement() === "5") echo "checked='checked'"; ?> ><label>Creative Commons Attribution-Non-Commercial</label>
@@ -314,7 +324,20 @@ These licenses differ in the additional obligations they place on the users.
 <tr>
 <td>
 </td>
+<td style="width: 500px;">
+	<span class="edit_notice" style="color:#f75236;<?php
+		if ($frsp->getUseAgreement() === "0") {
+			echo "display:none;";
+		}
+	?>">Update first line of license with (1) copyright year and (2) organization or copyright holder</span>
+</td>
+</tr>
+
+<tr>
 <td>
+</td>
+<td>
+<input type="hidden" class="custom_license" value="<?php echo $frsp->getCustomAgreement(); ?>" />
 <textarea class='license_preview' style='margin-top:5px;' rows='10' cols='50' name='license_preview' title='Preview license'><?php echo $frsp->getCustomAgreement(); ?></textarea>
 </td>
 </tr>

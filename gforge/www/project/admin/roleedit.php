@@ -9,7 +9,7 @@
  *	Thorsten Glaser <t.glaser@tarent.de>
  * Copyright 2014, Stéphane-Eymeric Bredthauer
  * Copyright 2014, Franck Villaume - TrivialDev
- * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -49,12 +49,14 @@ if (getStringFromRequest('add')) {
 	$role_name = trim(getStringFromRequest('role_name')) ;
 	$role = new Role ($group) ;
 	$role_id=$role->createDefault($role_name) ;
-} else {
+}
+else {
 	$role = RBACEngine::getInstance()->getRoleById($role_id) ;
 }
 if (!$role || !is_object($role)) {
 	exit_error(_('Could Not Get Role'),'admin');
-} elseif ($role->isError()) {
+}
+elseif ($role->isError()) {
 	exit_error($role->getErrorMessage(),'admin');
 }
 
@@ -77,32 +79,40 @@ foreach ($old_data as $section => $values) {
 }
 $data = $new_data ;
 if (getStringFromRequest('submit')) {
-	if (($role->getHomeProject() != NULL)
-		&& ($role->getHomeProject()->getID() == $group_id)) {
+	if (($role->getHomeProject() != NULL) && 
+		($role->getHomeProject()->getID() == $group_id)) {
 		$role_name = trim(getStringFromRequest('role_name'));
 		$public = getIntFromRequest('public') ? true : false ;
-	} else {
+	}
+	else {
 		$role_name = $role->getName() ;
 		$public = $role->isPublic() ;
 	}
 	if (!$role_name) {
-		$error_msg .= _('Missing Role Name');
-	} else {
+		$error_msg .= 'Missing Role Name';
+	}
+	else if (strtolower(trim($role_name)) == "admin") {
+		$error_msg .= 'Admin role settings cannot be edited';
+	}
+	else {
 		if (!$role_id) {
 			$role_id = $role->create($role_name, $data);
 			if (!$role_id) {
 				$error_msg .= $role->getErrorMessage();
-			} else {
+			}
+			else {
 				$feedback = _('Successfully created new role.');
 				$group->addHistory(_('Added Role'), $role_name);
 			}
-		} else {
+		}
+		else {
 			if ($role instanceof RoleExplicit) {
 				$role->setPublic($public) ;
 			}
 			if (!$role->update($role_name, $data, false)) {
 				$error_msg .= $role->getErrorMessage();
-			} else {
+			}
+			else {
 
 				// Compare data to be sent against current values 
 				// to see which values have been updated.
@@ -147,30 +157,45 @@ if (getStringFromRequest('submit')) {
 
 if (!$role_id) {
 	$title= _('New Role');
-} else {
+}
+else {
 	$title= _('Edit Role');
 }
-$msg = _('Use this page to edit the permissions attached to each role.  Note that each role has at least as much access as the Anonymous and LoggedIn roles.  For example, if the Anonymous role has read access to a forum, all other roles will have it too.');
 
 project_admin_header(array('title'=> $title, 'group'=>$group_id));
 
-echo '<p>'.$msg.'</p>';
-echo '
-<form action="'.getStringFromServer('PHP_SELF').'?group_id='.$group_id.'&amp;role_id='. $role_id .'" method="post">';
+if (strtolower(trim($role->getName())) != "admin") {
+	echo '<p>Use this page to edit the permissions attached to each role.  Note that each role has at least as much access as the Anonymous and LoggedIn roles.  For example, if the Anonymous role has read access to a forum, all other roles will have it too.</p>';
+}
+else {
+	// Disable all inputs and selects when role is "Admin", i.e. the page is view-only.
+	echo '<p>View only.  Admin role settings cannot be edited.</p>';
+	echo '
+	<script>
+	$(document).ready(function() {
+		// Disable input.
+		$("input").attr("disabled", "disabled");
+		// Disable select.
+		$("select").attr("disabled", "disabled");
+	});
+	</script>';
+}
 
-if ($role->getHomeProject() == NULL
-    || $role->getHomeProject()->getID() != $group_id) {
-	echo '<p><strong>'._('Role Name').'</strong></p>' ;
+echo '<form action="' . getStringFromServer('PHP_SELF') .
+	'?group_id=' . $group_id . 
+	'&amp;role_id=' . $role_id . 
+	'" method="post">';
+
+if ($role->getHomeProject() == NULL || 
+	$role->getHomeProject()->getID() != $group_id) {
+	echo '<p><strong>Role Name</strong></p>' ;
 	echo $role->getDisplayableName ($group) ;
-} else {
-	echo '<p><strong>'._('Role Name').'</strong><br /><input type="text" name="role_name" value="'.$role->getName().'" required="required" /><br />' ;
-/*
-	echo '<input type="checkbox" name="public" value="1"' ;
-	if ($role->isPublic()) {
-		echo ' checked="checked"' ;
-	}
-	echo ' /> '._('Shared role (can be referenced by other projects)').'</p>' ;
-*/
+}
+else {
+	echo '<p><strong>Role Name</strong><br />';
+	echo '<input type="text" name="role_name" value="' .
+		$role->getName() .
+		'" required="required" /><br />';
 }
 
 $titles[]=_('Section');
@@ -181,25 +206,18 @@ setup_rbac_strings();
 
 echo $HTML->listTableTop($titles);
 
-//
-//	Get the keys for this role and interate to build page
-//
-//	Everything is built on the multi-dimensial arrays in the Role object
-//
+// Get the keys for this role and interate to build page
+// Everything is built on the multi-dimensial arrays in the Role object
 $j = 0;
-$keys = array_keys($role->getSettingsForProject ($group)) ;
+$keys = array_keys($role->getSettingsForProject($group));
 $keys2 = array () ;
 foreach ($keys as $key) {
 	if (!in_array ($key, $role->global_settings)) {
-		$keys2[] = $key ;
+		$keys2[] = $key;
 	}
 }
 $keys = $keys2 ;
 for ($i=0; $i<count($keys); $i++) {
-/*
-        if ((!$group->usesForum() && preg_match("/forum/", $keys[$i])) ||
-                (!$group->usesTracker() && preg_match("/tracker/", $keys[$i])) ||
-*/
         if ((!$group->usesTracker() && preg_match("/tracker/", $keys[$i])) ||
                 (!$group->usesPM() && preg_match("/pm/", $keys[$i])) ||
                 (!$group->usesFRS() && preg_match("/frs/", $keys[$i])) ||
@@ -217,47 +235,6 @@ for ($i=0; $i<count($keys); $i++) {
 		}
 	}
 
-/*
-	if ($keys[$i] == 'forum' || $keys[$i] == 'forumpublic' || $keys[$i] == 'forumanon') {
-		//
-		//	Handle forum settings for all roles
-		//
-
-		if ($keys[$i] == 'forumanon') {
-			//skip as we have special case below
-		} else {
-			$res=db_query_params ('SELECT group_forum_id,forum_name
-				FROM forum_group_list WHERE group_id=$1',
-			array($group_id));
-			for ($q=0; $q<db_numrows($res); $q++) {
-				//
-				//	Special cases - when going through the keys, we want to show trackeranon
-				//	on the same line as tracker public
-				//
-				if ($keys[$i] == 'forumpublic') {
-					$txt=' &nbsp; '.html_build_select_box_from_assoc(
-					$role->getRoleVals('forumanon'),
-					"data[forumanon][".db_result($res,$q,'group_forum_id')."]",
-					$role->getVal('forumanon',db_result($res,$q,'group_forum_id')),
-					false, false );
-				} else {
-					$txt='';
-				}
-				echo '<tr ' . $HTML->boxGetAltRowStyle($j++) . '>
-				<td style="padding-left: 4em;">'.$rbac_edit_section_names[$keys[$i]].'</td>
-				<td>'.db_result($res,$q,'forum_name').'</td>
-				<td>'.html_build_select_box_from_assoc(
-					$role->getRoleVals($keys[$i]),
-					"data[".$keys[$i]."][".db_result($res,$q,'group_forum_id')."]",
-					$role->getVal($keys[$i],db_result($res,$q,'group_forum_id')),
-					false, false ). $txt .'</td></tr>';
-			}
-		}
-//
-//	Handle task mgr settings for all roles
-//
-	} elseif ($keys[$i] == 'pm' || $keys[$i] == 'pmpublic') {
-*/
 	if ($keys[$i] == 'pm' || $keys[$i] == 'pmpublic') {
 
 		$res=db_query_params ('SELECT group_project_id,project_name
@@ -279,32 +256,31 @@ for ($i=0; $i<count($keys); $i++) {
 				$role->getVal($keys[$i],db_result($res,$q,'group_project_id')),
 				false, false ).'</td></tr>';
 		}
-
-//
-//	Handle tracker settings for all roles
-//
-	} elseif ($keys[$i] == 'tracker' || $keys[$i] == 'trackerpublic' || $keys[$i] == 'trackeranon') {
+	}
+	elseif ($keys[$i] == 'tracker' || $keys[$i] == 'trackerpublic' || $keys[$i] == 'trackeranon') {
+		// Handle tracker settings for all roles
 
 		if ($keys[$i] == 'trackeranon') {
 			//skip as we have special case below
-		} else {
+		}
+		else {
 			$res=db_query_params ('SELECT group_artifact_id,name
 				FROM artifact_group_list WHERE group_id=$1',
 			array($group_id));
 			for ($q=0; $q<db_numrows($res); $q++) {
-				//
-				//	Special cases - when going through the keys, we want to show trackeranon
-				//	on the same line as tracker public
-				//
+				// Special cases - when going through the keys, we want to show trackeranon
+				// on the same line as tracker public
 				if ($keys[$i] == 'trackerpublic') {
 					$txt = ' &nbsp; '.html_build_select_box_from_assoc(
 					$role->getRoleVals('trackeranon'),
 					"data[trackeranon][".db_result($res,$q,'group_artifact_id')."]",
 					$role->getVal('trackeranon',db_result($res,$q,'group_artifact_id')),
 					false, false );
-				} else {
+				}
+				else {
 					$txt='';
 				}
+
 
 				// Replace section names to match better with UI.
 				$sectionName = $rbac_edit_section_names[$keys[$i]];
@@ -322,11 +298,9 @@ for ($i=0; $i<count($keys); $i++) {
 					false, false ). $txt .'</td></tr>';
 			}
 		}
-
-//
-//	File release system - each package can be public/private
-//
-	} elseif ($keys[$i] == 'frspackage') {
+	}
+	elseif ($keys[$i] == 'frspackage') {
+		// File release system - each package can be public/private
 
 		$res=db_query_params ('SELECT package_id,name,is_public
 			FROM frs_package WHERE group_id=$1',
@@ -341,11 +315,9 @@ for ($i=0; $i<count($keys); $i++) {
 				$role->getVal($keys[$i],db_result($res,$q,'package_id')),
 				false, false ).'</td></tr>';
 		}
-
-//
-//	Handle all other settings for all roles
-//
-	} else {
+	}
+	else {
+		// Handle all other settings for all roles
 
 		if ($keys[$i] == "new_forum" ||
 			$keys[$i] == "forum" ||
@@ -389,13 +361,16 @@ for ($i=0; $i<count($keys); $i++) {
 		</tr>';
 
 	}
-
 }
 
 echo $HTML->listTableBottom();
 
-echo '<p><input type="submit" name="submit" value="'._('Submit').'" class="btn-cta" /></p>
-</form>';
+if (strtolower(trim($role->getName())) != "admin") {
+	// Show Submit button only role is not "Admin".
+	echo '<p><input type="submit" name="submit" value="Submit" class="btn-cta" /></p>';
+}
+
+echo '</form>';
 
 project_admin_footer(array());
 

@@ -6,7 +6,7 @@
  * 
  * Construct UI for downloads administration.
  *
- * Copyright 2005-2016, SimTK Team
+ * Copyright 2005-2018, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -369,10 +369,13 @@ function constructReleaseUI($HTML, $groupId, $groupObj,
 	// Add horizontal row of space before release.
 	echo '<div>&nbsp;</div>';
 	if ($isLatestRelease) {
-		echo '<div class="download_subtitle">RELEASE: ' . $relName . '</div>';
+		echo '<div class="download_subtitle">RELEASE: ' . $relName;
+		// Display license.
+		echo '&nbsp;&nbsp;' . genLicenseLink($packId);
+		echo '</div><br/>';
 	}
 	else {
-		echo '<div class="download_subtitle2">RELEASE: ' . $relName . '</div>';
+		echo '<div class="download_subtitle2">RELEASE: ' . $relName . '</div><br/>';
 	}
 
 	// Generate links to edit/delete/arrange specified release.
@@ -704,5 +707,42 @@ function constructFileUI($groupId,
 	}
 }
 
+// Generate string for display license.
+function genLicenseLink($packId) {
+
+	$strLicense = "";
+
+	// Get license.
+	$res_agreement = db_query_params("SELECT simtk_custom_agreement, use_agreement " .
+		"FROM frs_package fp " .
+		"JOIN frs_use_agreement fua " .
+		"ON fp.simtk_use_agreement=fua.use_agreement_id " .
+		"WHERE fp.package_id=$1 " .
+		"AND fua.use_agreement_id <> 0",
+		array($packId));
+
+	$numrows = db_numrows($res_agreement);
+	if ($numrows > 0) {
+		while ($row = db_fetch_array($res_agreement)) {
+			$strLicense = $row['simtk_custom_agreement'];
+			$strUseAgreement = $row['use_agreement'];
+		}
+	}
+
+	if (trim($strLicense) != "") {
+		// Generate popup string.
+		// NOTE: Has to use "javscript://" to avoid 
+		// automatically scrolling to top upon clicking.
+		$strLicense = '<a href="javascript://" id="package' . $packId . 
+			'" data-content="' . $strLicense . 
+			'" title="' . $strUseAgreement . ' Use Agreement" ' .
+			'rel="popover">' . 'View License' . '</a>';
+		$strLicense .= '<script>$("#package' . $packId . 
+			'").popover({ ' . 
+			"title: 'Use Agreement', html: 'true', trigger: 'focus' });</script>";
+	}
+
+	return $strLicense;
+}
 
 ?>

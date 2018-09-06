@@ -205,28 +205,35 @@ if (getStringFromRequest('submit')) {
 				$show_notes, $show_agreement,
 				$file_desc, $disp_name, $doi, $user_id);
 			if ($ret === true) {
-			    if ($doi) {
-                   // set doi for release
-				   $frsr->setDoi($doi);
-				   // set doi for package
-				   $frsp->setDoi($doi);
-				   $doi_confirm = 1;
-				   
-				   $message = "\n"
-					. _('Please visit the following URL to assign DOI')._(': '). "\n"
-					. util_make_url('/admin/downloads-doi.php');
-			       util_send_message("webmaster@simtk.org", sprintf(_('DOI for %s file Requested'), $disp_name), $message);
-				   $feedback = _('Your file has been uploaded and your DOI will be emailed within 72 hours. ');
-				} else {				
-				   $feedback = '***NOSTRIPTAGS***File Released. ' . $msgReleased;
+				if ($doi) {
+					// set doi for release
+					$frsr->setDoi($doi);
+					// set doi for package
+					$frsp->setDoi($doi);
+					$doi_confirm = 1;
+
+					$real_name = $user->getRealName();
+
+					$message = "\nPlease visit the following URL to assign DOI: \n" .
+						util_make_url('/admin/downloads-doi.php');
+					util_send_message("webmaster@simtk.org", 
+						sprintf('DOI for %s file requested by %s', $userfile_name, $real_name),
+						$message);
+
+					$feedback = 'Your file has been uploaded and your DOI will be emailed within 72 hours. ';
+				}
+				else {
+					$feedback = '***NOSTRIPTAGS***File Released. ' . $msgReleased;
 				}
 ?>
+
 <script>
 $(function() {
 	// Show message for news creation.
 	$(".feedback").after("<div style='text-align:center';><?php echo $msgReleased; ?></div>");
 });
 </script>
+
 <?php
 			}
 			else {
@@ -239,6 +246,7 @@ $(function() {
 frs_admin_header(array('title'=>'Add File','group'=>$group_id));
 
 ?>
+
 <script>
 function sendnews() {
 	// News creation.
@@ -250,8 +258,7 @@ function sendnews() {
 
 	// Note: The following variables may be undefined if back button is used.
 	// Hence, check with isset() first before usage.
-	file_name =
-"<?php 
+	file_name = "<?php 
 if (isset($disp_name)) {
 	if ($disp_name == "")
 		// Empty display name.
