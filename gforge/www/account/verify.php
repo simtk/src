@@ -8,7 +8,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2010, Franck Villaume - Capgemini
  * Copyright 2012, Franck Villaume - TrivialDev
- * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -30,6 +30,10 @@ require_once '../env.inc.php';
 require_once $gfcommon.'include/pre.php';
 
 $confirm_hash = getStringFromRequest('confirm_hash');
+if (ctype_xdigit(trim(html_clean_hash_string($confirm_hash))) === false) {
+	// confirm_hash does not meet criteria.
+	exit;
+}
 
 if (getStringFromRequest('submit')) {
 	$loginname = getStringFromRequest('loginname');
