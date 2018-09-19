@@ -6,7 +6,7 @@
  * 
  * Utility file to handle project display.
  *
- * Copyright 2005-2017, SimTK Team
+ * Copyright 2005-2018, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -415,6 +415,82 @@ function displayRelatedProjects($related_projects, $max_related=6) {
 // truncating if the name is too long, appended with " ...".
 function genDisplayGroupName($inGroupName) {
 
+	$resStr = "";
+
+	// Add "<br/>\n" to separate each line in the group name.
+	$splitStr = wordWrap($inGroupName, NUM_CHARS_IN_TITLE_TO_SHOW_PER_LINE, "<br/>\n");
+
+	// Split into array of strings for each line.
+	// Keep only up to 3 lines.
+	$arrStr = explode("<br/>\n", $splitStr);
+	$numLines = count($arrStr);
+	$isTruncated = false;
+	$lastLine = "";
+	for ($cnt = 0; $cnt < min($numLines, 3); $cnt++) {
+		$theLine = $arrStr[$cnt];
+
+		// Check length of this line.
+		if (strlen($theLine) >= NUM_CHARS_IN_TITLE_TO_SHOW_PER_LINE) {
+			// Has a long line.
+
+			if ($cnt < 2) {
+				// Merge with next line. 
+				// Do not insert "<br/>\n" to end of this line.
+				$resStr .= $theLine . " ";
+			}
+			else {
+				// Do not include this third line because it is long
+				// and may not fit.
+				$isTruncated = true;
+				// Keep this last line for further processing later.
+				$lastLine = $theLine;
+			}
+		}
+		else {
+			// Insert "<br/>\n" to end of this line.
+			$resStr .= $theLine . "<br/>\n";
+		}
+	}
+
+	// Check if there is string in the next position of the array.
+	if (isset($arrStr[$cnt]) || $isTruncated) {
+		// There is more in the group name string.
+		// Add " ..." to the display.
+
+		// NOTE: If there is a long string on line 3, this last string
+		// will not have "<br/>\n" appended at the end; hence, the display
+		// display will stop at the end of the second line.
+		// This third line should not be shown because there is not enough
+		// room to hold the long string.
+
+		// Find last "<br/>\n".
+		$idx = strrpos($resStr, "<br/>\n");
+		if ($idx !== FALSE) {
+			$resStr = substr($resStr, 0, $idx);
+		}
+
+		if ($isTruncated) {
+			// There is a last line which has been truncated and 
+			// it has not yet been added to the third line.
+			// If there are word breaks in this last line, try to 
+			// add part of the line by looking at word breaks.
+			$remainStr = wordWrap($lastLine, NUM_CHARS_IN_TITLE_TO_SHOW_PER_LINE, " ", false);
+			// Account for the extra " " added. If the length is 
+			// (NUM_CHARS_IN_TITLE_TO_SHOW_PER_LINE + 1), no word breaks are found.
+			// Then do not add the last line.
+			if (strlen($remainStr) < NUM_CHARS_IN_TITLE_TO_SHOW_PER_LINE + 1) {
+				$resStr .= " " . $remainStr;
+			}
+		}
+
+		$resStr .= " ...<br/>\n";
+	}
+
+	return $resStr;
+
+/*
+	// OLD
+
 	// Generate Line 1.
 	$line1 = substr($inGroupName, 0, NUM_CHARS_IN_TITLE_TO_SHOW_PER_LINE);
 	$lengthLine1 = strlen($line1);
@@ -467,6 +543,8 @@ function genDisplayGroupName($inGroupName) {
 
 	// Title is longer than 3 lines. Add "..."
 	return $line1 . $line2 . $line3 . "...";
+*/
+
 }
 
 
