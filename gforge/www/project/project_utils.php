@@ -35,7 +35,7 @@
 // This is the max number of characters per line tested 
 // empirically on various platforms and browsers that
 // would not cause text to overflow to next line.
-define('NUM_CHARS_IN_TITLE_TO_SHOW_PER_LINE', 17);
+define('NUM_CHARS_IN_TITLE_TO_SHOW_PER_LINE', 19);
 
 define('NUM_PROJECTS_TO_SHOW', 8);
 #define('NUM_PROJECTS_TO_SHOW', 9999);
@@ -412,7 +412,7 @@ function displayRelatedProjects($related_projects, $max_related=6) {
 
 
 // Generate a 3-line version of the group name for display,
-// truncating if the name is too long, appended with " ...".
+// truncating if the name is too long, appended with "...".
 function genDisplayGroupName($inGroupName) {
 
 	$resStr = "";
@@ -455,7 +455,7 @@ function genDisplayGroupName($inGroupName) {
 	// Check if there is string in the next position of the array.
 	if (isset($arrStr[$cnt]) || $isTruncated) {
 		// There is more in the group name string.
-		// Add " ..." to the display.
+		// Add "..." to the display.
 
 		// NOTE: If there is a long string on line 3, this last string
 		// will not have "<br/>\n" appended at the end; hence, the display
@@ -483,7 +483,7 @@ function genDisplayGroupName($inGroupName) {
 			}
 		}
 
-		$resStr .= " ...<br/>\n";
+		$resStr .= "...<br/>\n";
 	}
 
 	return $resStr;
