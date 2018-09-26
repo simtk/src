@@ -190,7 +190,7 @@ else {
 			</div>
 			<div class="wrapper_text">
 				<h4><?php echo $arrProjLink[$unixGroupName]; ?></h4>
-				<?php echo wordwrap($arrSummary[$unixGroupName], 50, "\n", true); ?><br/>
+				<?php echo wordwrap($arrSummary[$unixGroupName], 50, "<br/>\n", true); ?><br/>
 
 <?php
 		$theValues = $arrValue[$unixGroupName];
