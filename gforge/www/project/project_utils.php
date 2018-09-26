@@ -474,12 +474,12 @@ function genDisplayGroupName($inGroupName) {
 			// it has not yet been added to the third line.
 			// If there are word breaks in this last line, try to 
 			// add part of the line by looking at word breaks.
-			$remainStr = wordWrap($lastLine, NUM_CHARS_IN_TITLE_TO_SHOW_PER_LINE, " ", false);
-			// Account for the extra " " added. If the length is 
-			// (NUM_CHARS_IN_TITLE_TO_SHOW_PER_LINE + 1), no word breaks are found.
-			// Then do not add the last line.
-			if (strlen($remainStr) < NUM_CHARS_IN_TITLE_TO_SHOW_PER_LINE + 1) {
-				$resStr .= " " . $remainStr;
+			// Add 1 character to account of " ".
+			$remainStr = wordWrap($lastLine, NUM_CHARS_IN_TITLE_TO_SHOW_PER_LINE - 1, "<br/>\n", false);
+			$idx = strrpos($remainStr, "<br/>\n");
+			if ($idx !== FALSE) {
+				$endStr = substr($remainStr, 0, $idx);
+				$resStr .= " " . $endStr;
 			}
 		}
 
