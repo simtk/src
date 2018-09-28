@@ -172,10 +172,10 @@ function constructPackageUI($HTML, $groupId, $groupObj, $packageInfo,
 		"group_id=" . $groupId . 
 		"&package_id=" . $packId;
 	if (!$packDoi) {
-	   echo '<span class="download_btn">' .
-		'<a class="btn-blue" href="' . $strDeletePackageLink . '">' .
-		'Delete Package</a></span>&nbsp';
-    }
+		echo '<span class="download_btn">' .
+			'<a class="btn-blue" href="' . $strDeletePackageLink . '">' .
+			'Delete Package</a></span>&nbsp';
+	}
 	
 	// Add release.
 	$strAddReleaseLink = "/frs/admin/createrelease.php?" .
@@ -400,10 +400,10 @@ function constructReleaseUI($HTML, $groupId, $groupObj,
 		'<a class="btn-blue" href="' . $strEditReleaseLink . '">' .
 		'Update Release</a></span>&nbsp;';
 	if (!$relDoi) {
-	   echo '<span class="download_btn">' .
-		'<a class="btn-blue" href="' . $strDeleteReleaseLink . '">' .
-		'Delete Release</a></span>&nbsp;';
-    }
+		echo '<span class="download_btn">' .
+			'<a class="btn-blue" href="' . $strDeleteReleaseLink . '">' .
+			'Delete Release</a></span>&nbsp;';
+	}
 	echo '<span class="download_btn">' .
 		'<a class="btn-blue" href="' . $strAddFileLink . '">' .
 		'Add File</a></span>&nbsp';
@@ -629,6 +629,11 @@ function constructFileUI($groupId,
 		"&package_id=" . $packId .
 		"&release_id=" . $relId .
 		"&file_id=" . $fileId;
+	$strCancelDoiLink = "/frs/admin/cancelDoi.php?" .
+		"group_id=" . $groupId . 
+		"&package_id=" . $packId .
+		"&release_id=" . $relId .
+		"&file_id=" . $fileId;
 	if ($not_doc == "t") {
 		// Download Links.
 		if ($simtkFileType == "URL") {
@@ -682,18 +687,24 @@ function constructFileUI($groupId,
 		}
 	}
 	if (!$doi) {
-	   echo '<td><span class="download_btn">' .
-		'<a class="btn-blue" href="' . $strUpdateFileLink . '">' .
-		'Update</a></span></td>';
-	
-	   echo '<td><span class="download_btn">' .
-		'<a class="btn-blue" href="' . $strDeleteFileLink . '">' .
-		'Delete</a></span></td>';
-	} else {
-	   if (empty($doi_identifier)) {
-		      $doi_identifier = " pending";
-	   }
-	   echo "<td colspan=2><span>doi:" . $doi_identifier . "</span></td>";
+		echo '<td><span class="download_btn">' .
+			'<a class="btn-blue" href="' . $strUpdateFileLink . '">' .
+			'Update</a></span></td>';
+
+		echo '<td><span class="download_btn">' .
+			'<a class="btn-blue" href="' . $strDeleteFileLink . '">' .
+			'Delete</a></span></td>';
+	}
+	else {
+		if (empty($doi_identifier)) {
+			echo '<td colspan=2>doi: pending&nbsp;<a style="background-color:#81a5d4; color:#ffffff; font-size:14px;" ' .
+                                'title="Click to cancel DOI request" href="' . 
+				$strCancelDoiLink . 
+				'">&nbsp;X&nbsp;</a></td>';
+		}
+		else {
+			echo "<td colspan=2><span>doi:" . $doi_identifier . "</span></td>";
+		}
 	}
 	echo "</tr>";
 

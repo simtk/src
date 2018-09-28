@@ -1165,6 +1165,10 @@ function sendEmail($theWebHost,
 		$body2 .= "\nCC: $CC";
 	}
 	$send_html_email ? $type = "html" : $type = "plain";
+	if ($send_html_email === false) {
+		// Strip tags first (strip XML tags also).
+		$body = strip_tags($body);
+	}
 	$body2 .= "\n" . util_encode_mimeheader("Subject", $subject, $charset) .
 		"\nContent-type: text/$type; charset=$charset" .
 		"\n\n" .
