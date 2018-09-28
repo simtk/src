@@ -475,11 +475,16 @@ function genDisplayGroupName($inGroupName) {
 			// If there are word breaks in this last line, try to 
 			// add part of the line by looking at word breaks.
 			// Add 1 character to account of " ".
-			$remainStr = wordWrap($lastLine, NUM_CHARS_IN_TITLE_TO_SHOW_PER_LINE - 1, "<br/>\n", false);
+			$remainStr = wordWrap($lastLine, NUM_CHARS_IN_TITLE_TO_SHOW_PER_LINE, "<br/>\n", false);
+
 			$idx = strrpos($remainStr, "<br/>\n");
 			if ($idx !== FALSE) {
 				$endStr = substr($remainStr, 0, $idx);
 				$resStr .= " " . $endStr;
+			}
+			else {
+				// <= NUM_CHARS_IN_TITLE_TO_SHOW_PER_LINE.
+				$resStr .= " " . $lastLine;
 			}
 		}
 
