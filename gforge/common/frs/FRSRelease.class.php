@@ -5,7 +5,7 @@
  * Copyright 2002, Tim Perdue/GForge, LLC
  * Copyright 2009, Roland Mas
  * Copyright (C) 2012 Alain Peyrat - Alcatel-Lucent
- * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -379,7 +379,7 @@ class FRSRelease extends Error {
 				'simtk_collect_data, simtk_use_mail_list, simtk_group_list_id, ' .
 				'simtk_filetype, simtk_filelocation, ' .
 				'simtk_show_notes, simtk_show_agreement, ' .
-				'simtk_rank, simtk_filename_header ' .
+				'simtk_rank, simtk_filename_header, doi, doi_identifier, file_user_id, refresh_archive  ' .
 				'FROM frs_file) AS ff ' .
 				'ON ffv.file_id=ff.file_id ' .
 				'WHERE release_id=$1',
@@ -574,6 +574,22 @@ class FRSRelease extends Error {
 		db_commit();
 
 		return true;
+	}
+	
+	// Get doi status of release.
+	function isDOI() {
+		$doi = false;
+		$res = db_query_params('SELECT doi FROM frs_release ' .
+			'WHERE release_id=$1',
+			array($this->getId())
+		);
+		if (!$res || db_numrows($res) > 0) {
+			while ($arr = db_fetch_array($res)) {
+				$doi = $arr['doi'];
+			}
+		}
+
+		return $doi;
 	}
 	
 	function setDoi($doi=1) {

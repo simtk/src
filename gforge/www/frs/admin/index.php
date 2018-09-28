@@ -9,7 +9,7 @@
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * http://fusionforge.org/
- * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -232,6 +232,49 @@ if (getStringFromRequest('submit')) {
 		}
 		else {
 			$error_msg .= _('File not deleted: you did not check “I am Sure”');
+		}
+	}
+	elseif ($func=='cancel_doi' && $file_id) {
+		$sure = getStringFromRequest('sure');
+		$really_sure = getStringFromRequest('really_sure');
+
+		//  Get package.
+		$frsp = new FRSPackage($cur_group_obj, $package_id);
+		if (!$frsp || !is_object($frsp)) {
+			exit_error(_('Could Not Get FRS Package'), 'frs');
+		}
+		elseif ($frsp->isError()) {
+			exit_error($frsp->getErrorMessage(), 'frs');
+		}
+
+		// Get release.
+		$frsr = new FRSRelease($frsp, $release_id);
+		if (!$frsr || !is_object($frsr)) {
+			exit_error(_('Could Not Get FRS Release'), 'frs');
+		}
+		elseif ($frsr->isError()) {
+			exit_error($frsr->getErrorMessage(), 'frs');
+		}
+
+		// Get file.
+		$frsf = new FRSFile($frsr, $file_id);
+		if (!$frsf || !is_object($frsf)) {
+			exit_error(_('Could Not Get FRSFile'), 'frs');
+		}
+		elseif ($frsf->isError()) {
+			exit_error($frsf->getErrorMessage(), 'frs');
+		}
+
+		if ($sure && $really_sure) {
+			if (!$frsf->cancelDOI()) {
+				exit_error($frsf->getErrorMessage(), 'frs');
+			}
+			else {
+				$feedback .= 'DOI Request Canceled.';
+			}
+		}
+		else {
+			$error_msg .= 'DOI request not canceled: you did not check “I am Sure”';
 		}
 	}
 }
