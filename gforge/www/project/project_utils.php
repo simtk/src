@@ -73,9 +73,12 @@ function displayStatsBlock($groupObj) {
 	// First block.
 	echo '<div class="statbox">';
 
-	// Total downloads.
-	echo '<a style="color:#5e96e1;font-size:24px;font-weight:400;" href="/plugins/reports/index.php?type=group&group_id=' . $group_id . '&reports=reports">' . $totalDownloads . '</a>';
-	echo '<p style="font-size:13px;line-height:17px;color:#a7a7a7;margin-top:-5px">downloads</p>';
+	// Check whether project uses downloads.
+	if ($groupObj->usesFRS()) {
+		// Total downloads.
+		echo '<a style="color:#5e96e1;font-size:24px;font-weight:400;" href="/plugins/reports/index.php?type=group&group_id=' . $group_id . '&reports=reports">' . $totalDownloads . '</a>';
+		echo '<p style="font-size:13px;line-height:17px;color:#a7a7a7;margin-top:-5px">downloads</p>';
+	}
 	
 	if ($groupObj->usesPlugin("phpBB")) {
 		// Uses forums.
