@@ -3877,20 +3877,73 @@ class Group extends Error {
 
         function getLastUpdate() {
 
-           $result = $this->getHistory();
-           $rows=db_numrows($result);
-
-           if ($rows > 0) {
-              return date(_('M d, Y'),db_result($result, 0, 'adddate'));
-           }
-           else {
-              return 0;
-           }
+		$result = $this->getHistory();
+		$rows=db_numrows($result);
+		if ($rows > 0) {
+			return date(_('M d, Y'),db_result($result, 0, 'adddate'));
+		}
+		else {
+			return 0;
+		}
         }
 
 
+	// Get history from group_history and other modules.
         function getHistory() {
-                return db_query_params("SELECT group_history.field_name,group_history.old_value,group_history.adddate,users.user_name FROM group_history,users WHERE group_history.mod_by=users.user_id AND group_id=$1 ORDER BY group_history.adddate DESC", array($this->getID()));
+
+		// group_history.
+                $strQuery = "(" .
+			"SELECT gh.adddate AS adddate " .
+			"FROM group_history gh " .
+			"WHERE group_id=" . $this->getID() .
+			") ";
+
+		if ($this->usesFRS()) {
+			// Downloads.
+			$strQuery .= "UNION " .
+				"(" .
+				"SELECT ff.post_date AS adddate " .
+				"FROM frs_file ff " .
+				"JOIN frs_release fr " .
+				"ON fr.release_id=ff.release_id " .
+				"JOIN frs_package fp " .
+				"ON fp.package_id=fr.package_id " .
+				"WHERE group_id=" . $this->getID() .
+				") ";
+		}
+
+		if ($this->usesDocman()) {
+			// Create document.
+			$strQuery .= "UNION " .
+				"(" .
+				"SELECT createdate AS adddate " .
+				"FROM doc_data " .
+				"WHERE group_id=" . $this->getID() .
+				") ";
+			// Update document.
+			$strQuery .= "UNION " .
+				"(" .
+				"SELECT updatedate AS adddate " .
+				"FROM doc_data " .
+				"WHERE group_id=" . $this->getID() .
+				") ";
+		}
+
+		if ($this->usesNews()) {
+			// News.
+			$strQuery .= "UNION " .
+				"(" .
+				"SELECT post_date AS adddate " .
+				"FROM plugin_simtk_news " .
+				"WHERE group_id=" . $this->getID() . " " .
+				"AND is_approved=1 " .
+				") ";
+		}
+		
+		// Sort with latest first and select the latest.
+		$strQuery .= "ORDER BY adddate DESC LIMIT 1";
+
+                return db_query_params($strQuery, array());
         }
 
 
