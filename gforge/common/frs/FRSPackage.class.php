@@ -7,7 +7,7 @@
  * Copyright (C) 2011-2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2011, Franck Villaume - Capgemini
  * Copyright 2012-2013, Franck Villaume - TrivialDev
- * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -920,6 +920,11 @@ class FRSPackage extends Error {
 	 */
 	function addCitation($citation, $citation_year, $url, $cite=0) {
 
+		if (trim($citation) == "") {
+			$this->setError('Citation is empty.');
+			return false;
+		}
+
 		if (!is_numeric($citation_year) || $citation_year < 1970 || $citation_year > 2099) {
 			$this->setError('Invalid year.');
 			return false;
@@ -965,6 +970,11 @@ class FRSPackage extends Error {
 	 * @return	boolean success.
 	 */
 	function updateCitation($citation_id, $citation, $citation_year, $url, $cite=0) {
+
+		if (trim($citation) == "") {
+			$this->setError('Citation is empty.');
+			return false;
+		}
 
 		if (!is_numeric($citation_year) || $citation_year < 1970 || $citation_year > 2099) {
 			$this->setError('Invalid year.');

@@ -105,7 +105,7 @@ if ($rows != 1) {
 <input type="hidden" name="package_id" value="<?php echo $package_id; ?>" />
 <input type="hidden" name="citation_id" value="<?php echo $citation_id; ?>" />
 
-<span class="required_note">Required field outlined in blue.</span>
+<span class="required_note">Required fields outlined in blue.</span>
 
 <table>
 <tr>
@@ -114,7 +114,7 @@ if ($rows != 1) {
 </tr>
 <tr>
 	<td><strong>Citation:</strong></td>
-	<td><textarea class='' style='margin-top:5px;' rows='5' cols='60' name='citation'><?php echo db_result($res, 0, 'citation'); ?></textarea></td>
+	<td><textarea class="required" style='margin-top:5px;' rows='5' cols='60' name='citation'><?php echo db_result($res, 0, 'citation'); ?></textarea></td>
 </tr>
 <tr>
 	<td><strong>Year:</strong></td>

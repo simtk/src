@@ -90,7 +90,7 @@ frs_admin_header(array('title'=>'Add Citation','group'=>$group_id));
 <input type="hidden" name="group_id" value="<?php echo $group_id; ?>" />
 <input type="hidden" name="package_id" value="<?php echo $package_id; ?>" />
 
-<span class="required_note">Required field outlined in blue.</span>
+<span class="required_note">Required fields outlined in blue.</span>
 
 <table>
 <tr>
@@ -99,7 +99,7 @@ frs_admin_header(array('title'=>'Add Citation','group'=>$group_id));
 </tr>
 <tr>
 	<td><strong>Citation:</strong></td>
-	<td><textarea class='' style='margin-top:5px;' rows='5' cols='60' name='citation'></textarea></td>
+	<td><textarea class="required" style='margin-top:5px;' rows='5' cols='60' name='citation'></textarea></td>
 </tr>
 <tr>
 	<td><strong>Year:</strong></td>
