@@ -6,7 +6,7 @@
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * http://fusionforge.org/
- * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -79,7 +79,7 @@ if (getStringFromRequest('submit')) {
 		$feedback = "Updated Citation";
 	}
 	else {
-		$error_msg .= $ret;
+		$error_msg .= $frsp->getErrorMessage();
 	}
 }
 
@@ -105,6 +105,8 @@ if ($rows != 1) {
 <input type="hidden" name="package_id" value="<?php echo $package_id; ?>" />
 <input type="hidden" name="citation_id" value="<?php echo $citation_id; ?>" />
 
+<span class="required_note">Required fields outlined in blue.</span>
+
 <table>
 <tr>
 	<td><strong>Package Name:</strong></td>
@@ -116,7 +118,7 @@ if ($rows != 1) {
 </tr>
 <tr>
 	<td><strong>Year:</strong></td>
-	<td><input type="text" name="citation_year" value="<?php echo db_result($res, 0, 'citation_year'); ?>"/></td>
+	<td><input class="required" type="text" name="citation_year" value="<?php echo db_result($res, 0, 'citation_year'); ?>"/></td>
 </tr>
 <tr>
 	<td><strong>URL:</strong></td>

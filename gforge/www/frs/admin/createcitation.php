@@ -6,7 +6,7 @@
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * http://fusionforge.org/
- * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -75,7 +75,7 @@ if (getStringFromRequest('submit')) {
 		$feedback = "Added Citation";
 	}
 	else {
-		$error_msg .= $ret;
+		$error_msg .= $frsp->getErrorMessage();
 	}
 }
 
@@ -90,6 +90,8 @@ frs_admin_header(array('title'=>'Add Citation','group'=>$group_id));
 <input type="hidden" name="group_id" value="<?php echo $group_id; ?>" />
 <input type="hidden" name="package_id" value="<?php echo $package_id; ?>" />
 
+<span class="required_note">Required fields outlined in blue.</span>
+
 <table>
 <tr>
 	<td><strong>Package Name:</strong></td>
@@ -101,7 +103,7 @@ frs_admin_header(array('title'=>'Add Citation','group'=>$group_id));
 </tr>
 <tr>
 	<td><strong>Year:</strong></td>
-	<td><input type="text" name="citation_year" value=""/></td>
+	<td><input class="required" type="text" name="citation_year" value=""/></td>
 </tr>
 <tr>
 	<td><strong>URL:</strong></td>

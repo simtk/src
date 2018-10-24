@@ -287,6 +287,7 @@ function listCitations($groupId, $packageInfo) {
 			for ($cntCites = 0; $cntCites < $numCitations; $cntCites++) {
 				$citeInfo = $arrCitations[$cntCites];
 				if (!$citeInfo["cite"]) {
+					echo '<div style="clear:both"></div>';
 					echo '<p>' . 
 						$citeInfo["citation"] . 
 						' (' . $citeInfo["citation_year"] . ') ';
