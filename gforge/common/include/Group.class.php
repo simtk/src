@@ -47,6 +47,7 @@ require_once $gfcommon.'include/gettext.php';
 require_once $gfcommon.'include/GroupJoinRequest.class.php';
 require_once $gfcommon.'include/image.php';
 require_once $gfcommon.'include/roleUtils.php';
+require_once $gfcommon.'include/githubUtils.php';
 
 $GROUP_OBJ=array();
 
@@ -3878,9 +3879,12 @@ class Group extends Error {
         function getLastUpdate() {
 
 		$result = $this->getHistory();
-		$rows=db_numrows($result);
+		$rows = db_numrows($result);
 		if ($rows > 0) {
-			return date(_('M d, Y'),db_result($result, 0, 'adddate'));
+			//return date(_('M d, Y'),db_result($result, 0, 'adddate'));
+			$theAddDate = db_result($result, 0, 'adddate');
+			$theDateTime = (new DateTime("@$theAddDate"))->format('M j, Y');
+			return $theDateTime;
 		}
 		else {
 			return 0;
@@ -3939,7 +3943,62 @@ class Group extends Error {
 				"AND is_approved=1 " .
 				") ";
 		}
-		
+
+		if ($this->usesSCM()) {
+			// CVS last commit time.
+			$res = db_query_params("SELECT month, day FROM stats_cvs_group " .
+				"WHERE group_id=" . $this->getID() . " " .
+				"AND commits>0 " .
+				"AND month!=0 " .
+				"AND day!= 0 " .
+				"ORDER BY month DESC, day DESC LIMIT 1 " ,
+				array());
+			$rows = db_numrows($res);
+			if ($rows > 0) {
+				// NOTE: month is in the format 201808 
+				// where 2018 is year and 08 is month.
+				$theYearMonth = db_result($res, 0, 'month');
+				$theYear = substr($theYearMonth, 0, 4);
+				$theMonth = substr($theYearMonth, 4);
+				$theDay = db_result($res, 0, 'day');
+
+				// Generate last commit timestamp.
+				$lastCommitTime = mktime(0, 0, 0, $theMonth, $theDay, $theYear);
+
+				$strQuery .= "UNION " .
+					"(" .
+					"SELECT " . $lastCommitTime . " AS adddate " .
+					") ";
+			}
+		}
+		else if ($this->usesGitHub()) {
+			// GitHub last commit time.
+			$url = $this->getGitHubAccessURL();
+			if (isset($url) && !empty($url)) {
+				// Base GitHub URL.
+				$theGitHubURL = "https://api.github.com/repos/" . $url;
+
+				// Get GitHub statistics on project.
+				$status = getLastCommit($theGitHubURL, $dateLastCommit);
+				if (isset($dateLastCommit) && $dateLastCommit > 0) {
+					$theDateTime = new DateTime("@$dateLastCommit");
+					$lastCommitTime = $theDateTime->getTimestamp();
+					$strQuery .= "UNION " .
+						"(" .
+						"SELECT " . $lastCommitTime . " AS adddate " .
+						") ";
+				}
+			}
+		}
+
+		// Wiki updates.
+		$strQuery .= "UNION " .
+			"(" .
+			"SELECT last_update AS adddate " .
+			"FROM wiki_updates " .
+			"WHERE group_id=" . $this->getID() .
+			") ";
+
 		// Sort with latest first and select the latest.
 		$strQuery .= "ORDER BY adddate DESC LIMIT 1";
 

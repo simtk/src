@@ -64,7 +64,7 @@ function displayStatsBlock($groupObj) {
 	// Last project update time.
 	// Use shorter format.
 	$lastUpdated = $groupObj->getLastUpdate($group_id);
-	$lastUpdated = date('M d, Y', strtotime($lastUpdated));
+	//$lastUpdated = date('M d, Y', strtotime($lastUpdated));
 	// Total downloads.
 	$totalDownloads = number_format($groupObj->getTotalDownloads());
 	// Forum posts.

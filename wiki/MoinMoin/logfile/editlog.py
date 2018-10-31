@@ -159,6 +159,11 @@ class EditLog(LogFile):
         self._NUM_FIELDS = 9
         self._usercache = {}
 
+        idx_start = len('/var/lib/gforge/plugins/moinmoin/wikidata/')
+        tmp_str = filename[idx_start:]
+        idx_end = tmp_str.find('/')
+        self.group_name = tmp_str[:idx_end]
+
         # Used by antispam in order to show an internal name instead
         # of a confusing userid
         self.uid_override = kw.get('uid_override', None)
@@ -196,6 +201,8 @@ class EditLog(LogFile):
             user_id = ''
             hostname = self.uid_override
             host = ''
+
+        self.updateWikiEditLogUpdateTimestamp()
 
         line = u"\t".join((str(long(mtime)), # has to be long for py 2.2.x
                            "%08d" % rev,
@@ -257,3 +264,31 @@ class EditLog(LogFile):
         logging.log(logging.NOTSET, "editlog.news: new pos: %r new items: %r", newposition, items)
         return newposition, items
 
+    def get_config(self, varname):
+        import subprocess
+        myvar = subprocess.Popen(["forge_get_config", varname, 'core'], stdout=subprocess.PIPE).communicate()[0].rstrip('\n')
+        return myvar;
+
+    def updateWikiEditLogUpdateTimestamp(self):
+        """ Update wiki edit-log update timestamp in db.
+        """
+        import psycopg2
+        import time
+        self.database_host = self.get_config('database_host')
+        self.database_name = self.get_config('database_name')
+        self.database_user = self.get_config('database_user')
+        self.database_port = self.get_config('database_port')
+        self.database_password = self.get_config('database_password')
+        myDbConn = psycopg2.connect(database=self.database_name, user=self.database_user, 
+            port=self.database_port, password=self.database_password, host=self.database_host)
+        myDbConn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
+        myCur = myDbConn.cursor()
+        epoch_time = int(time.time())
+        wikiInsert = """INSERT INTO wiki_updates (group_id, last_update) SELECT (SELECT group_id FROM groups WHERE unix_group_name='%s'), %d WHERE NOT EXISTS (SELECT 1 FROM wiki_updates wu JOIN groups g ON wu.group_id=g.group_id WHERE unix_group_name='%s');""" % (self.group_name, epoch_time, self.group_name)
+        myCur.execute(wikiInsert)
+        affected_row = myCur.rowcount
+        if affected_row <= 0:
+            wikiUpdate = """UPDATE wiki_updates SET last_update=%d WHERE group_id IN (SELECT group_id FROM groups WHERE unix_group_name='%s')""" % (epoch_time, self.group_name)
+            myCur.execute(wikiUpdate)
+        myCur.close()
+        myDbConn.close()
