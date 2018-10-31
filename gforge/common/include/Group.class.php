@@ -3883,7 +3883,9 @@ class Group extends Error {
 		if ($rows > 0) {
 			//return date(_('M d, Y'),db_result($result, 0, 'adddate'));
 			$theAddDate = db_result($result, 0, 'adddate');
-			$theDateTime = (new DateTime("@$theAddDate"))->format('M j, Y');
+			$tmpDateTime = new DateTime("@$theAddDate");
+			$tmpDateTime->setTimezone(new DateTimeZone("America/Los_Angeles"));
+			$theDateTime = $tmpDateTime->format('M j, Y');
 			return $theDateTime;
 		}
 		else {
