@@ -91,6 +91,7 @@ frs_admin_header(array('title'=>'Add Citation','group'=>$group_id));
 <input type="hidden" name="package_id" value="<?php echo $package_id; ?>" />
 
 <span class="required_note">Required fields outlined in blue.</span>
+<br/><br/>
 
 <table>
 <tr>

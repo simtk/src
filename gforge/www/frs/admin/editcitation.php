@@ -106,6 +106,7 @@ if ($rows != 1) {
 <input type="hidden" name="citation_id" value="<?php echo $citation_id; ?>" />
 
 <span class="required_note">Required fields outlined in blue.</span>
+<br/><br/>
 
 <table>
 <tr>

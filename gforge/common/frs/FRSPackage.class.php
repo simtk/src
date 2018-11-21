@@ -921,12 +921,12 @@ class FRSPackage extends Error {
 	function addCitation($citation, $citation_year, $url, $cite=0) {
 
 		if (trim($citation) == "") {
-			$this->setError('Citation is empty.');
+			$this->setError('No citation provided');
 			return false;
 		}
 
 		if (!is_numeric($citation_year) || $citation_year < 1970 || $citation_year > 2099) {
-			$this->setError('Invalid year.');
+			$this->setError('Invalid year');
 			return false;
 		}
 
@@ -972,12 +972,12 @@ class FRSPackage extends Error {
 	function updateCitation($citation_id, $citation, $citation_year, $url, $cite=0) {
 
 		if (trim($citation) == "") {
-			$this->setError('Citation is empty.');
+			$this->setError('No citation provided');
 			return false;
 		}
 
 		if (!is_numeric($citation_year) || $citation_year < 1970 || $citation_year > 2099) {
-			$this->setError('Invalid year.');
+			$this->setError('Invalid year');
 			return false;
 		}
 
