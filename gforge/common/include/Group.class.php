@@ -3935,14 +3935,16 @@ class Group extends Error {
 				") ";
 		}
 
-		if ($this->usesNews()) {
+		// NOTE: Need to check news usage with usesPlugin("simtk_news")
+		// but not $this->usesNews().
+		if ($this->usesPlugin("simtk_news")) {
 			// News.
 			$strQuery .= "UNION " .
 				"(" .
 				"SELECT post_date AS adddate " .
 				"FROM plugin_simtk_news " .
 				"WHERE group_id=" . $this->getID() . " " .
-				"AND is_approved=1 " .
+				"AND is_approved!=4 " .
 				") ";
 		}
 
