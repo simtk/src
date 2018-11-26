@@ -123,7 +123,7 @@ if ($rows != 1) {
 </tr>
 <tr>
 	<td><strong>URL:</strong></td>
-	<td><input type="text" name="url" value="<?php echo db_result($res, 0, 'url'); ?>" /></td>
+	<td><input type="text" style="margin-top:5px;" name="url" value="<?php echo db_result($res, 0, 'url'); ?>" /></td>
 </tr>
 <tr>
 	<td>&nbsp;</td>

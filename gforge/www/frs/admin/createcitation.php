@@ -108,7 +108,7 @@ frs_admin_header(array('title'=>'Add Citation','group'=>$group_id));
 </tr>
 <tr>
 	<td><strong>URL:</strong></td>
-	<td><input type="text" name="url" value="" /></td>
+	<td><input type="text" style="margin-top:5px;" name="url" value="" /></td>
 </tr>
 <tr>
 	<td>&nbsp;</td>
