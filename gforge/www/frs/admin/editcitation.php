@@ -108,6 +108,12 @@ if ($rows != 1) {
 <span class="required_note">Required fields outlined in blue.</span>
 <br/><br/>
 
+<style>
+table>tbody>tr>td {
+	padding-top: 5px;
+}
+</style>
+
 <table>
 <tr>
 	<td><strong>Package Name:</strong></td>
@@ -115,7 +121,7 @@ if ($rows != 1) {
 </tr>
 <tr>
 	<td><strong>Citation:</strong></td>
-	<td><textarea class="required" style='margin-top:5px;' rows='5' cols='60' name='citation'><?php echo db_result($res, 0, 'citation'); ?></textarea></td>
+	<td><textarea class="required" rows='5' cols='60' name='citation'><?php echo db_result($res, 0, 'citation'); ?></textarea></td>
 </tr>
 <tr>
 	<td><strong>Year:</strong></td>
@@ -123,7 +129,7 @@ if ($rows != 1) {
 </tr>
 <tr>
 	<td><strong>URL:</strong></td>
-	<td><input type="text" style="margin-top:5px;" name="url" value="<?php echo db_result($res, 0, 'url'); ?>" /></td>
+	<td><input type="text" name="url" value="<?php echo db_result($res, 0, 'url'); ?>" /></td>
 </tr>
 <tr>
 	<td>&nbsp;</td>

@@ -93,6 +93,12 @@ frs_admin_header(array('title'=>'Add Citation','group'=>$group_id));
 <span class="required_note">Required fields outlined in blue.</span>
 <br/><br/>
 
+<style>
+table>tbody>tr>td {
+	padding-top: 5px;
+}
+</style>
+
 <table>
 <tr>
 	<td><strong>Package Name:</strong></td>
@@ -100,7 +106,7 @@ frs_admin_header(array('title'=>'Add Citation','group'=>$group_id));
 </tr>
 <tr>
 	<td><strong>Citation:</strong></td>
-	<td><textarea class="required" style='margin-top:5px;' rows='5' cols='60' name='citation'></textarea></td>
+	<td><textarea class="required" rows='5' cols='60' name='citation'></textarea></td>
 </tr>
 <tr>
 	<td><strong>Year:</strong></td>
@@ -108,7 +114,7 @@ frs_admin_header(array('title'=>'Add Citation','group'=>$group_id));
 </tr>
 <tr>
 	<td><strong>URL:</strong></td>
-	<td><input type="text" style="margin-top:5px;" name="url" value="" /></td>
+	<td><input type="text" name="url" value="" /></td>
 </tr>
 <tr>
 	<td>&nbsp;</td>
