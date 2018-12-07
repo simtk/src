@@ -695,8 +695,13 @@ class Artifact extends Error {
 		} else {
 			$order = 'ASC';
 		}
-		return db_query_params('SELECT * FROM artifact_message_user_vw WHERE artifact_id=$1 ORDER BY adddate ' . $order . ', id ASC',
-		    array($this->getID()));
+		return db_query_params("SELECT * FROM artifact_message_user_vw amuw " .
+			"JOIN users u " .
+			"ON amuw.user_id=u.user_id " .
+			"WHERE artifact_id=$1 " .
+			"AND u.status='A' " .
+			"ORDER BY adddate " . $order . ", id ASC",
+			array($this->getID()));
 	}
 
 	/**
