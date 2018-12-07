@@ -945,6 +945,7 @@ else {
 <?php
 	}
 ?>
+		<li><a class="action" href="/search/search.php?srch=&search=search&type_of_search=soft&sort=downloads&page=0" style="color:black;padding-left:20px;" >See all projects</a></li>
 		<li><a class="action" href="/register" style="padding-left:20px;" >Create a new project</a></li>
 
 	</ul>
@@ -1714,6 +1715,9 @@ echo $u->getFirstName();
 				break;
 			case "/account/change_email.php":
 				$pageTitle = "Update Email";
+				break;
+			case "/account/close_acct.php":
+				$pageTitle = "Close Account";
 				break;
 			default:
 				$pageTitle = "My Account";
