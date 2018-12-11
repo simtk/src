@@ -6,7 +6,7 @@
  * 
  * File to display search results of projects.
  * 
- * Copyright 2005-2016, SimTK Team
+ * Copyright 2005-2018, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -69,6 +69,14 @@ $HTML->header(array('title'=>'Search','pagename'=>''));
 
 global $cat_id, $rows;
 $cat_id = getIntFromRequest("cat");
+$strSort = getStringFromRequest("sort");
+$strSort = strtolower($strSort);
+if ($strSort != "date" && 
+	$strSort != "title" &&
+	$strSort != "downloads" &&
+	$strSort != "relevance") {
+	$strSort = "relevance";
+}
 
 $srch = "";
 if (isset($_GET["type_of_search"])) {
@@ -318,6 +326,15 @@ else {
 		<label for="select">Sort by:&nbsp;</label>
 		<select class="mySelect">
 <?php
+// NOTE: SELECT always has the first option selected on load.
+// Hence, it is necessary to put the option to be selected on load first.
+
+if ($strSort == "date") {
+?>
+			<option value="Date" selected>Date updated</option>
+<?php
+}
+
 // For search pages (i.e. not category nor community pages), add "Most relevant" option.
 if ($cat_id == 0) {
 ?>
@@ -326,7 +343,13 @@ if ($cat_id == 0) {
 }
 ?>
 			<option value="Downloads">Most downloads</option>
+<?php
+if ($strSort != "date") {
+?>
 			<option value="Date">Date updated</option>
+<?php
+}
+?>
 			<option value="Title">Title</option>
 		</select>
 	</form>

@@ -36,7 +36,7 @@ $HTML->header(array('title'=>'Welcome to ' . forge_get_config('forge_name'), 'pa
 print '<br/><br/><p>You are now a member of SimTK, a thriving community of biomedical researchers who share software, models, data, and knowledge.  You can now:</p>';
 print '<ul>';
 print '<li><a href="/register/">Create</a> your own projects</li>';
-print '<li><a href="/search/search.php?srch=&search=search&type_of_search=soft&sort=downloads&page=0">Explore</a> and contribute to other projects</li>';
+print '<li><a href="/search/search.php?srch=&search=search&type_of_search=soft&sort=date&page=0">Explore</a> and contribute to other projects</li>';
 print '<li><a href="/search/searchPeople.php?type_of_search=people&srch=scott">Connect</a> with other SimTK members</li>';
 print '</ul><br/>';
 print '<p>We hope you find the site valuable and would love to hear how you' . "'" . 're using SimTK.  Send your stories to us at <a href="/sendmessage.php?touser=101">feedback@simtk.org</a>.  If you have feature requests or bug reports, we want to know about those, too.  Please file an issue <a href="/tracker/?group_id=11">here</a>.<br/><br/>Enjoy the site!</p>';

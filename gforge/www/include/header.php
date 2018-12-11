@@ -6,7 +6,7 @@
  * 
  * File to handle header.
  *
- * Copyright 2005-2016, SimTK Team
+ * Copyright 2005-2018, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -134,6 +134,7 @@
 				<li class="intend"><a href="/category/category.php?cat=415&amp;sort=date&amp;page=0&amp;srch=&amp;" tabindex="-1">Visualization</a></li>
 			</ul>
 		</li>
+		<li><a class="action" href="/search/search.php?srch=&amp;search=search&amp;type_of_search=soft&amp;sort=date&amp;page=0" style="color:black;">See all projects</a></li>
 		<li><a class="action" href="/register">Create a new project</a></li>
 
 	</ul>

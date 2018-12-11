@@ -945,7 +945,7 @@ else {
 <?php
 	}
 ?>
-		<li><a class="action" href="/search/search.php?srch=&search=search&type_of_search=soft&sort=downloads&page=0" style="color:black;padding-left:20px;" >See all projects</a></li>
+		<li><a class="action" href="/search/search.php?srch=&search=search&type_of_search=soft&sort=date&page=0" style="color:black;padding-left:20px;" >See all projects</a></li>
 		<li><a class="action" href="/register" style="padding-left:20px;" >Create a new project</a></li>
 
 	</ul>
