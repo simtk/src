@@ -340,13 +340,13 @@ class Group extends Error {
 			$this->setError('Project identifier already taken.');
 			return false;
 		} elseif (strlen($purpose)<10) {
-			$this->setError(_('Please describe your Registration Project Purpose and Summarization in a more comprehensive manner.'));
+			$this->setError("Please describe your Registration Project Purpose and Summarization in a more detail.");
 			return false;
 		} elseif (strlen($purpose)>1500) {
 			$this->setError(_('The Registration Project Purpose and Summarization text is too long. Please make it smaller than 1500 characters.'));
 			return false;
 		} elseif (strlen($description)<10) {
-			$this->setError(_('Describe in a more comprehensive manner your project.'));
+			$this->setError("Describe your project in more detail.");
 			return false;
 		} else {
 
@@ -655,7 +655,7 @@ class Group extends Error {
 		}
 
 		if (strlen(htmlspecialchars($short_description))<10) {
-			$this->setError(_('Describe in a more comprehensive manner your project.'));
+			$this->setError("Describe your project in more detail.");
 			return false;
 		}
 
@@ -1234,7 +1234,7 @@ class Group extends Error {
 		}
 
 		if (strlen(htmlspecialchars($short_description))<10) {
-			$this->setError(_('Describe in a more comprehensive manner your project.'));
+			$this->setError("Describe your project in more detail.");
 			return false;
 		}
 
@@ -4525,15 +4525,23 @@ We look forward to helping your project succeed!<br/><br/>
 			return false;
 		}
 
+		$shortServerName = $this->getServerName();
+		// Include only up to "." in server name.
+		$idxServer = strpos($shortServerName, ".");
+		if ($idxServer !== false) {
+			$shortServerName = ucfirst(substr($shortServerName, 0, $idxServer));
+		}
+
 		foreach ($admins as $admin) {
 			$admin_email = $admin->getEmail();
 			setup_gettext_for_user ($admin);
-			
-			$message = sprintf('New %s Project Submitted', forge_get_config('forge_name')) . 
+
+			$message = "Thank you for creating a project on SimTK.  The " .
+				$shortServerName .
+				" admin team is reviewing your project submission, and you will receive an email within 72 hours notifying you of their decision. If you have any questions in the meantime, you can contact webmaster@simtk.org." .
 				"\n\n" . 
-				'Project Full Name' . ': ' . htmlspecialchars_decode($this->getPublicName()) . "\n"
-//				. 'Submitted Description' . ': ' . htmlspecialchars_decode($this->getRegistrationPurpose()) . "\n";
-				. 'Submitted Description' . ': ' . htmlspecialchars_decode($this->getDescription()) . "\n";
+				'Project Full Name' . ': ' . htmlspecialchars_decode($this->getPublicName()) . "\n" .
+				'Submitted Description' . ': ' . htmlspecialchars_decode($this->getDescription()) . "\n";
 			foreach ($submitters as $submitter) {
 				$message .= 'Submitter' . ': ' . $submitter->getRealName() . 
 					' (' . $submitter->getUnixName() . ')' . "\n\n";
@@ -4544,22 +4552,20 @@ We look forward to helping your project succeed!<br/><br/>
 				': ' . "\n" . 
 				util_make_url('/admin/approve-pending.php');
 			util_send_message($admin_email, 
-				sprintf('New %s Project Submitted', forge_get_config('forge_name')), $message);
+				sprintf('Your %s Project Is Being Reviewed', forge_get_config('forge_name')), $message);
 			setup_gettext_from_context();
 		}
 
 		$email = $submitter->getEmail();
 		setup_gettext_for_user ($submitter);
 
-		$message = sprintf('New %s Project Submitted', forge_get_config ('forge_name')) . "\n\n" . 
-			'Project Full Name' . ': ' . $this->getPublicName() . "\n" . 
-			'Submitted Description' . ': ' . 
-//			util_unconvert_htmlspecialchars($this->getRegistrationPurpose()) . "\n\n" . 
-			util_unconvert_htmlspecialchars($this->getDescription()) . "\n\n" . 
-			sprintf('The %s admin team will now examine your project submission. You will be notified of their decision.', 
-				forge_get_config ('web_host'));
-
-		util_send_message($email, sprintf('New %s Project Submitted', 
+		$message = "Thank you for creating a project on SimTK.  The " .
+			$shortServerName .
+			" admin team is reviewing your project submission, and you will receive an email within 72 hours notifying you of their decision. If you have any questions in the meantime, you can contact webmaster@simtk.org." .
+			"\n\n" . 
+			'Project Full Name' . ': ' . htmlspecialchars_decode($this->getPublicName()) . "\n"
+			. 'Submitted Description' . ': ' . htmlspecialchars_decode($this->getDescription()) . "\n";
+		util_send_message($email, sprintf('Your %s Project Is Being Reviewed', 
 			forge_get_config('forge_name')), $message);
 		setup_gettext_from_context();
 

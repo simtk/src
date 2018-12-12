@@ -11,7 +11,7 @@
  * Copyright © 2011 Thorsten Glaser – tarent GmbH
  * Copyright 2011 - Marc-Etienne Vargenau, Alcatel-Lucent
  * Copyright 2012-2014, Franck Villaume - TrivialDev
- * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -980,6 +980,10 @@ if (isset($params['group']) && $params['group']) {
 		if (!$feedback) {
 			return '';
 		} else {
+			// Decode message first; otherwise, tags like <br/> 
+			// are shown as-is but formatting does not function.
+			$feedback = htmlspecialchars_decode($feedback);
+
 //			return '<p class="feedback">'.strip_tags($feedback, '<br>').'</p>';
 
 			// Message DIV.
@@ -1018,6 +1022,10 @@ if (isset($params['group']) && $params['group']) {
 		if (!$msg) {
 			return '';
 		} else {
+			// Decode message first; otherwise, tags like <br/> 
+			// are shown as-is but formatting does not function.
+			$msg = htmlspecialchars_decode($msg);
+
 //			return '<p class="warning_msg">'.strip_tags($msg, '<br>').'</p>';
 
 			// Message DIV.
@@ -1057,6 +1065,10 @@ if (isset($params['group']) && $params['group']) {
 		if (!$msg) {
 			return '';
 		} else {
+			// Decode message first; otherwise, tags like <br/> 
+			// are shown as-is but formatting does not function.
+			$msg = htmlspecialchars_decode($msg);
+
 //			return '<p class="error">'.strip_tags($msg, '<br>')."</p>\n";
 
 			// Message DIV.

@@ -4,7 +4,7 @@
  *
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2010 (c) Franck Villaume
- * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -74,6 +74,20 @@ echo '<h2 class="underlined">Account</h2>';
 echo '<ul>';
 echo '<li><a href="change_pw.php">Update password</a></li>';
 echo '<li><a href="change_email.php">Update email</a></li>';
+
+// Check where user deletion has already been requested.
+$res_user = db_query_params("SELECT * FROM user_delete_pending " .
+	"WHERE user_name=$1",
+	array($username));
+if (db_numrows($res_user) > 0) {
+	// User deletion requested already.
+	echo '<li><span style="color:gray;">Close account:</span>&nbsp;&nbsp;Your account is being reviewed for closure. If you have questions, you can <a href="/sendmessage.php?touser=101&group_id=0">contact the SimTK webmaster</a>.</li>';
+}
+else {
+	echo '<li><a href="close_acct.php">Close account</a></li>';
+}
+db_free_result($res_user);
+
 echo '</ul>';
 
 echo '<h2 class="underlined">Following</h2>';
