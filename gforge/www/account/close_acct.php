@@ -76,7 +76,10 @@ if (getStringFromRequest('submit')) {
 		// Retrieve user-associated database tables/columns descriptions.
 		$arrAssociationsGforge = array();
 		$arrAssociationsPhpbb = array();
-		getUserAssociatedTablesAndColumns($arrAssociationsGforge, $arrAssociationsPhpbb);
+		$status = getUserAssociatedTablesAndColumns($arrAssociationsGforge, $arrAssociationsPhpbb);
+		if ($status === false) {
+			exit_error('Cannot find table information. Pleases contact the SimTK webmaster.','my');
+		}
 
 		// Get phpBB db connection (different from gforge db connection, which is the default).
 		$dbconnPhpbb = getDbconnPhpbb();

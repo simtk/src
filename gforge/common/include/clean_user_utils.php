@@ -38,6 +38,8 @@ function getUserAssociatedTablesAndColumns(&$arrAssociationsGforge, &$arrAssocia
 	// gforge tables.
 
 	// phpbb tables.
+
+	return true;
 }
 
 // Check whether the user has references in use.
