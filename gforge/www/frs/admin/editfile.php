@@ -30,7 +30,7 @@ require_once $gfcommon.'frs/FRSPackage.class.php';
 require_once $gfcommon.'frs/FRSRelease.class.php';
 require_once $gfcommon.'frs/FRSFile.class.php';
 require_once $gfcommon.'frs/include/frs_utils.php';
-require_once $gfwww . 'githubAccess/githubUtils.php';
+require_once $gfcommon . 'include/githubUtils.php';
 
 define("MAX_GITHUB_FILESIZE", 150 * 1024 * 1024);
 

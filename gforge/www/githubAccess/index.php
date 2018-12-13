@@ -35,7 +35,7 @@
 require_once '../env.inc.php';
 require_once $gfcommon . 'include/pre.php';
 require_once $gfwww . 'project/project_utils.php';
-require_once 'githubUtils.php';
+require_once $gfcommon . '/include/githubUtils.php';
 
 $group_id = getIntFromRequest("group_id");
 
