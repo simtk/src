@@ -219,7 +219,7 @@ if (isset($group) && $group->isError()) {
    echo '$(document).ready(function() {';
    if ($group->getErrorMessage() == 'Project title is too short') {
       echo '$("input[name=\'full_name\']").css("border-color", "red");';	  
-   } elseif (trim($group->getErrorMessage()) == 'Describe in a more comprehensive manner your project.') {
+   } elseif (trim($group->getErrorMessage()) == 'Describe your project in more detail.') {
       echo '$("textarea[name=\'description\']").css("border-color", "red");';
    } elseif ($group->getErrorMessage() == 'Invalid project identifier.') {
       echo '$("input[name=\'unix_name\']").css("border-color", "red");';

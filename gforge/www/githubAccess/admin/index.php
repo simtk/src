@@ -6,7 +6,7 @@
  * 
  * File to administor GitHub access.
  *
- * Copyright 2005-2017, SimTK Team
+ * Copyright 2005-2018, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -35,7 +35,7 @@
 require_once 'env.inc.php';
 require_once $gfcommon . 'include/pre.php';
 require_once $gfwww . 'project/admin/project_admin_utils.php';
-require_once $gfwww . 'githubAccess/githubUtils.php';
+require_once $gfcommon . 'include/githubUtils.php';
 
 $groupId = getIntFromRequest('group_id');
 if (!$groupId) {

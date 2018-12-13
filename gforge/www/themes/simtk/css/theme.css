@@ -9542,7 +9542,7 @@ Feedback button
 .feedback_button {
   display: none;
 }
-@media (min-width: 769px) {
+@media (min-width: 1080px) {
   .feedback_button {
     position: fixed;
     left: 0px;

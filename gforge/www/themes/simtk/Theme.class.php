@@ -945,6 +945,7 @@ else {
 <?php
 	}
 ?>
+		<li><a class="action" href="/search/search.php?srch=&search=search&type_of_search=soft&sort=date&page=0" style="color:black;padding-left:20px;" >See all projects</a></li>
 		<li><a class="action" href="/register" style="padding-left:20px;" >Create a new project</a></li>
 
 	</ul>
@@ -1035,7 +1036,7 @@ echo $u->getFirstName();
                 echo '</div>';
 
 		echo '<div style="font-size:12px;">';
-		echo 'Version 2.0.28. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 5.3.2.';
+		echo 'Version 2.0.29. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 5.3.2.';
                 echo '</div>';
 
             echo '</div>';
@@ -1714,6 +1715,9 @@ echo $u->getFirstName();
 				break;
 			case "/account/change_email.php":
 				$pageTitle = "Update Email";
+				break;
+			case "/account/close_acct.php":
+				$pageTitle = "Close Account";
 				break;
 			default:
 				$pageTitle = "My Account";

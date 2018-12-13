@@ -672,6 +672,8 @@ class User:
             data.write(line + '\n')
         data.close()
 
+        self.updateWikiUsers()
+
         arena = 'user'
         key = 'name2id'
         caching.CacheEntry(self._request, arena, key, scope='wiki').remove()
@@ -1241,3 +1243,19 @@ recovery token.
         myDbConn.close()
         return theEmailAddr
 
+    def updateWikiUsers(self):
+        """ Update wiki user names in db.
+        """
+        self.database_host = self.get_config('database_host')
+        self.database_name = self.get_config('database_name')
+        self.database_user = self.get_config('database_user')
+        self.database_port = self.get_config('database_port')
+        self.database_password = self.get_config('database_password')
+        myDbConn = psycopg2.connect(database=self.database_name, user=self.database_user, 
+            port=self.database_port, password=self.database_password, host=self.database_host)
+        myDbConn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
+        myCur = myDbConn.cursor()
+        userQuery = """INSERT INTO wiki_users (user_name) SELECT '%s' WHERE NOT EXISTS (SELECT 1 FROM wiki_users WHERE user_name='%s')""" % (self.name, self.name)
+        myCur.execute(userQuery)
+        myCur.close()
+        myDbConn.close()
