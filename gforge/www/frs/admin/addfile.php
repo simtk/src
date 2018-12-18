@@ -6,7 +6,7 @@
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * http://fusionforge.org/
- * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -30,7 +30,7 @@ require_once $gfcommon.'frs/FRSPackage.class.php';
 require_once $gfcommon.'frs/FRSRelease.class.php';
 require_once $gfcommon.'frs/FRSFile.class.php';
 require_once $gfcommon.'frs/include/frs_utils.php';
-require_once $gfwww . 'githubAccess/githubUtils.php';
+require_once $gfcommon . 'include/githubUtils.php';
 
 define("MAX_GITHUB_FILESIZE", 150 * 1024 * 1024);
 
@@ -205,28 +205,35 @@ if (getStringFromRequest('submit')) {
 				$show_notes, $show_agreement,
 				$file_desc, $disp_name, $doi, $user_id);
 			if ($ret === true) {
-			    if ($doi) {
-                   // set doi for release
-				   $frsr->setDoi($doi);
-				   // set doi for package
-				   $frsp->setDoi($doi);
-				   $doi_confirm = 1;
-				   
-				   $message = "\n"
-					. _('Please visit the following URL to assign DOI')._(': '). "\n"
-					. util_make_url('/admin/downloads-doi.php');
-			       util_send_message("webmaster@simtk.org", sprintf(_('DOI for %s file Requested'), $disp_name), $message);
-				   $feedback = _('Your file has been uploaded and your DOI will be emailed within 72 hours. ');
-				} else {				
-				   $feedback = '***NOSTRIPTAGS***File Released. ' . $msgReleased;
+				if ($doi) {
+					// set doi for release
+					$frsr->setDoi($doi);
+					// set doi for package
+					$frsp->setDoi($doi);
+					$doi_confirm = 1;
+
+					$real_name = $user->getRealName();
+
+					$message = "\nPlease visit the following URL to assign DOI: \n" .
+						util_make_url('/admin/downloads-doi.php');
+					util_send_message("webmaster@simtk.org", 
+						sprintf('DOI for %s file requested by %s', $userfile_name, $real_name),
+						$message);
+
+					$feedback = 'Your file has been uploaded and your DOI will be emailed within 72 hours. ';
+				}
+				else {
+					$feedback = '***NOSTRIPTAGS***File Released. ' . $msgReleased;
 				}
 ?>
+
 <script>
 $(function() {
 	// Show message for news creation.
 	$(".feedback").after("<div style='text-align:center';><?php echo $msgReleased; ?></div>");
 });
 </script>
+
 <?php
 			}
 			else {
@@ -239,6 +246,7 @@ $(function() {
 frs_admin_header(array('title'=>'Add File','group'=>$group_id));
 
 ?>
+
 <script>
 function sendnews() {
 	// News creation.
@@ -250,8 +258,7 @@ function sendnews() {
 
 	// Note: The following variables may be undefined if back button is used.
 	// Hence, check with isset() first before usage.
-	file_name =
-"<?php 
+	file_name = "<?php 
 if (isset($disp_name)) {
 	if ($disp_name == "")
 		// Empty display name.
@@ -400,7 +407,8 @@ td {
 	<tr>
 		<td>New File:
 		<?php echo '&nbsp;(max upload size: ' . 
-			human_readable_bytes(util_get_maxuploadfilesize()) . 
+//			human_readable_bytes(util_get_maxuploadfilesize()) . 
+			human_readable_bytes(getUploadFileSizeLimit($group_id)) . 
 			')'; ?>
 		</td>
 	</tr>
@@ -439,15 +447,28 @@ if ($frsp->getUseAgreement() != 0) {
 	<td></td>
 	</tr>
 
+<?php
+	$strMailingListPopup = frs_show_mailinglist_popup($group_id, 'group_list_id');
+	if ($strMailingListPopup != false && trim($strMailingListPopup) != "") {
+		echo '
 	<tr>
-	<td style="padding-left:30px;"><input class="upFile" type="checkbox" id="use_mail_list" name="use_mail_list" value="1" checked="checked" />&nbsp;Ask user to join mailing list:&nbsp;
-	<?php print frs_show_mailinglist_popup($group_id, 'group_list_id'); ?></td>
+	<td style="padding-left:30px;"><input class="upFile" type="checkbox" id="use_mail_list" name="use_mail_list" value="1" ';
+		echo "checked='checked'";
+ 		echo ' />&nbsp;';
+
+		echo "Ask user to join mailing list:&nbsp;";
+		echo $strMailingListPopup;
+		echo '
+	</td>
 	</tr>
 	<tr>
 		<td style="padding-left:30px;">
 			-->"Collect user information" must be checked to use mailing lists.
 		</td>
 	</tr>
+		';
+	}
+?>
 
 	</table>
 	</td>

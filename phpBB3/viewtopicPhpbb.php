@@ -69,6 +69,8 @@ else {
 $pid = getIntFromRequest('p');
 $start = getIntFromRequest('start');
 $view = getStringFromRequest('view');
+// Retrieve session_id.
+$sid = getStringFromRequest('sid');
 $pluginname = 'phpBB';
 
 
@@ -92,19 +94,7 @@ $params['title'] = 'phpBB' ;
 $params['pagename'] = $pluginname;
 $params['sectionvals'] = array ($group->getPublicName());
 
-// Page header.
-site_project_header($params);
-
 $group_id = $fid;
-// Submenu title information.
-$subMenuTitle = array();
-$subMenuUrl = array();
-$subMenuTitle[] = 'View Forum';
-$subMenuUrl[]='/plugins/phpBB/indexPhpbb.php?group_id=' . $group_id . '&pluginname=phpBB';
-// Show the submenu.
-echo $HTML->beginSubMenu();
-echo $HTML->printSubMenu($subMenuTitle, $subMenuUrl, array());
-echo $HTML->endSubMenu();
 
 // Get moderators from forum database.
 $arrModerators = getModerators($group_id);
@@ -121,11 +111,26 @@ foreach ($arrModerators as $key=>$username) {
 	}
 }
 $strModerators = implode(", ", $arrFullNames);
+
+// Page header.
+site_project_header($params);
+
+// Submenu title information.
+$subMenuTitle = array();
+$subMenuUrl = array();
+$subMenuTitle[] = 'View Forum';
+$subMenuUrl[]='/plugins/phpBB/indexPhpbb.php?group_id=' . $group_id . '&pluginname=phpBB';
+
+// Show the submenu.
+echo $HTML->beginSubMenu();
+echo $HTML->printSubMenu($subMenuTitle, $subMenuUrl, array());
 if (!empty($strModerators)) {
 	// Has moderators.
 	echo "<p>Moderators: " . $strModerators . "</p>";
 }
-
+// Link to Forum statiscis page.
+echo "<a href='/project/stats/forum_stats.php?group_id=" . $group_id . "'>Forum Statistics and Usage</a>";
+echo $HTML->endSubMenu();
 
 // Cross launch into phpbb.
 
@@ -136,7 +141,11 @@ $strPhpbbURL = '/plugins/phpBB/' .
 	'&start=' . $start .
 	'&view=' . $view;
 if (isset($pid) && $pid) {
-	$strPhpbbURL .= '&p=' . $pid;;
+	$strPhpbbURL .= '&p=' . $pid;
+}
+if (isset($sid) && $sid != "") {
+	// Include session_id if present.
+	$strPhpbbURL .= '&sid=' . $sid;
 }
 
 // get the session user

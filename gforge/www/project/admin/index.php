@@ -9,7 +9,7 @@
  * Copyright 2004 GForge, LLC - Tim Perdue
  * Copyright 2010, Franck Villaume - Capgemini
  * Copyright 2010-2011, Alain Peyrat - Alcatel-Lucent
- * Copyright 2016, Tod Hing, Henry Kwong - SimTK Team
+ * Copyright 2016-2018 Tod Hing, Henry Kwong - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -34,6 +34,7 @@ require_once $gfwww.'include/role_utils.php';
 require_once $gfwww.'project/admin/project_admin_utils.php';
 require_once $gfcommon.'include/GroupJoinRequest.class.php';
 require_once $gfplugins.'simtk_news/include/Simtk_news.class.php';
+require_once $gfplugins.'following/include/Following.class.php';
 
 $group_id = getIntFromRequest('group_id');
 
@@ -62,17 +63,48 @@ if (getStringFromRequest('submit')) {
 	// private = 0 means project is not public.
 	$feedback_more = "";	
 	if (isset($private) && $private == "0") {
-	  //echo "private: " . $private . "<br />";
-	  $private_param = 0;
-	  // disable global news
-	  $simtk_news = new Simtk_news($group);  
-	  if ($simtk_news->globalDisplayExist($group_id)) {
-	    $feedback_more = " (Notice: News displayed on the SimTK Site have been removed)"; 
-	  }
-	  $simtk_news->updateDisplayGlobalGroupID($group_id,0);
-	  $simtk_news->updateRequestGlobalGroupID($group_id,0);
-	} else {
-	  $private_param = 1;
+		//echo "private: " . $private . "<br />";
+		$private_param = 0;
+		// Disable global news.
+		$simtk_news = new Simtk_news($group);
+		if ($simtk_news->globalDisplayExist($group_id)) {
+			$feedback_more = " (Notice: News displayed on the SimTK Site have been removed)";
+		}
+		$simtk_news->updateDisplayGlobalGroupID($group_id,0);
+		$simtk_news->updateRequestGlobalGroupID($group_id,0);
+
+		// Remove followers who are not member of the private project.
+		$following = new Following($group);
+		// Get all followers.
+		$allFollowers = $following->getFollowing($group_id);
+		if ($allFollowers !== false) {
+			// Has followers.
+			// Get all members of project.
+			$theUsers = $group->getUsers();
+			// Check each follower.
+			foreach ($allFollowers as $followers_list) {
+				// Get follower's user name.
+				$nameFollower = strtolower($followers_list->user_name);
+
+				// Check whether follower is member of project.
+				$isMember = false;
+				foreach ($theUsers as $user) {
+					if ($user->getUnixName() == $nameFollower) {
+						// User is a member of project. Done.
+						$isMember = true;
+						break;
+					}
+				}
+				if (!$isMember) {
+					// Follower is not a member of the private project.
+					// Remove from followers.
+					$following->unfollow($group_id, $followers_list->user_name);
+				}
+			}
+		}
+	}
+	else {
+		$private_param = 1;
 	}
 	
 	$res = $group->updateInformation(
@@ -165,7 +197,7 @@ function HidePopup()
 <?php } ?>
 
 <h2><?php echo _('Project Title'); ?></h2>
-<p><b>Restrictions: 3-80 characters</b>.
+<p><b>Restrictions: 3-80 characters</b>
 </p>
 
 <p>
@@ -173,7 +205,7 @@ function HidePopup()
 </p>
 
 <h2><?php echo _('Summary'); ?></h2>
-<p>Your project summary appears on your project overview page and in the search results. <b>Restrictions:  10-255 characters</b>.</p>
+<p>Your project summary appears on your project overview page and in the search results. <b>Restrictions:  10-255 characters</b></p>
 
 <p>
 <textarea cols="80" rows="3" name="form_summary">
@@ -229,11 +261,16 @@ function HidePopup()
 <h2><?php echo _('Privacy'); ?></h2>
 
 <p>
-<input type="checkbox" name="private" value="0" <?php if (!$group->isPublic()) { echo 'checked="checked"'; } ?>/> Make entire project private - only title is publicly viewable.
+<input type="checkbox" name="private" value="0" <?php if (!$group->isPublic()) { echo 'checked="checked"'; } ?>/> Make entire project private - only title is publicly viewable
 </p>
 
 <p><b>This option is discouraged. Instead, we suggest independently limiting access to individual sections of the project.</b>
 </p>
+
+<h2>Social Media (Beta)</h2>
+<p>To add social media links to your SimTK project, <a href="/sendmessage.php?touser=101&subject=<?php
+        echo urlencode("Add project's social media pages to " . $group->getPublicName() . ".");
+?>">contact the SimTK Webmaster</a>.</p>
 
 <?php
 // This function is used to render checkboxes below

@@ -110,6 +110,18 @@ function &getPageViews() {
 	return util_result_column_to_array($this->res,10);
 }
 
+function &getStanfordPageViews() {
+	return util_result_column_to_array($this->res,11);
+}
+
+function &getVisitors() {
+	return util_result_column_to_array($this->res,12);
+}
+
+function &getStanfordVisitors() {
+	return util_result_column_to_array($this->res,13);
+}
+
 }
 
 // Local Variables:

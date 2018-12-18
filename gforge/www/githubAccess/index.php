@@ -35,11 +35,11 @@
 require_once '../env.inc.php';
 require_once $gfcommon . 'include/pre.php';
 require_once $gfwww . 'project/project_utils.php';
-require_once 'githubUtils.php';
+require_once $gfcommon . '/include/githubUtils.php';
 
 $group_id = getIntFromRequest("group_id");
 
-session_require_perm('scm', $group_id, 'read') ;
+//session_require_perm('scm', $group_id, 'read') ;
 
 $groupObj = group_get_object($group_id);
 if (!$groupObj || !is_object($groupObj)) {

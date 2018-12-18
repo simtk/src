@@ -33,6 +33,7 @@ import re, collections, math, sys
 
 WINDOW_SIZE = 5
 MAX_RECS = 15
+MIN_VISITS = 15
 
 def print_num_uniq(recommended_projects):
 	total = 0
@@ -53,6 +54,18 @@ def print_freq_format(recommended_projects):
 	print "group_id\trecommended_projects"
 	for idx, elem in recommended_projects.items():
 		print "Group", idx, "\t", elem
+
+def find_indequate_visits(proj_proj):
+	inadequate_visits = []
+	from_projs = collections.defaultdict(set)
+	# Get set of projects visited from.
+	for src_proj, dst_proj in proj_proj:
+		from_projs[dst_proj] |= set([src_proj])
+	for proj in from_projs:
+		if len(from_projs[proj]) < MIN_VISITS:
+			#print "Skip: ", proj, "Visited from: ", len(from_projs[proj])
+			inadequate_visits.append(proj)
+	return inadequate_visits
 
 def make_visit_dict(proj_proj):
 	src_browsing = collections.defaultdict(dict)
@@ -117,6 +130,28 @@ def make_sim_scores(src_browsing, proj):
 		sim_scores.append((score, p))
 	return sim_scores
 
+def get_matches_words_no_sim_scores(cur_proj_id, src_browsing, keywords, ontologies):
+	top_projects = []
+	cur_proj_keywords = keywords[cur_proj_id]
+	cur_proj_ontologies = ontologies[cur_proj_id]
+	if len(cur_proj_keywords) == 0 and len(cur_proj_ontologies) == 0:
+		# No keywords and ontologies for this project; skip this project
+		return top_projects
+	# all_scores contains 3-tuples: (num_word_overlap, 0, proj_id)
+	all_scores = []
+	for proj_id in src_browsing:
+		proj_keywords = keywords[proj_id]
+		proj_ontologies = ontologies[proj_id]
+		num_word_overlap = len(cur_proj_ontologies & proj_ontologies) + len(cur_proj_keywords & proj_keywords)
+		if num_word_overlap > 0:
+			all_scores.append((num_word_overlap, 0, proj_id))
+	if len(all_scores) < MAX_RECS:
+		# Not enough recommended projects; skip this project
+		return top_projects
+	# sort all_scores by num_word_overlap
+	top_projects = sorted(all_scores, key=lambda tup: tup[0], reverse=True)
+	return top_projects
+
 def get_matches_words(cur_proj_id, sim_scores, keywords, ontologies):
 	top_projects = []
 	cur_proj_keywords = keywords[cur_proj_id]
@@ -158,14 +193,21 @@ def analyze(filename, win_size = WINDOW_SIZE):
 
 	# src_browsing is a dict from proj_id to another dict. The value dict maps proj_id to number of visits
 	src_browsing = make_visit_dict(proj_proj)
+
+	# Find projects with inadequate number of visits
+	inadequate_visits = find_indequate_visits(proj_proj)
 	
 	keywords = make_related_words_dict('keywords.csv')
 	ontologies = make_related_words_dict('ontology.csv')
 	recommended_projects_sorted = collections.defaultdict(list)
 	# count = 0
 	for proj in src_browsing:
-		sim_scores = make_sim_scores(src_browsing, proj)
-		top_projects = get_matches_words(proj, sim_scores, keywords, ontologies)
+		if proj in inadequate_visits:
+			# Not enough visits, do not use sim_scores; use keywords and ontologies only.
+			top_projects = get_matches_words_no_sim_scores(proj, src_browsing, keywords, ontologies)
+		else:
+			sim_scores = make_sim_scores(src_browsing, proj)
+			top_projects = get_matches_words(proj, sim_scores, keywords, ontologies)
 		recommended_projects_sorted[proj] = top_projects[:MAX_RECS]
 	print_db_format(recommended_projects_sorted)
 	# print_freq_format(recommended_projects_sorted)

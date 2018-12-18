@@ -68,9 +68,11 @@ if($content_type != $default_content_type) {
 $HTML->header(array('title'=>'Community','pagename'=>''));
 
 global $cat_id, $rows;
-$cat_id = $_GET["cat"];
+$cat_id = getIntFromRequest("cat");
+
 $featured_cat_id = 407;
 
+/*
 // The parameter "cat" can be a comma separated string upon user selecting different categories.
 // The originally selected cateogry remains at the beginning.
 // Only pick the first value after exploding this array to get the cateogry. Otherwise, the
@@ -79,7 +81,7 @@ $catIds = explode(',', $cat_id);
 if (count($catIds) > 0) {
         $cat_id = $catIds[0];
 }
-
+*/
 
 $sql = "SELECT trove_cat_id,
 		shortname,
@@ -235,6 +237,13 @@ header("X-UA-Compatible: IE=Edge");
 	</div><!-- categories_featured -->
 	</div><!-- featured_projs -->
 
+	<div class="communities" style="Display: none;">
+	<h2 class='underlined'>Related communities</h2>
+
+	<div class="related_communities" id="related_communities">
+	</div><!-- related_communities -->
+	</div><!-- communities -->
+
 	<h2 class='underlined'>Recently updated projects</h2>
 
 	<div class="categories_home" id="categories_home">
@@ -333,7 +342,7 @@ header("X-UA-Compatible: IE=Edge");
 		$userObj = user_get_object($user_id);
 
 		// Display user info.
-		echo '<div class="team_member">';
+		echo '<div class="team_member" style="vertical-align:top;">';
 		echo '<a href="/users/' . $userObj->data_array['user_name'] . 
 			'"><img src="/userpics/';
 		if (!empty($userObj->data_array['picture_file'])) {

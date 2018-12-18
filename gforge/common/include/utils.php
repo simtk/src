@@ -2175,9 +2175,37 @@ function getMyProjects() {
 
 /*
  * Abbreviate group_name to number of characters specified.
- * Show first X characters, followed by "...."
+ * Show first X characters, followed by "..."
  */
-function abbrGroupName($in_group_name) {
+function abbrGroupName($in_group_name, $maxChars=30) {
+
+	if ($in_group_name == null) {
+		return $in_group_name;
+	}
+	if (trim($in_group_name) == "") {
+		return $in_group_name;
+	}
+	$theLen = strlen($in_group_name);
+	if ($theLen <= $maxChars) {
+		// No abbreviation needed.
+		return $in_group_name;
+	}
+	$lastDelimiter = false;
+	for ($idx = 0; $idx < $theLen && $idx < $maxChars; $idx++) {
+		if ($in_group_name[$idx] == " ") {
+			$lastDelimiter = $idx;
+		}
+	}
+	if ($lastDelimiter !== false) {
+		// Found space in string.
+		return substr($in_group_name, 0, $lastDelimiter) . "...";
+	}
+
+	// Return truncated original string.
+	return substr($in_group_name, 0, $maxChars);
+
+/*
+	// OLD
 
 	// Use first 24 leading characters.
 	defined("COUNT_LEADING_CHARACTERS") or define("COUNT_LEADING_CHARACTERS", 24);
@@ -2191,6 +2219,7 @@ function abbrGroupName($in_group_name) {
 	}
 
 	$trimmed_group_name = substr($in_group_name, 0, COUNT_LEADING_CHARACTERS) . "....";
+*/
 
 /*
 	// Value less than 5 is ignored ("begin_char"..."end_char" requires a minimum of 5 characters.)
@@ -2208,7 +2237,7 @@ function abbrGroupName($in_group_name) {
 		substr($in_group_name, -$cntTail);
 */
 
-	return $trimmed_group_name;
+	//return $trimmed_group_name;
 }
 
 // Log to user_group_log table.

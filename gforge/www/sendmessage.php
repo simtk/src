@@ -134,14 +134,84 @@ if (session_loggedin()) {
 }
 
 $realname = db_result($result,0,'realname');
+if ($realname == "Local GForge Admin") {
+	// Update display name.
+	$realname = "SimTK WebMaster";
+}
 
 $subject = getStringFromRequest('subject');
+
+// Get group_id if present.
+$group_id = getIntFromRequest("group_id");
+
+// Display header.
 $HTML->header(array('title' => forge_get_config('forge_name').' '._('Contact')));
 
+if ($touser == 101 && $group_id != 0) {
+	// Display when sending to SimTK WebMaster when group_id is present.
+	echo "<h2>Feedback on SimTK</h2>";
+	echo "<span><b>For general questions about the SimTK website:</b> Send message to $realname using the form below. All fields are required.</span>";
+
+	// Check permission first.
+	if (forge_check_perm('project_read', $group_id)) {
+
+		// Has group_id. Look up group object.
+		$groupObj = group_get_object($group_id);
+
+		echo "<h2>Feedback on " . $groupObj->getPublicName() . "</h2>";
+
+		// Get project leads.
+		$projectLeads = $groupObj->getAdmins();
+
+		// Check if forum is used in project.
+		$useForum = false;
+		$navigation = new Navigation();
+		$menu = $navigation->getSimtkProjectMenu($group_id);
+		$menu_max = count($menu['titles'], 0);
+		for ($i=0; $i < $menu_max; $i++) {
+			$menuTitle = $menu['titles'][$i];
+			if ($menuTitle == "Forums") {
+				// Project uses forum.
+				$useForum = true;
+				break;
+			}
+		}
+
+		if ($useForum === true) {
+			// Uses forum.
+			echo 'For questions related to <b>this project ("' . 
+				$groupObj->getPublicName() . 
+				'")</b>: We recommend posting to their ' .
+				'<a href="/plugins/phpBB/indexPhpbb.php?group_id=' . $group_id .
+				'&pluginname=phpBB">discussion forum</a>. ';
+
+			if (count($projectLeads) > 0) {
+				// Has project lead(s).
+				echo 'For questions not addressed in the forum, you can contact the ' .
+					'<a href="/sendmessage.php?touser=' .
+					$projectLeads[0]->getID() .
+					'&group_id=' . $group_id . '">project administrators</a>.'; 
+			}
+		}
+		else {
+			// Does not use forum.
+			if (count($projectLeads) > 0) {
+				// Has project lead(s).
+				echo 'For questions related to <b>this project ("' .
+					$groupObj->getPublicName() .
+					'")</b>:" Contact the ' .
+					'<a href="/sendmessage.php?touser=' .
+					$projectLeads[0]->getID() .
+					'&group_id=' . $group_id . '">project administrators</a>.'; 
+			}
+		}
+	}
+}
+else {
+	echo "<br/><span>Send message to $realname using the form below. All fields are required.</span>";
+}
 ?>
 
-<br/>
-<span>Provide the information below to send a message to <?php echo $realname; ?>. All fields are required.</span>
 <br/><br/>
 
 <form action="<?php echo getStringFromServer('PHP_SELF'); ?>" method="post">
@@ -151,6 +221,12 @@ $HTML->header(array('title' => forge_get_config('forge_name').' '._('Contact')))
 <input type="hidden" name="touser" value="<?php echo $touser; ?>" />
 <input type="hidden" name="name" value="<?php echo $name; ?>" />
 <input type="hidden" name="email" value="<?php echo $email; ?>" />
+<?php
+if ($group_id != 0) {
+	// Pass along group_id if present.
+	echo '<input type="hidden" name="group_id" value="' . $group_id . '" />';
+}
+?>
 
 <p>
 <strong>Subject:</strong><br/>

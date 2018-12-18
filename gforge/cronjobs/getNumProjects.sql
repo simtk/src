@@ -166,7 +166,7 @@ AS dfiv
     ON ff.file_id=dfiv.file_id
   JOIN groups AS g
     ON g.group_id=dfiv.group_id
-  JOIN stats_cvs_group AS scg
+  LEFT JOIN stats_cvs_group AS scg
     ON scg.group_id=g.group_id
   WHERE dfiv.g_status='A'
     AND dfiv.g_is_public=1

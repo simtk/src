@@ -39,7 +39,7 @@
 
 <div class="the_footer"><div class="cont_footer">
 	<div class="footer_row">
-		<div class="footer_information"><p>SimTK is maintained through Grant R01 GM107340 from the National Institutes of Health (NIH). It was initially developed as part of the Simbios project funded by the NIH as part of the NIH Roadmap for Medical Research, Grant U54 GM072970.</p>
+		<div class="footer_information"><p>SimTK is maintained through Grant R01GM124443 01A1 from the National Institutes of Health (NIH). It was initially developed as part of the Simbios project funded by the NIH as part of the NIH Roadmap for Medical Research, Grant U54 GM072970.</p>
 		</div>
 		<div class="footer-right">
 			<a href="/pledge.php">Our Pledge and Your Responsibility</a><br/><br/>
@@ -48,7 +48,7 @@
 			<a href="/account/register.php">Join</a>
 		</div>
 	</div>
-	<div style="font-size:12px;">Version 2.0.13. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 5.3.2.
+	<div style="font-size:12px;">Version 2.0.29. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 5.3.2.
 	</div>
 </div></div>
 
@@ -75,7 +75,8 @@
 		});
 	});
 	$(document).ready(function() {
-		$(".feedback_href, .feedback_button").click(function() {
+		$(".feedback_href, .feedback_button").click(function(event) {
+			event.preventDefault();
 			// Get group_id if hidden DIV class "divGroupId" is present.
 			theGroupId = -1;
 			$(".divGroupId").each(function() {
@@ -89,7 +90,6 @@
 				// No group_id.
 				location.href="/feedback.php";
 			}
-			event.preventDefault();
 		});
 	});
 </script>

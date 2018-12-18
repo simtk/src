@@ -6,7 +6,7 @@
  * 
  * Front page of file downloads.
  *
- * Copyright 2005-2016, SimTK Team
+ * Copyright 2005-2018, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -54,6 +54,8 @@ constructUI($HTML, $group_id, $cur_group_obj, $package_id, $release_id,
 function constructUI($HTML, $groupId, $groupObj, $package_id, $release_id,
 	$thePackages, $theGroupInfo) {
 
+	$hasFiles = false;
+
 	// Keep track of last header index for numbering the div sequentially.
 	$lastHeaderMajorIdx = 0;
 	$lastHeaderMinorIdx = 0;
@@ -92,6 +94,20 @@ function constructUI($HTML, $groupId, $groupObj, $package_id, $release_id,
 			continue;
 		}
 */
+
+		// Get count of files in all releases of this package.
+		$numFiles = getNumOfFilesInReleases($theReleases);
+		if ($numFiles > 0) {
+			// Found at least one file in the releases of this package.
+			if ($hasFiles === false) {
+				$hasFiles = true;
+			}
+		}
+		else {
+			// No files in the releases of this package.
+			// Skip showing this package.
+			continue;
+		}
 
 		// Construct UI for given package.
 		constructPackageUI($HTML, $groupId, $groupObj, $packageInfo, 
@@ -142,11 +158,12 @@ function constructUI($HTML, $groupId, $groupObj, $package_id, $release_id,
 		closePackageUI($packageInfo);
 	}
 
-	if (count($thePackages) < 1) {
+	if (count($thePackages) < 1 || $hasFiles === false) {
 		// There are no packages available.
 		//echo "<h1>" . _('No File Packages') . "</h1>";
 		echo "<div class='warning'>" . 
-			_('There are no file packages defined for this project.') . 
+			//_('There are no file packages defined for this project.') . 
+			"This project has no downloads." .
 			"</div>";
 	}
 

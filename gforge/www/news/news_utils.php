@@ -236,6 +236,7 @@ function news_show_latest($group_id=0, $limit=10, $show_summaries=true,
 	}
 
 	if (isset($categoryId) && $categoryId != "") {
+		// NOTE: Retrieve directly related communities from trove_cat_link (one-level deep).
 		$strQueryNews = '
 			SELECT g.group_name, g.unix_group_name, g.group_id, g.type_id, 
 				u.user_name, u.realname, u.picture_file, 
@@ -244,7 +245,10 @@ function news_show_latest($group_id=0, $limit=10, $show_summaries=true,
 			JOIN plugin_simtk_news pn ON g.group_id=pn.group_id
 			JOIN users u ON u.user_id=pn.submitted_by
 			JOIN trove_group_link tgl ON tgl.group_id=pn.group_id
-			WHERE tgl.trove_cat_id=$1
+			WHERE (tgl.trove_cat_id=$1 OR
+				tgl.trove_cat_id IN (
+					SELECT linked_trove_cat_id FROM trove_cat_link
+					WHERE trove_cat_id=$1))
 				AND (pn.group_id=$2 AND pn.is_approved <> 4 OR 1!=$3)
 				AND (pn.is_approved=1 OR 1 != $4)
 				AND g.simtk_is_public=1

@@ -37,10 +37,10 @@ require_once $gfcommon.'include/pre.php';
 require_once $gfwww.'include/trove.php';
 require_once $gfwww.'category/communityAdminUtils.php';
 
-$cat_id = $_GET["cat"];
+$cat_id = getIntFromRequest("cat");
 
 // Check permission for community page administration.
-$cntRows = 0;
+$cntUsers = 0;
 if (session_get_user()) {
 	// Get user id if logged in.
 	$user_id = session_get_user()->getID();
@@ -455,6 +455,15 @@ $(function() {
 	}
 ?>
 </table>
+
+<br/><br/>
+
+<div style="max-width:645px;">
+<h2 class="underlined">Manage Related Communities</h2>
+<a href="/sendmessage.php?touser=101&subject=<?php
+	echo urlencode("Adding a related community to " . $fullName . "."); 
+?>">Contact SimTK Webmaster</a> to add a community.
+</div>
 
 <br/><br/>
 <input type="submit" name="submit" value="Update" class="btn-cta" />

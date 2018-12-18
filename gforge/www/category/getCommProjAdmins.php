@@ -35,7 +35,8 @@
 require_once '../env.inc.php';
 require_once $gfcommon.'include/pre.php';
 
-if (!isset($_GET['category'])) {
+$category = getIntFromRequest("category");
+if ($category == 0) {
 	return;
 }
 
@@ -51,11 +52,11 @@ if (!isset($_GET['term']) || strlen($_GET['term']) <= 2) {
 }
 
 // Look up matching users from projects in category.
-$arrUsers = lookupUsersFromCateogry($_GET['term'], $_GET['category']);
+$arrUsers = lookupUsersFromCateogry($_GET['term'], $category);
 if (count($arrUsers) < 1) {
 	// No users found from projects in category.
 	// Try looking up from all users.
-	$arrUsers = lookupAllUsers($_GET['term'], $_GET['category']);
+	$arrUsers = lookupAllUsers($_GET['term'], $category);
 }
 
 // Case-insensitve sort array.

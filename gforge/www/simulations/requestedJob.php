@@ -113,6 +113,7 @@ $modifyScriptName = $_POST["ModifyScriptName"];
 $submitScriptName = $_POST["SubmitScriptName"];
 $postprocessScriptName = $_POST["PostprocessScriptName"];
 $installDirName = $_POST["InstallDirName"];
+$execCheck = $_POST["ExecCheck"];
 $maxRunTime = $_POST["MaxRunTime"];
 $modifyModel = $_POST["ModifyModel"];
 
@@ -149,6 +150,7 @@ function submitHandler() {
 	theData.push({name: "SoftwareVersion", value: <?php echo json_encode($softwareVersion); ?>});
 	theData.push({name: "ConfigFileName", value: <?php echo json_encode($cfgName); ?>});
 	theData.push({name: "ConfigText", value: <?php echo json_encode($cfgText); ?>});
+	theData.push({name: "ExecCheck", value: <?php echo json_encode($execCheck); ?>});
 	theData.push({name: "MaxRunTime", value: <?php echo json_encode($maxRunTime); ?>});
 	theData.push({name: "ModifyModel", value: <?php echo json_encode($modifyModel); ?>});
 

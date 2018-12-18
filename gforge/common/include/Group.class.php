@@ -47,6 +47,7 @@ require_once $gfcommon.'include/gettext.php';
 require_once $gfcommon.'include/GroupJoinRequest.class.php';
 require_once $gfcommon.'include/image.php';
 require_once $gfcommon.'include/roleUtils.php';
+require_once $gfcommon.'include/githubUtils.php';
 
 $GROUP_OBJ=array();
 
@@ -339,13 +340,13 @@ class Group extends Error {
 			$this->setError('Project identifier already taken.');
 			return false;
 		} elseif (strlen($purpose)<10) {
-			$this->setError(_('Please describe your Registration Project Purpose and Summarization in a more comprehensive manner.'));
+			$this->setError("Please describe your Registration Project Purpose and Summarization in a more detail.");
 			return false;
 		} elseif (strlen($purpose)>1500) {
 			$this->setError(_('The Registration Project Purpose and Summarization text is too long. Please make it smaller than 1500 characters.'));
 			return false;
 		} elseif (strlen($description)<10) {
-			$this->setError(_('Describe in a more comprehensive manner your project.'));
+			$this->setError("Describe your project in more detail.");
 			return false;
 		} else {
 
@@ -589,7 +590,7 @@ class Group extends Error {
 		}
 
 		// Validate some values
-		if ($this->getPublicName() != $group_name) {
+		if (strtolower($this->getPublicName()) != strtolower($group_name)) {
 			if (!$this->validateGroupName($group_name)) {
 				return false;
 			}
@@ -654,7 +655,7 @@ class Group extends Error {
 		}
 
 		if (strlen(htmlspecialchars($short_description))<10) {
-			$this->setError(_('Describe in a more comprehensive manner your project.'));
+			$this->setError("Describe your project in more detail.");
 			return false;
 		}
 
@@ -1226,14 +1227,14 @@ class Group extends Error {
 		}
 
 		// Validate some values
-		if ($this->getPublicName() != $group_name) {
+		if (strtolower($this->getPublicName()) != strtolower($group_name)) {
 			if (!$this->validateGroupName($group_name)) {
 				return false;
 			}
 		}
 
 		if (strlen(htmlspecialchars($short_description))<10) {
-			$this->setError(_('Describe in a more comprehensive manner your project.'));
+			$this->setError("Describe your project in more detail.");
 			return false;
 		}
 
@@ -1683,6 +1684,64 @@ class Group extends Error {
 		return true;
 	}
 
+
+	// Get count of number of social media URLs for group.
+	function countSocialURLs() {
+
+		$count = 0;
+		$strQuery = "SELECT count(url) FROM group_social_urls " .
+			"WHERE group_id=" . $this->getID();
+		$resGroup = db_query_params($strQuery, array());
+		while ($theRow = db_fetch_array($resGroup)) {
+			$count = $theRow['count'];
+		}
+
+		return $count;
+	}
+
+	// Save social media URL.
+	function saveSocialURL($socialname, $url="") {
+
+                db_begin();
+
+		$strUpdate = 'UPDATE group_social_urls ' .
+			'SET url=$3 ' .
+			'WHERE group_id=$1 ' .
+			'AND socialmedia=$2';
+		$res = db_query_params($strUpdate, 
+			array($this->getID(), $socialname, $url));
+		if (!$res || db_affected_rows($res) < 1) {
+			$strInsert = 'INSERT INTO group_social_urls ' .
+				'(group_id, socialmedia, url) ' .
+				'VALUES ($1, $2, $3)';
+			$res = db_query_params($strInsert, 
+				array($this->getID(), $socialname, $url));
+			if (!$res || db_affected_rows($res) < 1) {
+				// Cannot insert entry.
+				db_rollback();
+				return false;
+			}
+		}
+
+		db_commit();
+		return true;
+	}
+
+	// FusionForge and forum shares the same group name.
+	// Retrieve social media URL for group, if present.
+	function getSocialURL($socialname) {
+
+		$url = "";
+		$strQuery = "SELECT url FROM group_social_urls " .
+			"WHERE group_id=" . $this->getID() . " " .
+			"AND socialmedia=$1";
+		$resGroup = db_query_params($strQuery, array($socialname));
+		while ($theRow = db_fetch_array($resGroup)) {
+			$url = $theRow['url'];
+		}
+
+		return $url;
+	}
 
 	// Get GitHub accses URL.
 	function getGitHubAccessURL() {
@@ -3819,20 +3878,135 @@ class Group extends Error {
 
         function getLastUpdate() {
 
-           $result = $this->getHistory();
-           $rows=db_numrows($result);
-
-           if ($rows > 0) {
-              return date(_('M d, Y'),db_result($result, 0, 'adddate'));
-           }
-           else {
-              return 0;
-           }
+		$result = $this->getHistory();
+		$rows = db_numrows($result);
+		if ($rows > 0) {
+			//return date(_('M d, Y'),db_result($result, 0, 'adddate'));
+			$theAddDate = db_result($result, 0, 'adddate');
+			$tmpDateTime = new DateTime("@$theAddDate");
+			$tmpDateTime->setTimezone(new DateTimeZone("America/Los_Angeles"));
+			$theDateTime = $tmpDateTime->format('M j, Y');
+			return $theDateTime;
+		}
+		else {
+			return 0;
+		}
         }
 
 
+	// Get history from group_history and other modules.
         function getHistory() {
-                return db_query_params("SELECT group_history.field_name,group_history.old_value,group_history.adddate,users.user_name FROM group_history,users WHERE group_history.mod_by=users.user_id AND group_id=$1 ORDER BY group_history.adddate DESC", array($this->getID()));
+
+		// group_history.
+                $strQuery = "(" .
+			"SELECT gh.adddate AS adddate " .
+			"FROM group_history gh " .
+			"WHERE group_id=" . $this->getID() .
+			") ";
+
+		if ($this->usesFRS()) {
+			// Downloads.
+			$strQuery .= "UNION " .
+				"(" .
+				"SELECT ff.post_date AS adddate " .
+				"FROM frs_file ff " .
+				"JOIN frs_release fr " .
+				"ON fr.release_id=ff.release_id " .
+				"JOIN frs_package fp " .
+				"ON fp.package_id=fr.package_id " .
+				"WHERE group_id=" . $this->getID() .
+				") ";
+		}
+
+		if ($this->usesDocman()) {
+			// Create document.
+			$strQuery .= "UNION " .
+				"(" .
+				"SELECT createdate AS adddate " .
+				"FROM doc_data " .
+				"WHERE group_id=" . $this->getID() .
+				") ";
+			// Update document.
+			$strQuery .= "UNION " .
+				"(" .
+				"SELECT updatedate AS adddate " .
+				"FROM doc_data " .
+				"WHERE group_id=" . $this->getID() .
+				") ";
+		}
+
+		// NOTE: Need to check news usage with usesPlugin("simtk_news")
+		// but not $this->usesNews().
+		if ($this->usesPlugin("simtk_news")) {
+			// News.
+			$strQuery .= "UNION " .
+				"(" .
+				"SELECT post_date AS adddate " .
+				"FROM plugin_simtk_news " .
+				"WHERE group_id=" . $this->getID() . " " .
+				"AND is_approved!=4 " .
+				") ";
+		}
+
+		if ($this->usesSCM()) {
+			// CVS last commit time.
+			$res = db_query_params("SELECT month, day FROM stats_cvs_group " .
+				"WHERE group_id=" . $this->getID() . " " .
+				"AND commits>0 " .
+				"AND month!=0 " .
+				"AND day!= 0 " .
+				"ORDER BY month DESC, day DESC LIMIT 1 " ,
+				array());
+			$rows = db_numrows($res);
+			if ($rows > 0) {
+				// NOTE: month is in the format 201808 
+				// where 2018 is year and 08 is month.
+				$theYearMonth = db_result($res, 0, 'month');
+				$theYear = substr($theYearMonth, 0, 4);
+				$theMonth = substr($theYearMonth, 4);
+				$theDay = db_result($res, 0, 'day');
+
+				// Generate last commit timestamp.
+				$lastCommitTime = mktime(0, 0, 0, $theMonth, $theDay, $theYear);
+
+				$strQuery .= "UNION " .
+					"(" .
+					"SELECT " . $lastCommitTime . " AS adddate " .
+					") ";
+			}
+		}
+		else if ($this->usesGitHub()) {
+			// GitHub last commit time.
+			$url = $this->getGitHubAccessURL();
+			if (isset($url) && !empty($url)) {
+				// Base GitHub URL.
+				$theGitHubURL = "https://api.github.com/repos/" . $url;
+
+				// Get GitHub statistics on project.
+				$status = getLastCommit($theGitHubURL, $dateLastCommit);
+				if (isset($dateLastCommit) && $dateLastCommit > 0) {
+					$theDateTime = new DateTime("@$dateLastCommit");
+					$lastCommitTime = $theDateTime->getTimestamp();
+					$strQuery .= "UNION " .
+						"(" .
+						"SELECT " . $lastCommitTime . " AS adddate " .
+						") ";
+				}
+			}
+		}
+
+		// Wiki updates.
+		$strQuery .= "UNION " .
+			"(" .
+			"SELECT last_update AS adddate " .
+			"FROM wiki_updates " .
+			"WHERE group_id=" . $this->getID() .
+			") ";
+
+		// Sort with latest first and select the latest.
+		$strQuery .= "ORDER BY adddate DESC LIMIT 1";
+
+                return db_query_params($strQuery, array());
         }
 
 
@@ -4351,15 +4525,23 @@ We look forward to helping your project succeed!<br/><br/>
 			return false;
 		}
 
+		$shortServerName = $this->getServerName();
+		// Include only up to "." in server name.
+		$idxServer = strpos($shortServerName, ".");
+		if ($idxServer !== false) {
+			$shortServerName = ucfirst(substr($shortServerName, 0, $idxServer));
+		}
+
 		foreach ($admins as $admin) {
 			$admin_email = $admin->getEmail();
 			setup_gettext_for_user ($admin);
-			
-			$message = sprintf('New %s Project Submitted', forge_get_config('forge_name')) . 
+
+			$message = "Thank you for creating a project on SimTK.  The " .
+				$shortServerName .
+				" admin team is reviewing your project submission, and you will receive an email within 72 hours notifying you of their decision. If you have any questions in the meantime, you can contact webmaster@simtk.org." .
 				"\n\n" . 
-				'Project Full Name' . ': ' . htmlspecialchars_decode($this->getPublicName()) . "\n"
-//				. 'Submitted Description' . ': ' . htmlspecialchars_decode($this->getRegistrationPurpose()) . "\n";
-				. 'Submitted Description' . ': ' . htmlspecialchars_decode($this->getDescription()) . "\n";
+				'Project Full Name' . ': ' . htmlspecialchars_decode($this->getPublicName()) . "\n" .
+				'Submitted Description' . ': ' . htmlspecialchars_decode($this->getDescription()) . "\n";
 			foreach ($submitters as $submitter) {
 				$message .= 'Submitter' . ': ' . $submitter->getRealName() . 
 					' (' . $submitter->getUnixName() . ')' . "\n\n";
@@ -4370,22 +4552,20 @@ We look forward to helping your project succeed!<br/><br/>
 				': ' . "\n" . 
 				util_make_url('/admin/approve-pending.php');
 			util_send_message($admin_email, 
-				sprintf('New %s Project Submitted', forge_get_config('forge_name')), $message);
+				sprintf('Your %s Project Is Being Reviewed', forge_get_config('forge_name')), $message);
 			setup_gettext_from_context();
 		}
 
 		$email = $submitter->getEmail();
 		setup_gettext_for_user ($submitter);
 
-		$message = sprintf('New %s Project Submitted', forge_get_config ('forge_name')) . "\n\n" . 
-			'Project Full Name' . ': ' . $this->getPublicName() . "\n" . 
-			'Submitted Description' . ': ' . 
-//			util_unconvert_htmlspecialchars($this->getRegistrationPurpose()) . "\n\n" . 
-			util_unconvert_htmlspecialchars($this->getDescription()) . "\n\n" . 
-			sprintf('The %s admin team will now examine your project submission. You will be notified of their decision.', 
-				forge_get_config ('web_host'));
-
-		util_send_message($email, sprintf('New %s Project Submitted', 
+		$message = "Thank you for creating a project on SimTK.  The " .
+			$shortServerName .
+			" admin team is reviewing your project submission, and you will receive an email within 72 hours notifying you of their decision. If you have any questions in the meantime, you can contact webmaster@simtk.org." .
+			"\n\n" . 
+			'Project Full Name' . ': ' . htmlspecialchars_decode($this->getPublicName()) . "\n"
+			. 'Submitted Description' . ': ' . htmlspecialchars_decode($this->getDescription()) . "\n";
+		util_send_message($email, sprintf('Your %s Project Is Being Reviewed', 
 			forge_get_config('forge_name')), $message);
 		setup_gettext_from_context();
 

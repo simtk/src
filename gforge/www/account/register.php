@@ -402,6 +402,7 @@ function retrieveErrorMessages($error_msg, &$arrErrors) {
 				<input type="password" name="password2" class="required" placeholder="Confirm Password"/>
 			</div> <!-- account_column -->
 		</div> <!-- account_row -->
+		<div><span style="color:#f75236;">Do not use a Hotmail account.<br/>You will not receive the activation email.</span></div>
 		<div class="account_row">
 			<div class="account_column">
 				<input type="text" name="email" class="required" value="<?php if (isset($email)) echo $email; ?>" placeholder="Email address"/>

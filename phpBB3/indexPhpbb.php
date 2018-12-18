@@ -49,6 +49,12 @@ else {
 }
 $pluginname = 'phpBB';
 
+// Get start page if present in parameter.
+$start = 0;
+if (isset($_GET['start'])) {
+	$start = getIntFromRequest('start');
+}
+
 // Check permission and prompt for login if needed.
 session_require_perm('project_read', $group_id);
 
@@ -69,19 +75,6 @@ $params['title'] = 'phpBB' ;
 $params['pagename'] = $pluginname;
 $params['sectionvals'] = array ($group->getPublicName());
 
-// Page header.
-site_project_header($params);
-
-// Submenu title information.
-$subMenuTitle = array();
-$subMenuUrl = array();
-$subMenuTitle[] = 'View Forum';
-$subMenuUrl[]='/plugins/phpBB/indexPhpbb.php?group_id=' . $group_id . '&pluginname=phpBB';
-// Show the submenu.
-echo $HTML->beginSubMenu();
-echo $HTML->printSubMenu($subMenuTitle, $subMenuUrl, array());
-echo $HTML->endSubMenu();
-
 // Get moderators from forum database.
 $arrModerators = getModerators($group_id);
 $arrFullNames = array();
@@ -97,10 +90,26 @@ foreach ($arrModerators as $key=>$username) {
 	}
 }
 $strModerators = implode(", ", $arrFullNames);
+
+// Page header.
+site_project_header($params);
+
+// Submenu title information.
+$subMenuTitle = array();
+$subMenuUrl = array();
+$subMenuTitle[] = 'View Forum';
+$subMenuUrl[]='/plugins/phpBB/indexPhpbb.php?group_id=' . $group_id . '&pluginname=phpBB';
+
+// Show the submenu.
+echo $HTML->beginSubMenu();
+echo $HTML->printSubMenu($subMenuTitle, $subMenuUrl, array());
 if (!empty($strModerators)) {
 	// Has moderators.
 	echo "<p>Moderators: " . $strModerators . "</p>";
 }
+// Link to Forum statiscis page.
+echo "<a href='/project/stats/forum_stats.php?group_id=" . $group_id . "'>Forum Statistics and Usage</a>";
+echo $HTML->endSubMenu();
 
 // Store $group_id in $_COOKIE.
 //
@@ -108,22 +117,14 @@ if (!empty($strModerators)) {
 // {THE_FORUM_ID} which is passed to the template search_body.html 
 // to constrain the search to the current forum.
 // Otherwise, all forums will be search.
-if (isset($_GET["group_id"])) {
-	$group_id = $_GET["group_id"];
-}
-else if (isset($_GET["f"])) {
-	$group_id = $_GET["f"];
-}
-else {
-	return;
-}
+
 if ($group_id != 0) {
 	// group_id is NOT 0. Set group_id cookie (i.e. "f_curr").
 	if (isset($_GET["group_id"])) {
-		$group_id = $_GET["group_id"];
+		$group_id = getIntFromRequest('group_id');
 	}
 	else if (isset($_GET["f"])) {
-		$group_id = $_GET["f"];
+		$group_id = getIntFromRequest('f');
 	}
 	else {
 		return;
@@ -143,6 +144,10 @@ $strPhpbbURL = '/plugins/phpBB/' .
 	'viewforumbyname.php?' .
 	'fname=' . $group->getPublicName() .
 	'&fid=' . $group_id;
+if ($start != 0) {
+	// Add start page.
+	$strPhpbbURL .= '&start=' . $start;
+}
 
 // get the session user
 

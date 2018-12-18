@@ -1187,6 +1187,7 @@ function parse_attachments($forum_id, &$message, &$attachments, &$update_count, 
 	$attachments = $compiled_attachments;
 	unset($compiled_attachments);
 
+
 	$unset_tpl = array();
 
 	preg_match_all('#<!\-\- ia([0-9]+) \-\->(.*?)<!\-\- ia\1 \-\->#', $message, $matches, PREG_PATTERN_ORDER);
@@ -1199,7 +1200,12 @@ function parse_attachments($forum_id, &$message, &$attachments, &$update_count, 
 		$replace['from'][] = $matches[0][$num];
 		$replace['to'][] = (isset($attachments[$index])) ? $attachments[$index] : sprintf($user->lang['MISSING_INLINE_ATTACHMENT'], $matches[2][array_search($index, $matches[1])]);
 
-		$unset_tpl[] = $index;
+		//$unset_tpl[] = $index;
+		if (isset($attachments[$index])) {
+			// Remember attachment for unsetting later.
+			// Note: Not remembering index here, but the actual attachment.
+			$unset_tpl[] = $attachments[$index];
+		}
 	}
 
 	if (isset($replace['from']))
@@ -1222,9 +1228,22 @@ function parse_attachments($forum_id, &$message, &$attachments, &$update_count, 
 	}
 
 	// Needed to let not display the inlined attachments at the end of the post again
+/*
 	foreach ($unset_tpl as $index)
 	{
 		unset($attachments[$index]);
+	}
+*/
+	// Iterate through attachment lists to check whether an attachment is in unset list.
+	// If so, unset the attachment.
+	foreach ($attachments as $kAttach=>$vAttach) {
+		// Iterate through unset list.
+		foreach ($unset_tpl as $kUnset=>$vUnset) {
+			if ($vUnset == $vAttach) {
+				// Found match! Unset attachment from the attachment list..
+				unset($attachments[$kAttach]);
+			}
+		}
 	}
 }
 

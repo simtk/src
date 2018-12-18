@@ -4,7 +4,7 @@
  *
  * Theme.class.php
  * 
- * Copyright 2005-2016, SimTK Team
+ * Copyright 2005-2017, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -179,6 +179,34 @@ $(window).bind("pageshow", function(event) {
 // consistent load behavior between Chrome, Safari, Firefox, and Opera.
 // See: http://stackoverflow.com/questions/12354865/image-onload-event-and-browser-cache
 $(window).load(function() {
+
+	// Set up href for Contact page.
+	$(".contact_href").click(function(event) {
+		// Invoke event.preventDefault() first.
+		event.preventDefault();
+
+		// Get group_id if hidden DIV class "divGroupId" is present.
+		theGroupId = -1;
+		$(".divGroupId").each(function() {
+			theGroupId = $(this).text();
+		});
+		if (theGroupId != -1) {
+			// Has group_id.
+			location.href="/feedback.php?touser=101&group_id=" + theGroupId;
+		}
+		else {
+			// No group_id from class "divGroupId".
+			// Try extracting from URL.
+			location.href="/feedback.php?touser=101<?php
+				$groupIdFromURL = $this->extractGroupIdFromURL();
+				if ($groupIdFromURL !== false) {
+					// Has group_id in URL.
+					echo "&group_id=" . $groupIdFromURL;
+				}
+			?>";
+		}
+	});
+
 	// Find and scale all img logos elements.
 	$("img").each(function() {
 		var theImage = new Image();
@@ -234,7 +262,16 @@ $(window).load(function() {
 			});
 		};
 	});
+
+	// NOTE: The following is needed for displaying submenu under a menu item.
+	$('.dropdown>.dropdown-menu>.intend>a.dropdown-toggle').on('click', function(e) {
+		$(this).next('ul').toggle();
+		e.stopPropagation();
+		e.preventDefault();
+	});
 });
+
+
 </script>
 		
 <?php
@@ -362,11 +399,18 @@ $(window).load(function() {
             ?>
         </div>
         <div class="project_share">
-            <div class="social_buttons">
-                <a class="popup" href="https://www.facebook.com/sharer/sharer.php?u=<?php echo $group->getPageURL(); ?>"><img src="/themes/simtk/images/demonstration/social-facebook.png" class="social_icon social_facebook"/></a>
-                <a class="popup" href="https://plus.google.com/share?url={<?php echo $group->getPageURL(); ?>}"><img src="/themes/simtk/images/demonstration/social-google.png" class="social_icon social_google"/></a>
-                <a class="popup" title="twitter" name="windowX" href="https://twitter.com/share"><img src="/themes/simtk/images/demonstration/social-twitter.png" /></a>
-                <a class="popup" href="http://www.linkedin.com/shareArticle?mini=true&url=<?php echo $group->getPageURL(); ?>&title=<?php echo $group->getPublicName(); ?>&summary=<?php echo htmlspecialchars($group->getSummary()); ?>" rel="nofollow"><img src="/themes/simtk/images/demonstration/social-linkedin.png" class="social_icon social_linkedin"/></a>
+
+		<table>
+		<tr>
+		<td>Share&nbsp;</td>
+		<td>
+	                <a class="popup" href="https://www.facebook.com/sharer/sharer.php?u=<?php echo $group->getPageURL(); ?>"><img src="/themes/simtk/images/demonstration/social-facebook.png" class="social_icon social_facebook"/></a>
+			<a class="popup" href="https://plus.google.com/share?url={<?php echo $group->getPageURL(); ?>}"><img src="/themes/simtk/images/demonstration/social-google.png" class="social_icon social_google"/></a>
+			<a class="popup" title="twitter" name="windowX" href="https://twitter.com/share"><img src="/themes/simtk/images/demonstration/social-twitter.png" /></a>
+			<a class="popup" href="http://www.linkedin.com/shareArticle?mini=true&url=<?php echo $group->getPageURL(); ?>&title=<?php echo $group->getPublicName(); ?>&summary=<?php echo htmlspecialchars($group->getSummary()); ?>" rel="nofollow"><img src="/themes/simtk/images/demonstration/social-linkedin.png" class="social_icon social_linkedin"/></a>
+		</td>
+		</tr>
+
                 <script type="text/javascript"> 
                  $('.popup').popupWindow({ 
                   centerBrowser:1
@@ -377,85 +421,237 @@ $(window).load(function() {
 			}
                   });
                 </script>
-            </div>
 
-              <?php
-               $result = $following->getFollowing($group_id);
+<?php
+		$result = $following->getFollowing($group_id);
+		if (!$result) {
+			$total_followers = 0;
+			//echo "no results: " . $total_followers;
+		}
+		else {
+			// get public count
+			$public_following_count = $following->getPublicFollowingCount($group_id);
 
-               if (!$result) {
-                  $total_followers = 0;
-                  //echo "no results: " . $total_followers;
-               }
-               else {
-                 // get public count
-                 $public_following_count = $following->getPublicFollowingCount($group_id);
+			// get private count
+			$private_following_count = $following->getPrivateFollowingCount($group_id);
+			$total_followers = $public_following_count + $private_following_count;
+			//echo "results: " . $total_followers;
+		}
 
-                 // get private count
-                 $private_following_count = $following->getPrivateFollowingCount($group_id);
-                 $total_followers = $public_following_count + $private_following_count;
-                 //echo "results: " . $total_followers;
-              }
+		// Get user - included in common/include/pre.php
+		$user_name = "";
+		$showFollow = true;
+		if (session_get_user()) {
+			// User is logged in.
+			$user_name = session_get_user()->getUnixName();
 
-              echo "<div style='clear: both;'></div>";
-              // Get user - included in common/include/pre.php
-              $user_name = "";
-              if (session_get_user()) {
-                $user_name = session_get_user()->getUnixName();
-              }
-              if ($user_name != "" && $following->isFollowing($group_id,$user_name)) {
-			if (forge_check_perm('project_read', $group_id)) {
-				echo "<div class='share_text'>";
-				echo "<a class='btn-blue share_text_button' " .
-					"href='/plugins/following/index.php?group_id=" . 
-					$group_id .
-					"&unfollow=1'>Unfollow</a>&nbsp;";
-				echo "<a class='share_text_link' " .
-					"href='/plugins/following/index.php?group_id=" . 
-					$group_id .
-					"'>" .
-					"($total_followers)" .
-					"</a>";
-				echo "</div>";
+			if (!$group->isPublic()) {
+				// Private project.
+				$perm =& $group->getPermission(session_get_user());
+				if ($perm && is_object($perm) && !$perm->isMember()) {
+					// Not a member. Do not show Follow section.
+					$showFollow = false;
+				}
 			}
-			else {
-				// Do not show link if no read permission.
-				echo "<div class='share_text'>";
-				echo "<a class='btn-blue share_text_button' " .
-					"href='/plugins/following/index.php?group_id=" . 
-					$group_id .
-					"&unfollow=1'>Unfollow</a>&nbsp;";
-				echo "($total_followers)";
-				echo "</div>";
+		}
+		else {
+			// User is not logged in.
+			if (!$group->isPublic()) {
+				// Private project.
+				// Do not show Follow section.
+				$showFollow = false;
 			}
-              }
-              else {
-			if (forge_check_perm('project_read', $group_id)) {
-				echo "<div class='share_text'>" .
-					"<a class='btn-blue share_text_button' " .
-					"href='/plugins/following/follow.php?group_id=" . 
-					$group_id .
-					"'>Follow</a>&nbsp;";
-				echo "<a class='share_text_link' " .
-					"href='/plugins/following/index.php?group_id=" . 
-					$group_id .
-					"'>" .
-					"($total_followers)" .
-					"</a>";
-				echo "</div>";
+		}
+
+		// Show "Follow" section.
+		if ($showFollow === true) {
+
+		echo '<tr>';
+		echo '<td>Follow&nbsp</td>';
+		echo '<td>';
+
+		// Project follow dropdown menu and followers count..
+		echo '<div class="dropdown">';
+		echo '<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Project<span class="followDropdownCaret"></span></a>&nbsp;';
+
+		if ($user_name != "" && $following->isFollowing($group_id, $user_name)) {
+			// User is following.
+
+			echo '<ul class="dropdown-menu" role="menu">';
+
+			// Public following.
+			echo "<li class='intend'>";
+			echo "<a ";
+			if ($following->isFollowing($group_id, $user_name, "public")) {
+				// User is following publicly already.
+				echo "class='followDropdownItemChecked' ";
 			}
-			else {
-				// Do not show link if no read permission.
-				echo "<div class='share_text'>" .
-					"<a class='btn-blue share_text_button' " .
-					"href='/plugins/following/follow.php?group_id=" . 
-					$group_id .
-					"'>Follow</a>&nbsp;";
-				echo "($total_followers)";
-				echo "</div>";
+			echo "href='/plugins/following/index.php?group_id=" . 
+				$group_id .
+				"&followtype=1'>Follow publicly</a>";
+			echo "</li>";
+
+			// Private following.
+			echo "<li class='intend'>";
+			echo "<a ";
+			if ($following->isFollowing($group_id, $user_name, "private")) {
+				// User is following privately already.
+				echo "class='followDropdownItemChecked' ";
 			}
-              }
-              ?>
-            <div style='clear: both;'></div>
+			echo "href='/plugins/following/index.php?group_id=" . 
+				$group_id .
+				"&followtype=2'>Follow privately</a>";
+			echo "</li>";
+
+			// Unfollow.
+			echo "<li class='intend'>";
+			echo "<a " .
+				"href='/plugins/following/index.php?group_id=" . 
+				$group_id .
+				"&unfollow=1'>Unfollow</a>";
+			echo "</li>";
+
+			// "See followers menu item and its submenu of "List/Map".
+			echo "<li class='intend'>";
+			// Link to map of followers.
+			echo "<a " .
+				"href='/plugins/following/followersmap.php?group_id=" . 
+				$group_id .
+				"'>" .
+				"See followers (" . $total_followers . ")" .
+				"</a>";
+			echo "</li>";
+			echo "<div>";
+			echo "<li class='intend'>";
+			// Link to page of followers.
+			echo "<a class='share_text_link' " .
+				"href='/plugins/following/index.php?group_id=" . 
+				$group_id .
+				"'>" .
+				"List" .
+				"</a>";
+			echo "</li>";
+			echo "<li class='intend'>";
+			// Link to map of followers.
+			echo "<a class='share_text_link' " .
+				"href='/plugins/following/followersmap.php?group_id=" . 
+				$group_id .
+				"'>" .
+				"Map" .
+				"</a>";
+			echo "</li>";
+			echo "</div>";
+
+			// More information.
+			echo "<li class='intend'>";
+			echo "<a href='/plugins/following/follow-info.php'>More info</a>";
+			echo "</li>";
+
+			echo '</ul>';
+		}
+		else {
+			// Not logged-in or user is not following.
+
+			echo '<ul class="dropdown-menu" role="menu">';
+
+			// Public following.
+			echo "<li class='intend'>";
+			echo "<a " .
+				"href='/plugins/following/index.php?group_id=" . 
+				$group_id .
+				"&followtype=1'>Follow publicly</a>";
+			echo "</li>";
+
+			// Private following.
+			echo "<li class='intend'>";
+			echo "<a " .
+				"href='/plugins/following/index.php?group_id=" . 
+				$group_id .
+				"&followtype=2'>Follow privately</a>";
+			echo "</li>";
+
+			// Unfollow.
+			echo "<li class='intend'>";
+			echo "<a ";
+			if ($user_name != "") {
+				// User is logged-in, but not following.
+				echo "class='followDropdownItemChecked' ";
+			}
+			echo "href='/plugins/following/index.php?group_id=" . 
+				$group_id .
+				"&unfollow=1'>Unfollow</a>";
+			echo "</li>";
+
+			// "See followers menu item and its submenu of "List/Map".
+			echo "<li class='intend'>";
+			// Link to map of followers.
+			echo "<a " .
+				"href='/plugins/following/followersmap.php?group_id=" . 
+				$group_id .
+				"'>" .
+				"See followers (" . $total_followers . ")" .
+				"</a>";
+			echo "</li>";
+			echo "<div>";
+			echo "<li class='intend'>";
+			// Link to page of followers.
+			echo "<a class='share_text_link' " .
+				"href='/plugins/following/index.php?group_id=" . 
+				$group_id .
+				"'>" .
+				"List" .
+				"</a>";
+			echo "<li class='intend'>";
+			// Link to map of followers.
+			echo "<a class='share_text_link' " .
+				"href='/plugins/following/followersmap.php?group_id=" . 
+				$group_id .
+				"'>" .
+				"Map" .
+				"</a>";
+			echo "</li>";
+			echo "</div>";
+
+			// More information.
+			echo "<li class='intend'>";
+			echo "<a href='/plugins/following/follow-info.php'>More info</a>";
+			echo "</li>";
+
+			echo '</ul>';
+		}
+
+		echo '</div>';
+
+		echo '</td>';
+		echo '</tr>';
+
+		} // $showFollow is true.
+?>
+
+		<tr>
+		<td></td>
+		<td>
+<?php
+		$countSocialURLs = $group->countSocialURLs();
+		// Facebook.
+		$url = $group->getSocialURL("facebook");
+		if ($url !== false && trim($url) != "") {
+			// Found Facebook URL for group.
+			echo '<a target="_blank" class="popup" href="' . $url .
+				'"><img src="/themes/simtk/images/demonstration/social-facebook.png" class="social_icon social_facebook"/></a>&nbsp;';
+		}
+		// Twitter.
+		$url = $group->getSocialURL("twitter");
+		if ($url !== false && trim($url) != "") {
+			// Found Twitter URL for group.
+			echo '<a target="_blank" class="popup" href="' . $url .
+				'"><img src="/themes/simtk/images/demonstration/social-twitter.png" class="social_icon social_twitter"/></a>&nbsp;';
+		}
+?>
+		</td>
+		</tr>
+		</table>
+
 <?php   /*
 		if (forge_check_perm('project_read', $group_id)) {
 			echo "<div class='share_text'>" .
@@ -708,11 +904,12 @@ else {
 	}
 	$cnt = 0;
 	foreach ($arrCommunityNames as $catId=>$fullName) {
-		if ($cnt++ >= 4) {
+		if ($cnt++ >= 5) {
 			break;
 		}
+		$dispCommName = abbrGroupName($fullName);
 		echo '<li class="intend"><a href="/category/communityPage.php?cat=' . $catId . 
-			'&sort=date&page=0&srch=&" tabindex="-1">' . $fullName . '</a></li>';
+			'&sort=date&page=0&srch=&" tabindex="-1">' . $dispCommName . '</a></li>';
 	}
 	echo '<li class="intend"><a href="/communities.php" tabindex="-1">All communities</a></li>';
 	if ($cntCommunityNames > 0) {
@@ -748,6 +945,7 @@ else {
 <?php
 	}
 ?>
+		<li><a class="action" href="/search/search.php?srch=&search=search&type_of_search=soft&sort=date&page=0" style="color:black;padding-left:20px;" >See all projects</a></li>
 		<li><a class="action" href="/register" style="padding-left:20px;" >Create a new project</a></li>
 
 	</ul>
@@ -769,7 +967,7 @@ else {
 		<li class="intend"><a href="/whatIsSimtk.php">What is SimTK?</a></li>
 		<li class="intend"><a href='/features.php'>Features</a></li>
 		<li class="intend"><a href='/faq.php'>FAQ</a></li>
-		<li class="intend"><a href='/sendmessage.php?touser=101'>Contact</a></li>
+		<li class="intend"><a class="contact_href" href='/feedback.php?touser=101'>Contact</a></li>
 	</ul>
 </li>
 
@@ -822,7 +1020,7 @@ echo $u->getFirstName();
             echo '<div class="cont_footer">';
                 echo '<div class="footer_row">';
                     echo '<div class="footer_information">';
-                        echo '<p>SimTK is maintained through Grant R01 GM107340 from the National Institutes of Health (NIH). It was initially developed as part of the Simbios project funded by the NIH as part of the NIH Roadmap for Medical Research, Grant U54 GM072970.';
+                        echo '<p>SimTK is maintained through Grant R01GM124443 01A1 from the National Institutes of Health (NIH). It was initially developed as part of the Simbios project funded by the NIH as part of the NIH Roadmap for Medical Research, Grant U54 GM072970.';
                         echo '</p>';
                     echo '</div>';
                     echo '<div class="footer-right">';
@@ -838,7 +1036,7 @@ echo $u->getFirstName();
                 echo '</div>';
 
 		echo '<div style="font-size:12px;">';
-		echo 'Version 2.0.13. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 5.3.2.';
+		echo 'Version 2.0.29. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 5.3.2.';
                 echo '</div>';
 
             echo '</div>';
@@ -876,7 +1074,9 @@ echo $u->getFirstName();
                 });';
             $res .=
                 '$(document).ready(function() {
-			$(".feedback_href, .feedback_button").click(function() {
+			$(".feedback_href, .feedback_button").click(function(event) {
+				// Invoke event.preventDefault() first.
+				event.preventDefault();
 				// Get group_id if hidden DIV class "divGroupId" is present.
 				theGroupId = -1;
 				$(".divGroupId").each(function() {
@@ -887,10 +1087,15 @@ echo $u->getFirstName();
 					location.href="/feedback.php?group_id=" + theGroupId;
 				}
 				else {
-					// No group_id.
-					location.href="/feedback.php";
+					// No group_id from class "divGroupId".
+					location.href="/feedback.php';
+					$groupIdFromURL = $this->extractGroupIdFromURL();
+					if ($groupIdFromURL !== false) {
+						// Has group_id in URL.
+						$res .=  "?group_id=" . $groupIdFromURL;
+					}
+					$res .= '";
 				}
-				event.preventDefault();
 			});
                 });';
             $res .= "\n</script>\n";
@@ -1098,7 +1303,6 @@ echo $u->getFirstName();
 
 		return $return;
 	}
-
 
 	// FusionForge and forum shares the same group name.
 	// First convert group_id used in FusionForge to "unix_group_name".
@@ -1407,6 +1611,9 @@ echo $u->getFirstName();
 			case "/plugins/reports/usagemap.php":
 				$pageTitle = "Statistics: Geography of Use";
 				break;
+			case "/project/stats/forum_stats.php":
+				$pageTitle = "Statistics: Forum Statistics";
+				break;
 			default:
 				$pageTitle = "Project Statistics";
 				break;
@@ -1509,6 +1716,9 @@ echo $u->getFirstName();
 			case "/account/change_email.php":
 				$pageTitle = "Update Email";
 				break;
+			case "/account/close_acct.php":
+				$pageTitle = "Close Account";
+				break;
 			default:
 				$pageTitle = "My Account";
 				break;
@@ -1556,7 +1766,13 @@ echo $u->getFirstName();
 			}
 			if (stripos($theUri, $theLink) !== false) {
 				// Found it.
-				return $title_arr[$idx];
+				if (isset($title_arr[$idx])) {
+					return $title_arr[$idx];
+				}
+				else {
+					// No subtitle available.
+					return "";
+				}
 			}
 			else if (stripos($theUri, "/index.php?") !== false) {
 				// Try removing "index.php" from "/index.php?" and retry search
@@ -1869,6 +2085,66 @@ echo $u->getFirstName();
 	";
                 
 	return $res;
+	}
+
+
+	// Try extracting group id from URL.
+	function extractGroupIdFromURL() {
+
+		$strGroupId = false;
+	
+		// Get URL string.
+		$theURL = getStringFromServer('REQUEST_URI');
+
+		// Look for group_id as first parameter.
+		$idx1 = stripos($theURL, "?group_id=");
+		if ($idx1 !== false) {
+			// Has group_id.
+			$tmpStr = substr($theURL, $idx1 + 10);
+
+			// Get the group_id.
+			// Find "&" delimiter.
+			$idx2 = stripos($tmpStr, "&");
+			if ($idx2 !== false) {
+				// Has other following parameters.
+				$strGroupId = substr($tmpStr, 0, $idx2);
+			}
+			else {
+				// No other following parameters.
+				$strGroupId = $tmpStr;
+			}
+		}
+		else {
+			// Look for group_id among parameters in the URL.
+			$idx1 = stripos($theURL, "&group_id=");
+			if ($idx1 !== false) {
+				// Has group_id.
+				$tmpStr = substr($theURL, $idx1 + 10);
+
+				// Get the group_id.
+				// Find "&" delimiter.
+				$idx2 = stripos($tmpStr, "&");
+				if ($idx2 !== false) {
+					// Has other following parameters.
+					$strGroupId = substr($tmpStr, 0, $idx2);
+				}
+				else {
+					// No other following parameters.
+					$strGroupId = $tmpStr;
+				}
+			}
+		}
+		// Validate the group_id by looking up group object.
+		if ($strGroupId !== false) {
+			$group = group_get_object($strGroupId);
+			if ($group || is_object($group)) {
+				// Valid group object.
+				return $strGroupId;
+			}
+		}
+
+		// No valid group_id.
+		return false;
 	}
 }
 

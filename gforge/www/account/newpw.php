@@ -6,7 +6,7 @@
  * 
  * File to get a new password for user.
  *
- * Copyright 2005-2016, SimTK Team
+ * Copyright 2005-2018, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -57,8 +57,11 @@ if ($loginname) {
 	}
 
 	if ($u->getEmail() == "") {
+/*
 		exit_error($Language->getText('general','error'),
 			$Language->getText('account_change_email','invalid_email'));
+*/
+		exit_error('Invalid user account');
 	}
 
 	echo "<h2>You are required to change your password</h2>";

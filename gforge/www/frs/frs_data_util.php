@@ -6,7 +6,7 @@
  * 
  * Process file downloads database data.
  *
- * Copyright 2005-2016, SimTK Team
+ * Copyright 2005-2018, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -32,6 +32,17 @@
  * <http://www.gnu.org/licenses/>.
  */ 
  
+// Get the number of files in all releases.
+function getNumOfFilesInReleases($theReleases) {
+	$numFiles = 0;
+	foreach ($theReleases as $idxRel=>$releaseInfo) {
+		$theFiles = $releaseInfo["files"];
+		$numFiles += count($theFiles);
+	}
+
+	return $numFiles;
+}
+
 // Get the number of files in the latest release.
 function getNumOfFilesInLatestRelease($theReleases) {
 	// Find the number of files in the latest release.

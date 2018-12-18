@@ -57,11 +57,37 @@ if (!$ah || !is_object($ah)) {
 	} elseif ($afh->isError()) {
 		exit_error($afh->getErrorMessage(),'tracker');
 	} else {
-		Header('Content-disposition: filename="'.str_replace('"', '', $afh->getName()).'"');
-		/* SECURITY: do not serve as $afh->getType() but application/octet-stream */
+		if (!file_exists($afh->getFile())) {
+			// The file does not exist. Try to find the file contents from database.
+			$afh->loadFileFromDB();
+
+			if (!file_exists($afh->getFile())) {
+				// Cannot load file contents.
+				exit_error("Cannot load file",'tracker');
+			}
+		}
+
+		// File exists. Prepare to send the contents.
+
+		header('Content-disposition: filename="'.str_replace('"', '', $afh->getName()).'"');
 		header('X-Content-Type-Options: nosniff');
-		header('Content-Type: application/octet-stream');
+		$theFileType = $afh->getType();
+		if ($theFileType != "image/bmp" &&
+			$theFileType != "image/jpeg" &&
+			$theFileType != "image/png" &&
+			$theFileType != "image/gif") {
+			header('Content-Type: application/octet-stream');
+		}
+		else {
+			header("Content-type: " . $theFileType);
+		}
+
 		header("Content-length: ".$afh->getSize());
+
+		// Need to invoke ob_clean() and flush() first.
+		// Otherwise, file content is incorrect.
+		ob_clean();
+		flush();
 
 		readfile_chunked($afh->getFile());
 	}

@@ -6,7 +6,7 @@
  * 
  * Utility file to handle project display.
  *
- * Copyright 2005-2016, SimTK Team
+ * Copyright 2005-2018, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -35,7 +35,7 @@
 // This is the max number of characters per line tested 
 // empirically on various platforms and browsers that
 // would not cause text to overflow to next line.
-define('NUM_CHARS_IN_TITLE_TO_SHOW_PER_LINE', 17);
+define('NUM_CHARS_IN_TITLE_TO_SHOW_PER_LINE', 19);
 
 define('NUM_PROJECTS_TO_SHOW', 8);
 #define('NUM_PROJECTS_TO_SHOW', 9999);
@@ -64,7 +64,7 @@ function displayStatsBlock($groupObj) {
 	// Last project update time.
 	// Use shorter format.
 	$lastUpdated = $groupObj->getLastUpdate($group_id);
-	$lastUpdated = date('M d, Y', strtotime($lastUpdated));
+	//$lastUpdated = date('M d, Y', strtotime($lastUpdated));
 	// Total downloads.
 	$totalDownloads = number_format($groupObj->getTotalDownloads());
 	// Forum posts.
@@ -73,13 +73,43 @@ function displayStatsBlock($groupObj) {
 	// First block.
 	echo '<div class="statbox">';
 
-	// Total downloads.
-	echo '<a style="color:#5e96e1;font-size:24px;font-weight:400;" href="/plugins/reports/index.php?type=group&group_id=' . $group_id . '&reports=reports">' . $totalDownloads . '</a>';
-	echo '<p style="font-size:13px;line-height:17px;color:#a7a7a7;margin-top:-5px">downloads</p>';
+	// Check whether project uses downloads.
+	if ($groupObj->usesFRS()) {
+		// Total downloads.
+		echo '<a style="color:#5e96e1;font-size:24px;font-weight:400;" href="/plugins/reports/index.php?type=group&group_id=' . $group_id . '&reports=reports">' . $totalDownloads . '</a>';
+		echo '<p style="font-size:13px;line-height:17px;color:#a7a7a7;margin-top:-5px">downloads</p>';
+	}
 	
-	// Forum posts.
-	echo '<a style="color:#5e96e1;font-size:24px;font-weight:400;" href="/plugins/phpBB/indexPhpbb.php?group_id=' . $group_id . '&pluginname=phpBB">' . $forumPosts . '</a>';
-	echo '<p style="font-size:13px;line-height:17px;color:#a7a7a7;margin-top:-5px;">forum posts</p>';
+	if ($groupObj->usesPlugin("phpBB")) {
+		// Uses forums.
+		// Forum posts.
+		echo '<a style="color:#5e96e1;font-size:24px;font-weight:400;" href="/plugins/phpBB/indexPhpbb.php?group_id=' . $group_id . '&pluginname=phpBB">' . $forumPosts . '</a>';
+		echo '<p style="font-size:13px;line-height:17px;color:#a7a7a7;margin-top:-5px;">forum posts</p>';
+	}
+
+	$following = new Following($groupObj);
+	if (!$following || !is_object($following)) {
+	}
+	elseif ($following->isError()) {
+	}
+	else {
+		$result = $following->getFollowing($group_id);
+		if (!$result) {
+			$total_followers = 0;
+		}
+		else {
+			// get public count
+			$public_following_count = $following->getPublicFollowingCount($group_id);
+
+			// get private count
+			$private_following_count = $following->getPrivateFollowingCount($group_id);
+			$total_followers = $public_following_count + $private_following_count;
+		}
+		if ($total_followers > 0) {
+			echo '<a style="color:#5e96e1;font-size:24px;font-weight:400;" href="/plugins/following/index.php?group_id=' . $group_id . '">' . $total_followers . '</a>';
+			echo '<p style="font-size:13px;line-height:17px;color:#a7a7a7;margin-top:-5px;">followers</p>';
+		}
+	}
 
 	// Project last updated.
 	if ($lastUpdated) {
@@ -385,8 +415,89 @@ function displayRelatedProjects($related_projects, $max_related=6) {
 
 
 // Generate a 3-line version of the group name for display,
-// truncating if the name is too long, appended with " ...".
+// truncating if the name is too long, appended with "...".
 function genDisplayGroupName($inGroupName) {
+
+	$resStr = "";
+
+	// Add "<br/>\n" to separate each line in the group name.
+	$splitStr = wordWrap($inGroupName, NUM_CHARS_IN_TITLE_TO_SHOW_PER_LINE, "<br/>\n");
+
+	// Split into array of strings for each line.
+	// Keep only up to 3 lines.
+	$arrStr = explode("<br/>\n", $splitStr);
+	$numLines = count($arrStr);
+	$isTruncated = false;
+	$lastLine = "";
+	for ($cnt = 0; $cnt < min($numLines, 3); $cnt++) {
+		$theLine = $arrStr[$cnt];
+
+		// Check length of this line.
+		if (strlen($theLine) >= NUM_CHARS_IN_TITLE_TO_SHOW_PER_LINE) {
+			// Has a long line.
+
+			if ($cnt < 2) {
+				// Merge with next line. 
+				// Do not insert "<br/>\n" to end of this line.
+				$resStr .= $theLine . " ";
+			}
+			else {
+				// Do not include this third line because it is long
+				// and may not fit.
+				$isTruncated = true;
+				// Keep this last line for further processing later.
+				$lastLine = $theLine;
+			}
+		}
+		else {
+			// Insert "<br/>\n" to end of this line.
+			$resStr .= $theLine . "<br/>\n";
+		}
+	}
+
+	// Check if there is string in the next position of the array.
+	if (isset($arrStr[$cnt]) || $isTruncated) {
+		// There is more in the group name string.
+		// Add "..." to the display.
+
+		// NOTE: If there is a long string on line 3, this last string
+		// will not have "<br/>\n" appended at the end; hence, the display
+		// display will stop at the end of the second line.
+		// This third line should not be shown because there is not enough
+		// room to hold the long string.
+
+		// Find last "<br/>\n".
+		$idx = strrpos($resStr, "<br/>\n");
+		if ($idx !== FALSE) {
+			$resStr = substr($resStr, 0, $idx);
+		}
+
+		if ($isTruncated) {
+			// There is a last line which has been truncated and 
+			// it has not yet been added to the third line.
+			// If there are word breaks in this last line, try to 
+			// add part of the line by looking at word breaks.
+			// Add 1 character to account of " ".
+			$remainStr = wordWrap($lastLine, NUM_CHARS_IN_TITLE_TO_SHOW_PER_LINE, "<br/>\n", false);
+
+			$idx = strrpos($remainStr, "<br/>\n");
+			if ($idx !== FALSE) {
+				$endStr = substr($remainStr, 0, $idx);
+				$resStr .= " " . $endStr;
+			}
+			else {
+				// <= NUM_CHARS_IN_TITLE_TO_SHOW_PER_LINE.
+				$resStr .= " " . $lastLine;
+			}
+		}
+
+		$resStr .= "...<br/>\n";
+	}
+
+	return $resStr;
+
+/*
+	// OLD
 
 	// Generate Line 1.
 	$line1 = substr($inGroupName, 0, NUM_CHARS_IN_TITLE_TO_SHOW_PER_LINE);
@@ -440,6 +551,8 @@ function genDisplayGroupName($inGroupName) {
 
 	// Title is longer than 3 lines. Add "..."
 	return $line1 . $line2 . $line3 . "...";
+*/
+
 }
 
 

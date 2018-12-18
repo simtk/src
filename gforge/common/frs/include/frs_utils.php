@@ -8,7 +8,7 @@
  * Copyright 2011, Franck Villaume - Capgemini
  * Copyright 2013, Franck Villaume - TrivialDev
  * http://fusionforge.org/
- * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -241,6 +241,10 @@ function frs_show_mailinglist_popup ($group_id, $name='group_list_id', $checked_
 		"WHERE group_id=$group_id AND list_name!='$unix_group_name" . "-commits' " .
 		"ORDER BY list_name";
 	$resMailingLists = db_query_params($strQuery, array());
+	if (db_numrows($resMailingLists) == 0) {
+		// No valid mailing list found.
+		return false;
+	}
 
 	return html_build_select_box ($resMailingLists,$name,$checked_val,false);
 }
@@ -257,6 +261,25 @@ function frs_add_file_from_form($release, $type_id, $processor_id, $release_date
 
 	$filechecks = false ;
 
+	// Check the filesize here against project-based filesize limit and prevent from
+	// proceeding if limit is exceeded.
+	//
+	// NOTE: The PHP INI parameters post_max_size and upload_max_filesize can be
+	// specified in .htaccess but they cannot be changed on the fly.
+	// Hence, instead, let .htaccess contain a maximum value, and let the frs_quota
+	// specify a configurable filesize limit per project. If value is found in frs_quota,
+	// that value is used; otherwise, use a lower default value.
+	// $userfile['size'] contains the filesize to be uploaded.
+	$theGroupId = $release->getFRSPackage()->getGroup()->getID();
+	$fileSizeLimit = getUploadFileSizeLimit($theGroupId);
+	if ($userfile['size'] > $fileSizeLimit) {
+		return 'The uploaded file size (' . 
+			human_readable_bytes($userfile['size']) . 
+			') exceeds the maximum file size (' . 
+			human_readable_bytes($fileSizeLimit) . 
+			'). Contact the site admin to upload this big file, or use an alternate upload method (if available).';
+	}
+
 	if ($userfile && is_uploaded_file($userfile['tmp_name']) && util_is_valid_filename($userfile['name'])) {
 		$infile = $userfile['tmp_name'] ;
 		$fname = $userfile['name'] ;
@@ -266,7 +289,11 @@ function frs_add_file_from_form($release, $type_id, $processor_id, $release_date
 		switch ($userfile['error']) {
 			case UPLOAD_ERR_INI_SIZE:
 			case UPLOAD_ERR_FORM_SIZE:
-				return _('The uploaded file exceeds the maximum file size. Contact to the site admin to upload this big file, or use an alternate upload method (if available).') ;
+				return 'The uploaded file size (' . 
+					human_readable_bytes($userfile['size']) . 
+					') exceeds the maximum file size (' . 
+					human_readable_bytes($fileSizeLimit) . 
+					'). Contact the site admin to upload this big file, or use an alternate upload method (if available).';
 			break;
 			case UPLOAD_ERR_PARTIAL:
 				return _('The uploaded file was only partially uploaded.') ;
@@ -561,6 +588,46 @@ function frs_download_files_pulldown($cur_group,$group_id) {
 
    }
 
+}
+
+// Retrieve upload filesize limit of given project.
+function getUploadFileSizeLimit($theGroupId) {
+	$fileSizeLimit = false;
+
+	// Get 'default_upload_max_filesize' from defaults.ini.
+	$defaultUploadMaxFilesize = forge_get_config('default_upload_max_filesize');
+	if ($defaultUploadMaxFilesize === false || trim($defaultUploadMaxFilesize) == "") {
+		// Parameter not found. Set to 4M bytes.
+		$defaultUploadMaxFilesize = 4 * 1024 * 1024;
+	}
+
+	$strQuery = "SELECT post_max_size FROM frs_quota " .
+		"WHERE group_id=" . $theGroupId;
+	$resFilesizeLimit = db_query_params($strQuery, array());
+	$numrows = db_numrows($resFilesizeLimit);
+	if ($numrows > 0) {
+		while ($row = db_fetch_array($resFilesizeLimit)) {
+			$fileSizeLimit = $row['post_max_size'];
+		}
+	}
+	if ($fileSizeLimit !== false && $fileSizeLimit != -1) {
+		// Found upload filesize for project.
+		$fileSizeLimit = trim($fileSizeLimit);
+		$last = strtolower($fileSizeLimit[strlen($fileSizeLimit) - 1]);
+		switch ($last) {
+		case 'g':
+			$fileSizeLimit *= 1024;
+		case 'm':
+			$fileSizeLimit *= 1024;
+		case 'k':
+			$fileSizeLimit *= 1024;
+		}
+		return $fileSizeLimit;
+	}
+	else {
+		// Use default upload max filesize.
+		return $defaultUploadMaxFilesize;
+	}
 }
 
 

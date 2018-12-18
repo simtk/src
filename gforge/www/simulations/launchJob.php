@@ -39,7 +39,7 @@ require_once $gfcommon.'include/pre.php';
 require_once('util_simulations.php');
 
 // Get group id.
-$group_id = $_POST["GroupId"];
+$group_id = getIntFromPost("GroupId");
 $groupObj = group_get_object($group_id);
 if (!$groupObj) {
 	exit_no_group();
@@ -73,6 +73,7 @@ $installDirName = $_POST["InstallDirName"];
 $softwareName = $_POST["SoftwareName"];
 $softwareVersion = $_POST["SoftwareVersion"];
 $cfgName = $_POST["ConfigFileName"];
+$execCheck = $_POST["ExecCheck"];
 $maxRunTime = $_POST["MaxRunTime"];
 $modifyModel = $_POST["ModifyModel"];
 
@@ -98,6 +99,7 @@ $resJobRequest = requestSimulationJob(
 	$softwareVersion,
 	$cfgName,
 	$cfgText,
+	$execCheck,
 	$maxRunTime,
 	$modifyModel);
 

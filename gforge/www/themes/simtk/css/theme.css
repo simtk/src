@@ -1556,8 +1556,7 @@ pre {
   margin: 0 0 12px;
   font-size: 16px;
   line-height: 1.42857143;
-  word-break: break-all;
-  word-wrap: break-word;
+  overflow-wrap: break-word;
   color: #333333;
   background-color: #f5f5f5;
   border: 1px solid #cccccc;
@@ -3331,6 +3330,9 @@ tbody.collapse.in {
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
   background-clip: padding-box;
 }
+tr>td>.dropdown>.dropdown-menu {
+  min-width: 210px;
+}
 .dropdown-menu.pull-right {
   right: 0;
   left: auto;
@@ -3972,7 +3974,8 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
 .navbar {
   position: relative;
   min-height: 50px;
-  margin-bottom: 24px;
+  /* 0px bottom margin; otherwise, Internet Exlorer displays with too much bottom gap */
+  margin-bottom: 0px;
   border: 1px solid transparent;
 }
 @media (min-width: 768px) {
@@ -7382,20 +7385,21 @@ and open the template in the editor.
 }
 @media (max-width: 769px) {
   #searchBox {
-    width: 480px;;
+    width: 480px;
   }
+  /* Use block display to work properly in Internet Explorer */
   #searchBox .search_box_select {
     width: 250px;
-    display: inline-block;
+    display: block;
     vertical-align: top;
     padding-top: 5px;
   }
   #searchBox .search_box_select label {
     font-size: 12px;
   }
+  /* Use this setting to display input text field properly in Internet Explorer */ 
   #searchBox .search_box_inputs {
-    width: 140px;
-    display: inline-block;
+    width: 180px;
   }
 }
 @media (min-width: 770px) {
@@ -7440,15 +7444,16 @@ and open the template in the editor.
   font-family: "Open Sans";
   font-size: 20px;
 }
+/* Internet Explorer 10+ */
 #searchBox > .search_box_inputs input[type=text]:-ms-input-placeholder {
-  /* Internet Explorer 10+ */
   color: #e3e3e3;
   font-family: "Open Sans";
   font-size: 20px;
 }
 @media (max-width: 769px) {
+  /* Reduce gap between textbox and radio buttons */
   #searchBox > .search_box_inputs input[type=text] {
-    margin-bottom: 0px;
+    margin-bottom: -1px;
   }
 }
 @media (min-width: 770px) {
@@ -7480,9 +7485,19 @@ and open the template in the editor.
     width: 280px;
   }
 }
-@media (max-width: 870px) {
+@media (min-width: 1px) and (max-width: 870px) {
   .the_search_box {
     width: 180px;
+  }
+}
+@media (max-width: 0px) {
+  /* Need to set width; Internet Explorer is sometimes intialized with max-width of 0px */
+  .the_search_box {
+    width: 280px;
+  }
+  /* Use this width to display input text field properly in Internet Explorer */ 
+  #searchBox .search_box_inputs {
+    width: 280px;
   }
 }
 /*
@@ -7904,6 +7919,9 @@ and open the template in the editor.
 }
 .dropdown-menu li.intend > a {
   padding-left: 33px;
+}
+.dropdown-menu div > li.intend > a {
+  padding-left: 53px;
 }
 .dropdown-menu > li > a.action:hover,
 .dropdown-menu > li > a.action:focus,
@@ -8499,6 +8517,15 @@ Project layout at some othe styles
   text-align: center;
   display: block;
 }
+
+.project_share table {
+  margin: auto;
+}
+.project_share table tr td {
+  padding-bottom: 2px;
+  text-align: left;
+}
+
 .project_share .social_buttons {
   vertical-align: top;
   padding-bottom: 5px;
@@ -8521,7 +8548,7 @@ Project layout at some othe styles
   .project_share {
     padding-top: 30px;
     text-align: center;
-    width: 155px;
+    width: 220px;
     padding-left: 0px;
     padding-right: 15px;
     display: table-cell;
@@ -8798,9 +8825,7 @@ a.share_text_link {
   width: 190px !important;
   margin-top: 10px !important;
   color: #89a9da;
-  -ms-word-break: break-all !important;
-  word-break: break-all !important;
-  word-break: break-word !important;
+  overflow-wrap: break-word !important;
   -webkit-hyphens: auto !important;
   -moz-hyphens: auto !important;
   -ms-hyphens: auto !important;
@@ -8844,9 +8869,7 @@ a.share_text_link {
   margin-left: -15px;
   margin-right: -15px;
   /*
-  -ms-word-break: break-all !important;
-  word-break: break-all !important;
-  word-break: break-word !important;
+  overflow-wrap: break-word !important;
   -webkit-hyphens: auto !important;
   -moz-hyphens: auto !important;
   -ms-hyphens: auto !important;
@@ -9519,7 +9542,7 @@ Feedback button
 .feedback_button {
   display: none;
 }
-@media (min-width: 769px) {
+@media (min-width: 1080px) {
   .feedback_button {
     position: fixed;
     left: 0px;
@@ -10550,9 +10573,7 @@ h2#mapheader {
 
 /*
 .three_cols {
-  -ms-word-break: break-all !important;
-  word-break: break-all !important;
-  word-break: break-word !important;
+  overflow-wrap: break-word !important;
   -webkit-hyphens: auto !important;
   -moz-hyphens: auto !important;
   -ms-hyphens: auto !important;
@@ -10603,5 +10624,19 @@ h2#mapheader {
     padding: 2px 10px;
     font-size: 18px;
   }
+}
+
+.followDropdownItemChecked::before {
+	position: absolute;
+	left: .4rem;
+	content: '✓';
+	font-weight: 600;
+}
+.followDropdownCaret {
+	background: url('/themes/simtk/images/header/icons.png') no-repeat right -25px;
+	width: 22px;
+	height: 15px;
+	margin-left: 5px;
+	display: inline-block;
 }
 

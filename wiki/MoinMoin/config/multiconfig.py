@@ -887,6 +887,11 @@ r"""
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <script type="text/javascript" src="/js/jquery-1.11.2.min.js"></script>
+
+<!-- Set up CSS for Wiki. Internet Explorer needs this CSS to work properly. -->
+<!-- Otherwise, the header may not show up in Internet Explorer. -->
+<link rel='stylesheet' href='/themes/simtk/css/wiki.css' type='text/css' />
+
 <script>
 
 // Insert header and footer.
@@ -1000,6 +1005,7 @@ myReq.done(function(strPageData) {
 	// sometimes, the left and width dimensions are not available, but
 	// they are consistently available when the resize handler is invoked.
 	$(document).ready(function() {
+
 		// Invoke resize handler.
 		$("body").resize();
 		// Reduce padding below Wiki title.
@@ -1008,6 +1014,28 @@ myReq.done(function(strPageData) {
 		$("#logo").remove();
 		$("#pagelocation").remove();
 		$("#pagetrail").remove();
+
+		window.setTimeout(myresize, 300);
+
+		// Set up href for Contact page.
+		$(".contact_href").click(function(event) {
+			// Invoke event.preventDefault() first.
+			event.preventDefault();
+
+			// Get group_id if hidden DIV class "divGroupId" is present.
+			theGroupId = -1;
+			$(".divGroupId").each(function() {
+				theGroupId = $(this).text();
+			});
+			if (theGroupId != -1) {
+				// Has group_id.
+				location.href="/feedback.php?touser=101&group_id=" + theGroupId;
+			}
+			else {
+				// No group_id from class "divGroupId".
+				location.href="/feedback.php?touser=101";
+			}
+		});
 
 		// Scale image logos.
 		$("img").each(function() {
@@ -1024,8 +1052,8 @@ myReq.done(function(strPageData) {
 				// Image loaded.
 
 				// Get element's dimenions.
-				var elemWidth = myThis.width();
-				var elemHeight = myThis.height();
+				var elemWidth = 86;
+				var elemHeight = 86;
 
 				// Get image file's dimensions.
 				var theNaturalWidth = theImage.width;
@@ -1059,8 +1087,16 @@ myReq.done(function(strPageData) {
 		});
 	});
 
+	function myresize() {
+		$(window).resize();
+	}
+
 	// NOTE: left and width information are available only after 
 	// $(window).resize() is invoked!!!
+	// NOTE: Even after resize() has been invoked, in Internet Explorer, 
+	// @media max-width may still have 0px value after initial loading 
+	// of the Wiki page. However, user's subsequent manual resize actions of 
+	// Internet Explorer will give it the proper value.
 	$(window).resize(function() {
 
 		// For responsive change between hamburgerContainer and project_menu_row

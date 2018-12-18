@@ -5,7 +5,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2012-2014, Franck Villaume - TrivialDev
- * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -34,47 +34,95 @@ require_once $gfcommon.'frs/FRSFile.class.php';
 require_once $gfcommon.'frs/include/frs_utils.php';
 require_once $gfwww.'admin/admin_utils.php';
 
-$result_pending = db_query_params('SELECT group_name,filename,doi_identifier,file_user_id,file_id FROM frs_file,frs_release,frs_package,groups where frs_file.release_id = frs_release.release_id and frs_release.package_id = frs_package.package_id and groups.group_id = frs_package.group_id and frs_file.doi = 1 and doi_identifier is null',array());
-$result_assigned = db_query_params("SELECT group_name,filename,doi_identifier FROM frs_file,frs_release,frs_package,groups where frs_file.release_id = frs_release.release_id and frs_release.package_id = frs_package.package_id and groups.group_id = frs_package.group_id and frs_file.doi = 1 and doi_identifier <> '' ",array());
-
+$result_pending = db_query_params("SELECT group_name, filename, doi_identifier, file_user_id, file_id " .
+	"FROM frs_file ff " .
+	"JOIN frs_release fr " .
+	"ON ff.release_id = fr.release_id " .
+	"JOIN frs_package fp " .
+	"ON fr.package_id = fp.package_id " .
+	"JOIN groups g " .
+	"ON g.group_id = fp.group_id " .
+	"WHERE ff.doi = 1 " .
+	"AND doi_identifier is null",
+	array());
+$result_assigned = db_query_params("SELECT group_name, filename, doi_identifier " .
+	"FROM frs_file ff " .
+	"JOIN frs_release fr " .
+	"ON ff.release_id = fr.release_id " .
+	"JOIN frs_package fp " .
+	"ON fr.package_id = fp.package_id " .
+	"JOIN groups g " .
+	"ON g.group_id = fp.group_id " .
+	"WHERE ff.doi = 1 ".
+	"AND doi_identifier <> '' ",
+	array());
 
 // Update file in release.
 if (getStringFromRequest('submit')) {
-	
 	$file_id = getStringFromRequest('file_id');
-    $doi_identifier = getStringFromRequest('doi_identifier');
+	$doi_identifier = getStringFromRequest('doi_identifier');
 	$file_user_id = getStringFromRequest('file_user_id');
 	$filename = getStringFromRequest('filename');
 	$group_name = getStringFromRequest('group_name');
 	
-	// get user
-    //$user = session_get_user(); // get the session user
-    //$user_id = $user->getID();
+	// Get user
+	//$user = session_get_user(); // get the session user
+	//$user_id = $user->getID();
 	if ($file_user_id) {
-	   $user = user_get_object($file_user_id);
-	   $user_email = $user->getEmail();
+		$user = user_get_object($file_user_id);
+		$user_email = $user->getEmail();
 	}
 	
-	$result = db_query_params("UPDATE frs_file SET doi_identifier=$1 WHERE file_id=$2", array($doi_identifier, $file_id));
-
+	$result = db_query_params("UPDATE frs_file " .
+		"SET doi_identifier=$1 " .
+		"WHERE file_id=$2", 
+		array($doi_identifier, $file_id));
 	if (!$result || db_affected_rows($result) < 1) {
 		$feedback .= sprintf(_('Error On DOI Update: %s'), db_error());
-	} else {
-		$feedback .= _('DOI Updated');
+	}
+	else {
+		$feedback .= "DOI Updated";
 		
 		if ($file_user_id) {
-		   $message = "The DOI has been assigned for the following:\n\n" . "Project: " . $group_name . "\nFilename: " . $filename . "\n" . "DOI Identifier: " . $doi_identifier;
-		   $message .= "\n\nThe information for the DOI citation were based upon the information in your project.  Go to http://ezid.cdlib.org/id/doi:" . $doi_identifier . "\nto see how your resource is listed.  If you would like to add ORCIDs or funding institutions, or if any of the information needs to be updated, please email us at webmaster@simtk.org.";
-		   util_send_message($user_email, sprintf(_('DOI Assigned')), $message);
+			$message = "The DOI has been assigned for the following:\n\n" . 
+				"Project: " . $group_name . 
+				"\nFilename: " . $filename . 
+				"\nDOI Identifier: " . $doi_identifier;
+			$message .= "\n\nThe information for the DOI citation were based upon the information in your project.  Go to https://doi.org/" . 
+				$doi_identifier . 
+				"\nto see your resource." .
+				"\n\nPlease also verify the accuracy of your resource’s description at https://search.datacite.org/works?query=" . 
+				$doi_identifier . 
+				" (or go to https://search.datacite.org and enter the DOI in the search box).  If you would like to add ORCIDs or funding institutions, or if any of the information needs to be updated, please email us at webmaster@simtk.org.";
+
+			util_send_message($user_email, sprintf(_('DOI Assigned')), $message);
 		}
 		
 		// refresh query results
-		$result_pending = db_query_params('SELECT group_name,filename,doi_identifier,file_user_id,file_id FROM frs_file,frs_release,frs_package,groups where frs_file.release_id = frs_release.release_id and frs_release.package_id = frs_package.package_id and groups.group_id = frs_package.group_id and frs_file.doi = 1 and doi_identifier is null',array());
-        $result_assigned = db_query_params("SELECT group_name,filename,doi_identifier FROM frs_file,frs_release,frs_package,groups where frs_file.release_id = frs_release.release_id and frs_release.package_id = frs_package.package_id and groups.group_id = frs_package.group_id and frs_file.doi = 1 and doi_identifier <> '' ",array());
-
+		$result_pending = db_query_params("SELECT group_name, filename, " .
+			"doi_identifier, file_user_id, file_id " .
+			"FROM frs_file ff " .
+			"JOIN frs_release fr " .
+			"ON ff.release_id = fr.release_id " .
+			"JOIN frs_package fp " .
+			"ON fr.package_id = fp.package_id " .
+			"JOIN groups g " .
+			"ON g.group_id = fp.group_id " .
+			"WHERE ff.doi = 1 " .
+			"AND doi_identifier is null",
+			array());
+		$result_assigned = db_query_params("SELECT group_name, filename, doi_identifier " .
+			"FROM frs_file ff " .
+			"JOIN frs_release fr " .
+			"ON ff.release_id = fr.release_id " .
+			"JOIN frs_package fp " .
+			"ON fr.package_id = fp.package_id " .
+			"JOIN groups g " .
+			"ON g.group_id = fp.group_id " .
+			"WHERE ff.doi = 1 ".
+			"AND doi_identifier <> '' ",
+			array());
 	}
-			
-	
 }
 
 site_admin_header(array('title'=>_('Site Admin')));
@@ -105,8 +153,8 @@ site_admin_header(array('title'=>_('Site Admin')));
 			// Enable inputs for File upload.
 			$('.upFile').prop("disabled", true);
 			$('#doi').attr('checked', false);
-		    $('#doi_info').hide();
-		    $('#doi').prop("disabled", true);
+			$('#doi_info').hide();
+			$('#doi').prop("disabled", true);
 			$('[name="group_list_id"]').prop("disabled", true);
 		});
 
@@ -127,20 +175,20 @@ site_admin_header(array('title'=>_('Site Admin')));
 			$('#use_mail_list').prop('disabled', true);
 			$('[name="group_list_id"]').prop("disabled", true);
 		}
-		$('#doi').change(function(){
-            if(this.checked)
-               //$('#doi_info').fadeIn('slow');
-			   $('#doi_info').show();
-		    else
-		       $('#doi_info').hide();
-        });
-		$("#submit").click(function(){
-	       if ($('#doi').is(":checked")) {
-              if (!confirm("Please confirm that you would like the DOI issued.")){
-                event.preventDefault();
-              }
-	       }
-        });
+		$('#doi').change(function() {
+			if (this.checked)
+				//$('#doi_info').fadeIn('slow');
+				$('#doi_info').show();
+			else
+				$('#doi_info').hide();
+		});
+		$("#submit").click(function() {
+			if ($('#doi').is(":checked")) {
+				if (!confirm("Please confirm that you would like the DOI issued.")) {
+					event.preventDefault();
+				}
+			}
+		});
 	});
 
 </script>
@@ -154,20 +202,41 @@ td {
 
 
 <h2>Admin DOI</h2>
+<h4>Note: Enter the identifier only in DOI Identifier, not the full URL.</h4>
 
 <h3>DOI Pending</h3>
 
 <table class="table">
 
-<tr><th>Project Name</th><th>Display Name</th><th>DOI Identifier</th><th></th></tr>
+<tr><th>Project Name</th><th>Submitter</th><th>Display Name</th><th>DOI Identifier</th><th></th></tr>
 	
-	<?php
+<?php
 	
-	while ($row = db_fetch_array($result_pending)) {	
-	   echo "<form action='downloads-doi.php' method='post'><input type='hidden' name='file_id' value='".$row['file_id']."'><input type='hidden' name='file_user_id' value='".$row['file_user_id']."'><input type='hidden' name='filename' value='".$row['filename']."'><input type='hidden' name='group_name' value='".$row['group_name']."'><tr><td>". $row['group_name'] . "</td><td>" . $row['filename'] . "</td><td><input type='text' name='doi_identifier'></td><td><input type='submit' name='submit' id='submit' value='Update' class='btn-cta' /></td></tr></form>";
+while ($row = db_fetch_array($result_pending)) {
+	echo "<form action='downloads-doi.php' method='post'>" .
+		"<input type='hidden' name='file_id' value='" . $row['file_id'] . "'>" .
+		"<input type='hidden' name='file_user_id' value='" . $row['file_user_id'] . "'>" .
+		"<input type='hidden' name='filename' value='" . $row['filename'] . "'>" .
+		"<input type='hidden' name='group_name' value='" . $row['group_name'] . "'>" .
+		"<tr>" .
+		"<td>". $row['group_name'] . "</td>";
+	echo "<td>";
+	if ($row['file_user_id']) {
+		$user = user_get_object($row['file_user_id']);
+		if ($user) {
+			$real_name = $user->getRealName();
+			echo $real_name;
+		}
 	}
+	echo "</td>";
+	echo "<td>" . $row['filename'] . "</td>" .
+		"<td><input type='text' name='doi_identifier'></td>" .
+		"<td><input type='submit' name='submit' id='submit' value='Update' class='btn-cta' /></td>" .
+		"</tr>" .
+		"</form>";
+}
 	
-	?>
+?>
 
 </table>
 
@@ -175,14 +244,18 @@ td {
 <table class="table">
 <tr><th>Project Name</th><th>Display Name</th><th>DOI Identifier</th></tr>
 <tr>
-	<?php
+
+<?php
 	
-	while ($row = db_fetch_array($result_assigned)) {
+while ($row = db_fetch_array($result_assigned)) {
+	echo "<tr>" .
+		"<td>" . $row['group_name'] . "</td>" .
+		"<td>" . $row['filename'] . "</td>" .
+		"<td>" . $row['doi_identifier'] . "</td>" .
+		"</tr>";
+}
 	
-	   echo "<tr><td>" . $row['group_name'] . "</td><td>" . $row['filename'] . "</td><td>" . $row['doi_identifier'] . "</td></tr>";
-	}
-	
-	?>
+?>
 
 </table>
 

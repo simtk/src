@@ -31,6 +31,11 @@
  * <http://www.gnu.org/licenses/>.
  */ 
 
+<?php
+/**
+ * Project Usage Map Page
+ */
+
 require_once '../../env.inc.php';
 require_once $gfcommon.'include/pre.php';
 require_once $gfplugins.'reports/www/reports-utils.php';
@@ -54,9 +59,6 @@ $sys_google_maps_key = "<insert your google API key here>";
 
 
 $morescripts = '
-<script type="text/javascript" src="//maps.googleapis.com/maps/api/js?key='.$sys_google_maps_key.'&amp;sensor=false"></script>
-<script type="text/javascript" src="usagemap_js.php?group_id='.$group_id.'"></script>
-
 <script type="text/javascript">
   onload=initPage;
   onresize=resizeMap;
@@ -76,25 +78,16 @@ $morescripts = '
 <?php
 
 echo "<link rel='stylesheet' type='text/css' href='map.css'>";
-echo "<script src='https://maps.googleapis.com/maps/api/js?v=3.exp'></script>";
-//echo "<script src='https://maps.googleapis.com/maps/api/js?key='.$sys_google_maps_key.'&amp;sensor=false'></script>";
+//echo "<script src='https://maps.googleapis.com/maps/api/js?v=3.exp'></script>";
+?>
+
+<script type="text/javascript" src="//maps.googleapis.com/maps/api/js?key=<?php
+	echo $sys_google_maps_key; ?>&amp;sensor=false"></script>
+
+<?php
 echo "<script type='text/javascript' src='usagemap_js.php?group_id=$group_id'></script>";
 
-//echo "<script type='text/javascript'>onload=initPage;onresize=resizeMap;</script>";
-//echo "<script type='text/javascript'>initPage();resizeMap();</script>";
-
-//echo "<link rel='stylesheet' type='text/css' href='map.css'>";
-//echo "<script src='https://maps.googleapis.com/maps/api/js?v=3.exp'></script>";
-//echo "<script type='text/javascript' src='testmap.js'></script>";
-
-
 reports_header(array('title'=>'Downloads Summary','group'=>$group_id,'morehead'=>$morescripts),$group_id);
-//site_project_header(array('title'=>$Language->getText('reporting','project_activity_title').' '.$groupname,'group'=>$group_id,'toptab'=>'home', 'morehead'=>$morescripts));
-
-//echo "<script type='text/javascript' src='//maps.googleapis.com/maps/api/js?key='.$sys_google_maps_key.'&amp;sensor=false'></script>";
-//echo "<script type='text/javascript' src='usagemap_js.php?group_id='.$group_id.''></script>";
-//echo "<script type='text/javascript'>onload=initPage;onresize=resizeMap;</script>";
-
 
 
 $resAll = db_query_params("select coalesce(sum(hits),0) as hits from stats_site_user_loc where group_id=$group_id",array());

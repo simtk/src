@@ -105,11 +105,35 @@ echo "<div class=\"main_col\">\n";
 	<?php foreach ($resultsDownloads as $results) { ?>
 	        <?php if ($results['status'] == 1) { ?>
 			  <?php //if (!is_array($results)) { ?>
-	            <tr><td  class="active"><? echo "<b>" . $results['name'] . "</b>"; ?></td><td  class="active"><? echo $results['unique_users']; ?></td><td  class="active"><? echo $results['files']; ?></td><td class="active"><? echo $results['documentation']; ?></td><td  class="active"><? echo $results['links']; ?></td></tr>
+	            <tr><td  class="active"><? echo "<b>" . $results['name'] . "</b>"; ?></td><td  class="active"><? echo $results['unique_users']; ?></td><td  class="active"><? 
+	if (isset($results['files'])) {
+		echo $results['files']; 
+	}
+?></td><td class="active"><? 
+	if (isset($results['documentation'])) {
+		echo $results['documentation']; 
+	}
+?></td><td  class="active"><? 
+	if (isset($results['links'])) {
+		echo $results['links']; 
+	}
+?></td></tr>
 	            <?php //} else { ?>
 			    <?php foreach ($results as $package) { ?>
 				  <?php if (isset($package['release_name'])) { ?>
-		             <tr><td><? echo $package['release_name']; ?></td><td><? echo $package['release_totals']; ?></td><td><? echo $package['files']; ?></td><td><? echo $package['documentation']; ?></td><td><? echo $package['links']; ?></td></tr>		
+		             <tr><td><? echo $package['release_name']; ?></td><td><? echo $package['release_totals']; ?></td><td><? 
+	if (isset($package['files'])) {
+		echo $package['files']; 
+	}
+?></td><td><? 
+	if (isset($package['documentation'])) {
+		echo $package['documentation']; 
+	}
+?></td><td><? 
+	if (isset($package['links'])) {
+		echo $package['links']; 
+	}
+?></td></tr>		
 	              <?php } ?>
 				<?php } ?>
 			<?php //} ?>	
