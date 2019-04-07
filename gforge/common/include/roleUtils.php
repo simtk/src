@@ -3,33 +3,33 @@
 /**
  *
  * roleUtils.php
- * 
+ *
  * Copyright 2005-2016, SimTK Team
  *
- * This file is part of the SimTK web portal originating from        
- * Simbios, the NIH National Center for Physics-Based               
- * Simulation of Biological Structures at Stanford University,      
- * funded under the NIH Roadmap for Medical Research, grant          
+ * This file is part of the SimTK web portal originating from
+ * Simbios, the NIH National Center for Physics-Based
+ * Simulation of Biological Structures at Stanford University,
+ * funded under the NIH Roadmap for Medical Research, grant
  * U54 GM072970, with continued maintenance and enhancement
- * funded under NIH grants R01 GM107340 & R01 GM104139, and 
- * the U.S. Army Medical Research & Material Command award 
+ * funded under NIH grants R01 GM107340 & R01 GM104139, and
+ * the U.S. Army Medical Research & Material Command award
  * W81XWH-15-1-0232R01.
- * 
+ *
  * SimTK is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as 
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of
  * the License, or (at your option) any later version.
- * 
+ *
  * SimTK is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public 
- * License along with SimTK. If not, see  
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with SimTK. If not, see
  * <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 // PHP Semaphore is disabled by default and
 // requires recompilation to enable the feature.
 //
@@ -124,6 +124,7 @@ function addToRoleSetting($roleName, $roleId, $groupId) {
 		insertRoleSetting($roleId, $groupId, "new_tracker", 15);
 		insertRoleSetting($roleId, $groupId, "project_read", 1);
 		insertRoleSetting($roleId, $groupId, "frs", 3);
+    insertRoleSetting($roleId, $groupId, "datashare", 3);
 		insertRoleSetting($roleId, $groupId, "pubs", 1);
 		insertRoleSetting($roleId, $groupId, "plugin_moinmoin_access", 3);
 
@@ -138,6 +139,7 @@ function addToRoleSetting($roleName, $roleId, $groupId) {
 		insertRoleSetting($roleId, $groupId, "new_tracker", 11);
 		insertRoleSetting($roleId, $groupId, "project_read", 1);
 		insertRoleSetting($roleId, $groupId, "frs", 2);
+    insertRoleSetting($roleId, $groupId, "datashare", 2);
 		insertRoleSetting($roleId, $groupId, "pubs", 0);
 		insertRoleSetting($roleId, $groupId, "plugin_moinmoin_access", 2);
 
@@ -152,6 +154,7 @@ function addToRoleSetting($roleName, $roleId, $groupId) {
 		insertRoleSetting($roleId, $groupId, "new_tracker", 1);
 		insertRoleSetting($roleId, $groupId, "project_read", 1);
 		insertRoleSetting($roleId, $groupId, "frs", 2);
+    insertRoleSetting($roleId, $groupId, "datashare", 2);
 		insertRoleSetting($roleId, $groupId, "pubs", 0);
 		insertRoleSetting($roleId, $groupId, "plugin_moinmoin_access", 1);
 
@@ -166,6 +169,7 @@ function addToRoleSetting($roleName, $roleId, $groupId) {
 		insertRoleSetting($roleId, $groupId, "new_tracker", 15);
 		insertRoleSetting($roleId, $groupId, "project_read", 1);
 		insertRoleSetting($roleId, $groupId, "frs", 3);
+    insertRoleSetting($roleId, $groupId, "datashare", 3);
 		insertRoleSetting($roleId, $groupId, "pubs", 1);
 		insertRoleSetting($roleId, $groupId, "plugin_moinmoin_access", 2);
 
@@ -180,6 +184,7 @@ function addToRoleSetting($roleName, $roleId, $groupId) {
 		insertRoleSetting($roleId, $groupId, "new_tracker", 15);
 		insertRoleSetting($roleId, $groupId, "project_read", 1);
 		insertRoleSetting($roleId, $groupId, "frs", 3);
+    insertRoleSetting($roleId, $groupId, "datashare", 3);
 		insertRoleSetting($roleId, $groupId, "pubs", 1);
 		insertRoleSetting($roleId, $groupId, "plugin_moinmoin_access", 2);
 
@@ -201,7 +206,7 @@ function insertRoleSetting($roleId, $groupId, $sectionName, $value) {
 		"section_name='" . $sectionName . "' AND " .
 		"ref_id=" . $groupId;
 	$resIsPresent = db_query_params($strCheckPresence, array());
-	if (!$resIsPresent || db_numrows($resIsPresent) < 1) { 
+	if (!$resIsPresent || db_numrows($resIsPresent) < 1) {
 		// Entry not present yet. Insert entry.
 
 		// Insert group_id into pfo_role_setting table.
@@ -276,9 +281,9 @@ function insertTrackersRoles($roleId, $roleName, $groupId) {
 		while ($rowTracker = db_fetch_array($resTrackers)) {
 			// NOTE: Tracker is handled differently than other modules!!!
 			//
-			// The ref_id expected is the tracker id (i.e. group_artifact_id), 
+			// The ref_id expected is the tracker id (i.e. group_artifact_id),
 			// rather than the group.
-			// 
+			//
 			// A group can have multiple trackers (e.g. "Bugs", "Features").
 			// Insert a tracker role for each eacher associated with the group.
 			insertRoleSetting($roleId, $rowTracker['group_artifact_id'], "tracker", $theVal);
@@ -302,7 +307,7 @@ function setAnonymousAccessForProject($groupId) {
 	insertTrackersRoles(1, "Anonymous", $groupId);
 }
 
-// Unset role privileges for private project such that 
+// Unset role privileges for private project such that
 // it is not visible to users who are not logged in.
 function unsetAnonymousAccessForProject($groupId) {
 

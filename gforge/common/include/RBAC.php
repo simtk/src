@@ -85,6 +85,7 @@ abstract class BaseRole extends Error {
 			'docman' => array (0, 1, 2, 3, 4),
 			'frs' => array (0, 1, 2, 3),
 			'pubs' => array (0, 1),
+      'datashare' => array (1, 2, 3),
 
 			);
 
@@ -110,6 +111,7 @@ abstract class BaseRole extends Error {
 						     'pm_admin' => 1,
 						     'new_pm' => 7,
 						     'pubs' => 1,
+								 'datashare' => 3,
 				),
 			'Senior Developer' => array( 'project_read' => 1,
 						     'frs' => 2,
@@ -122,6 +124,13 @@ abstract class BaseRole extends Error {
 						     'pm_admin' => 1,
 						     'new_pm' => 7,
 						     'pubs' => 1,
+								 'datashare' => 3,
+				),
+			'Developer' => array( 'datashare' => 2,
+				),
+			'Read-Write Member' => array( 'datashare' => 3,
+				),
+			'Read-Only Member' => array( 'datashare' => 2,
 				),
 			'Junior Developer' => array( 'project_read' => 1,
 						     'frs' => 2,
@@ -131,6 +140,7 @@ abstract class BaseRole extends Error {
 						     'new_tracker' => 11,
 						     'new_pm' => 3,
 						     'pubs' => 0,
+								 'datashare' => 2,
 				),
 			'Doc Writer' => array(       'project_read' => 1,
 						     'frs' => 2,
@@ -139,6 +149,7 @@ abstract class BaseRole extends Error {
 						     'new_tracker' => 9,
 						     'new_pm' => 1,
 						     'pubs' => 0,
+								 'datashare' => 2,
 				),
 			'Support Tech' => array(     'project_read' => 1,
 						     'frs' => 2,
@@ -149,6 +160,7 @@ abstract class BaseRole extends Error {
 						     'pm_admin' => 1,
 						     'new_pm' => 7,
 						     'pubs' => 0,
+								 'datashare' => 2,
 				),
 			);
 	}
@@ -326,7 +338,7 @@ abstract class BaseRole extends Error {
 		$result = array();
 		$group_id = $project->getID();
 
-		$sections = array ('project_read', 'project_admin', 'frs', 'scm', 'pubs', 'docman', 'tracker_admin', 'new_tracker') ;
+		$sections = array ('project_read', 'project_admin', 'frs', 'datashare', 'scm', 'pubs', 'docman', 'tracker_admin', 'new_tracker') ;
 		foreach ($sections as $section) {
 			$result[$section][$group_id] = $this->getVal ($section, $group_id) ;
 		}
@@ -501,6 +513,15 @@ abstract class BaseRole extends Error {
 			return $value ;
 			break ;
 
+		case 'datashare':
+			if ($this->hasPermission('project_admin', $reference)) {
+			  return 3;
+		  } elseif (!$this->hasPermission('project_read', $reference)) {
+			  return 1;
+		  }
+		  return $value ;
+		  break ;
+
 		case 'frs':
 			if ($this->hasPermission('project_admin', $reference)) {
 				return 3 ;
@@ -633,7 +654,7 @@ abstract class BaseRole extends Error {
 		return $role_vals[$section];
 	}
 
-        function hasPermission($section, $reference, $action = NULL) {
+  function hasPermission($section, $reference, $action = NULL) {
 		$result = false ;
 
 		$value = $this->getSetting ($section, $reference) ;
@@ -692,6 +713,20 @@ abstract class BaseRole extends Error {
 				break ;
 			}
 			break ;
+
+	  case 'datashare':
+			    switch ($action) {
+				case 'read_public':
+					return ($value >= 1) ;
+					break ;
+				case 'read_private':
+					return ($value >= 2) ;
+					break ;
+				case 'write':
+					return ($value >= 3) ;
+					break ;
+				}
+				break ;
 
 		case 'frs':
 			switch ($action) {
@@ -889,7 +924,7 @@ abstract class BaseRole extends Error {
 		db_begin () ;
 
 		// Remove obsolete project-wide settings
-		$sections = array ('project_read', 'project_admin', 'frs', 'scm', 'docman', 'tracker_admin', 'new_tracker', 'forum_admin', 'new_forum', 'pm_admin', 'new_pm') ;
+		$sections = array ('project_read', 'project_admin', 'frs', 'scm', 'docman', 'tracker_admin', 'new_tracker', 'forum_admin', 'new_forum', 'pm_admin', 'new_pm', 'datashare') ;
 		db_query_params ('DELETE FROM pfo_role_setting where role_id=$1 AND section_name=ANY($2) and ref_id NOT IN (SELECT home_group_id FROM pfo_role WHERE role_id=$1 AND home_group_id IS NOT NULL UNION SELECT group_id from role_project_refs WHERE role_id=$1)',
 				 array ($this->getID(),
 					db_string_array_to_any_clause($sections))) ;
@@ -933,7 +968,7 @@ abstract class BaseRole extends Error {
 
 		// Add missing settings
 		// ...project-wide settings
-		$arr = array ('project_read', 'project_admin', 'frs', 'scm', 'pubs', 'docman', 'tracker_admin', 'new_tracker', 'forum_admin', 'new_forum', 'pm_admin', 'new_pm',) ;
+		$arr = array ('project_read', 'project_admin', 'frs', 'scm', 'pubs', 'docman', 'datashare', 'tracker_admin', 'new_tracker', 'forum_admin', 'new_forum', 'pm_admin', 'new_pm',) ;
 		foreach ($projects as $p) {
 			foreach ($arr as $section) {
 				$this->normalizePermsForSection ($new_pa, $section, $p->getID()) ;
@@ -954,7 +989,7 @@ abstract class BaseRole extends Error {
 		// Direct query to avoid querying each project - especially for global roles
 		foreach ($projects as $p)
 			$project_ids[] = $p->getID();
-		$res = db_query_params('SELECT group_artifact_id FROM artifact_group_list JOIN groups USING (group_id) WHERE use_tracker=1 AND group_id=ANY($1)', 
+		$res = db_query_params('SELECT group_artifact_id FROM artifact_group_list JOIN groups USING (group_id) WHERE use_tracker=1 AND group_id=ANY($1)',
 				       array(db_int_array_to_any_clause($project_ids)));
 		while ($row = db_fetch_array($res)) {
 			$tid = $row['group_artifact_id'];

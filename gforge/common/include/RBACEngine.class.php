@@ -322,6 +322,19 @@ class RBACEngine extends Error implements PFO_RBACEngine {
 				break;
 			}
 			break;
+		case 'datashare':
+			    switch ($action) {
+				case 'read_public':
+					$qpa = db_construct_qpa ($qpa, 'AND perm_val >= 1');
+					break;
+				case 'read_private':
+					$qpa = db_construct_qpa ($qpa, 'AND perm_val >= 2');
+					break;
+				case 'write':
+					$qpa = db_construct_qpa ($qpa, 'AND perm_val >= 3');
+					break;
+				}
+				break;
 		case 'frs':
 			switch ($action) {
 			case 'ANY':
@@ -432,6 +445,7 @@ class RBACEngine extends Error implements PFO_RBACEngine {
 		case 'forum_admin':
 		case 'scm':
 		case 'docman':
+		case 'datashare':
 		case 'frs':
 			$result = array_merge ($result, $this->_getRolesIdByAllowedAction ('project_admin', $reference));
 			break;
