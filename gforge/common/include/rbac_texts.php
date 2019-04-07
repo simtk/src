@@ -172,6 +172,9 @@ function setup_rbac_strings () {
 								  'frs1' => _('View public packages only'),
 								  'frs2' => _('View all packages'),
 								  'frs3' => _('Publish files'),
+									'datashare1' => _('View public or registered user datasets only'),
+								  'datashare2' => _('View all datasets'),
+								  'datashare3' => _('Edit and add to datasets'),
 								  'pubs0' => _('Read/Post'),
 								  'pubs1' => _('Admin'),
 								  )
@@ -202,6 +205,7 @@ function setup_rbac_strings () {
 								    'scm' => _('SCM'),
 								    'docman' => _('Documentation manager'),
 								    'frs' => _('Files'),
+										'datashare' => _('Data Share'),
 								    'pubs' => _('Publications'),
 
 								    )

@@ -57,7 +57,13 @@ if (getStringFromRequest('submit')) {
 	$use_stats = getStringFromRequest('use_stats');
 	$use_activity = getStringFromRequest('use_activity');
 	$use_tracker = getStringFromRequest('use_tracker');
+	$use_datashare = getStringFromRequest('use_datashare');
 
+	$datashare_before = $group->usesPlugin("datashare");
+	$scmgit_before = $group->usesGitHub();
+	$scmsvn_before = $group->usesSCM();
+	$moinmoin_before = $group->usesPlugin("moinmoin");
+			
 	if (!isset($use_code_repo) || !$use_code_repo) {
 		// Not using code repository. Ignore radio buttons 
 		// for SubVersion and GitHub and
@@ -111,20 +117,20 @@ if (getStringFromRequest('submit')) {
 
 		$strAppend = "";
 		$use_moinmoin = getStringFromRequest('use_moinmoin');
-		if ($use_moinmoin == 1) {
-			if ($use_scm == false) {
-				$strAppend = ' Wiki takes up to 15 minutes to create.';
-			}
-			else {
-				// NOTE: Code Repository here refers to SubVersion.
-				$strAppend = ' Wiki and Code Repository take up to 15 minutes to create.';
-			}
+		if ($use_moinmoin && !$moinmoin_before) {
+		   $strAppend = ' Wiki takes up to 15 minutes to create.';
 		}
-		else {
-			if ($use_scm == true) {
-				// NOTE: Code Repository here refers to SubVersion.
-				$strAppend = ' Code Repository takes up to 15 minutes to create.';
-			}
+		    
+		$scmgit_after = $group->usesGitHub();
+	    $scmsvn_after = $group->usesSCM();
+		if ($use_scm && !$scmgit_before && !$scmsvn_before) {
+		   // NOTE: Code Repository.
+		   $strAppend .= ' Code Repository takes up to 15 minutes to create.';
+		}	
+		
+		$datashare_after = $group->usesPlugin("datashare");
+		if (!$datashare_before && $datashare_after) {
+		   $strAppend .= ' Data Sharing feature takes up to 15 minutes to create. Check Downloads drop-down menu to see if Data Sharing is activated.';
 		}
 		if ($use_scm == true) {
 			$group->setPluginUse("scmsvn", 1);

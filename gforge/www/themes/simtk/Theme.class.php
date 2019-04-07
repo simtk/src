@@ -3,33 +3,33 @@
 /**
  *
  * Theme.class.php
- * 
+ *
  * Copyright 2005-2017, SimTK Team
  *
- * This file is part of the SimTK web portal originating from        
- * Simbios, the NIH National Center for Physics-Based               
- * Simulation of Biological Structures at Stanford University,      
- * funded under the NIH Roadmap for Medical Research, grant          
+ * This file is part of the SimTK web portal originating from
+ * Simbios, the NIH National Center for Physics-Based
+ * Simulation of Biological Structures at Stanford University,
+ * funded under the NIH Roadmap for Medical Research, grant
  * U54 GM072970, with continued maintenance and enhancement
- * funded under NIH grants R01 GM107340 & R01 GM104139, and 
- * the U.S. Army Medical Research & Material Command award 
+ * funded under NIH grants R01 GM107340 & R01 GM104139, and
+ * the U.S. Army Medical Research & Material Command award
  * W81XWH-15-1-0232R01.
- * 
+ *
  * SimTK is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as 
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of
  * the License, or (at your option) any later version.
- * 
+ *
  * SimTK is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public 
- * License along with SimTK. If not, see  
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with SimTK. If not, see
  * <http://www.gnu.org/licenses/>.
- */ 
- 
+ */
+
 /**
  * SimTk Theme
  * Now it uses Navigation dropdown defined at the: Theme::show_topmenu_dropdowns();
@@ -37,7 +37,7 @@
  * Two methods Revrited from  Navigation.class.php
  * 1) Theme::getUserLinks();
  * 2) Theme::getSearchBox();
- * 
+ *
  * Methods override from the Layout.class.php
  * 1) Theme::headerStart(); // Fixing incorrect BOOTSTRAP grid representations for iPhone: http://stackoverflow.com/questions/19933848/bootstrap-3-not-xs-on-iphone-5
  * 2) Theme::searchBox(); // here used revrited from Navigation Theme::getSearchBox
@@ -108,10 +108,10 @@ class Theme extends Layout {
                 // add google analytics here, after the body
 				include_once("analyticstracking.php");
                 $this->top_menu_and_navigation($params);
-                
+
                 return; // JUST CUT BOTTOM AWAY FOR A WHILE ------------------->
 	}
-        
+
          /**
          * Here I draw top layer of menu
          * @param type $params
@@ -131,7 +131,7 @@ class Theme extends Layout {
 		</button>
 		<?php  echo util_make_link('/', html_image('header/logo.png', null, null, array('alt'=>'FusionForge Home')),array('class'=>'navbar-brand')); ?>
 	</div>
-	
+
 	<!-- HAVE TWO ADDITIONAL CLASSES: intend and action --->
 	<div id="navbar" class="navbar-collapse collapse">
 	    <!-- Decreased width of Search Box and moved to this location --->
@@ -253,7 +253,7 @@ $(window).load(function() {
 
 			// Set CSS for element with new dimensions with margin to center image.
 			myThis.css({
-				'width': theScaledWidth + 'px', 
+				'width': theScaledWidth + 'px',
 				'height': theScaledHeight + 'px',
 				'margin-top': marginTop + 'px',
 				'margin-bottom': marginTop + 'px',
@@ -273,12 +273,12 @@ $(window).load(function() {
 
 
 </script>
-		
+
 <?php
-			
+
                 echo "</div>\n"; // close cont_teader
         echo "</div>\n"; // close the_heaer
- 
+
         // Here starting main div
         echo "<div class='the_body'>\n";
         echo   "<div class='cont_body'>\n";
@@ -299,7 +299,7 @@ $(window).load(function() {
 
         echo      "<div class='row_body'>\n";
         echo          "<div class='maindiv'>\n"; // here maindiv as bootstrap Column: http://www.helloerik.com/the-subtle-magic-behind-why-the-bootstrap-3-grid-works
-        
+
         // call subheader if group is valid
         if (isset($params['group']) && $params['group']) {
           $this->subheader($params);
@@ -307,7 +307,7 @@ $(window).load(function() {
 
         // close subheader
 	// menus specific to project features
- 
+
         plugin_hook('message', array());
 
 		if(isset($GLOBALS['error_msg']) && $GLOBALS['error_msg']) {
@@ -345,7 +345,7 @@ $(window).load(function() {
 		}
 		if (isset($params['submenu']))
 			echo $params['submenu'];
-        
+
     }
 
 
@@ -377,9 +377,9 @@ $(window).load(function() {
 
         <div class='project_title'>
             <?php
-              $logofile =  $group->getLogoFile();  
+              $logofile =  $group->getLogoFile();
               $theLink = "/projects/" . $group->getUnixName();
-              if (!empty($logofile)) { 
+              if (!empty($logofile)) {
                 echo "<div class='project_titleimg'>";
                 echo "<a href='" . $theLink . "'>" .
 			"<img class='mini_logo' " .
@@ -411,8 +411,8 @@ $(window).load(function() {
 		</td>
 		</tr>
 
-                <script type="text/javascript"> 
-                 $('.popup').popupWindow({ 
+                <script type="text/javascript">
+                 $('.popup').popupWindow({
                   centerBrowser:1
                   });
                  $(function () {
@@ -486,7 +486,7 @@ $(window).load(function() {
 				// User is following publicly already.
 				echo "class='followDropdownItemChecked' ";
 			}
-			echo "href='/plugins/following/index.php?group_id=" . 
+			echo "href='/plugins/following/index.php?group_id=" .
 				$group_id .
 				"&followtype=1'>Follow publicly</a>";
 			echo "</li>";
@@ -498,7 +498,7 @@ $(window).load(function() {
 				// User is following privately already.
 				echo "class='followDropdownItemChecked' ";
 			}
-			echo "href='/plugins/following/index.php?group_id=" . 
+			echo "href='/plugins/following/index.php?group_id=" .
 				$group_id .
 				"&followtype=2'>Follow privately</a>";
 			echo "</li>";
@@ -506,7 +506,7 @@ $(window).load(function() {
 			// Unfollow.
 			echo "<li class='intend'>";
 			echo "<a " .
-				"href='/plugins/following/index.php?group_id=" . 
+				"href='/plugins/following/index.php?group_id=" .
 				$group_id .
 				"&unfollow=1'>Unfollow</a>";
 			echo "</li>";
@@ -515,7 +515,7 @@ $(window).load(function() {
 			echo "<li class='intend'>";
 			// Link to map of followers.
 			echo "<a " .
-				"href='/plugins/following/followersmap.php?group_id=" . 
+				"href='/plugins/following/followersmap.php?group_id=" .
 				$group_id .
 				"'>" .
 				"See followers (" . $total_followers . ")" .
@@ -525,7 +525,7 @@ $(window).load(function() {
 			echo "<li class='intend'>";
 			// Link to page of followers.
 			echo "<a class='share_text_link' " .
-				"href='/plugins/following/index.php?group_id=" . 
+				"href='/plugins/following/index.php?group_id=" .
 				$group_id .
 				"'>" .
 				"List" .
@@ -534,7 +534,7 @@ $(window).load(function() {
 			echo "<li class='intend'>";
 			// Link to map of followers.
 			echo "<a class='share_text_link' " .
-				"href='/plugins/following/followersmap.php?group_id=" . 
+				"href='/plugins/following/followersmap.php?group_id=" .
 				$group_id .
 				"'>" .
 				"Map" .
@@ -557,7 +557,7 @@ $(window).load(function() {
 			// Public following.
 			echo "<li class='intend'>";
 			echo "<a " .
-				"href='/plugins/following/index.php?group_id=" . 
+				"href='/plugins/following/index.php?group_id=" .
 				$group_id .
 				"&followtype=1'>Follow publicly</a>";
 			echo "</li>";
@@ -565,7 +565,7 @@ $(window).load(function() {
 			// Private following.
 			echo "<li class='intend'>";
 			echo "<a " .
-				"href='/plugins/following/index.php?group_id=" . 
+				"href='/plugins/following/index.php?group_id=" .
 				$group_id .
 				"&followtype=2'>Follow privately</a>";
 			echo "</li>";
@@ -577,7 +577,7 @@ $(window).load(function() {
 				// User is logged-in, but not following.
 				echo "class='followDropdownItemChecked' ";
 			}
-			echo "href='/plugins/following/index.php?group_id=" . 
+			echo "href='/plugins/following/index.php?group_id=" .
 				$group_id .
 				"&unfollow=1'>Unfollow</a>";
 			echo "</li>";
@@ -586,7 +586,7 @@ $(window).load(function() {
 			echo "<li class='intend'>";
 			// Link to map of followers.
 			echo "<a " .
-				"href='/plugins/following/followersmap.php?group_id=" . 
+				"href='/plugins/following/followersmap.php?group_id=" .
 				$group_id .
 				"'>" .
 				"See followers (" . $total_followers . ")" .
@@ -596,7 +596,7 @@ $(window).load(function() {
 			echo "<li class='intend'>";
 			// Link to page of followers.
 			echo "<a class='share_text_link' " .
-				"href='/plugins/following/index.php?group_id=" . 
+				"href='/plugins/following/index.php?group_id=" .
 				$group_id .
 				"'>" .
 				"List" .
@@ -604,7 +604,7 @@ $(window).load(function() {
 			echo "<li class='intend'>";
 			// Link to map of followers.
 			echo "<a class='share_text_link' " .
-				"href='/plugins/following/followersmap.php?group_id=" . 
+				"href='/plugins/following/followersmap.php?group_id=" .
 				$group_id .
 				"'>" .
 				"Map" .
@@ -698,8 +698,8 @@ if (!$isPermitted) {
 	$isPermitted = forge_check_perm('project_read', $group_id);
 }
 
-// Create a hidden DIV to keep the group_id. Otherwise, the group_id 
-// may not be available at all times in a project's context 
+// Create a hidden DIV to keep the group_id. Otherwise, the group_id
+// may not be available at all times in a project's context
 // (e.g. after saving Project Info: Tools setting.)
 echo '<div class="divGroupId" style="display:none;">' . $group_id . '</div>';
 
@@ -737,7 +737,7 @@ if ($isPermitted) {
 						"&pluginname=phpBB";
 		                	echo "<a href='" . $forumLink . "'><span " .
 						"id='" . $menuId ."' " .
-						"class='btnDropdown'>" . 
+						"class='btnDropdown'>" .
 						$menuTitle . "</span></a>";
 				}
 			}
@@ -745,13 +745,13 @@ if ($isPermitted) {
 		                echo "<a href='" . $menu['urls'][$i] . "'>" .
 					"<span " .
 					"id='" . $menuId ."' " .
-					"class='btnDropdown'>" . 
+					"class='btnDropdown'>" .
 					$menuTitle . "</span></a>";
 			}
 			else {
 		                echo "<a href='" . $menu['urls'][$i] . "'><span " .
 					"id='" . $menuId ."' " .
-					"class='btnDropdown'>" . 
+					"class='btnDropdown'>" .
 					$menuTitle . "</span></a>";
 			}
 
@@ -776,7 +776,7 @@ if ($isPermitted) {
 					$forumLink = "/plugins/phpBB/indexPhpbb.php?" .
 						"group_id=" . $group_id .
 						"&pluginname=phpBB";
-		                	echo "<li><a role='menuitem' tabindex='-1' href='" . $forumLink . "'>" . 
+		                	echo "<li><a role='menuitem' tabindex='-1' href='" . $forumLink . "'>" .
 						$menu['titles'][$i] . "</a></li>";
 				}
 			}
@@ -809,7 +809,7 @@ if ($isPermitted) {
 						$forumLink = "/plugins/phpBB/indexPhpbb.php?" .
 							"group_id=" . $group_id .
 							"&pluginname=phpBB";
-						echo "<li><a href='" . $forumLink . "'>" . 
+						echo "<li><a href='" . $forumLink . "'>" .
 							$menu['titles'][$cnt] . "</a></li>";
 					}
 				}
@@ -829,7 +829,7 @@ if ($isPermitted) {
 </div>
 
 <?php
-} 
+}
 else {
 ?>
 <div class="project_menu_row">
@@ -908,7 +908,7 @@ else {
 			break;
 		}
 		$dispCommName = abbrGroupName($fullName);
-		echo '<li class="intend"><a href="/category/communityPage.php?cat=' . $catId . 
+		echo '<li class="intend"><a href="/category/communityPage.php?cat=' . $catId .
 			'&sort=date&page=0&srch=&" tabindex="-1">' . $dispCommName . '</a></li>';
 	}
 	echo '<li class="intend"><a href="/communities.php" tabindex="-1">All communities</a></li>';
@@ -972,9 +972,9 @@ else {
 </li>
 
 <?php }
-           
+
 function show_account_dropdown() {
-	
+
 	    if (session_loggedin()) {
            // get user - included in common/include/pre.php
            $user = session_get_user(); // get the session user
@@ -999,14 +999,14 @@ echo $u->getFirstName();
 	</ul>
     </li>
 
-	
+
 <?php
     }
-    
+
     function searchBox() {
 		echo $this->getSearchBox();
     }
-    
+
 	function bodyFooter($params) {
             echo "\n\n<!--Here the Footer starts--></div>\n"; // the_body
             echo "</div>\n"; // cont_body
@@ -1026,7 +1026,7 @@ echo $u->getFirstName();
                     echo '<div class="footer-right">';
 /*
                         echo '<a href="httlp://google.com">Our Pledge and Your Responsibility</a><br/><br/>';
-                        echo '<a href="httlp://google.com">Website</a> &emsp; <a href="httlp://google.com">Feedback</a> &emsp; <a href="httlp://google.com">About</a> &emsp; <a href="httlp://google.com">Join</a>'; 
+                        echo '<a href="httlp://google.com">Website</a> &emsp; <a href="httlp://google.com">Feedback</a> &emsp; <a href="httlp://google.com">About</a> &emsp; <a href="httlp://google.com">Join</a>';
 */
                         echo '<a href="/pledge.php">Our Pledge and Your Responsibility</a><br/><br/>';
 			echo '<a class="feedback_href" href="#">Feedback</a> &emsp; ';
@@ -1046,7 +1046,7 @@ echo $u->getFirstName();
             // This plugin fials at the first start of the FireFox
             // that why I put it here, also add some delay.
             //$res .= 'setTimeout(function(){ $(document).ready(function () {$(".search_select").customSelect();});}, 20);';
-            $res .= 
+            $res .=
 		'setTimeout(
 			function() {
 				$(document).ready(function() {
@@ -1056,7 +1056,7 @@ echo $u->getFirstName();
 			},
 			20
 		);';
-            $res .= "\n"; 
+            $res .= "\n";
             $res .=
                 '$(document).ready(function() {
                         $(".recYes").click(function() {
@@ -1064,7 +1064,7 @@ echo $u->getFirstName();
                             $("#" + rec_group_id).text("Thanks!");
                         });
                 });';
-            $res .= "\n"; 
+            $res .= "\n";
             $res .=
                 '$(document).ready(function() {
                         $(".recNo").click(function() {
@@ -1106,10 +1106,10 @@ echo $u->getFirstName();
             echo '</body>' . "\n";
             echo '</html>' . "\n";
 	}
-        
+
         function show_developer_divs() {
             ?>
-            <div class='check_image' style='display: none'> 
+            <div class='check_image' style='display: none'>
             </div>
             <div class='palette' style='display: none'>
                 <div class='color light_yellow' ></div> <div class='text'>#FDF8E1 @light_yellow</div>
@@ -1539,6 +1539,9 @@ echo $u->getFirstName();
 		case "/simulations":
 			$pageTitle = "Simulations";
 			break;
+    case "/datashare":
+			$pageTitle = "Data Share";
+			break;
 		}
 
 		if ($pageTitle == "Project Admin") {
@@ -1576,7 +1579,7 @@ echo $u->getFirstName();
 				break;
 			case "/project/admin/related_projects.php":
 				$pageTitle = "Project Admin: Main Page Layout: Edit Related Projects";
-				break;	
+				break;
 			case "/project/stats/index.php":
 				$pageTitle = "Statistics: Project Activity Plots";
 				break;
@@ -1607,7 +1610,7 @@ echo $u->getFirstName();
 			switch ($subpageInfo) {
 			case "/plugins/reports/index.php":
 				$pageTitle = "Statistics: Downloads Summary";
-				break;	
+				break;
 			case "/plugins/reports/usagemap.php":
 				$pageTitle = "Statistics: Geography of Use";
 				break;
@@ -1627,19 +1630,19 @@ echo $u->getFirstName();
 			switch ($subpageInfo) {
 			case "/scm/":
 				$pageTitle = "Source Code: Summary";
-				break;	
+				break;
 			case "/scm/viewvc.php/":
 				$pageTitle = "Source Code: Browse";
 				break;
 			case "/scm/admin/":
 				$pageTitle = "Source Code: Admin";
-				break;	
+				break;
 			case "/githubAccess/":
 				$pageTitle = "Source Code: Summary";
-				break;	
+				break;
 			case "/githubAccess/admin/":
 				$pageTitle = "Source Code: Admin";
-				break;	
+				break;
 			default:
 				$pageTitle = "Source Code";
 				break;
@@ -1653,16 +1656,16 @@ echo $u->getFirstName();
 			switch ($subpageInfo) {
 			case "/plugins/publications/index.php":
 				$pageTitle = "Publications: View";
-				break;		
+				break;
 			case "/plugins/publications/admin/add.php":
 				$pageTitle = "Publications: Add";
-				break;	
+				break;
 			case "/plugins/publications/admin/edit.php":
 				$pageTitle = "Publications: Edit";
-				break;	
+				break;
 			case "/plugins/publications/admin/":
 				$pageTitle = "Publications: Admin";
-				break;	
+				break;
 			default:
 				$pageTitle = "Publications";
 				break;
@@ -1676,13 +1679,13 @@ echo $u->getFirstName();
 			switch ($subpageInfo) {
 			case "/plugins/simtk_news/index.php":
 				$pageTitle = "News";
-				break;	
+				break;
 			case "/plugins/simtk_news/submit.php":
 				$pageTitle = "News: Add";
 				break;
 			case "/plugins/simtk_news/admin/":
 				$pageTitle = "News: Admin";
-				break;	
+				break;
 			default:
 				$pageTitle = "News";
 				break;
@@ -1696,7 +1699,7 @@ echo $u->getFirstName();
 			switch ($subpageInfo) {
 			case "/mail/admin/":
 				$pageTitle = "Mailing List: Administration";
-				break;	
+				break;
 			case "/mail/admin/index.php":
 				$pageTitle = "Mailing List: Administration";
 				break;
@@ -1744,8 +1747,24 @@ echo $u->getFirstName();
 				break;
 			}
 		}
-		
-		
+    else if ($pageTitle == "Data Share") {
+			// Get Data Share subpage title.
+			$idxStart = strpos($theUri, "/");
+			$idxEnd = strpos($theUri, "?");
+			$subpageInfo = substr($theUri, $idxStart, $idxEnd - $idxStart);
+			switch ($subpageInfo) {
+			case "/plugins/datashare/index.php":
+				$pageTitle = "Data Share: View Studies";
+				break;
+			case "/plugins/datashare/admin/index.php":
+				$pageTitle = "Data Share: Admin";
+				break;
+			default:
+				$pageTitle = "Data Share";
+				break;
+			}
+		}
+
 		return $pageTitle;
 	}
 
@@ -1821,8 +1840,8 @@ echo $u->getFirstName();
 		// For the Downloads/Publications/News home page, the side-bar is shown.
 		// Same for "Team" and "Project Management/Members".
 		// The submenu needs to be inserted under the "main_col" DIV
-		// such that the submenu does not occupy the full width of the page. 
-		// The submenu has to be set up within the section-specific PHP file 
+		// such that the submenu does not occupy the full width of the page.
+		// The submenu has to be set up within the section-specific PHP file
 		// and cannot be created here.
 		$pageTitle = $this->getPageTitle($title_arr, $links_arr);
 		$pageSubTitle = $this->getPageSubTitle($title_arr, $links_arr);
@@ -1954,7 +1973,7 @@ echo $u->getFirstName();
 		});
                 $(function(){
                     // hack to remove documents from the SELECT
-                    $(".search_select").find('[value=alldocs]').remove(); 
+                    $(".search_select").find('[value=alldocs]').remove();
                 });
 		//]]></script>
 		<?php
@@ -1968,9 +1987,9 @@ echo $u->getFirstName();
                 echo "<script type=\"text/javascript\" src=\"{$this->themeurl}js/jquery.customSelect.min.js\"></script>\n";
                 echo "<script type=\"text/javascript\" src=\"{$this->themeurl}js/jquery.popupWindow.js\"></script>\n";
 				echo "<script type=\"text/javascript\" src=\"{$this->themeurl}js/simple-expand.js\"></script>\n";
-				
+
 		?>
-		
+
 		<script type="text/javascript">
 			$(function () {
 				if ($('[data-toggle="tooltip"]').length) {
@@ -1981,7 +2000,7 @@ echo $u->getFirstName();
 				}
 			});
 		</script>
-		
+
         <?php
 	}
 
@@ -2001,23 +2020,23 @@ echo $u->getFirstName();
 				$url .= '?return_to=';
 				$url .= urlencode(getStringFromServer('REQUEST_URI'));
 			}
-                        
+
                         if (!forge_get_config ('user_registration_restricted')) {
 				//$res['titles'][] = _('New Account');
                                 $res['titles'][] = 'Sign Up';
 				$res['urls'][] = util_make_uri('/account/register.php');
 			}
-                        
+
 			$res['titles'][] = _('Log In');
 			$res['urls'][] = util_make_uri($url);
 		}
 		return $res;
-	}   
-        
-        
+	}
+
+
      /**
      * Here Rearrange SearchBox from the  Navigation.class.php
-     * 
+     *
      * 1 - search_box_inputs [div wrapper for input]
      * 2 - search_box_select [div wrapper for box select]
      * 3 - search_box_advanced_search [span wrapper for advansed search link]
@@ -2049,7 +2068,7 @@ echo $u->getFirstName();
 	$url = $_SERVER["REQUEST_URI"];
 	if (isset($url)) {
 		$idx = stripos($url, "type_of_search=");
-		$strTypeSearch = substr($url, $idx + 15); 
+		$strTypeSearch = substr($url, $idx + 15);
 		if (stripos($strTypeSearch, "soft") === 0) {
 			// Projects search.
 			$isSearchProj = true;
@@ -2063,8 +2082,8 @@ echo $u->getFirstName();
 	$res = "
 <form id='searchBox' action='/search/search.php' method='get'>
 	<div class='search_box_inputs'>
-		<input type='text' id='searchBox-words' 
-			placeholder='Search for' name='srch' 
+		<input type='text' id='searchBox-words'
+			placeholder='Search for' name='srch'
 			value='$defaultWords' required='required' />
 		<input type='submit' name='Search' value='Search' />
 	</div>
@@ -2083,7 +2102,7 @@ echo $u->getFirstName();
 	</span>
 </form>
 	";
-                
+
 	return $res;
 	}
 
@@ -2092,7 +2111,7 @@ echo $u->getFirstName();
 	function extractGroupIdFromURL() {
 
 		$strGroupId = false;
-	
+
 		// Get URL string.
 		$theURL = getStringFromServer('REQUEST_URI');
 

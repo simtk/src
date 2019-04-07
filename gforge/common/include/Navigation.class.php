@@ -394,7 +394,7 @@ class Navigation extends Error {
 			// (0) About
 			$menu['titles'][] = _('About');
 			$menu['urls'][] = util_make_uri('/projects/' . $group->getUnixName());
-			
+
 			// (1) Downloads
 			if ($group->usesFRS()) {
 				$menu['titles'][] = _('Downloads');
@@ -408,6 +408,10 @@ class Navigation extends Error {
 				if ($toptab == "frs") {
 					$selected = (count($menu['urls'])-1);
 				}
+			} else if ($group->usesPlugin("datashare")) {
+				$menu['titles'][] = _('Data Share');
+				$menu['tooltips'][] = _('Data Sharing.');
+				$menu['urls'][] = util_make_uri('/plugins/datashare/index.php?group_id=' . $group_id);
 			}
 
 			// (2) Doc Manager
@@ -428,7 +432,7 @@ class Navigation extends Error {
 			// (3) Forums
 			plugin_hook("groupmenu", $hookParams, "phpBB");
 
-			
+
 			// (4) Wiki plugins.
 			// Select only the "moinmoin" plugin to add to menu.
 			plugin_hook("groupmenu", $hookParams, "moinmoin");
