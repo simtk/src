@@ -34,7 +34,6 @@
 require_once $gfcommon.'include/Error.class.php';
 
 
-
 class Datashare extends Error {
 	/**
 	 * Associative array of data from db.
