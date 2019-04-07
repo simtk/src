@@ -109,7 +109,7 @@ require_once $gfwww.'project/project_utils.php';
 				}
 			 }
 			 if ($display_study) {
-			    echo "<form id='fname' action='http://simtkdata-stage1.stanford.edu' method='post' target='my_iframe'>";
+			    echo "<form id='fname' action='<datshare server>' method='post' target='my_iframe'>";
 				echo "<input type='hidden' name='section' value='datashare'>";
 				echo "<input type='hidden' name='groupid' value='$group_id'>";
 				echo "<input type='hidden' name='userid' value='$userid'>";
@@ -120,7 +120,7 @@ require_once $gfwww.'project/project_utils.php';
 				echo "<input type='hidden' name='member' value='$member'>";
 				echo "<input type='hidden' name='add_date' value='$add_date'>";
                 echo "</form>";
-			    echo "<iframe src=\"https://simtkdata-stage1.stanford.edu/?section=datashare&groupid=$group_id&userid=$userid&studyid=$studyid&token=$token&private=$private&member=$member&add_date=$add_date\" frameborder=\"0\" scrolling=\"yes\"  height=\"1000\" width=\"1000\" align=\"left\"></iframe>";
+			    echo "<iframe src=\"https://<datashare server>/?section=datashare&groupid=$group_id&userid=$userid&studyid=$studyid&token=$token&private=$private&member=$member&add_date=$add_date\" frameborder=\"0\" scrolling=\"yes\"  height=\"1000\" width=\"1000\" align=\"left\"></iframe>";
 
                 //echo "<iframe name=\"my_iframe\" src=\"#\" frameborder=\"1\" scrolling=\"yes\"  height=\"1000\" width=\"1000\" align=\"left\" style=\"border:0\"></iframe>";
 			    ?>
