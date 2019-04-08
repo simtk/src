@@ -6,7 +6,7 @@
  * 
  * Process file downloads administration database data.
  *
- * Copyright 2005-2016, SimTK Team
+ * Copyright 2005-2019, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -91,6 +91,9 @@ function getFrsPackagesInfo($groupId, $pubSql) {
 		$packageIsPublic = $thePackage['is_public'];
 		$packageOpenLatest = $thePackage['simtk_openlatest'];
 		$packageDoi = $thePackage['doi'];
+		if (isset($thePackage['doi_identifier'])) {
+			$packageDoiIdentifier = $thePackage['doi_identifier'];
+		}
 
 		// Get the releases of the package.
 		$sqlRelease = "SELECT * FROM frs_release " .
@@ -115,6 +118,9 @@ function getFrsPackagesInfo($groupId, $pubSql) {
                		$releaseDate = $theRelease['release_date'];
 			$releaseStatus = $theRelease['status_id'];
 			$releaseDoi = $theRelease['doi'];
+			if (isset($theRelease['doi_identifier'])) {
+				$releaseDoiIdentifier = $theRelease['doi_identifier'];
+			}
 
 			// Get the files of the release.
 			$sqlFile = "SELECT ff.filename AS filename, " .
@@ -163,7 +169,9 @@ function getFrsPackagesInfo($groupId, $pubSql) {
 				$fileInfo['filelocation'] = $theFile['filelocation'];
 				$fileInfo['not_doc'] = $theFile['not_doc'];
 				$fileInfo['doi'] = $theFile['doi'];
-				$fileInfo['doi_identifier'] = $theFile['doi_identifier'];
+				if (isset($theFile['doi_identifier'])) {
+					$fileInfo['doi_identifier'] = $theFile['doi_identifier'];
+				}
 
 				$arrFiles[] = $fileInfo;
 			}
@@ -178,6 +186,9 @@ function getFrsPackagesInfo($groupId, $pubSql) {
 			$releaseInfo["release_date"] = $releaseDate;
 			$releaseInfo["status_id"] = $releaseStatus;
 			$releaseInfo["doi"] = $releaseDoi;
+			if (isset($releaseDoiIdentifier)) {
+				$releaseInfo["doi_identifier"] = $releaseDoiIdentifier;
+			}
 			$releaseInfo["files"] = $arrFiles;
 			// Preserve release info order when keeping 
 			// in array of releases, lastest first.
@@ -229,6 +240,9 @@ function getFrsPackagesInfo($groupId, $pubSql) {
 		$packageInfo["is_public"] = $packageIsPublic;
 		$packageInfo["openlatest"] = $packageOpenLatest;
 		$packageInfo["doi"] = $packageDoi;
+		if (isset($packageDoiIdentifier)) {
+			$packageInfo["doi_identifier"] = $packageDoiIdentifier;
+		}
 		$packageInfo["releases"] = $arrReleases;
 		$packageInfo["citations"] = $arrCitations;
 		$packageInfo["countCitations"] = $cntCites;
