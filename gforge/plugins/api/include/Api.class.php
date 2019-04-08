@@ -59,13 +59,6 @@ function json($data) {
 
 function retrieve() {
 
-   /*
-   $api_key = getStringFromRequest('key');
-   $user_id = getStringFromRequest('userid');
-   $group_id = getStringFromRequest('groupid');
-   $section = getStringFromRequest('s');
-   $action = getStringFromRequest('action');	   */
-
    $user_id = 0;
    $group_id = 0;
 
@@ -176,7 +169,6 @@ function getProjectUsers($group_id) {
        $data_arr[] = $data_item;
    }
 
-   //$this->json($data);
    $this->json($data_arr);
 }
 
@@ -196,7 +188,6 @@ function getActiveUsers() {
 
     }
 
-//$this->json($data);
 $this->json($data_arr);
 }
 
