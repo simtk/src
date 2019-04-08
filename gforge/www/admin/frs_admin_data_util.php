@@ -2,9 +2,9 @@
 
 /**
  *
- * frs_data_util.php
+ * frs_admin_data_util.php
  * 
- * Process file downloads database data.
+ * Process file downloads administration database data.
  *
  * Copyright 2005-2019, SimTK Team
  *
@@ -32,17 +32,6 @@
  * <http://www.gnu.org/licenses/>.
  */ 
  
-// Get the number of files in all releases.
-function getNumOfFilesInReleases($theReleases) {
-	$numFiles = 0;
-	foreach ($theReleases as $idxRel=>$releaseInfo) {
-		$theFiles = $releaseInfo["files"];
-		$numFiles += count($theFiles);
-	}
-
-	return $numFiles;
-}
-
 // Get the number of files in the latest release.
 function getNumOfFilesInLatestRelease($theReleases) {
 	// Find the number of files in the latest release.
@@ -82,19 +71,10 @@ function getFrsPackagesInfo($groupId, $pubSql) {
 
 	$arrPackages = array();
 
-	if ($pubSql == "") {
-		// Public packages first, then private packages.
-		// Hidden packages are not shown.
-		$sqlPackage = "SELECT * FROM frs_package " .
-			"WHERE group_id=$1 AND status_id=1 " .
-			"ORDER BY simtk_rank, is_public DESC, name";
-	}
-	else {
-		$sqlPackage = "SELECT * FROM frs_package " .
-			"WHERE group_id=$1 AND status_id=1 " .
-			"$pubSql " .
-			"ORDER BY simtk_rank, name";
-	}
+	// Public packages first, then private packages, then hidden packages.
+	$sqlPackage = "SELECT * FROM frs_package " .
+		"WHERE group_id=$1 " .
+		"ORDER BY status_id, is_public DESC, name";
 	$resPackage = db_query_params($sqlPackage, array($groupId));
 	$numPackages = db_numrows($resPackage);
 
@@ -109,27 +89,16 @@ function getFrsPackagesInfo($groupId, $pubSql) {
 		$packageLogo = $thePackage['simtk_logo_file'];
 		$packageStatusId = $thePackage['status_id'];
 		$packageIsPublic = $thePackage['is_public'];
-		$packageUseAgreement = $thePackage['simtk_use_agreement'];
 		$packageOpenLatest = $thePackage['simtk_openlatest'];
-		$packageShowDownloadButton = $thePackage['simtk_show_download_button'];
 		$packageDoi = $thePackage['doi'];
 		if (isset($thePackage['doi_identifier'])) {
 			$packageDoiIdentifier = $thePackage['doi_identifier'];
 		}
 
 		// Get the releases of the package.
-		if ($pubSql == "") {
-			// Visible releases first, then hidden releases.
-			$sqlRelease = "SELECT * FROM frs_release " .
-				"WHERE package_id=$1 " .
-				"ORDER BY status_id, release_date DESC, name ASC";
-		}
-		else {
-			$sqlRelease = "SELECT * FROM frs_release " .
-				"WHERE package_id=$1 AND status_id=1 " .
-				"ORDER BY release_date DESC, name ASC";
-		}
-
+		$sqlRelease = "SELECT * FROM frs_release " .
+			"WHERE package_id=$1 " .
+			"ORDER BY status_id, release_date DESC, name ASC";
 		$resRelease = db_query_params($sqlRelease, array($packageId));
 		$numReleases = db_numrows($resRelease);
 
@@ -147,10 +116,10 @@ function getFrsPackagesInfo($groupId, $pubSql) {
 			$releaseChanges = $theRelease['changes'];
 			$releaseDesc = $theRelease['simtk_description'];
                		$releaseDate = $theRelease['release_date'];
-               		$releaseStatus = $theRelease['status_id'];
-               		$releaseDoi = $theRelease['doi'];
+			$releaseStatus = $theRelease['status_id'];
+			$releaseDoi = $theRelease['doi'];
 			if (isset($theRelease['doi_identifier'])) {
-               			$releaseDoiIdentifier = $theRelease['doi_identifier'];
+				$releaseDoiIdentifier = $theRelease['doi_identifier'];
 			}
 
 			// Get the files of the release.
@@ -164,7 +133,6 @@ function getFrsPackagesInfo($groupId, $pubSql) {
 				"ff.simtk_description AS description, " .
 				"ff.simtk_filetype AS simtk_filetype, " .
 				"ff.simtk_filelocation AS filelocation, " .
-				"ff.simtk_show_agreement AS show_agreement, " .
 				"ff.doi AS doi, " .
 				"ff.doi_identifier AS doi_identifier, " .
 				"(ffv.filetype != 'Documentation') AS not_doc, " .
@@ -175,6 +143,7 @@ function getFrsPackagesInfo($groupId, $pubSql) {
 				"ON ff.file_id=ffv.file_id " .
 				"WHERE ff.release_id=$1 " .
 				"ORDER BY not_doc desc, rank, filename_header desc";
+
 			$resFile = db_query_params($sqlFile, array($releaseId));
 			$numFiles = db_numrows($resFile);
 
@@ -199,7 +168,6 @@ function getFrsPackagesInfo($groupId, $pubSql) {
 				$fileInfo['simtk_filetype'] = $theFile['simtk_filetype'];
 				$fileInfo['filelocation'] = $theFile['filelocation'];
 				$fileInfo['not_doc'] = $theFile['not_doc'];
-				$fileInfo['show_agreement'] = $theFile['show_agreement'];
 				$fileInfo['doi'] = $theFile['doi'];
 				if (isset($theFile['doi_identifier'])) {
 					$fileInfo['doi_identifier'] = $theFile['doi_identifier'];
@@ -270,9 +238,7 @@ function getFrsPackagesInfo($groupId, $pubSql) {
 		$packageInfo["logo"] = $packageLogo;
 		$packageInfo["status_id"] = $packageStatusId;
 		$packageInfo["is_public"] = $packageIsPublic;
-		$packageInfo["use_agreement"] = $packageUseAgreement;
 		$packageInfo["openlatest"] = $packageOpenLatest;
-		$packageInfo["show_download_button"] = $packageShowDownloadButton;
 		$packageInfo["doi"] = $packageDoi;
 		if (isset($packageDoiIdentifier)) {
 			$packageInfo["doi_identifier"] = $packageDoiIdentifier;
@@ -280,7 +246,7 @@ function getFrsPackagesInfo($groupId, $pubSql) {
 		$packageInfo["releases"] = $arrReleases;
 		$packageInfo["citations"] = $arrCitations;
 		$packageInfo["countCitations"] = $cntCites;
-		$packageInfo["countNonCitations"] = $cntNonCites;
+		$packageInfo["countNonCitations"] = $cntNonCites;		
 		$arrPackages[] = $packageInfo;
 	}
 
@@ -294,13 +260,13 @@ function debugPackages($thePackages) {
 		$packId = $packageInfo["package_id"];
 		$theReleases = $packageInfo["releases"];
 
-		echo "p:" . $packId . "<br/>\n";
+		echo "<br/>*** package_id:" . $packId . "<br/>\n";
 		foreach ($theReleases as $idxRel=>$releaseInfo) {
 
 			$relId = $releaseInfo["release_id"];
 			$theFiles = $releaseInfo["files"];
 
-			echo "r:" . $relId . "<br/>\n";
+			echo "release_id (package_id=" . $packId . "):" . $relId . "<br/>\n";
 			foreach ($theFiles as $idxFile=>$fileInfo) {
 
 				foreach ($fileInfo as $key=>$val) {

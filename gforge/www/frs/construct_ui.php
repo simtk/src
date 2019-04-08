@@ -6,7 +6,7 @@
  * 
  * Construct UI for downloads display.
  *
- * Copyright 2005-2018, SimTK Team
+ * Copyright 2005-2019, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -168,6 +168,7 @@ function constructPackageUI($HTML, $groupId, $groupObj, $packageInfo,
 	$packName = $packageInfo["name"];
 	$packDesc = $packageInfo["description"];
 	$packLogo = $packageInfo["logo"];
+	$packDoi = $packageInfo["doi"];
 
 	// Set up FRSPackage for package.
 	$frsPackage = new FRSPackage($groupObj, $packId);
@@ -210,6 +211,18 @@ function constructPackageUI($HTML, $groupId, $groupObj, $packageInfo,
 		}
 	}
 	echo "</div>"; // download_title
+
+	if (isset($packageInfo["doi_identifier"])) {
+		$packDoiIdentifier = $packageInfo["doi_identifier"];
+	}
+	if ($packDoi) {
+		// Package has requested DOI.
+		if (empty($packDoiIdentifier)) {
+			$packDoiIdentifier = " pending";
+		}
+		echo '<div class="download_details">doi:' . $packDoiIdentifier . '</div>';
+	}
+
 	echo "<div class='download_description'>" . $packDesc . "</div>";
 	echo "</div>"; // wrapper_text
 	echo "</div>"; // project_representation
@@ -333,7 +346,17 @@ function constructReleaseUI($HTML, $groupId, $groupObj,
 	$relNotes = $releaseInfo["notes"];
 	$relChanges = $releaseInfo["changes"];
 	$relDesc = $releaseInfo["description"];
-	$relDate = $releaseInfo['release_date'];
+	$relDate = $releaseInfo["release_date"];
+	$relDoi = $releaseInfo["doi"];
+	if (isset($releaseInfo["doi_identifier"])) {
+		$relDoiIdentifier = $releaseInfo["doi_identifier"];
+	}
+	if ($relDoi) {
+		if (empty($relDoiIdentifier)) {
+			$relDoiIdentifier = " pending";
+		}
+		echo '<div class="download_details">doi:' . $relDoiIdentifier . '</div>';
+	}
 
 	// Check if the release contains URLs only.
 	$isURLsOnly = checkURLsOnly($releaseInfo);
@@ -578,20 +601,22 @@ function constructFileUI($groupId, $release_id,
 
 	$packId = $packageInfo["package_id"];
 
-	$fileId = $fileInfo['file_id'];
-	$fileName = $fileInfo['filename'];
-	$fileTime = $fileInfo['release_time'];
-	$fileSize = $fileInfo['file_size'];
-	$fileDownloads = $fileInfo['downloads'];
-	$fileProcessor = $fileInfo['processor'];
-	$fileFileType = $fileInfo['filetype'];
-	$filenameHeader = $fileInfo['filename_header'];
-	$fileDescription = $fileInfo['description'];
-	$simtkFileType = $fileInfo['simtk_filetype'];
-	$fileLocation = $fileInfo['filelocation'];
-	$not_doc = $fileInfo['not_doc'];
-	$doi = $fileInfo['doi'];
-	$doi_identifier = $fileInfo['doi_identifier'];
+	$fileId = $fileInfo["file_id"];
+	$fileName = $fileInfo["filename"];
+	$fileTime = $fileInfo["release_time"];
+	$fileSize = $fileInfo["file_size"];
+	$fileDownloads = $fileInfo["downloads"];
+	$fileProcessor = $fileInfo["processor"];
+	$fileFileType = $fileInfo["filetype"];
+	$filenameHeader = $fileInfo["filename_header"];
+	$fileDescription = $fileInfo["description"];
+	$simtkFileType = $fileInfo["simtk_filetype"];
+	$fileLocation = $fileInfo["filelocation"];
+	$not_doc = $fileInfo["not_doc"];
+	$fileDoi = $fileInfo["doi"];
+	if (isset($fileInfo["doi_identifier"])) {
+		$fileDoiIdentifier = $fileInfo["doi_identifier"];
+	}
 
 	// Generate label for file size (in bytes, KB, or MB).
 	$strFileSize = $fileSize;
@@ -640,11 +665,11 @@ function constructFileUI($groupId, $release_id,
 		echo '<div class="download_size">' . $strFileSize . '</div>';
 		echo '<div class="download_details">' . $fileProcessor . '</div>';
 		echo '<div class="download_details">' . $fileFileType . '</div>';
-		if ($doi) {
-			if (empty($doi_identifier)) {
-				$doi_identifier = " pending";
+		if ($fileDoi) {
+			if (empty($fileDoiIdentifier)) {
+				$fileDoiIdentifier = " pending";
 			}
-			echo '<div class="download_details">doi:' . $doi_identifier . '</div>';
+			echo '<div class="download_details">doi:' . $fileDoiIdentifier . '</div>';
 		}
 		echo '<div class="download_text">' . $fileDescription . '</div>';
 
@@ -685,11 +710,11 @@ function constructFileUI($groupId, $release_id,
 		}
 		echo '<div class="download_date">' . date('M d, Y', $fileTime) . '</div>';
 		echo '<div style="clear:both"></div>';
-		if ($doi) {
-			if (empty($doi_identifier)) {
-				$doi_identifier = " pending";
+		if ($fileDoi) {
+			if (empty($fileDoiIdentifier)) {
+				$fileDoiIdentifier = " pending";
 			}
-			echo '<div class="download_size">doi:' . $doi_identifier . '</div>';
+			echo '<div class="download_size">doi:' . $fileDoiIdentifier . '</div>';
 		}
 		echo '<div class="download_text">' . $fileDescription . '</div>';
 		if ($simtkFileType == "GitHubArchive" && $fileSize == 0) {
