@@ -6,7 +6,7 @@
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * http://fusionforge.org/
- * Copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -206,10 +206,6 @@ if (getStringFromRequest('submit')) {
 				$file_desc, $disp_name, $doi, $user_id);
 			if ($ret === true) {
 				if ($doi) {
-					// set doi for release
-					$frsr->setDoi($doi);
-					// set doi for package
-					$frsp->setDoi($doi);
 					$doi_confirm = 1;
 
 					$real_name = $user->getRealName();
