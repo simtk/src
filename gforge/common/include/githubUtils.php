@@ -6,7 +6,7 @@
  * 
  * Utilities to retrieve GitHub information.
  *
- * Copyright 2005-2017, SimTK Team
+ * Copyright 2005-2019, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -65,8 +65,9 @@ function getGitHubData($url) {
 	// NOTE: Need to set user_agent; otherwise, URL access is forbidden.
 	ini_set('user_agent','Mozilla/4.0 (compatible; MSIE 6.0)');
 
-	$response = file_get_contents($url);
-	if ($response == null || trim($response) == "") {
+	// Suppress warning in case the URL cannot be accessed.
+	$response = @file_get_contents($url);
+	if ($response == false || trim($response) == "") {
 		// Error, or data not ready from GitHub yet.
 		return null;
 	}

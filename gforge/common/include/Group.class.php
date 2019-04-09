@@ -10,7 +10,7 @@
  * Copyright 2010-2012, Alain Peyrat - Alcatel-Lucent
  * Copyright 2012-2013, Franck Villaume - TrivialDev
  * Copyright 2013, French Ministry of National Education
- * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -3894,11 +3894,15 @@ class Group extends Error {
         }
 
 
-	// Get history from group_history and other modules.
-        function getHistory() {
+	// Update group_history table with the date that project was last updated.
+	function updateLastUpdate() {
 
-		// group_history.
-                $strQuery = "(" .
+		// Look up history to get last updated date.
+
+		$strQuery = "SELECT adddate FROM (";
+
+		// Check group_history table first.
+		$strQuery .= "(" .
 			"SELECT gh.adddate AS adddate " .
 			"FROM group_history gh " .
 			"WHERE group_id=" . $this->getID() .
@@ -4004,9 +4008,76 @@ class Group extends Error {
 			") ";
 
 		// Sort with latest first and select the latest.
-		$strQuery .= "ORDER BY adddate DESC LIMIT 1";
+		// NOTE: Do not include adddate that is null in search.
+		$strQuery .= ") subq " .
+			"WHERE adddate is not null " .
+			"ORDER BY adddate DESC LIMIT 1";
 
-                return db_query_params($strQuery, array());
+		// Get the date.
+		$lastUpdated = false;
+		$res = db_query_params($strQuery, array());
+		$rows = db_numrows($res);
+		if ($rows > 0) {
+			$lastUpdated = db_result($res, 0, 'adddate');
+		}
+		db_free_result($res);
+
+
+		if ($lastUpdated !== false) {
+			// Insert date if not exists.
+			$strInsert = "INSERT INTO group_history " .
+				"(group_id, field_name, mod_by, adddate) " .
+				"SELECT $1, 'Last Updated', 102, $2 " .
+				"WHERE NOT EXISTS " .
+				"(SELECT 1 FROM group_history " .
+				"WHERE group_id=$1 " .
+				"AND field_name='Last Updated') ";
+			$resInsert = db_query_params($strInsert, 
+				array($this->getID(), $lastUpdated));
+			if (!$resInsert || db_affected_rows($resInsert) < 1) {
+
+				// Update date if not exists.
+				$strUpdate = "UPDATE group_history SET " .
+					"mod_by=102, " .
+					"adddate=$2 " .
+					"WHERE group_id=$1 " .
+					"AND field_name='Last Updated' " .
+					"AND adddate<$2 ";
+				$resUpdate = db_query_params($strUpdate, 
+					array($this->getID(), $lastUpdated));
+				if (!$resUpdate || db_affected_rows($resUpdate) < 1) {
+					// The date is present already.
+				}
+			}
+		}
+	}
+
+
+	// Get history from group_history and other modules.
+        function getHistory() {
+
+		/*
+
+		// NOTE: DO NOT UPDATE group_history here to get
+		// consistent result as search.
+		// Hence, date shown is up to date as of the last run of
+		// the cronjob that picks up the project last updated date.
+
+		// Update/insert the last updated date to group_history table.
+		//$this->updateLastUpdate();
+
+		*/
+
+		// Return the most recent entry from the group_history table.
+		// NOTE: Do not include adddate that is null in search.
+		$res = db_query_params("SELECT adddate FROM group_history " .
+			"WHERE group_id=$1 " .
+			"ORDER BY adddate DESC LIMIT 1",
+			array($this->getID())
+		);
+
+                return $res;
+
         }
 
 

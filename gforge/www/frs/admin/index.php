@@ -9,7 +9,7 @@
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * http://fusionforge.org/
- * Copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -268,6 +268,31 @@ if (getStringFromRequest('submit')) {
 		if ($sure && $really_sure) {
 			if (!$frsf->cancelDOI()) {
 				exit_error($frsf->getErrorMessage(), 'frs');
+			}
+			else {
+				$feedback .= 'DOI Request Canceled.';
+			}
+		}
+		else {
+			$error_msg .= 'DOI request not canceled: you did not check “I am Sure”';
+		}
+	}
+	elseif ($func=='cancel_package_doi' && $package_id) {
+		$sure = getStringFromRequest('sure');
+		$really_sure = getStringFromRequest('really_sure');
+
+		//  Get package.
+		$frsp = new FRSPackage($cur_group_obj, $package_id);
+		if (!$frsp || !is_object($frsp)) {
+			exit_error(_('Could Not Get FRS Package'), 'frs');
+		}
+		elseif ($frsp->isError()) {
+			exit_error($frsp->getErrorMessage(), 'frs');
+		}
+
+		if ($sure && $really_sure) {
+			if (!$frsp->cancelDOI()) {
+				exit_error($frsp->getErrorMessage(), 'frs');
 			}
 			else {
 				$feedback .= 'DOI Request Canceled.';
