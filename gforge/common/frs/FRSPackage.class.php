@@ -7,7 +7,7 @@
  * Copyright (C) 2011-2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2011, Franck Villaume - Capgemini
  * Copyright 2012-2013, Franck Villaume - TrivialDev
- * Copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -1076,16 +1076,154 @@ class FRSPackage extends Error {
 		return true;
 	}
 
-	function setDoi($doi=1) {
-	   
-	   db_begin();
+	// Check if this package, or releases in this package,
+	// or files in this package have DOI assigned.
+	function hasDOIIdentifier() {
+
+		// Look at this package.
+		$res = db_query_params("SELECT doi_identifier FROM frs_package " .
+			"WHERE package_id=$1 " .
+			"AND doi_identifier IS NOT NULL ",
+			array($this->getId())
+		);
+		if (!$res || db_numrows($res) > 0) {
+			// DOI has been assigned.
+			// Do not need to look further.
+			return true;
+		}
+
+		// Look at releases.
+		$res = db_query_params("SELECT fr.doi_identifier AS doi_identifier FROM frs_release fr " .
+			"JOIN frs_package fp ON fr.package_id=fp.package_id " .
+			"WHERE fp.package_id=$1 " .
+			"AND fr.doi_identifier IS NOT NULL ",
+			array($this->getId())
+		);
+		if (!$res || db_numrows($res) > 0) {
+			// At least 1 of the releases has DOI assigned.
+			// Do not need to look further.
+			return true;
+		}
+
+		// Look at files.
+		$res = db_query_params("SELECT ff.doi_identifier AS doi_identifier FROM frs_file ff " .
+			"JOIN frs_release fr ON ff.release_id=fr.release_id " .
+			"JOIN frs_package fp ON fr.package_id=fp.package_id " .
+			"WHERE fp.package_id=$1 " .
+			"AND ff.doi_identifier IS NOT NULL ",
+			array($this->getId())
+		);
+		if (!$res || db_numrows($res) > 0) {
+			// At least 1 of the files has DOI assigned.
+			return true;
+		}
+
+		return false;
+	}
+
+	// Check if this package, or releases in this package,
+	// or files in this package have DOI association.
+	function hasDOI() {
+
+		$isDOIPresent = false;
+
+		// Look at this package.
+		if ($this->isDOI()) {
+			// This package has DOI association.
+			// Do not need to look further.
+			return true;
+		}
+
+		// Look at releases.
+		$res = db_query_params("SELECT fr.doi AS doi FROM frs_release fr " .
+			"JOIN frs_package fp ON fr.package_id=fp.package_id " .
+			"WHERE fp.package_id=$1 ",
+			array($this->getId())
+		);
+		if (!$res || db_numrows($res) > 0) {
+			while ($arr = db_fetch_array($res)) {
+				if (isset($arr["doi"]) && $arr["doi"] == 1) {
+					$isDOIPresent = true;
+					break;
+				}
+			}
+		}
+		if ($isDOIPresent) {
+			// At least 1 of the releases has DOI association.
+			// Do not need to look further.
+			return true;
+		}
+
+		// Look at files.
+		$res = db_query_params("SELECT ff.doi AS doi FROM frs_file ff " .
+			"JOIN frs_release fr ON ff.release_id=fr.release_id " .
+			"JOIN frs_package fp ON fr.package_id=fp.package_id " .
+			"WHERE fp.package_id=$1 ",
+			array($this->getId())
+		);
+		if (!$res || db_numrows($res) > 0) {
+			while ($arr = db_fetch_array($res)) {
+				if (isset($arr["doi"]) && $arr["doi"] == 1) {
+					$isDOIPresent = true;
+					break;
+				}
+			}
+		}
+
+		return $isDOIPresent;
+	}
+	
+	// Get doi status of package.
+	function isDOI() {
+		$doi = false;
+		$res = db_query_params('SELECT doi FROM frs_package ' .
+			'WHERE package_id=$1',
+			array($this->getId())
+		);
+		if (!$res || db_numrows($res) > 0) {
+			while ($arr = db_fetch_array($res)) {
+				$doi = $arr['doi'];
+			}
+		}
+
+		return $doi;
+	}
+	
+	// Cancel the DOI request.
+	function cancelDOI() {
+		if (!forge_check_perm ('frs', $this->Group->getID(), 'write')) {
+			$this->setPermissionDeniedError();
+			return false;
+		}
+
+		$result = db_query_params("UPDATE frs_package " .
+			"SET doi=0 " .
+			"WHERE package_id=$1 " .
+			"AND doi_identifier IS NULL " .
+			"AND doi=1",
+			array($this->getID())
+		);
+		if (!$result || db_affected_rows($result) < 1) {
+			$this->setError("Cannot cancel the DOI request.");
+			return false;
+		}
+		else {
+			return true;
+		}
+	}
+
+	function setDoi($user_id, $doi=1) {
+
+		db_begin();
 
 		$res = db_query_params('UPDATE frs_package SET 
-			doi=$1
-			WHERE package_id=$2',
-		    array(
-			  $doi,
-			  $this->getID()
+			package_user_id=$1,
+			doi=$2
+			WHERE package_id=$3',
+			array(
+				$user_id,
+				$doi,
+				$this->getID()
 			)
 		);
 
@@ -1096,8 +1234,8 @@ class FRSPackage extends Error {
 		}
 
 		db_commit();
+
 		return true;
-		
 	}
 	
 }

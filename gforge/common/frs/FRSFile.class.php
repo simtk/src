@@ -6,7 +6,7 @@
  * Copyright 2009, Roland Mas
  * Copyright 2012-2013, Franck Villaume - TrivialDev
  * Copyright (C) 2012 Alain Peyrat - Alcatel-Lucent
- * Copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -671,34 +671,6 @@ class FRSFile extends Error {
 			return false;
 		}
 		else {
-			// Update release.
-			$releaseHasDOI = false;
-			$arrOtherFilesInRelease = $this->FRSRelease->getFiles();
-			foreach ($arrOtherFilesInRelease as $otherFile) {
-				if ($otherFile->isDOI()) {
-					$releaseHasDOI = true;
-					break;
-				}
-			}
-			if ($releaseHasDOI === false) {
-				// No other file in release has DOI. Reset DOI to 0.
-				$this->FRSRelease->setDoi(0);
-			}
-
-			// Update package
-			$packageHasDOI = false;
-			$arrOtherReleasesInPackage = $this->FRSRelease->FRSPackage->getReleases();
-			foreach ($arrOtherReleasesInPackage as $otherRelease) {
-				if ($otherRelease->isDOI()) {
-					$packageHasDOI = true;
-					break;
-				}
-			}
-			if ($packageHasDOI === false) {
-				// No other release in package has DOI. Reset DOI to 0.
-				$this->FRSRelease->FRSPackage->setDoi(0);
-			}
-
 			return true;
 		}
 	}

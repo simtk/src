@@ -6,7 +6,7 @@
  * 
  * Construct UI for downloads administration.
  *
- * Copyright 2005-2018, SimTK Team
+ * Copyright 2005-2019, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -114,6 +114,10 @@ function constructPackageUI($HTML, $groupId, $groupObj, $packageInfo,
 	$packDesc = $packageInfo["description"];
 	$packLogo = $packageInfo["logo"];
 	$packDoi = $packageInfo["doi"];
+	if (isset($packageInfo["doi_identifier"])) {
+		$packDoiIdentifier = $packageInfo["doi_identifier"];
+	}
+	$packObj = frspackage_get_object($packId);
 
 	// Set up FRSPackage for package.
 	$frsPackage = new FRSPackage($groupObj, $packId);
@@ -155,9 +159,30 @@ function constructPackageUI($HTML, $groupId, $groupObj, $packageInfo,
 		}
 	}
 	echo "</div>"; // download_title
+
+	if ($packDoi) {
+		$strCancelPackageDoiLink = "/frs/admin/cancelPackageDoi.php?" .
+			"group_id=" . $groupId . 
+			"&package_id=" . $packId;
+		if (empty($packDoiIdentifier)) {
+			echo 'doi: pending&nbsp;<a style="background-color:#81a5d4; color:#ffffff; font-size:14px;" ' .
+				'title="Click to cancel DOI request" href="' .
+				$strCancelPackageDoiLink .
+				'">&nbsp;X&nbsp;</a>';
+		}
+		else {
+			echo "<span>doi:" . $packDoiIdentifier . "</span>";
+		}
+	}
+
 	echo "<div class='download_description'>" . $packDesc . "</div>";
 	echo "</div>"; // wrapper_text
 	echo "</div>"; // project_representation
+
+	if ($packDoi) {
+		// Do not show the package buttons.
+		return;
+	}
 
 	// Update package.
 	$strEditPackageLink = "/frs/admin/editpackage.php?" .
@@ -167,11 +192,12 @@ function constructPackageUI($HTML, $groupId, $groupObj, $packageInfo,
 		'<a class="btn-blue" href="' . $strEditPackageLink . '">' .
 		'Update Package</a></span>&nbsp';
 
-	// Delete package.
-	$strDeletePackageLink = "/frs/admin/deletepackage.php?" .
-		"group_id=" . $groupId . 
-		"&package_id=" . $packId;
-	if (!$packDoi) {
+	// Check if the package (itself, its releases, or files) has any DOI assigned.
+	if (!$packObj->hasDOIIdentifier()) {
+		// Delete package.
+		$strDeletePackageLink = "/frs/admin/deletepackage.php?" .
+			"group_id=" . $groupId . 
+			"&package_id=" . $packId;
 		echo '<span class="download_btn">' .
 			'<a class="btn-blue" href="' . $strDeletePackageLink . '">' .
 			'Delete Package</a></span>&nbsp';
@@ -192,6 +218,14 @@ function constructPackageUI($HTML, $groupId, $groupObj, $packageInfo,
 	echo '<span class="download_btn">' .
 		'<a class="btn-blue" href="' . $strAddCitationLink . '">' .
 		'Add Citation</a></span>&nbsp';
+
+	// Obtain DOI.
+	$strObtainPackDoiLink = "/frs/admin/obtainPackageDoi.php?" .
+		"group_id=" . $groupId . 
+		"&package_id=" . $packId;
+	echo '<span class="download_btn">' .
+		'<a class="btn-blue" href="' . $strObtainPackDoiLink . '">' .
+		'Obtain Package DOI</a></span>&nbsp';
 }
 
 
@@ -228,10 +262,14 @@ function closePackageUI($packageInfo) {
 		echo '</div>';
 	}
 
-	//
-	if ($packageInfo["doi"]) {
-	  echo '<br />';
-	  echo '<a href="#" data-toggle="popover" data-placement="right" data-trigger="hover" title="DOI" data-content="This package has one or more DOIs associated with it and can no longer be deleted. Release files associated with a DOI also cannot be updated or deleted.">Warning: DOI Association</a>';
+	// Get package object.
+	$packId = $packageInfo["package_id"];
+	$packObj = frspackage_get_object($packId);
+
+	// Check if the package (itself, its releases, or files) has any DOI association.
+	if ($packObj->hasDOI()) {
+		echo '<br />';
+		echo '<a href="#" data-toggle="popover" data-placement="right" data-trigger="hover" title="DOI" data-content="This package has one or more DOIs associated with it and can no longer be deleted. Release files associated with a DOI also cannot be updated or deleted.">Warning: DOI Association</a>';
 	}
 	// Close "download_package" div.
 	echo '</div>';
@@ -242,6 +280,7 @@ function closePackageUI($packageInfo) {
 function listCitations($groupId, $packageInfo) {
 
 	$packId = $packageInfo["package_id"];
+	$packDoi = $packageInfo["doi"];
 	$arrCitations = $packageInfo["citations"];
 	$numCitations = count($arrCitations);
 
@@ -266,22 +305,24 @@ function listCitations($groupId, $packageInfo) {
 					}
 					echo '</td>';
 
-					$citationId = $citeInfo["citation_id"];
-					$strUpdateCitationLink = "/frs/admin/editcitation.php?" .
-						"group_id=" . $groupId . 
-						"&package_id=" . $packId . 
-						"&citation_id=" . $citationId;
-					$strDeleteCitationLink = "/frs/admin/deletecitation.php?" .
-						"group_id=" . $groupId . 
-						"&package_id=" . $packId . 
-						"&citation_id=" . $citationId;
+					if (!$packDoi) {
+						$citationId = $citeInfo["citation_id"];
+						$strUpdateCitationLink = "/frs/admin/editcitation.php?" .
+							"group_id=" . $groupId . 
+							"&package_id=" . $packId . 
+							"&citation_id=" . $citationId;
+						$strDeleteCitationLink = "/frs/admin/deletecitation.php?" .
+							"group_id=" . $groupId . 
+							"&package_id=" . $packId . 
+							"&citation_id=" . $citationId;
 
-					echo '<td><span class="download_btn">' .
-						'<a class="btn-blue" href="' . $strUpdateCitationLink . '">' .
-						'Update</a></span></td>';
-					echo '<td><span class="download_btn">' .
-						'<a class="btn-blue" href="' . $strDeleteCitationLink . '">' .
-						'Delete</a></span></td>';
+						echo '<td><span class="download_btn">' .
+							'<a class="btn-blue" href="' . $strUpdateCitationLink . '">' .
+							'Update</a></span></td>';
+						echo '<td><span class="download_btn">' .
+							'<a class="btn-blue" href="' . $strDeleteCitationLink . '">' .
+							'Delete</a></span></td>';
+					}
 
 					echo '</tr>';
 				}
@@ -304,22 +345,24 @@ function listCitations($groupId, $packageInfo) {
 					}
 					echo '</td>';
 
-					$citationId = $citeInfo["citation_id"];
-					$strUpdateCitationLink = "/frs/admin/editcitation.php?" .
-						"group_id=" . $groupId . 
-						"&package_id=" . $packId . 
-						"&citation_id=" . $citationId;
-					$strDeleteCitationLink = "/frs/admin/deletecitation.php?" .
-						"group_id=" . $groupId . 
-						"&package_id=" . $packId . 
-						"&citation_id=" . $citationId;
+					if (!$packDoi) {
+						$citationId = $citeInfo["citation_id"];
+						$strUpdateCitationLink = "/frs/admin/editcitation.php?" .
+							"group_id=" . $groupId . 
+							"&package_id=" . $packId . 
+							"&citation_id=" . $citationId;
+						$strDeleteCitationLink = "/frs/admin/deletecitation.php?" .
+							"group_id=" . $groupId . 
+							"&package_id=" . $packId . 
+							"&citation_id=" . $citationId;
 
-					echo '<td><span class="download_btn">' .
-						'<a class="btn-blue" href="' . $strUpdateCitationLink . '">' .
-						'Update</a></span></td>';
-					echo '<td><span class="download_btn">' .
-						'<a class="btn-blue" href="' . $strDeleteCitationLink . '">' .
-						'Delete</a></span></td>';
+						echo '<td><span class="download_btn">' .
+							'<a class="btn-blue" href="' . $strUpdateCitationLink . '">' .
+							'Update</a></span></td>';
+						echo '<td><span class="download_btn">' .
+							'<a class="btn-blue" href="' . $strDeleteCitationLink . '">' .
+							'Delete</a></span></td>';
+					}
 
 					echo '</tr>';
 				}
@@ -337,6 +380,7 @@ function constructReleaseUI($HTML, $groupId, $groupObj,
 
 	$packId = $packageInfo["package_id"];
 	$packName = $packageInfo["name"];
+	$packDoi = $packageInfo["doi"];
 	$frsPackage = new FRSPackage($groupObj, $packId);
 
 	$relId = $releaseInfo["release_id"];
@@ -344,8 +388,11 @@ function constructReleaseUI($HTML, $groupId, $groupObj,
 	$relNotes = $releaseInfo["notes"];
 	$relChanges = $releaseInfo["changes"];
 	$relDesc = $releaseInfo["description"];
-	$relDate = $releaseInfo['release_date'];
-	$relDoi = $releaseInfo['doi'];
+	$relDate = $releaseInfo["release_date"];
+	$relDoi = $releaseInfo["doi"];
+	if (isset($releaseInfo["doi_identifier"])) {
+		$relDoiIdentifier = $releaseInfo["doi_identifier"];
+	}
 
 	// Use package id and release id to identify panel.
 	// Create both class names for package id only and package with release id.
@@ -376,6 +423,12 @@ function constructReleaseUI($HTML, $groupId, $groupObj,
 	}
 	else {
 		echo '<div class="download_subtitle2">RELEASE: ' . $relName . '</div><br/>';
+	}
+
+
+	if ($packDoi) {
+		// Do not show the release buttons.
+		return;
 	}
 
 	// Generate links to edit/delete/arrange specified release.
@@ -578,21 +631,24 @@ function constructFileUI($groupId,
 
 	$relId = $releaseInfo["release_id"];
 	$packId = $packageInfo["package_id"];
+	$packDoi = $packageInfo["doi"];
 
-	$fileId = $fileInfo['file_id'];
-	$fileName = $fileInfo['filename'];
-	$fileTime = $fileInfo['release_time'];
-	$fileSize = $fileInfo['file_size'];
-	$fileDownloads = $fileInfo['downloads'];
-	$fileProcessor = $fileInfo['processor'];
-	$fileFileType = $fileInfo['filetype'];
-	$filenameHeader = $fileInfo['filename_header'];
-	$fileDescription = $fileInfo['description'];
-	$simtkFileType = $fileInfo['simtk_filetype'];
-	$fileLocation = $fileInfo['filelocation'];
-	$not_doc = $fileInfo['not_doc'];
-	$doi = $fileInfo['doi'];
-	$doi_identifier = $fileInfo['doi_identifier'];
+	$fileId = $fileInfo["file_id"];
+	$fileName = $fileInfo["filename"];
+	$fileTime = $fileInfo["release_time"];
+	$fileSize = $fileInfo["file_size"];
+	$fileDownloads = $fileInfo["downloads"];
+	$fileProcessor = $fileInfo["processor"];
+	$fileFileType = $fileInfo["filetype"];
+	$filenameHeader = $fileInfo["filename_header"];
+	$fileDescription = $fileInfo["description"];
+	$simtkFileType = $fileInfo["simtk_filetype"];
+	$fileLocation = $fileInfo["filelocation"];
+	$not_doc = $fileInfo["not_doc"];
+	$fileDoi = $fileInfo["doi"];
+	if (isset($fileInfo["doi_identifier"])) {
+		$fileDoiIdentifier = $fileInfo["doi_identifier"];
+	}
 
 	$tmp_col1 = util_make_link('/frs/download.php/file/' . $fileId . '/' . $fileName, $fileName);
 	$tmp_col2 = date(_('Y-m-d H:i'), $fileTime);
@@ -686,26 +742,31 @@ function constructFileUI($groupId,
 			}
 		}
 	}
-	if (!$doi) {
-		echo '<td><span class="download_btn">' .
-			'<a class="btn-blue" href="' . $strUpdateFileLink . '">' .
-			'Update</a></span></td>';
 
-		echo '<td><span class="download_btn">' .
-			'<a class="btn-blue" href="' . $strDeleteFileLink . '">' .
-			'Delete</a></span></td>';
-	}
-	else {
-		if (empty($doi_identifier)) {
-			echo '<td colspan=2>doi: pending&nbsp;<a style="background-color:#81a5d4; color:#ffffff; font-size:14px;" ' .
-                                'title="Click to cancel DOI request" href="' . 
-				$strCancelDoiLink . 
-				'">&nbsp;X&nbsp;</a></td>';
+	if (!$packDoi) {
+		// DOI has not been requested for package.
+		if (!$fileDoi) {
+			echo '<td><span class="download_btn">' .
+				'<a class="btn-blue" href="' . $strUpdateFileLink . '">' .
+				'Update</a></span></td>';
+
+			echo '<td><span class="download_btn">' .
+				'<a class="btn-blue" href="' . $strDeleteFileLink . '">' .
+				'Delete</a></span></td>';
 		}
 		else {
-			echo "<td colspan=2><span>doi:" . $doi_identifier . "</span></td>";
+			if (empty($fileDoiIdentifier)) {
+				echo '<td colspan=2>doi: pending&nbsp;<a style="background-color:#81a5d4; color:#ffffff; font-size:14px;" ' .
+       	                         'title="Click to cancel DOI request" href="' . 
+					$strCancelDoiLink . 
+					'">&nbsp;X&nbsp;</a></td>';
+			}
+			else {
+				echo "<td colspan=2><span>doi:" . $fileDoiIdentifier . "</span></td>";
+			}
 		}
 	}
+
 	echo "</tr>";
 
 	if ($simtkFileType == "GitHubArchive" && $fileSize == 0) {

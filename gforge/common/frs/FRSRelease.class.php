@@ -5,7 +5,7 @@
  * Copyright 2002, Tim Perdue/GForge, LLC
  * Copyright 2009, Roland Mas
  * Copyright (C) 2012 Alain Peyrat - Alcatel-Lucent
- * Copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -152,7 +152,7 @@ class FRSRelease extends Error {
 			'release_date, released_by, status_id, simtk_description) VALUES ' .
 			'($1,$2,$3,$4,$5,$6,$7,$8,$9)',
 			array(
-				$this->FRSPackage->getId(),
+				$this->FRSPackage->getID(),
 				htmlspecialchars($notes),
 				htmlspecialchars($changes),
 				$preformatted,
@@ -576,12 +576,43 @@ class FRSRelease extends Error {
 		return true;
 	}
 	
+
+	// Check if this release or files in this release have DOI association.
+	function hasDOI() {
+
+		$isDOIPresent = false;
+
+		// Look at this release.
+		if ($this->isDOI()) {
+			// This release has DOI association.
+			// Do not need to look further.
+			return true;
+		}
+
+		// Look at files.
+		$res = db_query_params("SELECT ff.doi AS doi FROM frs_file ff " .
+			"JOIN frs_release fr ON ff.release_id=fr.release_id " .
+			"WHERE fp.release_id=$1 ",
+			array($this->getID())
+		);
+		if (!$res || db_numrows($res) > 0) {
+			while ($arr = db_fetch_array($res)) {
+				if (isset($arr["doi"]) && $arr["doi"] == 1) {
+					$isDOIPresent = true;
+					break;
+				}
+			}
+		}
+
+		return $isDOIPresent;
+	}
+	
 	// Get doi status of release.
 	function isDOI() {
 		$doi = false;
 		$res = db_query_params('SELECT doi FROM frs_release ' .
 			'WHERE release_id=$1',
-			array($this->getId())
+			array($this->getID())
 		);
 		if (!$res || db_numrows($res) > 0) {
 			while ($arr = db_fetch_array($res)) {
@@ -592,13 +623,17 @@ class FRSRelease extends Error {
 		return $doi;
 	}
 	
-	function setDoi($doi=1) {
-	
-	    db_begin();
+	function setDoi($user_id, $doi=1) {
+
+		db_begin();
+
 		$res = db_query_params('UPDATE frs_release SET ' .
-			'doi=$1 ' .
-			'WHERE package_id=$2 AND release_id=$3',
+			'release_user_id=$1, ' .
+			'doi=$2 ' .
+			'WHERE package_id=$3 ' .
+			'AND release_id=$4',
 			array(
+				$user_id,
 				$doi,
 				$this->FRSPackage->getID(),
 				$this->getID()

@@ -6,7 +6,7 @@
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * http://fusionforge.org/
- * Copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -113,14 +113,15 @@ if (getStringFromRequest('submit')) {
 			$packageCustomAgreement,
 			$packageUseAgreement,
 			$packageOpenLatest,
-			$packageShowDownloadButton)) {
+			$packageShowDownloadButton
+			)) {
 
 			// Error updating package.
 			exit_error($frsp->getErrorMessage(), 'frs');
 		}
 		else {
 			// Success.
-			$feedback .= _('Data Saved');
+			$feedback .= "Data Saved";
 
 			// Refresh package object.
 			$frsp = new FRSPackage($group, $package_id);

@@ -5,7 +5,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2012-2014, Franck Villaume - TrivialDev
- * Copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -34,7 +34,9 @@ require_once $gfcommon.'frs/FRSFile.class.php';
 require_once $gfcommon.'frs/include/frs_utils.php';
 require_once $gfwww.'admin/admin_utils.php';
 
-$result_pending = db_query_params("SELECT group_name, filename, doi_identifier, file_user_id, file_id " .
+// File.
+$result_pending_file = db_query_params("SELECT group_name, filename, " .
+	"ff.doi_identifier AS doi_identifier, file_user_id, file_id " .
 	"FROM frs_file ff " .
 	"JOIN frs_release fr " .
 	"ON ff.release_id = fr.release_id " .
@@ -43,9 +45,10 @@ $result_pending = db_query_params("SELECT group_name, filename, doi_identifier, 
 	"JOIN groups g " .
 	"ON g.group_id = fp.group_id " .
 	"WHERE ff.doi = 1 " .
-	"AND doi_identifier is null",
+	"AND ff.doi_identifier is null",
 	array());
-$result_assigned = db_query_params("SELECT group_name, filename, doi_identifier " .
+$result_assigned_file = db_query_params("SELECT group_name, filename, " .
+	"ff.doi_identifier AS doi_identifier " .
 	"FROM frs_file ff " .
 	"JOIN frs_release fr " .
 	"ON ff.release_id = fr.release_id " .
@@ -54,39 +57,74 @@ $result_assigned = db_query_params("SELECT group_name, filename, doi_identifier 
 	"JOIN groups g " .
 	"ON g.group_id = fp.group_id " .
 	"WHERE ff.doi = 1 ".
-	"AND doi_identifier <> '' ",
+	"AND ff.doi_identifier <> '' ",
 	array());
 
-// Update file in release.
+// Package.
+$result_pending_package = db_query_params("SELECT group_name, name, " .
+	"doi_identifier, package_user_id, package_id " .
+	"FROM frs_package fp " .
+	"JOIN groups g " .
+	"ON g.group_id = fp.group_id " .
+	"WHERE fp.doi = 1 " .
+	"AND fp.doi_identifier is null",
+	array());
+$result_assigned_package = db_query_params("SELECT group_name, name, " .
+	"doi_identifier " .
+	"FROM frs_package fp " .
+	"JOIN groups g " .
+	"ON g.group_id = fp.group_id " .
+	"WHERE fp.doi = 1 ".
+	"AND fp.doi_identifier <> '' ",
+	array());
+
+// Update doi_identifier.
 if (getStringFromRequest('submit')) {
-	$file_id = getStringFromRequest('file_id');
-	$doi_identifier = getStringFromRequest('doi_identifier');
+
 	$file_user_id = getStringFromRequest('file_user_id');
-	$filename = getStringFromRequest('filename');
+	$file_id = getStringFromRequest('file_id');
+
+	$package_user_id = getStringFromRequest('package_user_id');
+	$package_id = getStringFromRequest('package_id');
+
+	$doi_identifier = getStringFromRequest('doi_identifier');
 	$group_name = getStringFromRequest('group_name');
 	
-	// Get user
-	//$user = session_get_user(); // get the session user
-	//$user_id = $user->getID();
-	if ($file_user_id) {
+	if (!empty($file_user_id) && !empty($file_id)) {
+		// File.
 		$user = user_get_object($file_user_id);
 		$user_email = $user->getEmail();
+
+		$name = getStringFromRequest('filename');
+
+		$result = db_query_params("UPDATE frs_file " .
+			"SET doi_identifier=$1 " .
+			"WHERE file_id=$2", 
+			array($doi_identifier, $file_id));
 	}
-	
-	$result = db_query_params("UPDATE frs_file " .
-		"SET doi_identifier=$1 " .
-		"WHERE file_id=$2", 
-		array($doi_identifier, $file_id));
+	else if (!empty($package_user_id) && !empty($package_id)) {
+		// Package.
+		$user = user_get_object($package_user_id);
+		$user_email = $user->getEmail();
+
+		$name = getStringFromRequest('name');
+
+		$result = db_query_params("UPDATE frs_package " .
+			"SET doi_identifier=$1 " .
+			"WHERE package_id=$2", 
+			array($doi_identifier, $package_id));
+	}
+
 	if (!$result || db_affected_rows($result) < 1) {
-		$feedback .= sprintf(_('Error On DOI Update: %s'), db_error());
+		$feedback .= sprintf(("Error On DOI Update: %s"), db_error());
 	}
 	else {
 		$feedback .= "DOI Updated";
 		
-		if ($file_user_id) {
+		if ($file_user_id || $package_user_id) {
 			$message = "The DOI has been assigned for the following:\n\n" . 
 				"Project: " . $group_name . 
-				"\nFilename: " . $filename . 
+				"\nFilename: " . $name . 
 				"\nDOI Identifier: " . $doi_identifier;
 			$message .= "\n\nThe information for the DOI citation were based upon the information in your project.  Go to https://doi.org/" . 
 				$doi_identifier . 
@@ -95,12 +133,12 @@ if (getStringFromRequest('submit')) {
 				$doi_identifier . 
 				" (or go to https://search.datacite.org and enter the DOI in the search box).  If you would like to add ORCIDs or funding institutions, or if any of the information needs to be updated, please email us at webmaster@simtk.org.";
 
-			util_send_message($user_email, sprintf(_('DOI Assigned')), $message);
+			util_send_message($user_email, "DOI Assigned", $message);
 		}
 		
 		// refresh query results
-		$result_pending = db_query_params("SELECT group_name, filename, " .
-			"doi_identifier, file_user_id, file_id " .
+		$result_pending_file = db_query_params("SELECT group_name, filename, " .
+			"ff.doi_identifier AS doi_identifier, file_user_id, file_id " .
 			"FROM frs_file ff " .
 			"JOIN frs_release fr " .
 			"ON ff.release_id = fr.release_id " .
@@ -109,9 +147,10 @@ if (getStringFromRequest('submit')) {
 			"JOIN groups g " .
 			"ON g.group_id = fp.group_id " .
 			"WHERE ff.doi = 1 " .
-			"AND doi_identifier is null",
+			"AND ff.doi_identifier is null",
 			array());
-		$result_assigned = db_query_params("SELECT group_name, filename, doi_identifier " .
+		$result_assigned_file = db_query_params("SELECT group_name, filename, " .
+			"ff.doi_identifier AS doi_identifier " .
 			"FROM frs_file ff " .
 			"JOIN frs_release fr " .
 			"ON ff.release_id = fr.release_id " .
@@ -120,78 +159,29 @@ if (getStringFromRequest('submit')) {
 			"JOIN groups g " .
 			"ON g.group_id = fp.group_id " .
 			"WHERE ff.doi = 1 ".
-			"AND doi_identifier <> '' ",
+			"AND ff.doi_identifier <> '' ",
+			array());
+		$result_pending_package = db_query_params("SELECT group_name, name, " .
+			"doi_identifier, package_user_id, package_id " .
+			"FROM frs_package fp " .
+			"JOIN groups g " .
+			"ON g.group_id = fp.group_id " .
+			"WHERE fp.doi = 1 " .
+			"AND fp.doi_identifier is null",
+			array());
+		$result_assigned_package = db_query_params("SELECT group_name, name, " .
+			"doi_identifier " .
+			"FROM frs_package fp " .
+			"JOIN groups g " .
+			"ON g.group_id = fp.group_id " .
+			"WHERE fp.doi = 1 ".
+			"AND fp.doi_identifier <> '' ",
 			array());
 	}
 }
 
 site_admin_header(array('title'=>_('Site Admin')));
-//$title = _('Downloads DOI');
-//$HTML->header(array('title'=>$title));
 ?>
-
-<script>
-	$(document).ready(function() {
-		if ($('#docLink').is(":checked")) {
-			// Disable inputs for File upload.
-			$('.upFile').prop("disabled", true);
-			$('[name="group_list_id"]').prop("disabled", true);
-		}
-		else {
-			// Enable inputs for File upload.
-			$('.upFile').prop("disabled", false);
-			$('[name="group_list_id"]').prop("disabled", false);
-			$('#doi').prop("disabled", false);
-		}
-		$('#docFile').click(function() {
-			// Disable inputs for File upload.
-			$('.upFile').prop("disabled", false);
-			$('[name="group_list_id"]').prop("disabled", false);
-			$('#doi').prop("disabled", false);
-		});
-		$('#docLink').click(function() {
-			// Enable inputs for File upload.
-			$('.upFile').prop("disabled", true);
-			$('#doi').attr('checked', false);
-			$('#doi_info').hide();
-			$('#doi').prop("disabled", true);
-			$('[name="group_list_id"]').prop("disabled", true);
-		});
-
-		$('#collect_info').click(function() {
-			var theValue = $('#collect_info').is(":checked");
-			if (theValue == 0) {
-				$('#use_mail_list').prop('checked', 0);
-				$('#use_mail_list').prop('disabled', true);
-				$('[name="group_list_id"]').prop("disabled", true);
-			}
-			else {
-				$('#use_mail_list').prop('disabled', false);
-				$('[name="group_list_id"]').prop("disabled", false);
-			}
-		});
-		if (!$('#collect_info').is(":checked")) {
-			$('#use_mail_list').prop('checked', 0);
-			$('#use_mail_list').prop('disabled', true);
-			$('[name="group_list_id"]').prop("disabled", true);
-		}
-		$('#doi').change(function() {
-			if (this.checked)
-				//$('#doi_info').fadeIn('slow');
-				$('#doi_info').show();
-			else
-				$('#doi_info').hide();
-		});
-		$("#submit").click(function() {
-			if ($('#doi').is(":checked")) {
-				if (!confirm("Please confirm that you would like the DOI issued.")) {
-					event.preventDefault();
-				}
-			}
-		});
-	});
-
-</script>
 
 <style>
 td {
@@ -211,8 +201,9 @@ td {
 <tr><th>Project Name</th><th>Submitter</th><th>Display Name</th><th>DOI Identifier</th><th></th></tr>
 	
 <?php
-	
-while ($row = db_fetch_array($result_pending)) {
+
+// File.
+while ($row = db_fetch_array($result_pending_file)) {
 	echo "<form action='downloads-doi.php' method='post'>" .
 		"<input type='hidden' name='file_id' value='" . $row['file_id'] . "'>" .
 		"<input type='hidden' name='file_user_id' value='" . $row['file_user_id'] . "'>" .
@@ -235,7 +226,32 @@ while ($row = db_fetch_array($result_pending)) {
 		"</tr>" .
 		"</form>";
 }
-	
+
+// Package.
+while ($row = db_fetch_array($result_pending_package)) {
+	echo "<form action='downloads-doi.php' method='post'>" .
+		"<input type='hidden' name='package_id' value='" . $row['package_id'] . "'>" .
+		"<input type='hidden' name='package_user_id' value='" . $row['package_user_id'] . "'>" .
+		"<input type='hidden' name='name' value='" . $row['name'] . "'>" .
+		"<input type='hidden' name='group_name' value='" . $row['group_name'] . "'>" .
+		"<tr>" .
+		"<td>". $row['group_name'] . "</td>";
+	echo "<td>";
+	if ($row['package_user_id']) {
+		$user = user_get_object($row['package_user_id']);
+		if ($user) {
+			$real_name = $user->getRealName();
+			echo $real_name;
+		}
+	}
+	echo "</td>";
+	echo "<td>" . $row['name'] . "</td>" .
+		"<td><input type='text' name='doi_identifier'></td>" .
+		"<td><input type='submit' name='submit' id='submit' value='Update' class='btn-cta' /></td>" .
+		"</tr>" .
+		"</form>";
+}
+
 ?>
 
 </table>
@@ -246,15 +262,25 @@ while ($row = db_fetch_array($result_pending)) {
 <tr>
 
 <?php
-	
-while ($row = db_fetch_array($result_assigned)) {
+
+// File.
+while ($row = db_fetch_array($result_assigned_file)) {
 	echo "<tr>" .
 		"<td>" . $row['group_name'] . "</td>" .
 		"<td>" . $row['filename'] . "</td>" .
 		"<td>" . $row['doi_identifier'] . "</td>" .
 		"</tr>";
 }
-	
+
+// Package.
+while ($row = db_fetch_array($result_assigned_package)) {
+	echo "<tr>" .
+		"<td>" . $row['group_name'] . "</td>" .
+		"<td>" . $row['name'] . "</td>" .
+		"<td>" . $row['doi_identifier'] . "</td>" .
+		"</tr>";
+}
+
 ?>
 
 </table>
