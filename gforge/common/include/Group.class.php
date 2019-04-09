@@ -4344,7 +4344,7 @@ class Group extends Error {
 				}
 				$oldsettings = $oldrole->getSettingsForProject ($template);
 
-				$sections = array('project_read', 'project_admin', 'frs', 'scm', 'docman', 'tracker_admin', 'new_tracker', 'forum_admin', 'new_forum', 'pm_admin', 'new_pm');
+				$sections = array('project_read', 'project_admin', 'frs', 'datashare', 'scm', 'docman', 'tracker_admin', 'new_tracker', 'forum_admin', 'new_forum', 'pm_admin', 'new_pm');
 				foreach ($sections as $section) {
 					$newrole->setSetting ($section, $this->getID(), $oldsettings[$section][$template->getID()]);
 				}
