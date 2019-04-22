@@ -2,34 +2,34 @@
 /**
  *
  * datashare plugin add.php
- * 
+ *
  * admin page for creating new study.
  *
  * Copyright 2005-2016, SimTK Team
  *
- * This file is part of the SimTK web portal originating from        
- * Simbios, the NIH National Center for Physics-Based               
- * Simulation of Biological Structures at Stanford University,      
- * funded under the NIH Roadmap for Medical Research, grant          
+ * This file is part of the SimTK web portal originating from
+ * Simbios, the NIH National Center for Physics-Based
+ * Simulation of Biological Structures at Stanford University,
+ * funded under the NIH Roadmap for Medical Research, grant
  * U54 GM072970, with continued maintenance and enhancement
- * funded under NIH grants R01 GM107340 & R01 GM104139, and 
- * the U.S. Army Medical Research & Material Command award 
+ * funded under NIH grants R01 GM107340 & R01 GM104139, and
+ * the U.S. Army Medical Research & Material Command award
  * W81XWH-15-1-0232R01.
- * 
+ *
  * SimTK is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as 
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of
  * the License, or (at your option) any later version.
- * 
+ *
  * SimTK is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public 
- * License along with SimTK. If not, see  
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with SimTK. If not, see
  * <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 require_once $gfplugins.'env.inc.php';
 require_once $gfcommon.'include/pre.php';
@@ -63,30 +63,36 @@ if (!$template) {
 
 if (session_loggedin()) {
 
+  /*
 	if (!forge_check_perm('project_admin', $group_id)) {
+		exit_permission_denied(_('You cannot add a new study for a project unless you are an admin on that project.'), 'home');
+	}
+	*/
+	//if (!forge_check_perm('pubs', $group_id, 'project_admin')) {
+	if (!forge_check_perm ('datashare', $group_id, 'write')) {
 		exit_permission_denied(_('You cannot add a new study for a project unless you are an admin on that project.'), 'home');
 	}
 
 	// get Datashare object
 	$study = new Datashare($group_id);
-						
+
 	if (!$study || !is_object($study)) {
 	   exit_error('Error','Could Not Create Study Object');
     } elseif ($study->isError()) {
 	   exit_error($study->getErrorMessage(), 'Datashare Error');
     }
-	
+
 	$templates = $study->getTemplate();
-	
-		
+
+
 	if (getStringFromRequest('post_changes')) {
 		if (!form_key_is_valid(getStringFromRequest('form_key'))) {
 			exit_form_double_submit('datashare');
 		}
-		
+
 	    // add new study
-			
-		
+
+
 
 		if ($insert_result = $study->insertStudy($group_id,$title,$description,$is_private,$template)) {
 		   $feedback = _('Study Added');
@@ -95,17 +101,17 @@ if (session_loggedin()) {
 		   $error_msg = $study->getErrorMessage();
 		   // Extract name(s) of input components which should be flagged.
            $error_msg = retrieveErrorMessages($error_msg, $arrErrors);
-		}				
+		}
 	}
 
-	
+
 
 	/*
 		Show the submit form
 	*/
 	//$group = group_get_object($group_id);
 	datashare_header(array('title'=>'Datashare'),$group_id);
-    
+
 	echo "<div class=\"project_overview_main\">";
     echo "<div style=\"display: table; width: 100%;\">";
     echo "<div class=\"main_col\">";
@@ -131,9 +137,9 @@ if (session_loggedin()) {
 	 });
 
     </script>
-	
+
 	<?php
-	
+
 	echo '<p><span class="required_note">Required fields outlined in blue</span><br />';
 	echo '</p>';
 	echo '
@@ -145,19 +151,19 @@ if (session_loggedin()) {
 		<p>
 		<strong>'._('Title')._(': ').'</strong><br />
 		<input type="text" name="title" class="required" size="60" ';
-	
+
 	echo '/></p>
 		<p>
 		<strong>'._('Description')._(': ').'</strong></p>';
-	
+
 	echo '<textarea name="description" rows="5" cols="50" class="required"></textarea>';
 	echo '<br /><br />';
-	
-	
+
+
 	echo '<p><strong>'._('Data Directory Structure Template')._(': ').'</strong> &nbsp; <a href="https://simtkdata-stage1.stanford.edu/apps/import/metadata.php#using" target="_blank">Learn more</a></p>';
-	
+
 	echo '<p><span class="required_note">Note: This selection cannot be changed once a data study has been created</span><br />';
-	
+
 	echo '<p>Using Subject-Based Template</p>';
 	/*
 	echo '<select name="template">';
@@ -168,19 +174,19 @@ if (session_loggedin()) {
 	echo '<br /><br />';
 	*/
 	echo "<input type='hidden' name='template' value='1'>";
-	
+
 	echo '<br /><p><strong>'._('Publicly Viewable')._(': ').'</strong></p>';
-	  
+
 	echo "<p><input type=\"radio\" name=\"is_private\" value=\"0\" checked> Public - anyone can view and download the data, regardless of whether they are a SimTK member or not";
 	echo "<p><input type=\"radio\" name=\"is_private\" value=\"1\"> Registered User - only SimTK members who are logged into SimTK can view and download the data.";
 	echo "<p><input type=\"radio\" name=\"is_private\" value=\"2\"> Private - only designated members of the project can view and download the data.";
-	
+
 	echo '<div><input type="submit" name="submit" value="'._('Submit').'" class="btn-cta" /></div></div></form>';
 
 	echo "</div>";
 	constructSideBar($group);
 	echo "</div></div>";
-	
+
 	datashare_footer(array());
 
 } else {
