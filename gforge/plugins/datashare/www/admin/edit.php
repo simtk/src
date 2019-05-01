@@ -2,34 +2,34 @@
 /**
  *
  * datashare plugin add.php
- * 
+ *
  * admin page for creating new study.
  *
  * Copyright 2005-2016, SimTK Team
  *
- * This file is part of the SimTK web portal originating from        
- * Simbios, the NIH National Center for Physics-Based               
- * Simulation of Biological Structures at Stanford University,      
- * funded under the NIH Roadmap for Medical Research, grant          
+ * This file is part of the SimTK web portal originating from
+ * Simbios, the NIH National Center for Physics-Based
+ * Simulation of Biological Structures at Stanford University,
+ * funded under the NIH Roadmap for Medical Research, grant
  * U54 GM072970, with continued maintenance and enhancement
- * funded under NIH grants R01 GM107340 & R01 GM104139, and 
- * the U.S. Army Medical Research & Material Command award 
+ * funded under NIH grants R01 GM107340 & R01 GM104139, and
+ * the U.S. Army Medical Research & Material Command award
  * W81XWH-15-1-0232R01.
- * 
+ *
  * SimTK is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as 
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of
  * the License, or (at your option) any later version.
- * 
+ *
  * SimTK is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details. 
- * 
- * You should have received a copy of the GNU General Public 
- * License along with SimTK. If not, see  
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with SimTK. If not, see
  * <http://www.gnu.org/licenses/>.
- */ 
+ */
 
 require_once $gfplugins.'env.inc.php';
 require_once $gfcommon.'include/pre.php';
@@ -60,24 +60,30 @@ if (!$is_private) {
 
 if (session_loggedin()) {
 
+  /*
 	if (!forge_check_perm('project_admin', $group_id)) {
+		exit_permission_denied(_('You cannot edit a new study for a project unless you are an admin on that project.'), 'home');
+	}
+	*/
+	//if (!forge_check_perm('pubs', $group_id, 'project_admin')) {
+	if (!forge_check_perm ('datashare', $group_id, 'write')) {
 		exit_permission_denied(_('You cannot edit a new study for a project unless you are an admin on that project.'), 'home');
 	}
 
 	// get Datashare object
 	$study = new Datashare($group_id);
-						
+
 	if (!$study || !is_object($study)) {
 	   exit_error('Error','Could Not Create Study Object');
     } elseif ($study->isError()) {
 	   exit_error($study->getErrorMessage(), 'Datashare Error');
     }
-			
+
 	if (getStringFromRequest('post_changes')) {
 		if (!form_key_is_valid(getStringFromRequest('form_key'))) {
 			exit_form_double_submit('datashare');
 		}
-		
+
 		if ($study->updateStudy($study_id,$title,$description,$is_private)) {
 		   $feedback = _('Study Updated');
 		} else {
@@ -88,19 +94,19 @@ if (session_loggedin()) {
 		}
 	}
 
-	
+
 	$study_results = $study->getStudy($study_id);
-    
+
 	/*
 		Show the submit form
 	*/
 	//$group = group_get_object($group_id);
 	datashare_header(array('title'=>'Datashare'),$group_id);
-    
+
 	echo "<div class=\"project_overview_main\">";
     echo "<div style=\"display: table; width: 100%;\">";
     echo "<div class=\"main_col\">";
-	
+
 	?>
 	<script>
         // Update flag input components after document has been loaded completely.
@@ -122,9 +128,9 @@ if (session_loggedin()) {
 	 });
 
     </script>
-	
+
 	<?php
-	
+
 	echo '<p><span class="required_note">Required fields outlined in blue.</span><br />';
 	echo '</p>';
 	echo '
@@ -137,16 +143,16 @@ if (session_loggedin()) {
 		<p>
 		<strong>'._('Title')._(': ').'</strong><br />
 		<input type="text" name="title" class="required" size="60" value="'.$study_results[0]->title.'" ';
-	
+
 	echo '/></p>
 		<p>
 		<strong>'._('Description')._(': ').'</strong></p>';
-	
+
 	echo '<textarea name="description" rows="5" cols="50" class="required">'.$study_results[0]->description.'</textarea>';
 	echo '<br />';
-	
+
 	echo '<br /><p><strong>'._('Publicly Viewable')._(': ').'</strong></p>';
-	
+
 	$checked0 = "";
 	$checked1 = "";
 	$checked2 = "";
@@ -155,23 +161,23 @@ if (session_loggedin()) {
     }
 	if ($study_results[0]->is_private == 1) {
        $checked1 = "checked";
-    }	
+    }
 	if ($study_results[0]->is_private == 2) {
        $checked2 = "checked";
-    }	
+    }
 	echo "<p><input type=\"radio\" name=\"is_private\" value=\"0\" $checked0> Public";
 	echo "<p><input type=\"radio\" name=\"is_private\" value=\"1\" $checked1> Registered User";
 	echo "<p><input type=\"radio\" name=\"is_private\" value=\"2\" $checked2> Private";
-	
+
 	echo '<div><input type="submit" name="submit" value="'._('Update').'" class="btn-cta" /></div></div></form>';
 
 	echo "</div><!--main_col-->\n";
 
     // Add side bar to show statistics and project leads.
 	constructSideBar($group);
-	
+
 	echo "</div><!--display table-->\n</div><!--project_overview_main-->\n";
-	
+
 	datashare_footer(array());
 
 } else {
