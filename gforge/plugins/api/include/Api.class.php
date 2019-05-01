@@ -62,8 +62,12 @@ function retrieve() {
    $user_id = 0;
    $group_id = 0;
 
-   $user_id = $_REQUEST['userid'];
-   $group_id = $_REQUEST['groupid'];
+   if (isset($_REQUEST['userid'])) {
+      $user_id = $_REQUEST['userid'];
+   }
+   if (isset($_REQUEST['groupid'])) {
+      $group_id = $_REQUEST['groupid'];
+   }
    $tool = $_REQUEST['tool'];
    $action = $_REQUEST['action'];
 
@@ -95,11 +99,17 @@ function retrieve() {
       case 13:
          $this->getProjectUsers($group_id);
          break;
-	  case 14:
+	    case 14:
 	     $add_date = 0;
          $add_date = $_REQUEST['add_date'];
          $this->verifyUserValid($user_id,$add_date);
          break;
+      case 15:
+            $this->isMember($user_id,$group_id);
+            break;
+      case 16:
+               $this->getProject($group_id);
+               break;
       case 20:
          $studyid = 0;
 		     $token = 0;
@@ -119,6 +129,20 @@ function retrieve() {
          $data = array("message" => "Cannot Process your request. Action does not exist");
          $this->json($data);
 	} // switch
+}
+
+function getProject($group_id) {
+   $group = group_get_object($group_id);
+   $data_arr = array();
+
+   $data_item=array(
+                 "is_public" => $group->isPublic()
+   );
+
+   //$data_arr[] = $data_item;
+
+   $this->json($data_item);
+
 }
 
 // function retrieve
@@ -170,6 +194,19 @@ function getProjectUsers($group_id) {
    }
 
    $this->json($data_arr);
+}
+
+function isMember($user_id, $group_id) {
+
+   $group = group_get_object($group_id);
+   $data = $group->getMembers();
+   $data_item=array("is_member" => 0);
+   foreach ($data as $data_obj) {
+     if ($data_obj->data_array['user_id'] == $user_id) {
+       $data_item=array("is_member" => 1);
+     }
+   }
+   $this->json($data_item);
 }
 
 function getActiveUsers() {
