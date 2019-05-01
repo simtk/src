@@ -62,8 +62,12 @@ function retrieve() {
    $user_id = 0;
    $group_id = 0;
 
-   $user_id = $_REQUEST['userid'];
-   $group_id = $_REQUEST['groupid'];
+   if (isset($_REQUEST['userid'])) {
+      $user_id = $_REQUEST['userid'];
+   }
+   if (isset($_REQUEST['groupid'])) {
+      $group_id = $_REQUEST['groupid'];
+   }
    $tool = $_REQUEST['tool'];
    $action = $_REQUEST['action'];
 
