@@ -160,7 +160,7 @@ if (session_loggedin()) {
 	echo '<br /><br />';
 
 
-	echo '<p><strong>'._('Data Directory Structure Template')._(': ').'</strong> &nbsp; <a href="https://simtkdata-stage1.stanford.edu/apps/import/metadata.php#using" target="_blank">Learn more</a></p>';
+	echo '<p><strong>'._('Data Directory Structure Template')._(': ').'</strong> &nbsp; <a href="https://<datashare server>/apps/import/metadata.php#using" target="_blank">Learn more</a></p>';
 
 	echo '<p><span class="required_note">Note: This selection cannot be changed once a data study has been created</span><br />';
 

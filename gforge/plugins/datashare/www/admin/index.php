@@ -86,7 +86,7 @@ if (session_loggedin()) {
                            $numstudies = count($study_result);
                         }
                         if ($numstudies < 3) {
-                           echo "<a class='btn-blue' href='add.php?group_id=$group_id'>Add Study</a> <a style='text-align: right; float: right;' href='https://simtkdata-stage1.stanford.edu/apps/import/metadata.php' target='_blank'>Learn more about adding metadata to your dataset</a><br /><br />";
+                           echo "<a class='btn-blue' href='add.php?group_id=$group_id'>Add Study</a> <a style='text-align: right; float: right;' href='https://<datashare server>/apps/import/metadata.php' target='_blank'>Learn more about adding metadata to your dataset</a><br /><br />";
                         }
 						if ($study_result) {
 
