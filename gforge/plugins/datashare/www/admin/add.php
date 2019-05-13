@@ -31,7 +31,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-require_once $gfplugins.'env.inc.php';
+require_once '../../../env.inc.php';
 require_once $gfcommon.'include/pre.php';
 require_once '../datashare-utils.php';
 require_once $gfplugins.'datashare/include/Datashare.class.php';
@@ -160,7 +160,7 @@ if (session_loggedin()) {
 	echo '<br /><br />';
 
 
-	echo '<p><strong>'._('Data Directory Structure Template')._(': ').'</strong> &nbsp; <a href="https://simtkdata-stage1.stanford.edu/apps/import/metadata.php#using" target="_blank">Learn more</a></p>';
+	echo '<p><strong>'._('Data Directory Structure Template')._(': ').'</strong> &nbsp; <a href="https://<datashare server>/apps/import/metadata.php#using" target="_blank">Learn more</a></p>';
 
 	echo '<p><span class="required_note">Note: This selection cannot be changed once a data study has been created</span><br />';
 

@@ -31,7 +31,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-require_once $gfplugins.'env.inc.php';
+require_once '../../../env.inc.php';
 require_once $gfcommon.'include/pre.php';
 require_once '../datashare-utils.php';
 require_once $gfplugins.'datashare/include/Datashare.class.php';
