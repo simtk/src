@@ -36,7 +36,7 @@ require dirname(__FILE__) . '/../www/env.inc.php';
 require_once $gfcommon . 'include/pre.php';
 require_once $gfcommon . 'frs/FRSFile.class.php';
 require_once $gfcommon . 'frs/FRSPackage.class.php';
-require_once $gfwww . 'githubAccess/githubUtils.php';
+require_once $gfcommon . 'include/githubUtils.php';
 
 define("MAX_GITHUB_FILESIZE", 150 * 1024 * 1024);
 
