@@ -36,13 +36,16 @@ require dirname(__FILE__).'/../common/include/env.inc.php';
 require_once $gfcommon.'include/pre.php';
 
 // Find approved studies waiting to be created.
-$strQueryStudies = "SELECT study_id, group_id, " .
+$strQueryStudies = "SELECT study_id, " .
+	"pd.group_id as group_id, " .
 	"pd.title as title, " .
 	"pd.description as description, " .
-	"realname, user_name, email " .
+	"realname, user_name, email, group_name " .
 	"FROM plugin_datashare pd " .
 	"JOIN users u " .
 	"ON pd.user_id=u.user_id " .
+	"JOIN groups g " .
+	"ON pd.group_id=g.group_id " .
 	"WHERE active=-2";
 $resStudies = db_query_params($strQueryStudies, array());
 if (!$resStudies) {
@@ -58,16 +61,17 @@ while ($rowStudies = db_fetch_array($resStudies)) {
 	$realName = $rowStudies["realname"];
 	$userName = $rowStudies["user_name"];
 	$email = $rowStudies["email"];
+	$groupName = $rowStudies["group_name"];
 
 	// Create each approved study in Data Share server.
 	$statusCreate = createStudy($study_id);
 
 	if ($statusCreate === true) {
 		// Study approved and created. Email user.
-		$message = "New study created.\n\n" .
+		$message = "The new Data Share study you requested on SimTK has been created.\n\n" .
 			"Study Title: " . $study_title . "\n" .
 			"Description: " . $description . "\n" .
-			"Group ID: " . $group_id . "\n" .
+			"Project Name: " . $groupName . "\n" .
 			"Submitter: " . $realName . " ($userName)\n\n" .
 			"Please visit this study at the following URL:\n" .
 			util_make_url("plugins/datashare?group_id=$group_id");
@@ -103,6 +107,16 @@ function createStudy($studyId) {
 			array($studyId));
 		if (!$resStudies) {
 			error_log("Cannot update plugin_datashare for problem creating study: $studyId \n");
+		}
+
+		$admins = RBACEngine::getInstance()->getUsersByAllowedAction('approve_projects', -1);
+		foreach ($admins as $admin) {
+			$admin_email = $admin->getEmail();
+			setup_gettext_for_user ($admin);
+			util_send_message($admin_email,
+				"Error creating Data Share study",
+				$msgErr);
+			setup_gettext_from_context();
 		}
 
 		return false;

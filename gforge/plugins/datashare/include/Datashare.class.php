@@ -174,6 +174,7 @@ class Datashare extends Error {
 		$userId = $user->getID();
 		$realName = $user->getRealName();
 		$userName = $user->getUnixName();
+		$groupName = group_getname($group_id);
 
 		// Check parameter validity.
 		if (!$title || trim($title) == "") {
@@ -216,7 +217,7 @@ class Datashare extends Error {
 			$message = "New study requested for approval.\n\n" . 
 				"Study Title: " . $title . "\n" . 
 				"Description: " . $description . "\n" . 
-				"Group ID: " . $group_id . "\n" . 
+				"Project Name: " . $groupName . "\n" . 
 				"Submitter: " . $realName . " ($userName)\n\n" .
 				"Please visit the following URL to approve or reject this study:\n" .
 				util_make_url("/admin/datashareStudies.php");

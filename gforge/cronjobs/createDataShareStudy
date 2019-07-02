@@ -12,4 +12,4 @@ if [ "${datashare_server}" = "" ]; then
 fi
 
 # Success.
-exit 0
+exit $?
