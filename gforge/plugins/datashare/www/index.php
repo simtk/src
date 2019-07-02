@@ -95,7 +95,7 @@ $shownHeader = false;
 $study_result = $study->getStudyByGroup($group_id);
 if ($study_result) {
 	foreach ($study_result as $result) {
-		if ($result->active) {
+		if ($result->active == 1) {
 			$status = "Active";
 		}
 		else {

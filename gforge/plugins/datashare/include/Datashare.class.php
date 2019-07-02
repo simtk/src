@@ -5,7 +5,7 @@
  * 
  * The class which contains all methods for the datashare plugin.
  *
- * Copyright 2005-2017, SimTK Team
+ * Copyright 2005-2019, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -35,6 +35,9 @@ require_once $gfcommon.'include/Error.class.php';
 
 
 class Datashare extends Error {
+
+	const MAX_STUDIES = 3;
+
 	/**
 	 * Associative array of data from db.
 	 *
@@ -126,7 +129,11 @@ class Datashare extends Error {
 	 */
 	function getStudyByGroup($group_id) {
 
-		$res = db_query_params("SELECT * FROM plugin_datashare WHERE group_id = $group_id order by title",array());
+		$res = db_query_params("SELECT * FROM plugin_datashare " .
+			"WHERE group_id = $group_id " .
+			"AND (active=0 OR active=1 OR active=-2 OR active=-3) " .
+			"ORDER BY title",
+			array());
 
 		if (!$res || db_numrows($res) < 1) {
 			return false;
@@ -151,67 +158,92 @@ class Datashare extends Error {
 
 	}
 	
-    /**
+
+	/**
 	 *	@return	boolean	success
-	 */
+	*/
+	function insertStudy($group_id, $title, $description, $is_private, $template) {
 
-	function insertStudy($group_id,$title,$description,$is_private,$template) {
+		if (!session_loggedin() || !($user = &session_get_user())) {
+			exit_not_logged_in();
+		}
+		if (!forge_check_perm("datashare", $group_id, 'write')) {
+			exit_permission_denied("You cannot add a new study for a project unless you are an admin on that project.");
+		}
 
-	    // Check parameter validity.
-        if (!$title || trim($title) == "") {
-           $this->setError(_('title^'.'You must enter a title'));
-           return false;
-        }
+		$userId = $user->getID();
+		$realName = $user->getRealName();
+		$userName = $user->getUnixName();
+		$groupName = group_getname($group_id);
+
+		// Check parameter validity.
+		if (!$title || trim($title) == "") {
+			$this->setError(_('title^'.'You must enter a title'));
+			return false;
+		}
 		if (!$description || trim($description) == "") {
-           $this->setError(_('description^'.'You must enter a description'));
-           return false;
-        }
-				
-	    $result = $this->getStudyByGroup($group_id);
+			$this->setError(_('description^'.'You must enter a description'));
+			return false;
+		}
+
+		$result = $this->getStudyByGroup($group_id);
 		$rowcount=count($result);
-		if ($rowcount < 3) {
-		   
-		   db_begin();               
-		   $token = rand(10000,999999);
-           // insert new row
-           //$sql = "INSERT INTO plugin_datashare (group_id, title, description, is_private, token, active) VALUES ($group_id, '$title', '$description', $is_private, $token, 0);";
-           $res=db_query_params('INSERT INTO plugin_datashare (group_id, title, description, is_private, token, active, template_id)
-		                         VALUES ($1, $2, $3, $4, $5, $6, $7)',
-								 array($group_id, htmlspecialchars($title), htmlspecialchars($description), $is_private, $token, 0, $template));
-           if (!$res || db_affected_rows($res) < 1) {
-		      $this->setError(_('Error creating new study'));
-              return false;
-           }
-		   db_commit();
+		if ($rowcount < self::MAX_STUDIES) {
 
-		   //$this->initializeStudy($study_id);
-		   // send message to admins
-		   
-		   $email = "tod_hing@yahoo.com";
-		   $message = "New study: " . $title . " group: " . $group_id;
-		   //util_send_message($email, 'New Study Submitted', $message);
-		   
-		   
-		   $admins = RBACEngine::getInstance()->getUsersByAllowedAction ('approve_projects', -1);
+			db_begin();
 
-		   if (count($admins) < 1) {
-			  $this->setError(_("There is no administrator to send the mail to."));
-			  return false;
-		   }
+			$token = rand(10000,999999);
+			// insert new row
+			$res=db_query_params('INSERT INTO plugin_datashare ' .
+				'(group_id, title, description, is_private, ' .
+				'token, active, template_id, user_id, date_created) ' .
+				'VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+				array($group_id, 
+					htmlspecialchars($title), 
+					htmlspecialchars($description), 
+					$is_private, 
+					$token, 
+					0, 
+					$template,
+					$userId,
+					time()));
+			if (!$res || db_affected_rows($res) < 1) {
+				$this->setError(_('Error creating new study'));
+				return false;
+			}
 
-		   foreach ($admins as $admin) {
-			  $admin_email = $admin->getEmail();
-			  setup_gettext_for_user ($admin);	
-			  util_send_message($admin_email, 
-				sprintf('New %s Study Submitted', forge_get_config('forge_name')), $message);
-			  setup_gettext_from_context();
-		   }
+			db_commit();
 
-		   return true;
-		} else {
-		  // maximum studies allowed reached
-		  $this->setError(_('Maximum studies reached.'));
-		  return false;
+			$message = "New study requested for approval.\n\n" . 
+				"Study Title: " . $title . "\n" . 
+				"Description: " . $description . "\n" . 
+				"Project Name: " . $groupName . "\n" . 
+				"Submitter: " . $realName . " ($userName)\n\n" .
+				"Please visit the following URL to approve or reject this study:\n" .
+				util_make_url("/admin/datashareStudies.php");
+			$admins = RBACEngine::getInstance()->getUsersByAllowedAction ('approve_projects', -1);
+
+			if (count($admins) < 1) {
+				$this->setError(_("There is no administrator to send the mail to."));
+				return false;
+			}
+
+			foreach ($admins as $admin) {
+				$admin_email = $admin->getEmail();
+				setup_gettext_for_user ($admin);
+				util_send_message($admin_email,
+					sprintf('New %s Study Submitted', 
+						forge_get_config('forge_name')), 
+					$message);
+				setup_gettext_from_context();
+			}
+
+			return true;
+		}
+		else {
+			// maximum studies allowed reached
+			$this->setError(_('Maximum studies reached.'));
+			return false;
 		}
 	}
 	
