@@ -69,11 +69,25 @@ function addMailListMembership($listName) {
 function alertMissingElement($strMissingElem, $elemPath="") {
 	global $HTML;
 
+	$realName = "";
+	$userName = "";
+	if (session_loggedin()) {
+		$user =& session_get_user();
+		$realName = $user->getRealName();
+		$userName = $user->getUnixName();
+	}
+
 	// Send email to SimTK webmaster.
 	$strEmailSubject = "Downloads: Missing element.";
 	$strEmailMessage = "$strMissingElem is missing from downloads.\n";
 	if (trim($elemPath) != "") {
 		$strEmailMessage .= "Path: $elemPath\n";
+	}
+	if (trim($realName) != "" && trim($userName) != "") {
+		$strEmailMessage .= "User: $realName ($userName)\n";
+	}
+	else {
+		$strEmailMessage .= "User not logged in\n";
 	}
 	$admins = RBACEngine::getInstance()->getUsersByAllowedAction('approve_projects', -1);
 	foreach ($admins as $admin) {
