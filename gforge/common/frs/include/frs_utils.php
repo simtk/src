@@ -393,10 +393,23 @@ function frs_add_file_from_form($release, $type_id, $processor_id, $release_date
 							// File still not found.
 
 							// Alert SimTK Webmaster.
+							$realName = "";
+							$userName = "";
+							if (session_loggedin()) {
+								$user =& session_get_user();
+								$realName = $user->getRealName();
+								$userName = $user->getUnixName();
+							}
 							$strEmailSubject = "Downloads: Missing file in upload creation.";
 							$strEmailMessage = "$strMissingElem is missing.\n";
 							if (trim($filepath) != "") {
 								$strEmailMessage .= "Path: $filepath\n";
+							}
+							if (trim($realName) != "" && trim($userName) != "") {
+								$strEmailMessage .= "User: $realName ($userName)\n";
+							}
+							else {
+								$strEmailMessage .= "User not logged in\n";
 							}
 							$admins = RBACEngine::getInstance()->getUsersByAllowedAction('approve_projects', -1);
 							foreach ($admins as $admin) {
