@@ -108,7 +108,7 @@ echo "<input type=\"hidden\" name=\"group_id\" value=\"$group_id\">";
 echo "<input type=\"hidden\" name=\"study_id\" value=\"$study_id\">";
 echo "<input type=\"hidden\" name=\"typeid\" value=\"$typeid\">";
 echo "<label><input type=\"radio\" name=\"all\" value=\"1\" $all_checked> All Data</label><br />";
-echo "<label><input type=\"radio\" name=\"all\" value=\"0\" $not_all_checked> Date Range FROM: <input type=\"text\" id=\"datepickerfrom\" name=\"datefrom\">";
+echo "<label><input type=\"radio\" name=\"all\" value=\"0\" $not_all_checked> Date Range&nbsp;&nbsp; FROM: <input type=\"text\" id=\"datepickerfrom\" name=\"datefrom\">";
 echo " TO: <input type=\"text\" id=\"datepickerto\" name=\"dateto\"></label>";
 echo " <input type=\"submit\" class=\"btn-cta btn-sm\" name=\"submit\">";
 echo "</div>";
@@ -126,8 +126,8 @@ echo "<br />";
                         $date_error = 0;
                         include 'server.php';
                         if (!empty($_REQUEST['datefrom']) && !empty($_REQUEST['dateto']) && !$all) {
-                           $datefrom = $_REQUEST['datefrom']; 
-                           $dateto = $_REQUEST['dateto']; 
+                           $datefrom = $_REQUEST['datefrom'];
+                           $dateto = $_REQUEST['dateto'];
                            if (date("Ymd",strtotime($datefrom)) > date("Ymd",strtotime($dateto))) {
                              $date_error = 1;
                            } else {
@@ -140,17 +140,17 @@ echo "<br />";
                            $url = "https://$domain_name/reports/getStats.php?apikey=$api_key&studyid=$study_id&typeid=$typeid&date_all=1";
                            echo "Selected: <b>All Data</b>";
                         }
-                        echo "<br />"; 
+                        echo "<br />";
                         if ($date_error == 1) {
-                           echo "The <b>From</b> Date can't be past the <b>To</b> date, From: $datefrom  To: $dateto"; 
+                           echo "The <b>From</b> Date can't be past the <b>To</b> date, From: $datefrom  To: $dateto";
                         } else if ($date_error == 2) {
-                           echo "Both the <b>From</b> date and <b>To</b> date fields must be entered"; 
+                           echo "Both the <b>From</b> date and <b>To</b> date fields must be entered";
                         } else {
                            //echo "url = $url<br /><br />";
                            $response_json = file_get_contents($url);
                            $response = json_decode($response_json);
                            //var_dump($response) . "<br />";
-                       
+
                            echo "<table class=\"table\">";
                            echo "<tr><th>Date</th><th>First Name</th><th>Last Name</th><th>Email</th><th>$th</th></tr>";
                            if ($response) {
