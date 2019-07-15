@@ -50,6 +50,19 @@ if (!$group || !is_object($group)) {
 
 $study_id = getIntFromRequest('study_id');
 $typeid = getIntFromRequest('typeid');
+$all_checked = "";
+$not_all_checked = "";
+if (isset($_REQUEST['all'])) {
+   $all = $_REQUEST['all'];
+   if ($all) {
+      $all_checked = "checked";
+   } else {
+      $not_all_checked = "checked";
+   }
+} else {
+   $all = 1;
+   $all_checked = "checked";
+}
 $pluginname="datashare";
 datashare_header(array('title'=>'Datashare','pagename'=>"$pluginname",'sectionvals'=>array(group_getname($group_id))),$group_id);
 
@@ -86,46 +99,52 @@ if (session_loggedin()) {
 			if ( !$userperm->IsMember()) {
 				exit_error("Access Denied", "You are not a member of this project");
 			}
-                        echo "<a class=\"btn-blue\" href=\"stats.php?group_id=$group_id&study_id=$study_id&typeid=1\" style=\"width:158px;\">Query Report</a>";
-                        echo "&nbsp;<a class=\"btn-blue\" href=\"stats.php?group_id=$group_id&study_id=$study_id&typeid=2\" style=\"width:165px;\">Downloads Report</a>";
-echo "<br />";
+                        echo "<a class=\"btn-blue\" href=\"stats.php?group_id=$group_id&study_id=$study_id&typeid=1\" style=\"width:190px;\">Query History Report</a>";
+                        echo "&nbsp;<a class=\"btn-blue\" href=\"stats.php?group_id=$group_id&study_id=$study_id&typeid=2\" style=\"width:230px;\">Downloads History Report</a>";
+echo "<br /><br />";
 echo "<form action=\"stats.php\">";
 echo "<div class=\"form_simtk\">";
 echo "<input type=\"hidden\" name=\"group_id\" value=\"$group_id\">";
 echo "<input type=\"hidden\" name=\"study_id\" value=\"$study_id\">";
 echo "<input type=\"hidden\" name=\"typeid\" value=\"$typeid\">";
-echo "Date Range: <input type=\"radio\" name=\"all\" value=\"1\"> All or From: <input type=\"text\" id=\"datepickerfrom\" name=\"datefrom\">";
-echo " To: <input type=\"text\" id=\"datepickerto\" name=\"dateto\">";
+echo "<label><input type=\"radio\" name=\"all\" value=\"1\" $all_checked> All Data</label><br />";
+echo "<label><input type=\"radio\" name=\"all\" value=\"0\" $not_all_checked> Date Range FROM: <input type=\"text\" id=\"datepickerfrom\" name=\"datefrom\">";
+echo " TO: <input type=\"text\" id=\"datepickerto\" name=\"dateto\"></label>";
 echo " <input type=\"submit\" class=\"btn-cta btn-sm\" name=\"submit\">";
 echo "</div>";
 echo "</form>";
+echo "<br />";
 
                         if ($typeid == 1) {
-                           echo "<h4>Query Report</h4>";
+                           echo "<h4>Query History Report</h4>";
                            $th = "Query";
                         } else {
-                           echo "<h4>Downloads Report</h4>";
+                           echo "<h4>Downloads History Report</h4>";
                            $th = "Query";
                         }
 
                         $date_error = 0;
                         include 'server.php';
-                        if (!empty($_REQUEST['datefrom']) && !empty($_REQUEST['dateto'])) {
+                        if (!empty($_REQUEST['datefrom']) && !empty($_REQUEST['dateto']) && !$all) {
                            $datefrom = $_REQUEST['datefrom']; 
                            $dateto = $_REQUEST['dateto']; 
                            if (date("Ymd",strtotime($datefrom)) > date("Ymd",strtotime($dateto))) {
                              $date_error = 1;
                            } else {
                              $url = "https://$domain_name/reports/getStats.php?apikey=$api_key&studyid=$study_id&typeid=$typeid&datefrom=$datefrom&dateto=$dateto";
-                             echo "Date Range Selected: $datefrom to $dateto";
+                             echo "Selected: <b>Date Range $datefrom to $dateto</b>";
                            }
+                        } else if (!$all && (empty($_REQUEST['datafrom']) || empty($_REQUEST['dateto']))){
+                             $date_error = 2;
                         } else {
                            $url = "https://$domain_name/reports/getStats.php?apikey=$api_key&studyid=$study_id&typeid=$typeid&date_all=1";
-                           echo "Date Range Selected: ALL";
+                           echo "Selected: <b>All Data</b>";
                         }
                         echo "<br />"; 
-                        if ($date_error) {
+                        if ($date_error == 1) {
                            echo "The <b>From</b> Date can't be past the <b>To</b> date, From: $datefrom  To: $dateto"; 
+                        } else if ($date_error == 2) {
+                           echo "Both the <b>From</b> date and <b>To</b> date fields must be entered"; 
                         } else {
                            //echo "url = $url<br /><br />";
                            $response_json = file_get_contents($url);
