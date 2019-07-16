@@ -68,9 +68,20 @@ function sectionPopupMenuItems($sectionName, $groupId, &$menuTitles, &$menuUrls,
 			}
 		}
 	} else if ($sectionName == "Data Share") {
+		/*
 		if ($groupObj->usesPlugin("datashare")) {
 			   $menuTitles[] = 'Data Share';
 			   $menuUrls[] = '/plugins/datashare/index.php?type=group&id=' . $groupId;
+		}
+		*/
+		if (session_loggedin() &&
+			$groupObj && is_object($groupObj) && !$groupObj->isError() &&
+			forge_check_perm ('datashare', $groupId, 'write')) {
+			// Check permission before adding administrative menu items.
+			$menuTitles[] = 'View';
+			$menuUrls[] = '/plugins/datashare/?group_id=' . $groupId;
+			$menuTitles[] = _('Administration');
+			$menuUrls[] = '/plugins/datashare/admin/?group_id=' . $groupId;
 		}
 	}
 	else if ($sectionName == "Admin") {
