@@ -12,7 +12,7 @@
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2011, Franck Villaume - Capgemini
  * Copyright 2013, Franck Villaume - TrivialDev
- * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -198,6 +198,7 @@ $abc_array = array('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','
 <h2><?php echo _('Downloads'); ?></h2>
 <ul>
     <li><?php echo util_make_link ('/admin/downloads-doi.php',_('Downloads DOI')); ?></li>
+    <li><?php echo util_make_link ('/admin/datashareStudies.php',_('Pending studies (new study approval)')); ?></li>
 </ul>
 </div>
 

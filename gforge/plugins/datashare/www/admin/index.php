@@ -91,14 +91,20 @@ if (session_loggedin()) {
 						if ($study_result) {
 
 						  echo '<table class="table">';
-						  echo "<tr><th>Study</th><th>Status</th><th>Description</th><th></th></tr>";
+						  echo "<tr><th>Study</th><th>Status</th><th>Description</th><th>Statistics</th><th></th></tr>";
 						  foreach ($study_result as $result) {
 						      if ($result->active) {
 							   $status = "Active";
 							 } else {
 							   $status = "Pending Activation";
-							 }
-						     echo "<tr><td>$result->title</td><td>$status</td><td>$result->description</td><td><a href='edit.php?group_id=$group_id&study_id=$result->study_id'>Edit</a></td></tr>";
+						  }
+                                                  echo "<form name=\"form$result->study_id\" action=\"../view.php\" method=\"post\">";
+                                                  echo "<input type=\"hidden\" name=\"id\" value=\"$group_id\">";
+                                                  echo "<input type=\"hidden\" name=\"pluginname\" value=\"datashare\">";
+                                                  echo "<input type=\"hidden\" name=\"studyid\" value=\"$result->study_id\">";
+                                                  echo "</form>";
+						  echo "<tr><td><a href=\"#\" onclick=\"document.forms['form$result->study_id'].submit();\" class
+='btn-blue'>$result->title</a></td><td>$status</td><td>$result->description</td><th><a href='stats.php?group_id=$group_id&study_id=$result->study_id&typeid=1'>View</a></td><td><a href='edit.php?group_id=$group_id&study_id=$result->study_id'>Edit</a></td></tr>";
 						  }
 						  echo "</table>";
 						} else {

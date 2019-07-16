@@ -6,7 +6,7 @@
  *
  * Contains functions to build project menu with links and titles.
  *
- * Copyright 2005-2017, SimTK Team
+ * Copyright 2005-2019, SimTK Team
  *
  * This file is part of the SimTK web portal originating from
  * Simbios, the NIH National Center for Physics-Based
@@ -50,16 +50,38 @@ function sectionPopupMenuItems($sectionName, $groupId, &$menuTitles, &$menuUrls,
 			$menuUrls[] = '/frs/admin/?group_id=' . $groupId;
 		}
 		*/
-		$menuTitles[] = 'Downloads';
-		$menuUrls[] = '/frs?group_id=' . $groupId;
 		if ($groupObj->usesPlugin("datashare")) {
-			   $menuTitles[] = 'Data Share';
-			   $menuUrls[] = '/plugins/datashare/index.php?type=group&id=' . $groupId;
+			$menuTitles[] = 'Downloads';
+			$menuUrls[] = '/frs?group_id=' . $groupId;
+			$menuTitles[] = 'Data Share';
+			$menuUrls[] = '/plugins/datashare/index.php?type=group&id=' . $groupId;
+		}
+		else {
+			if (session_loggedin() &&
+				$groupObj && is_object($groupObj) && !$groupObj->isError() &&
+				forge_check_perm ('frs', $groupId, 'write')) {
+				// Check permission before adding administrative menu items.
+				$menuTitles[] = 'View downloads';
+				$menuUrls[] = '/frs?group_id=' . $groupId;
+				$menuTitles[] = _('Administration');
+				$menuUrls[] = '/frs/admin/?group_id=' . $groupId;
 			}
+		}
 	} else if ($sectionName == "Data Share") {
+		/*
 		if ($groupObj->usesPlugin("datashare")) {
 			   $menuTitles[] = 'Data Share';
 			   $menuUrls[] = '/plugins/datashare/index.php?type=group&id=' . $groupId;
+		}
+		*/
+		if (session_loggedin() &&
+			$groupObj && is_object($groupObj) && !$groupObj->isError() &&
+			forge_check_perm ('datashare', $groupId, 'write')) {
+			// Check permission before adding administrative menu items.
+			$menuTitles[] = 'View';
+			$menuUrls[] = '/plugins/datashare/?group_id=' . $groupId;
+			$menuTitles[] = _('Administration');
+			$menuUrls[] = '/plugins/datashare/admin/?group_id=' . $groupId;
 		}
 	}
 	else if ($sectionName == "Admin") {
@@ -458,43 +480,37 @@ function sectionSubMenuItems($sectionName, $theSubMenuTitle, $groupId,
 			   $submenuUrls[] = '/plugins/reports/usagemap.php?group_id=' . $groupId;
 	*/
 	} else if ($sectionName == "Admin" && $theSubMenuTitle == "Tools") {
-
-			   $submenuTitles[] = 'Enable/Disable';
-			   $submenuUrls[] = '/project/admin/tools.php?group_id=' . $groupId;
-
-			   if ($groupObj->usesFRS()) {
-			     $submenuTitles[] = 'Downloads';
-			     $submenuUrls[] = '/frs/admin/?group_id=' . $groupId;
-	           }
-
-			   if ($groupObj->usesDocman()) {
-			     $submenuTitles[] = 'Documents';
-			     $submenuUrls[] = '/docman?group_id=' . $groupId . '&amp;view=admin';
-			   }
-
-			   if ($groupObj->usesSCM()) {
-			     $submenuTitles[] = 'Source Code';
-			     $submenuUrls[] = '/scm/admin?group_id=' . $groupId;
-	           }
-
-			   if ($groupObj->usesTracker()) {
-			     $submenuTitles[] = 'Issues';
-				 $submenuUrls[]  = '/tracker/admin/?show_tracker=1&group_id=' . $groupId;
-	           }
-
-			   if ($groupObj->usesPlugin("simtk_news")) {
-			     $submenuTitles[] = 'News';
-				 $submenuUrls[]='/plugins/simtk_news/admin/?group_id=' . $groupId;
-	           }
-
-			   if ($groupObj->usesMail()) {
-	             $submenuTitles[] = 'Mailing lists';
-			     $submenuUrls[] = '/mail/admin/index.php?group_id=' . $groupId;
-			   }
-
+		$submenuTitles[] = 'Enable/Disable';
+		$submenuUrls[] = '/project/admin/tools.php?group_id=' . $groupId;
+		if ($groupObj->usesFRS()) {
+			$submenuTitles[] = 'Downloads';
+			$submenuUrls[] = '/frs/admin/?group_id=' . $groupId;
+		}
+		if ($groupObj->usesDocman()) {
+			$submenuTitles[] = 'Documents';
+			$submenuUrls[] = '/docman?group_id=' . $groupId . '&amp;view=admin';
+		}
+		if ($groupObj->usesSCM()) {
+			$submenuTitles[] = 'Source Code';
+			$submenuUrls[] = '/scm/admin?group_id=' . $groupId;
+		}
+		if ($groupObj->usesTracker()) {
+			$submenuTitles[] = 'Issues';
+			$submenuUrls[]  = '/tracker/admin/?show_tracker=1&group_id=' . $groupId;
+		}
+		if ($groupObj->usesPlugin("simtk_news")) {
+			$submenuTitles[] = 'News';
+			$submenuUrls[]='/plugins/simtk_news/admin/?group_id=' . $groupId;
+		}
+		if ($groupObj->usesMail()) {
+			$submenuTitles[] = 'Mailing lists';
+			$submenuUrls[] = '/mail/admin/index.php?group_id=' . $groupId;
+		}
+		if ($groupObj->usesPlugin("datashare")) {
+			$submenuTitles[] = 'Data Share';
+			$submenuUrls[] = '/plugins/datashare/admin/?group_id=' . $groupId;
+		}
 	}
-
-
 }
 
 // Get GitHub access info from group_github_access table.

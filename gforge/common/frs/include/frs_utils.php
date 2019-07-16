@@ -6,9 +6,9 @@
  * Copyright 2002-2004 (c) GForge Team
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2011, Franck Villaume - Capgemini
- * Copyright 2013, Franck Villaume - TrivialDev
+ * Copyright 2013-2014, Franck Villaume - TrivialDev
+ * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
- * Copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -365,6 +365,65 @@ function frs_add_file_from_form($release, $type_id, $processor_id, $release_date
 					$file_desc, $doi, $user_id, $url)) {
 					return $frsf->getErrorMessage();
 				}
+
+				// File should be present.
+
+				// Check existence of the uploaded file using file path.
+				$frsGroup = false;
+				$frsRelease = $frsf->FRSRelease;
+				if ($frsRelease) {
+					$frsPackage = $frsRelease->FRSPackage;
+					if ($frsPackage) {
+						$frsGroup = $frsPackage->Group;
+					}
+				}
+				if ($frsGroup !== false) {
+					$filename = $frsf->getLocalFilename();
+					$filepath = "/var/lib/gforge/download/" .
+						$frsGroup->getUnixName() . "/" .
+						$filename;
+					if (!file_exists($filepath)) {
+						// File not found. Try default FusionForge file download.
+						$filepath = forge_get_config('upload_dir') . '/'.
+							$frsGroup->getUnixName() . '/' .
+							$frsPackage->getFileName() . '/'.
+							$frsRelease->getFileName() . '/' .
+							$filename;
+						if (!file_exists($filepath)) {
+							// File still not found.
+
+							// Alert SimTK Webmaster.
+							$realName = "";
+							$userName = "";
+							if (session_loggedin()) {
+								$user =& session_get_user();
+								$realName = $user->getRealName();
+								$userName = $user->getUnixName();
+							}
+							$strEmailSubject = "Downloads: Missing file in upload creation.";
+							$strEmailMessage = "$strMissingElem is missing.\n";
+							if (trim($filepath) != "") {
+								$strEmailMessage .= "Path: $filepath\n";
+							}
+							if (trim($realName) != "" && trim($userName) != "") {
+								$strEmailMessage .= "User: $realName ($userName)\n";
+							}
+							else {
+								$strEmailMessage .= "User not logged in\n";
+							}
+							$admins = RBACEngine::getInstance()->getUsersByAllowedAction('approve_projects', -1);
+							foreach ($admins as $admin) {
+								$admin_email = $admin->getEmail();
+								setup_gettext_for_user ($admin);
+								util_send_message($admin_email,
+									$strEmailSubject,
+									$strEmailMessage);
+								setup_gettext_from_context();
+							}
+						}
+					}
+				}
+
 				return true ;
 			}
 		}
@@ -391,6 +450,7 @@ function frs_add_file_from_form($release, $type_id, $processor_id, $release_date
 				$file_desc, $doi, $user_id, $url)) {
 				return $frsf->getErrorMessage();
 			}
+
 			return true ;
 		}
 	}

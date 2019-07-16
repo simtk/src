@@ -11,7 +11,7 @@ Include the following line at the bottom:
 deb http://ftp.de.debian.org/debian wheezy-backports main
 
 3. Get and install FusionForge 5.3
-apt-get update; apt-get install fusionforge-standard fusionforge-plugin-scmhook fusionforge-plugin-scmsvn fusionforge-plugin-scmgit fusionforge-plugin-scmcvs fusionforge-plugin-mediawiki fusionforge-plugin-moinmoin fusionforge-plugin-blocks ntp imagemagick php5-xsl
+apt-get update; apt-get install fusionforge-standard fusionforge-plugin-scmhook fusionforge-plugin-scmsvn fusionforge-plugin-scmgit fusionforge-plugin-scmcvs fusionforge-plugin-mediawiki fusionforge-plugin-moinmoin fusionforge-plugin-blocks ntp imagemagick php5-xsl uuid-runtime
 
 4. Restart Apache server
 /etc/init.d/apache2 restart

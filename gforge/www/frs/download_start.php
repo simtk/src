@@ -7,7 +7,7 @@
  * Copyright 2010 (c) FusionForge Team
  * Copyright 2013, Franck Villaume - TrivialDev
  * http://fusionforge.org/
- * Copyright 2016, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -66,10 +66,54 @@ function addMailListMembership($listName) {
  *   package_id)
  */
 
+function alertMissingElement($strMissingElem, $elemPath="") {
+	global $HTML;
+
+	$realName = "";
+	$userName = "";
+	if (session_loggedin()) {
+		$user =& session_get_user();
+		$realName = $user->getRealName();
+		$userName = $user->getUnixName();
+	}
+
+	// Send email to SimTK webmaster.
+	$strEmailSubject = "Downloads: Missing element.";
+	$strEmailMessage = "$strMissingElem is missing from downloads.\n";
+	if (trim($elemPath) != "") {
+		$strEmailMessage .= "Path: $elemPath\n";
+	}
+	if (trim($realName) != "" && trim($userName) != "") {
+		$strEmailMessage .= "User: $realName ($userName)\n";
+	}
+	else {
+		$strEmailMessage .= "User not logged in\n";
+	}
+	$admins = RBACEngine::getInstance()->getUsersByAllowedAction('approve_projects', -1);
+	foreach ($admins as $admin) {
+		$admin_email = $admin->getEmail();
+		setup_gettext_for_user ($admin);
+		util_send_message($admin_email, $strEmailSubject, $strEmailMessage);
+		setup_gettext_from_context();
+	}
+
+	header($_SERVER["SERVER_PROTOCOL"]. " 404 Not Found");
+	$HTML->header(array('title'=>'Requested Page not Found (Error 404)'));
+
+	$msgMissingFile = "$strMissingElem is currently not available. ";
+	$msgMissingFile .= "The SimTK webmaster has been alerted.";
+	echo $HTML->warning_msg($msgMissingFile);
+
+	$HTML->footer();
+
+	exit;
+}
+
 function send_file($filename, $filepath, $agreed, $expected_use = "", $file_id = NULL, $mode = NULL) {
 
 	if (!file_exists($filepath)) {
-		session_redirect404();
+		//session_redirect404();
+		alertMissingElement($filename, $filepath);
 	}
 
 	header('Content-disposition: attachment; filename="'.str_replace('"', '', $filename).'"');
@@ -259,7 +303,8 @@ case 'file':
 
 	$frsFile = frsfile_get_object($file_id);
 	if (!$frsFile) {
-		session_redirect404();
+		//session_redirect404();
+		alertMissingElement("File #" . $file_id);
 	}
 
 	// Try to find the file specified by 'simtk_filelocation' in frs_file,
@@ -286,12 +331,12 @@ case 'file':
 			if ($simtkCollectData) {
 				if (!session_loggedin()) {
 					// Not logged in.
-					session_require_perm('frs', $frsPackage->Group->getID(), 'read_public');
+					session_require_perm('frs', $frsGroup->getID(), 'read_public');
 				}
 			}
 		}
 		else {
-			session_require_perm('frs', $frsPackage->Group->getID(), 'read_private');
+			session_require_perm('frs', $frsGroup->getID(), 'read_private');
 		}
 	}
 
@@ -362,10 +407,12 @@ case 'latestzip':
 
 	$frsPackage = frspackage_get_object($package_id);
 	if (!$frsPackage || !$frsPackage->getNewestRelease()) {
-		session_redirect404();
+		//session_redirect404();
+		alertMissingElement("Package #" . $package_id);
 	}
 	$frsRelease = $frsPackage->getNewestRelease();
 	$release_id = $frsRelease->getID();
+	$frsGroup = $frsPackage->Group;
 
 	// Check the simtk_collect_data flag for all files contained within the package
 	// to determine whether any file requires logged-in to be checked.
@@ -374,17 +421,17 @@ case 'latestzip':
 		if ($simtkCollectData) {
 			if (!session_loggedin()) {
 				// Not logged in.
-				session_require_perm('frs', $frsPackage->Group->getID(), 'read_public');
+				session_require_perm('frs', $frsGroup->getID(), 'read_public');
 			}
 		}
 	} else {
-		session_require_perm('frs', $frsPackage->Group->getID(), 'read_private');
+		session_require_perm('frs', $frsGroup->getID(), 'read_private');
 	}
 
 	$filename = $frsPackage->getNewestReleaseZipName();
 	$filepath = $frsPackage->getNewestReleaseZipPath();
 	$dirUpload = forge_get_config('upload_dir');
-	$dirGroup = $dirUpload . '/' . $frsPackage->Group->getUnixName();
+	$dirGroup = $dirUpload . '/' . $frsGroup->getUnixName();
 	if (!is_dir($dirGroup)) {
 		@mkdir($dirGroup);
 	}
@@ -436,14 +483,14 @@ case 'latestzip':
 					if ($simtkFileSize > 0) {
 						// Found file! (for backward compatibility)
 						$tmpFilePath = "/var/lib/gforge/download/" . 
-							$frsPackage->Group->getUnixName() . "/" . 
+							$frsGroup->getUnixName() . "/" . 
 							$simtkFileLocation;
 						if (!file_exists($tmpFilePath)) {
 							// File is not found. Use default gforge file download.
 							// NOTE: This case happens when a file from 
 							// a previous release is re-used.
 							$tmpFilePath = forge_get_config('upload_dir') . '/'.
-								$frsPackage->Group->getUnixName() . '/' .
+								$frsGroup->getUnixName() . '/' .
 								$frsPackage->getFileName() . '/'.
 								$frsRelease->getFileName() . '/' .
 								$fileObject->getName();
@@ -453,7 +500,7 @@ case 'latestzip':
 				else {
 					// Default gforge file download path.
 					$tmpFilePath = forge_get_config('upload_dir') . '/'.
-						$frsPackage->Group->getUnixName() . '/' .
+						$frsGroup->getUnixName() . '/' .
 						$frsPackage->getFileName() . '/'.
 						$frsRelease->getFileName() . '/' .
 						$fileObject->getName();
@@ -517,7 +564,8 @@ case 'latestfile':
 		'ORDER BY f.release_id DESC';
 	$res = db_query_params($sqlFileId, array($package_id, $decodedFileNameFromURL));
 	if (!$res || db_numrows($res) < 1) {
-		session_redirect404();
+		//session_redirect404();
+		alertMissingElement($decodedFileNameFromURL);
 	}
 	$row = db_fetch_array($res);
 	$file_id = $row['file_id'];
@@ -526,7 +574,8 @@ case 'latestfile':
 	$frsFile = frsfile_get_object($file_id);
 	if (!$frsFile) {
 		// Cannot find file.
-		session_redirect404();
+		//session_redirect404();
+		alertMissingElement("File #: " . $file_id);
 	}
 
 	$frsRelease = $frsFile->FRSRelease;
@@ -553,12 +602,12 @@ case 'latestfile':
 			if ($simtkCollectData) {
 				if (!session_loggedin()) {
 					// Not logged in.
-					session_require_perm('frs', $frsPackage->Group->getID(), 'read_public');
+					session_require_perm('frs', $frsGroup->getID(), 'read_public');
 				}
 			}
 		}
 		else {
-			session_require_perm('frs', $frsPackage->Group->getID(), 'read_private');
+			session_require_perm('frs', $frsGroup->getID(), 'read_private');
 		}
 	}
 
@@ -638,7 +687,8 @@ case 'release':
 	$frsRelease = frsrelease_get_object($release_id);
 	$frsPackage = $frsRelease->FRSPackage;
 	if (!$frsPackage) {
-		session_redirect404();
+		//session_redirect404();
+		alertMissingElement("Release #" . $release_id);
 	}
 	$frsGroup = $frsPackage->Group;
 
@@ -649,17 +699,17 @@ case 'release':
 		if ($simtkCollectData) {
 			if (!session_loggedin()) {
 				// Not logged in.
-				session_require_perm('frs', $frsPackage->Group->getID(), 'read_public');
+				session_require_perm('frs', $frsGroup->getID(), 'read_public');
 			}
 		}
 	} else {
-		session_require_perm('frs', $frsPackage->Group->getID(), 'read_private');
+		session_require_perm('frs', $frsGroup->getID(), 'read_private');
 	}
 
 	$filename = $frsPackage->getReleaseZipName($release_id);
 	$filepath = $frsPackage->getReleaseZipPath($release_id);
 	$dirUpload = forge_get_config('upload_dir');
-	$dirGroup = $dirUpload . '/' . $frsPackage->Group->getUnixName();
+	$dirGroup = $dirUpload . '/' . $frsGroup->getUnixName();
 	if (!is_dir($dirGroup)) {
 		@mkdir($dirGroup);
 	}
@@ -711,7 +761,7 @@ case 'release':
 					if ($simtkFileSize > 0) {
 						// Found file! (for backward compatibility)
 						$tmpFilePath = "/var/lib/gforge/download/" . 
-							$frsPackage->Group->getUnixName() . "/" . 
+							$frsGroup->getUnixName() . "/" . 
 							$simtkFileLocation;
 						if (!file_exists($tmpFilePath)) {
 							// File is not found. Use default gforge file download.
