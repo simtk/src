@@ -755,13 +755,10 @@ function genLicenseLink($packId) {
 		// Generate popup string.
 		// NOTE: Has to use "javscript://" to avoid 
 		// automatically scrolling to top upon clicking.
-		$strLicense = '<a href="javascript://" id="package' . $packId . 
-			'" data-content="' . $strLicense . 
+		$strLicense = '<a href="javascript://" data-toggle="popover" data-placement="right" ' .
+			'data-content="' . $strLicense . 
 			'" title="' . $strUseAgreement . ' Use Agreement" ' .
-			'rel="popover">' . 'View License' . '</a>';
-		$strLicense .= '<script>$("#package' . $packId . 
-			'").popover({ ' . 
-			"title: 'Use Agreement', html: 'true', trigger: 'focus' });</script>";
+			'>' . 'View License' . '</a>';
 	}
 
 	return $strLicense;
