@@ -4,7 +4,7 @@
  *
  * reports plugin main index file for displaying usage map and other statistics.
  * 
- * Copyright 2005-2016, SimTK Team
+ * Copyright 2005-2019, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -51,6 +51,11 @@ if (!$group || !is_object($group)) {
 	exit_no_group();
 } elseif ($group->isError()) {
 	exit_error($group->getErrorMessage(),'admin');
+}
+
+// First check whether Downloads is enabled.
+if (!$group->usesFRS()) {
+	exit_error("Downloads has been disabled.");
 }
 
 // Check permission and prompt for login if needed.
