@@ -395,6 +395,7 @@ function sectionSubMenuItems($sectionName, $theSubMenuTitle, $groupId,
 
 	} else if ($sectionName == "About" && $theSubMenuTitle == "Project statistics") {
 
+		if ($groupObj->usesFRS()) {
 	       $submenuTitles[] = 'Downloads Summary';
 			   $submenuUrls[] = '/plugins/reports/index.php?type=group&reports=reports&group_id=' . $groupId;
 
@@ -402,6 +403,7 @@ function sectionSubMenuItems($sectionName, $theSubMenuTitle, $groupId,
 			      $submenuTitles[] = 'Downloads Details';
 			      $submenuUrls[] = '/project/admin/statistics.php?group_id=' . $groupId;
 			   }
+		}
 			   /*
 			   if (session_loggedin() && $groupObj && is_object($groupObj) && !$groupObj->isError() && forge_check_perm ('frs', $groupId, 'write')) {
 			      // Check permission before adding administrative menu items.
