@@ -6,7 +6,7 @@
  * 
  * File to handle header.
  *
- * Copyright 2005-2018, SimTK Team
+ * Copyright 2005-2019, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -115,7 +115,7 @@
 	<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Projects<span class="caret"></span></a>
 	<ul class="dropdown-menu" style="min-width:330px;" role="menu">
 		<li class="dropdown-submenu">
-			<a href="#" data-toggle="dropdown">Project categories</a>
+			<a href="#" data-toggle="dropdown" style="padding-left:20px;">Project categories</a>
 			<ul class="dropdown-menu">
 				<li class="dropdown-header">Biological applications</li>
 				<li class="intend"><a href="/category/category.php?cat=309&amp;sort=date&amp;page=0&amp;srch=&amp;" tabindex="-1">Cardiovascular system</a></li>
@@ -134,8 +134,19 @@
 				<li class="intend"><a href="/category/category.php?cat=415&amp;sort=date&amp;page=0&amp;srch=&amp;" tabindex="-1">Visualization</a></li>
 			</ul>
 		</li>
-		<li><a class="action" href="/search/search.php?srch=&amp;search=search&amp;type_of_search=soft&amp;sort=date&amp;page=0" style="color:black;">See all projects</a></li>
-		<li><a class="action" href="/register">Create a new project</a></li>
+		<li class="dropdown-submenu">
+			<a href="#" data-toggle="dropdown" style="padding-left:20px;">Communities</a>
+			<ul class="dropdown-menu">
+				<li class="intend"><a href="/category/communityPage.php?cat=1001&amp;sort=date&amp;page=0&amp;srch=&amp;" tabindex="-1">OpenSim</a></li>
+				<li class="intend"><a href="/category/communityPage.php?cat=1002&amp;sort=date&amp;page=0&amp;srch=&amp;" tabindex="-1">Shoulder Modeling</a></li>
+				<li class="intend"><a href="/category/communityPage.php?cat=1003&amp;sort=date&amp;page=0&amp;srch=&amp;" tabindex="-1">SimVascular</a></li>
+				<li class="intend"><a href="/category/communityPage.php?cat=1004&amp;sort=date&amp;page=0&amp;srch=&amp;" tabindex="-1">IMAG/MSM Consortium</a></li>
+				<li class="intend"><a href="/category/communityPage.php?cat=1005&amp;sort=date&amp;page=0&amp;srch=&amp;" tabindex="-1">IMAG-MSM Public Dissemination...</a></li>
+				<li class="intend"><a href="/communities.php" tabindex="-1">All communities</a></li>
+			</ul>
+		</li>
+		<li><a class="action" href="/search/search.php?srch=&amp;search=search&amp;type_of_search=soft&amp;sort=date&amp;page=0" style="color:black;padding-left:20px;">See all projects</a></li>
+		<li><a class="action" href="/register" style="padding-left:20px;">Create a new project</a></li>
 
 	</ul>
 </li>
