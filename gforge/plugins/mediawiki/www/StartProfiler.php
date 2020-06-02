@@ -1,1 +1,0 @@
-../../../../mediawiki/StartProfiler.php

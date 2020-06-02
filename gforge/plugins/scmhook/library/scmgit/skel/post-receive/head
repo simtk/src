@@ -1,5 +1,0 @@
-#!/bin/sh
-
-read PARAMS
-SCRIPT=$(readlink -f $0)
-SCRIPTPATH=`dirname $SCRIPT`

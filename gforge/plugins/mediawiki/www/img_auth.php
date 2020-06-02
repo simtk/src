@@ -1,1 +1,0 @@
-../../../../mediawiki/img_auth.php
