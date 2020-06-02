@@ -6,7 +6,7 @@
  * 
  * View phpBB forum within an iframe.
  * 
- * Copyright 2005-2018, SimTK Team
+ * Copyright 2005-2019, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -38,11 +38,17 @@ require_once '../../env.inc.php';
 require_once $gfcommon.'include/pre.php';
 
 $fid = getIntFromRequest('f');
+// Find group id given the forum id.
+// The forum id may be from a subforum and may need to find
+// the group that the forum is associated with by looking up
+// the forum parent hierarchy.
+$group_id = lookupGroupIdFromForumId($fid, $subforumName);
+
 $tid = getIntFromRequest('t');
 $pid = getIntFromRequest('p');
 $pluginname = 'phpBB';
 
-$group = group_get_object($fid);
+$group = group_get_object($group_id);
 if (!$group) {
 	exit_error(sprintf(_('Invalid Project')), '');
 }
@@ -54,7 +60,7 @@ if (!$group->usesPlugin($pluginname)) {
 
 $params = array ();
 $params['toptab'] = $pluginname;
-$params['group'] = $fid;
+$params['group'] = $group_id;
 $params['title'] = 'phpBB' ;
 $params['pagename'] = $pluginname;
 $params['sectionvals'] = array ($group->getPublicName());

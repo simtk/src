@@ -4,6 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @copyright 2005-2020, SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -52,6 +53,25 @@ $search_forum	= $request->variable('fid', array(0));
 
 // We put login boxes for the case if search_id is newposts, egosearch or unreadposts
 // because a guest should be able to log in even if guests search is not permitted
+
+?>
+
+<script type="text/javascript" src="/scripts/jquery/jquery-1.12.4.min.js"></script>
+<script>
+// Post event to parent window with scroll height information.
+$(window).on("load", function() {
+	parent.postMessage(
+		{
+			event_id: "ScrollHeight",
+			scroll_height: document.body.scrollHeight
+		},
+		"*");
+});
+</script>
+
+<?php
+
+
 
 switch ($search_id)
 {

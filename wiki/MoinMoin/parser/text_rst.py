@@ -75,8 +75,8 @@ except ImportError:
     docutils = html4css1 = dummyUrllib2()
     html4css1.HTMLTranslator = html4css1.Writer = object
 
-def safe_import(name, globals = None, locals = None, fromlist = None):
-    mod = __builtin__.__import__(name, globals, locals, fromlist)
+def safe_import(name, globals = None, locals = None, fromlist = None, level = -1):
+    mod = __builtin__.__import__(name, globals, locals, fromlist, level)
     if mod:
         mod.open = dummyOpen
         mod.urllib2 = dummyUrllib2
@@ -580,7 +580,7 @@ class MoinDirectives:
         else:
             lines = [_("**Maximum number of allowed includes exceeded**")]
             state_machine.insert_input(lines, 'MoinDirectives')
-            return
+            return []
 
         if len(content):
             pagename = content[0]
@@ -598,7 +598,7 @@ class MoinDirectives:
                     lines = [_("**Could not find the referenced page: %s**") % (pagename, )]
             # Insert the text from the included document and then continue parsing
             state_machine.insert_input(lines, 'MoinDirectives')
-        return
+        return []
 
     include.has_content = include.content = True
     include.option_spec = {}
@@ -623,7 +623,7 @@ class MoinDirectives:
             ref = reference(macro, refuri=macro)
             ref['name'] = macro
             return [ref]
-        return
+        return []
 
     macro.has_content = macro.content = True
     macro.option_spec = {}

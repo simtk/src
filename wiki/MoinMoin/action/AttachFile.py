@@ -22,13 +22,14 @@
                 2001-2004 by Juergen Hermann <jh@web.de>,
                 2005 MoinMoin:AlexanderSchremmer,
                 2005 DiegoOngaro at ETSZONE (diego@etszone.com),
-                2005-2007 MoinMoin:ReimarBauer,
+                2005-2013 MoinMoin:ReimarBauer,
                 2007-2008 MoinMoin:ThomasWaldmann
     @license: GNU GPL, see COPYING for details.
 """
 
 import os, time, zipfile, errno, datetime
 from StringIO import StringIO
+import tarfile
 
 from werkzeug import http_date
 
@@ -44,7 +45,6 @@ from MoinMoin.Page import Page
 from MoinMoin.util import filesys, timefuncs
 from MoinMoin.security.textcha import TextCha
 from MoinMoin.events import FileAttachedEvent, FileRemovedEvent, send_event
-from MoinMoin.support import tarfile
 
 action_name = __name__.split('.')[-1]
 
@@ -265,6 +265,88 @@ def remove_attachment(request, pagename, target):
     return target, filesize
 
 
+class SamePath(Exception):
+    """
+    raised if an attachment move is attempted to same target path
+    """
+
+class DestPathExists(Exception):
+    """
+    raised if an attachment move is attempted to an existing target path
+    """
+
+
+def move_attachment(request, pagename, dest_pagename, target, dest_target,
+                    overwrite=False):
+    """ move attachment <target> of page <pagename>
+        to attachment <dest_target> of page <dest_pagename>
+
+        note: this is lowlevel code, acl permissions need to be checked before
+              and also the target page should somehow exist (can be "deleted",
+              but the pagedir should be there)
+    """
+    # replace illegal chars
+    target = wikiutil.taintfilename(target)
+    dest_target = wikiutil.taintfilename(dest_target)
+
+    attachment_path = os.path.join(getAttachDir(request, pagename),
+                                   target).encode(config.charset)
+    dest_attachment_path = os.path.join(getAttachDir(request, dest_pagename, create=1),
+                                        dest_target).encode(config.charset)
+    if not overwrite and os.path.exists(dest_attachment_path):
+        raise DestPathExists
+    if dest_attachment_path == attachment_path:
+        raise SamePath
+    filesize = os.path.getsize(attachment_path)
+    try:
+        filesys.rename(attachment_path, dest_attachment_path)
+    except Exception:
+        raise
+    else:
+        _addLogEntry(request, 'ATTDEL', pagename, target)
+        event = FileRemovedEvent(request, pagename, target, filesize)
+        send_event(event)
+        _addLogEntry(request, 'ATTNEW', dest_pagename, dest_target)
+        event = FileAttachedEvent(request, dest_pagename, dest_target, filesize)
+        send_event(event)
+
+    return dest_target, filesize
+
+
+def copy_attachment(request, pagename, dest_pagename, target, dest_target,
+                    overwrite=False):
+    """ copy attachment <target> of page <pagename>
+        to attachment <dest_target> of page <dest_pagename>
+
+        note: this is lowlevel code, acl permissions need to be checked before
+              and also the target page should somehow exist (can be "deleted",
+              but the pagedir should be there)
+    """
+    # replace illegal chars
+    target = wikiutil.taintfilename(target)
+    dest_target = wikiutil.taintfilename(dest_target)
+
+    attachment_path = os.path.join(getAttachDir(request, pagename),
+                                   target).encode(config.charset)
+    dest_attachment_path = os.path.join(getAttachDir(request, dest_pagename, create=1),
+                                        dest_target).encode(config.charset)
+    if not overwrite and os.path.exists(dest_attachment_path):
+        raise DestPathExists
+    if dest_attachment_path == attachment_path:
+        raise SamePath
+    filesize = os.path.getsize(attachment_path)
+    try:
+        filesys.copy(attachment_path, dest_attachment_path)
+    except Exception:
+        raise
+    else:
+        _addLogEntry(request, 'ATTNEW', dest_pagename, dest_target)
+        event = FileAttachedEvent(request, dest_pagename, dest_target, filesize)
+        send_event(event)
+
+    return dest_target, filesize
+
+
 #############################################################################
 ### Internal helpers
 #############################################################################
@@ -310,7 +392,7 @@ def _access_file(pagename, request):
     return (pagename, None, None)
 
 
-def _build_filelist(request, pagename, showheader, readonly, mime_type='*'):
+def _build_filelist(request, pagename, showheader, readonly, mime_type='*', filterfn=None, downloadonly=False):
     _ = request.getText
     fmt = request.html_formatter
 
@@ -320,6 +402,8 @@ def _build_filelist(request, pagename, showheader, readonly, mime_type='*'):
 
     if mime_type != '*':
         files = [fname for fname in files if mime_type == mimetypes.guess_type(fname)[0]]
+    if filterfn is not None:
+        files = [fname for fname in files if filterfn(fname)]
 
     html = []
     if files:
@@ -343,6 +427,22 @@ def _build_filelist(request, pagename, showheader, readonly, mime_type='*'):
         may_read = request.user.may.read(pagename)
         may_write = request.user.may.write(pagename)
         may_delete = request.user.may.delete(pagename)
+
+        html.append(u"""\
+<script>
+function checkAll(bx, targets_name) {
+  var cbs = document.getElementsByTagName('input');
+  for(var i=0; i < cbs.length; i++) {
+    if(cbs[i].type == 'checkbox' && cbs[i].name == targets_name) {
+      cbs[i].checked = bx.checked;
+    }
+  }
+}
+</script>
+<form method="POST">
+<input type="hidden" name="action" value="AttachFile">
+<input type="hidden" name="do" value="multifile">
+""")
 
         html.append(fmt.bullet_list(1))
         for file in files:
@@ -370,9 +470,10 @@ def _build_filelist(request, pagename, showheader, readonly, mime_type='*'):
                          fmt.text(label_get) +
                          fmt.url(0))
 
-            links.append(fmt.url(1, getAttachUrl(pagename, file, request, do='view')) +
-                         fmt.text(label_view) +
-                         fmt.url(0))
+            if may_read and not downloadonly:
+                links.append(fmt.url(1, getAttachUrl(pagename, file, request, do='view')) +
+                             fmt.text(label_view) +
+                             fmt.url(0))
 
             if may_write and not readonly:
                 edit_url = getAttachUrl(pagename, file, request, do='modify')
@@ -394,7 +495,7 @@ def _build_filelist(request, pagename, showheader, readonly, mime_type='*'):
                         links.append(fmt.url(1, getAttachUrl(pagename, file, request, do='unzip')) +
                                      fmt.text(label_unzip) +
                                      fmt.url(0))
-            except RuntimeError:
+            except (IOError, RuntimeError, zipfile.BadZipfile, zipfile.LargeZipFile):
                 # We don't want to crash with a traceback here (an exception
                 # here could be caused by an uploaded defective zip file - and
                 # if we crash here, the user does not get a UI to remove the
@@ -402,13 +503,35 @@ def _build_filelist(request, pagename, showheader, readonly, mime_type='*'):
                 # RuntimeError is raised by zipfile stdlib module in case of
                 # problems (like inconsistent slash and backslash usage in the
                 # archive).
-                logging.exception("An exception within zip file attachment handling occurred:")
+                # BadZipfile/LargeZipFile are raised when there are some
+                # specific problems with the archive file.
+                logging.exception("An exception within zip file attachment [%r:%r] handling occurred:" % (
+                     pagename, file))
 
             html.append(fmt.listitem(1))
             html.append("[%s]" % "&nbsp;| ".join(links))
+            html.append('''<input type="checkbox" name="fn" value="%s">''' % file)
             html.append(" (%(fmtime)s, %(fsize)s KB) [[attachment:%(file)s]]" % parmdict)
             html.append(fmt.listitem(0))
         html.append(fmt.bullet_list(0))
+        html.append(u"""\
+<input type="checkbox" onclick="checkAll(this, 'fn')">\
+&nbsp;%(all_files)s&nbsp;|&nbsp;%(sel_files)s
+<input type="radio" name="multifile" value="rm">%(delete)s</input>
+<input type="radio" name="multifile" value="mv">%(move)s</input>
+<input type="radio" name="multifile" value="cp">%(copy)s</input>
+<input type="text" name="multi_dest_pagename" value="%(pagename)s">
+<input type="submit" value="%(submit)s">
+""" % dict(
+            all_files=_('All files'),
+            sel_files=_("Selected Files:"),
+            delete=_("delete"),
+            move=_("move to page"),
+            copy=_("copy to page"),
+            pagename=wikiutil.escape(pagename),
+            submit=_("Do it."),
+))
+        html.append("</form>")
 
     else:
         if showheader:
@@ -418,6 +541,58 @@ def _build_filelist(request, pagename, showheader, readonly, mime_type='*'):
             html.append(fmt.paragraph(0))
 
     return ''.join(html)
+
+
+def _do_multifile(pagename, request):
+    _ = request.getText
+    action = request.form.get('multifile')
+    fnames = request.form.getlist('fn')
+    fails = []
+    if action == 'rm':
+        if not request.user.may.delete(pagename):
+            return _('You are not allowed to delete attachments on this page.')
+        for fn in fnames:
+            remove_attachment(request, pagename, fn)
+        msg = _("Attachment '%(filename)s' deleted.") % dict(
+                filename=u'{%s}' % ','.join(fnames))
+        return upload_form(pagename, request, msg=msg)
+    if action == 'mv':
+        if not request.user.may.delete(pagename):
+            return _('You are not allowed to move attachments from this page.')
+        dest_pagename = request.form.get('multi_dest_pagename')
+        if not request.user.may.write(dest_pagename):
+            return _('You are not allowed to attach a file to this page.')
+        for fn in fnames:
+            try:
+                move_attachment(request, pagename, dest_pagename, fn, fn)
+            except (DestPathExists, SamePath):
+                fails.append(fn)
+        msg = _("Attachment '%(pagename)s/%(filename)s' moved to '%(new_pagename)s/%(new_filename)s'.") % dict(
+                pagename=pagename,
+                filename=u'{%s}' % ','.join(fnames),
+                new_pagename=dest_pagename,
+                new_filename=u'*')
+        if fails:
+            msg += " " + _("Failed: %s", ", ".join(fails))
+        return upload_form(pagename, request, msg=msg)
+    if action == 'cp':
+        dest_pagename = request.form.get('multi_dest_pagename')
+        if not request.user.may.write(dest_pagename):
+            return _('You are not allowed to attach a file to this page.')
+        for fn in fnames:
+            try:
+                copy_attachment(request, pagename, dest_pagename, fn, fn)
+            except (DestPathExists, SamePath):
+                fails.append(fn)
+        msg = _("Attachment '%(pagename)s/%(filename)s' copied to '%(new_pagename)s/%(new_filename)s'.") % dict(
+                pagename=pagename,
+                filename=u'{%s}' % ','.join(fnames),
+                new_pagename=dest_pagename,
+                new_filename=u'*')
+        if fails:
+            msg += " " + _("Failed: %s", ", ".join(fails))
+        return upload_form(pagename, request, msg=msg)
+    return u'unsupported multifile operation'
 
 
 def _get_files(request, pagename):
@@ -691,39 +866,30 @@ def move_file(request, pagename, new_pagename, attachment, new_attachment):
     _ = request.getText
 
     newpage = Page(request, new_pagename)
-    if newpage.exists(includeDeleted=1) and request.user.may.write(new_pagename) and request.user.may.delete(pagename):
-        new_attachment_path = os.path.join(getAttachDir(request, new_pagename,
-                              create=1), new_attachment).encode(config.charset)
-        attachment_path = os.path.join(getAttachDir(request, pagename),
-                          attachment).encode(config.charset)
-
-        if os.path.exists(new_attachment_path):
-            upload_form(pagename, request,
-                msg=_("Attachment '%(new_pagename)s/%(new_filename)s' already exists.") % {
+    if (newpage.exists(includeDeleted=1)
+        and
+        request.user.may.write(new_pagename)
+        and
+        request.user.may.delete(pagename)):
+        try:
+            move_attachment(request, pagename, new_pagename,
+                            attachment, new_attachment)
+        except DestPathExists:
+            msg = _("Attachment '%(new_pagename)s/%(new_filename)s' already exists.") % {
                     'new_pagename': new_pagename,
-                    'new_filename': new_attachment})
-            return
-
-        if new_attachment_path != attachment_path:
-            filesize = os.path.getsize(attachment_path)
-            filesys.rename(attachment_path, new_attachment_path)
-            _addLogEntry(request, 'ATTDEL', pagename, attachment)
-            event = FileRemovedEvent(request, pagename, attachment, filesize)
-            send_event(event)
-            _addLogEntry(request, 'ATTNEW', new_pagename, new_attachment)
-            event = FileAttachedEvent(request, new_pagename, new_attachment, filesize)
-            send_event(event)
-            upload_form(pagename, request,
-                        msg=_("Attachment '%(pagename)s/%(filename)s' moved to '%(new_pagename)s/%(new_filename)s'.") % {
-                            'pagename': pagename,
-                            'filename': attachment,
-                            'new_pagename': new_pagename,
-                            'new_filename': new_attachment})
+                    'new_filename': new_attachment}
+        except SamePath:
+            msg = _("Nothing changed")
         else:
-            upload_form(pagename, request, msg=_("Nothing changed"))
+            msg = _("Attachment '%(pagename)s/%(filename)s' moved to '%(new_pagename)s/%(new_filename)s'.") % {
+                    'pagename': pagename,
+                    'filename': attachment,
+                    'new_pagename': new_pagename,
+                    'new_filename': new_attachment}
     else:
-        upload_form(pagename, request, msg=_("Page '%(new_pagename)s' does not exist or you don't have enough rights.") % {
-            'new_pagename': new_pagename})
+        msg = _("Page '%(new_pagename)s' does not exist or you don't have enough rights.") % {
+                'new_pagename': new_pagename}
+    upload_form(pagename, request, msg=msg)
 
 
 def _do_attachment_move(pagename, request):
@@ -861,6 +1027,7 @@ def _do_get(pagename, request):
     if not request.user.may.read(pagename):
         return _('You are not allowed to get attachments from this page.')
     if not filename:
+        request.status_code = 404
         return # error msg already sent in _access_file
 
     timestamp = datetime.datetime.fromtimestamp(os.path.getmtime(fpath))
@@ -1013,7 +1180,7 @@ def _do_unzip(pagename, request, overwrite=False):
                         'filelist': ', '.join(not_overwritten), }
             else:
                 msg = _("Attachment '%(filename)s' unzipped.") % {'filename': filename}
-    except RuntimeError, err:
+    except (IOError, RuntimeError, zipfile.BadZipfile, zipfile.LargeZipFile), err:
         # We don't want to crash with a traceback here (an exception
         # here could be caused by an uploaded defective zip file - and
         # if we crash here, the user does not get a UI to remove the
@@ -1021,7 +1188,10 @@ def _do_unzip(pagename, request, overwrite=False):
         # RuntimeError is raised by zipfile stdlib module in case of
         # problems (like inconsistent slash and backslash usage in the
         # archive).
-        logging.exception("An exception within zip file attachment handling occurred:")
+        # BadZipfile/LargeZipFile are raised when there are some
+        # specific problems with the archive file.
+        logging.exception("An exception within zip file attachment [%r:%r] handling occurred:" % (
+            pagename, filename))
         msg = _("A severe error occurred:") + ' ' + str(err)
 
     upload_form(pagename, request, msg=msg)
@@ -1092,7 +1262,7 @@ def send_viewfile(pagename, request):
                 request.write(wikiutil.escape("%-46s %s %12d\n" % (zinfo.filename, date, zinfo.file_size)))
             request.write("</pre>")
             return
-    except RuntimeError:
+    except (IOError, RuntimeError, zipfile.BadZipfile, zipfile.LargeZipFile):
         # We don't want to crash with a traceback here (an exception
         # here could be caused by an uploaded defective zip file - and
         # if we crash here, the user does not get a UI to remove the
@@ -1100,7 +1270,10 @@ def send_viewfile(pagename, request):
         # RuntimeError is raised by zipfile stdlib module in case of
         # problems (like inconsistent slash and backslash usage in the
         # archive).
-        logging.exception("An exception within zip file attachment handling occurred:")
+        # BadZipfile/LargeZipFile are raised when there are some
+        # specific problems with the archive file.
+        logging.exception("An exception within zip file attachment [%r:%r] handling occurred:" % (
+            pagename, filename))
         return
 
     from MoinMoin import macro
@@ -1131,6 +1304,7 @@ def _do_view(pagename, request):
     if not request.user.may.read(pagename):
         return _('You are not allowed to view attachments of this page.')
     if not filename:
+        request.status_code = 404
         return
 
     request.formatter.page = Page(request, pagename)

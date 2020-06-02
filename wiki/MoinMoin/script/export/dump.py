@@ -3,7 +3,8 @@
 MoinMoin - Dump a MoinMoin wiki to static pages
 
 @copyright: 2002-2004 Juergen Hermann <jh@web.de>,
-            2005-2006 MoinMoin:ThomasWaldmann
+            2005-2006 MoinMoin:ThomasWaldmann,
+            2013-2014 Paul Wise <pabs3@bonedaddy.net>
 @license: GNU GPL, see COPYING for details.
 """
 
@@ -12,11 +13,17 @@ import sys, os, time, codecs, shutil, re, errno
 from MoinMoin import config, wikiutil, Page, user
 from MoinMoin import script
 from MoinMoin.action import AttachFile
+from MoinMoin.logfile import editlog, LogMissing
 
 url_prefix_static = "."
 logo_html = '<img src="logo.png">'
 HTML_SUFFIX = ".html"
 
+timestamp_text = u"""This is a MoinMoin timestamp file.
+Please delete it to rebuild all pages.
+This page dump was last created at:
+%s
+"""
 page_template = u'''<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <head>
@@ -60,14 +67,19 @@ td.noborder {
 <div id="page">
 %(pagehtml)s
 </div>
+<div id="attachments">
+%(attachments_html)s
+</div>
 <hr>
 %(timestamp)s
 </body>
 </html>
 '''
 
+def _attachment_fn(outputdir, pagename, filename=''):
+    return os.path.join(outputdir, "attachments", wikiutil.quoteWikinameFS(pagename), filename.encode(config.charset))
 
-def _attachment(request, pagename, filename, outputdir, **kw):
+def _attachment(request, pagename, filename, outputdir, copy=False, **kw):
     filename = filename.encode(config.charset)
     source_dir = AttachFile.getAttachDir(request, pagename)
     source_file = os.path.join(source_dir, filename)
@@ -75,20 +87,25 @@ def _attachment(request, pagename, filename, outputdir, **kw):
     dest_file = os.path.join(dest_dir, filename)
     dest_url = "attachments/%s/%s" % (wikiutil.quoteWikinameFS(pagename), wikiutil.url_quote(filename))
     if os.access(source_file, os.R_OK):
-        if not os.access(dest_dir, os.F_OK):
-            try:
-                os.makedirs(dest_dir)
-            except:
-                script.fatal("Cannot create attachment directory '%s'" % dest_dir)
-        elif not os.path.isdir(dest_dir):
-            script.fatal("'%s' is not a directory" % dest_dir)
+        if copy:
+            if not os.access(dest_dir, os.F_OK):
+                try:
+                    os.makedirs(dest_dir)
+                except OSError, err:
+                    if err.errno != errno.EEXIST:
+                        script.fatal("Cannot create attachment directory '%s'" % dest_dir)
+            elif not os.path.isdir(dest_dir):
+                script.fatal("'%s' is not a directory" % dest_dir)
 
-        shutil.copyfile(source_file, dest_file)
-        script.log('Writing "%s"...' % dest_url)
+            script.log('Writing "%s" attachment "%s"...' % (pagename, filename))
+            shutil.copyfile(source_file, dest_file)
         return dest_url
     else:
         return ""
 
+def fatal_hook(filename, fatal, msgtext):
+    os.remove(filename)
+    fatal(msgtext)
 
 class PluginScript(script.MoinScript):
     """\
@@ -157,16 +174,54 @@ General syntax: moin [options] export dump [dump-options]
         # use this user for permissions checks
         request.user = user.User(request, name=self.options.dump_user)
 
-        pages = request.rootpage.getPageList(user='') # get list of all pages in wiki
-        pages.sort()
-        if self.options.page: # did user request a particular page or group of pages?
-            try:
-                namematch = re.compile(self.options.page)
-                pages = [page for page in pages if namematch.match(page)]
-                if not pages:
-                    pages = [self.options.page]
-            except:
-                pages = [self.options.page]
+        pages = request.rootpage.getPageList(user='', exists=0) # get list of all pages in wiki
+
+        # Check the last update timestamp
+        timestamp_file = os.path.join(outputdir, 'moin-last-update')
+        try:
+            with open(timestamp_file) as f:
+                timestamp_value = long(f.read().splitlines()[-1])
+        except IOError, err:
+            timestamp_value = 0
+            if err.errno != errno.ENOENT:
+                script.fatal("Cannot check last update time of '%s' (%s)!" % (timestamp_file, str(err)))
+
+        # Create a new timestamp to use if successful
+        log = editlog.EditLog(request)
+        try: new_timestamp_value = log.date()
+        except LogMissing: new_timestamp_value = 0
+        new_timestamp_file = timestamp_file + '.new'
+        with open(new_timestamp_file, 'w') as f:
+            f.write(timestamp_text % new_timestamp_value)
+
+        # Fatal errors should delete the new timestamp file
+        script_fatal = script.fatal
+        script.fatal = lambda msgtext: fatal_hook(new_timestamp_file, script_fatal, msgtext)
+
+        # Get a list of pages that need actions
+        attachments = dict()
+        if timestamp_value:
+            pages = set()
+            for line in log:
+                if line.ed_time_usecs <= timestamp_value:
+                    continue
+                elif line.action in ('ATTNEW', 'ATTDEL'):
+                    if line.pagename not in attachments:
+                        attachments[line.pagename] = {}
+                    attachments[line.pagename][line.extra] = line.action
+                elif line.action == 'SAVE/RENAME':
+                    attachment_from = _attachment_fn(outputdir, line.extra)
+                    attachment_to = _attachment_fn(outputdir, line.pagename)
+                    try:
+                        os.rename(attachment_from, attachment_to)
+                    except OSError, err:
+                        if err.errno != errno.ENOENT:
+                            script.fatal('Cannot move attachments from "%s" to "%s" (%s)!' % (line.extra, line.pagename, str(err)))
+                    else:
+                        script.log('Moving attachments from "%s" to "%s"' % (line.extra, line.pagename))
+                    pages.add(line.extra)
+                pages.add(line.pagename)
+            pages = list(pages)
 
         wikiutil.quoteWikinameURL = lambda pagename, qfn=wikiutil.quoteWikinameFS: (qfn(pagename) + HTML_SUFFIX)
 
@@ -184,34 +239,90 @@ General syntax: moin [options] export dump [dump-options]
         for p in [page_front_page, page_title_index, page_word_index]:
             navibar_html += '[<a href="%s">%s</a>]&nbsp;' % (wikiutil.quoteWikinameURL(p), wikiutil.escape(p))
 
+        # Re-render the title and word indicies if anything changed
+        if new_timestamp_value > timestamp_value:
+            pages = list(set(pages+[page_title_index, page_word_index]))
+
+        if self.options.page: # did user request a particular page or group of pages?
+            try:
+                namematch = re.compile(self.options.page)
+                pages = [page for page in pages if namematch.match(page)]
+                if not pages:
+                    pages = [self.options.page]
+            except:
+                pages = [self.options.page]
+
+        # Render the pages in alphabetical order
+        pages.sort()
+
         urlbase = request.url # save wiki base url
         for pagename in pages:
+            # Process attachments for this page
+            copy_attachments = []
+            delete_attachments = []
+            if pagename in attachments:
+                for filename, action in attachments[pagename].items():
+                    if action == 'ATTNEW':
+                        copy_attachments.append(filename)
+                    elif action == 'ATTDEL':
+                        delete_attachments.append(filename)
+            elif not timestamp_value:
+                copy_attachments = AttachFile._get_files(request, pagename)
+            for filename in copy_attachments:
+                _attachment(request, pagename, filename, outputdir, copy=True)
+            for filename in delete_attachments:
+                try:
+                    os.remove(_attachment_fn(outputdir, pagename, filename))
+                except OSError, err:
+                    if err.errno != errno.ENOENT:
+                        script.fatal('Cannot remove "%s" attachment "%s" (%s)!' % (pagename, filename, str(err)))
+                else:
+                    script.log('Removed "%s" attachment "%s"...' % (pagename, filename))
+
             # we have the same name in URL and FS
             file = wikiutil.quoteWikinameURL(pagename)
-            script.log('Writing "%s"...' % file)
+            filepath = os.path.join(outputdir, file)
+            exists = os.path.exists(filepath)
+            request.url = urlbase + pagename # add current pagename to url base
+            page = Page.Page(request, pagename)
+            missing = not page.exists()
+            unreadable = not request.user.may.read(pagename)
+            if missing or unreadable:
+                try:
+                    os.remove(filepath)
+                except OSError, err:
+                    if err.errno != errno.ENOENT:
+                        script.fatal("Cannot remove '%s' (%s)!" % (file, str(err)))
+                else:
+                    script.log('Removed "%s"...' % pagename)
+                continue
             try:
+                script.log('Writing "%s"...' % pagename)
                 pagehtml = ''
-                request.url = urlbase + pagename # add current pagename to url base
-                page = Page.Page(request, pagename)
                 request.page = page
                 try:
                     request.reset()
                     pagehtml = request.redirectedOutput(page.send_page, count_hit=0, content_only=1)
-                except:
+                    attachments_html = AttachFile._build_filelist(request, pagename, 0, 1, downloadonly=True)
+                    if attachments_html: attachments_html = '<h2>Attached Files</h2>' + attachments_html
+                except Exception:
                     errcnt = errcnt + 1
                     print >> sys.stderr, "*** Caught exception while writing page!"
                     print >> errlog, "~" * 78
-                    print >> errlog, file # page filename
+                    print >> errlog, pagename
                     import traceback
                     traceback.print_exc(None, errlog)
+                except:
+                    os.remove(new_timestamp_file)
+                    raise
             finally:
                 timestamp = time.strftime("%Y-%m-%d %H:%M")
-                filepath = os.path.join(outputdir, file)
                 fileout = codecs.open(filepath, 'w', config.charset)
                 fileout.write(page_template % {
                     'charset': config.charset,
                     'pagename': pagename,
                     'pagehtml': pagehtml,
+                    'attachments_html': attachments_html,
                     'logo_html': logo_html,
                     'navibar_html': navibar_html,
                     'timestamp': timestamp,
@@ -231,4 +342,9 @@ General syntax: moin [options] export dump [dump-options]
         errlog.close()
         if errcnt:
             print >> sys.stderr, "*** %d error(s) occurred, see '%s'!" % (errcnt, errfile)
+            os.remove(new_timestamp_file)
+        else:
+            os.rename(new_timestamp_file, timestamp_file)
 
+        # Restore the script.fatal hook
+        script.fatal = script_fatal

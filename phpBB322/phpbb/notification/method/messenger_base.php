@@ -4,6 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @copyright 2016-2020, SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -98,9 +99,10 @@ abstract class messenger_base extends \phpbb\notification\method\base
 
 		// Time to go through the queue and send emails
 		/** @var \phpbb\notification\type\type_interface $notification */
-		foreach ($this->queue as $notification)
-		{
-			if ($notification->get_email_template() === false)
+		foreach ($this->queue as $notification) {
+
+			$nameEmailTemplate = $notification->get_email_template();
+			if ($nameEmailTemplate === false)
 			{
 				continue;
 			}
@@ -112,15 +114,36 @@ abstract class messenger_base extends \phpbb\notification\method\base
 				continue;
 			}
 
-			$messenger->template($notification->get_email_template(), $user['user_lang'], '', $template_dir_prefix);
+			$messenger->template($nameEmailTemplate, $user['user_lang'], '', $template_dir_prefix);
 
 			$messenger->set_addresses($user);
+
+			$arrEmailVars = $notification->get_email_template_variables();
+
+			// Check if user desires to receive all replies.
+			// If so, skip "forum_notify", "newtopic_notify, 
+			// and "topic_notify" email messages.
+			if (($nameEmailTemplate == "forum_notify" ||
+				$nameEmailTemplate == "newtopic_notify" ||
+				$nameEmailTemplate == "topic_notify") &&
+				isset($arrEmailVars['USERS_NOTIFYALL'])) {
+
+				$userId = $notification->user_id;
+				$usersNotifyAll = $arrEmailVars['USERS_NOTIFYALL'];
+
+				if (in_array($userId, $usersNotifyAll) === true) {
+					// User receives all replies. No need for 
+					// forum_notify/newtopic_notify/topic_notify emails.
+					// Skip.
+					continue;
+				}
+			}
 
 			$messenger->assign_vars(array_merge(array(
 				'USERNAME'						=> $user['username'],
 
 				'U_NOTIFICATION_SETTINGS'		=> generate_board_url() . '/ucp.' . $this->php_ext . '?i=ucp_notifications&mode=notification_options',
-			), $notification->get_email_template_variables()));
+			), $arrEmailVars));
 
 			$messenger->send($notify_method);
 		}

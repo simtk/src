@@ -11,14 +11,13 @@
 
 import sys, re, time
 import email
-from email.Utils import getaddresses, parsedate_tz, mktime_tz
+from email.utils import getaddresses, parsedate_tz, mktime_tz
+from email.header import decode_header
 
 from MoinMoin import wikiutil, user
 from MoinMoin.action.AttachFile import add_attachment, AttachmentAlreadyExists
 from MoinMoin.Page import Page
 from MoinMoin.PageEditor import PageEditor
-# python, at least up to 2.4, ships a broken parser for headers
-from MoinMoin.support.HeaderFixed import decode_header
 
 infile = sys.stdin
 
@@ -256,7 +255,9 @@ def import_mail_from_message(request, message):
                 i += 1
 
     # build an attachment link table for the page with the e-mail
-    attachment_links = [""] + [u'''[[attachment:%s|%s]]''' % ("%s/%s" % (pagename, att), att) for att in attachments]
+    # use relative attachment link markup here, so the page can be easily
+    # renamed and the links don't break
+    attachment_links = [""] + [u'''[[attachment:%s|%s]]''' % (att, att) for att in attachments]
 
     # assemble old page content and new mail body together
     old_content = Page(request, pagename).get_raw_body()
@@ -278,7 +279,12 @@ def import_mail_from_message(request, message):
         raise ProcessingError("Access denied for page %r" % pagename)
 
     if generate_summary and "/" in pagename:
-        parent_page = u"/".join(pagename.split("/")[:-1])
+        splitted = pagename.split("/")
+        parent_page = u"/".join(splitted[:-1])
+        child_page = splitted[-1]
+        # here, use relative links also, but we need to include the child_page
+        # name in the relative link as the markup gets put onto the parent_page
+        attachment_links = [u'''[[attachment:%s|%s]]''' % ("/%s/%s" % (child_page, att), att) for att in attachments]
         old_content = Page(request, parent_page).get_raw_body().splitlines()
 
         found_table = None
@@ -326,5 +332,5 @@ if __name__ == "__main__":
     try:
         import_mail_from_file(request, infile)
     except ProcessingError, e:
-        print >> sys.stderr, "An error occured while processing the message:", e.args
+        print >> sys.stderr, "An error occurred while processing the message:", e.args
 

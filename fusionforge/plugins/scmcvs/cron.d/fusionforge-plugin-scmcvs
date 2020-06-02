@@ -1,0 +1,9 @@
+#
+#       Create the /etc/* files : only usefull if the sys_account_manager_type=UNIX
+#
+#10 * * * * root forge_run_plugin_job scmcvs usergroup.php
+
+#
+#       Create the blank cvs trees
+#
+20 * * * * root forge_run_plugin_job scmcvs cvs.php

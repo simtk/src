@@ -6,7 +6,7 @@
  * 
  * View a topic within an iframe.
  * 
- * Copyright 2005-2018, SimTK Team
+ * Copyright 2005-2019, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -73,8 +73,14 @@ $view = getStringFromRequest('view');
 $sid = getStringFromRequest('sid');
 $pluginname = 'phpBB';
 
+// Find group id given the forum id.
+// The forum id may be from a subforum and may need to find
+// the group that the forum is associated with by looking up
+// the forum parent hierarchy. 
+$group_id = lookupGroupIdFromForumId($fid, $subforumName);
 
-$group = group_get_object($fid);
+
+$group = group_get_object($group_id);
 if (!$group) {
 	exit_error(sprintf(_('Invalid Project')), '');
 }
@@ -85,16 +91,14 @@ if (!$group->usesPlugin($pluginname)) {
 }
 
 // Check permission and prompt for login if needed.
-session_require_perm('project_read', $fid);
+session_require_perm('project_read', $group_id);
 
 $params = array ();
 $params['toptab'] = $pluginname;
-$params['group'] = $fid;
+$params['group'] = $group_id;
 $params['title'] = 'phpBB' ;
 $params['pagename'] = $pluginname;
 $params['sectionvals'] = array ($group->getPublicName());
-
-$group_id = $fid;
 
 // Get moderators from forum database.
 $arrModerators = getModerators($group_id);
@@ -117,6 +121,14 @@ site_project_header($params);
 
 // Submenu title information.
 $subMenuTitle = array();
+if ($subforumName !== false) {
+	// Subforum.
+	$subMenuTitle["Title"] = "Forum: " . $subforumName;
+}
+else {
+	// Top level forum.
+	$subMenuTitle["Title"] = "Forum";
+}
 $subMenuUrl = array();
 $subMenuTitle[] = 'View Forum';
 $subMenuUrl[]='/plugins/phpBB/indexPhpbb.php?group_id=' . $group_id . '&pluginname=phpBB';

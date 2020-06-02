@@ -6,7 +6,7 @@
  * 
  * Post to a forum.
  * 
- * Copyright 2005-2018, SimTK Team
+ * Copyright 2005-2019, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -199,12 +199,11 @@ if ($user = session_get_user()) {
 // Otherwise, even after the user has logged out, back button will
 // load information of previous user.
 echo '<iframe name="' . rand() . '" src="' . util_make_url($strPhpbbURL) . '" ' .
-	'frameborder="0" scrolling="no" width="100%" height="700px">' .
+	'frameborder="0" scrolling="yes" width="100%" height="1100px">' .
 	'</iframe>';
 
 ?>
 
-<script src='/plugins/phpBB/iframeAdjust.js'></script>
 
 <?php
 

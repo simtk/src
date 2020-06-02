@@ -4,7 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
-* @copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
+* @copyright 2016-2020, Henry Kwong, Tod Hing - SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -388,6 +388,7 @@ class manager
 		$this->user_loader->load_users($user_ids);
 
 		// run the queue for each method to send notifications
+$cnt=0;
 		foreach ($notification_methods as $method)
 		{
 			$method->notify();
@@ -1054,7 +1055,6 @@ class manager
 		$userEmailAddr = $this->getUserEmailAddr($user_id);
 		if ($userEmailAddr != false && trim($userEmailAddr) != "") {
 			// Send email.
-			$strSubject = '[' . $data['forum_name'] . '] ' . $data['post_subject'];
 			if (isset($data['topic_first_post_id']) &&
 				$data['topic_first_post_id'] != 0) {
 				$strBody .= "A new reply has been posted to the " .
@@ -1068,14 +1068,17 @@ class manager
 					" discussion forum on SimTK.org. " .
 					"You can read this message at: \n\n";
 			}
-			$strBody .= "https://" . $this->webHost . "/plugins/phpBB/viewtopicPhpbb.php?" .
-				"f=" . $data['forum_id'] .
-				"&t=" . $data['topic_id'] .
-				"&p=" . $data['post_id'] . "\n" .
-				"Subject: " . $data['post_subject'] . "\n" .
-				"By: " . $this->getPosterName($data['poster_id']) . "\n\n" . 
-				$data['post_text'];
-			$this->sendEmail($this->webHost, $userEmailAddr, $strSubject, $strBody);
+
+			$this->sendEmail($this->webHost,
+				$data['forum_id'],
+				$data['topic_id'],
+				$data['post_id'],
+				$data['post_subject'],
+				$data['forum_name'],
+				$data['poster_id'],
+				$userEmailAddr,
+				$strBody,
+				$data['post_text']);
 		}
 	}
 
@@ -1112,9 +1115,9 @@ function getWebHost() {
 
 	// Parse configuration to get web_host.
 	$theWebHost = false;
-	if (file_exists("/etc/gforge/config.ini.d/debian-install.ini")) {
-		// The file debian-install.ini is present.
-		$arrConfig = parse_ini_file("/etc/gforge/config.ini.d/debian-install.ini");
+	if (file_exists("/etc/gforge/config.ini.d/post-install.ini")) {
+		// The file post-install.ini is present.
+		$arrConfig = parse_ini_file("/etc/gforge/config.ini.d/post-install.ini");
 		// Check for each parameter's presence.
 		if (isset($arrConfig["web_host"])) {
 			$theWebHost = $arrConfig["web_host"];
@@ -1124,17 +1127,160 @@ function getWebHost() {
 	return $theWebHost;
 }
 
+
+// Get topic body as shown in a browser with tags already interpreted.
+// Use curl to invoke the viewtopic.html page to receive the output page.
+// Extract the message body from the output page.
+function getTopicBody($theWebHost, $forumId, $topicId, $postId) {
+
+	$response = false;
+
+	// Generate URL with the forum, topic, and post ids.
+	$strURL = "https://" .
+		$theWebHost . 
+		"/plugins/phpBB/viewtopic.php?" .
+		"f=" . $forumId .
+		"&t=" . $topicId .
+		"&p=" . $postId;
+
+	// Get the interpreted ouptut page.
+	try {
+		$handle = curl_init($strURL);
+		$timeout = 5;
+		curl_setopt($handle,  CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($handle,  CURLOPT_CONNECTTIMEOUT, $timeout);
+		curl_setopt($handle, CURLOPT_FOLLOWLOCATION, true);
+		curl_setopt($handle, CURLOPT_HEADER, true);
+		curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+		$response = curl_exec($handle);
+		curl_close($handle);
+	}
+	catch (Exception $e) {
+		return false;
+	}
+
+
+	// Extract the message body.
+	// Find last occurence of '<div class="content">',
+	// because if the message is a reply, there are multiple
+	// occurences of this token. The last occurence is retrieved here.
+	$token = '<div class="content">';
+	$strDivEnd = "</div>";
+	$idxStart = strripos($response, $token);
+	if ($idxStart !== false) {
+		$strTmp = substr($response, $idxStart + strlen($token));
+
+		// Check for forum tag if present.
+		// by finding the next occurence of '<div class="rh_tag">'.
+		$idxEnd = stripos($strTmp, '<div class="rh_tag">');
+		if ($idxEnd !== false) {
+			// Has forum tag.
+
+			$strBody = substr($strTmp, 0, $idxEnd);
+
+			// Go back 1 "</div>" to get to the end of the content div.
+			$idx1 = strripos($strBody, $strDivEnd);
+			if ($idx1 !== false) {
+				// Get the message body.
+				$response = substr($strBody, 0, $idx1 + strlen($strDivEnd));
+			}
+		}
+		else {
+			// Forum tag is not present.
+
+			// Find the next occurence of '<div class="back2top">'.
+			$idxEnd = stripos($strTmp, '<div class="back2top">');
+			if ($idxEnd !== false) {
+				$strBody = substr($strTmp, 0, $idxEnd);
+
+				// Go back 3 "</div>" to get to the end of the content div.
+				$idx3 = strripos($strBody, $strDivEnd);
+				if ($idx3 !== false) {
+					$strBody = substr($strBody, 0, $idx3);
+					$idx2 = strripos($strBody, $strDivEnd);
+					if ($idx2 !== false) {
+						$strBody = substr($strBody, 0, $idx2);
+						$idx1 = strripos($strBody, $strDivEnd);
+						if ($idx1 !== false) {
+							// Get the message body.
+							$response = substr($strBody, 0, $idx1 + strlen($strDivEnd));
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return $response;
+}
+
+
 // Send email.
 function sendEmail($theWebHost,
+	$forumId,
+	$topicId,
+	$postId,
+	$postSubject,
+	$forumName,
+	$posterId,
 	$to, 
-	$subject, 
 	$body, 
+	$msgTopic,
 	$from = '', 
 	$BCC = '', 
 	$sendername = '', 
 	$extra_headers = '',
 	$send_html_email = false, 
 	$CC = '') {
+
+	// Retrieve the topic body.
+	$response = $this->getTopicBody($theWebHost, $forumId, $topicId, $postId);
+	if ($response != false) {
+		// Successfully retrieved the message body.
+		$send_html_email = true;
+
+		// URL of the topic.
+		$theURL = "https://" .
+			$theWebHost .
+			"/plugins/phpBB/viewtopicPhpbb.php?" .
+			"f=" . $forumId .
+			"&t=" . $topicId .
+			"&p=" . $postId;
+
+		// Generate beginning part of message in HTML format.
+		$body .= "<a href='" .
+			$theURL . "'>" .
+			$theURL . "</a>" . 
+			"\n" .
+			"Subject: " . $postSubject . "\n" .
+			"By: " . $this->getPosterName($posterId) . "\n\n";
+		// Convert newlines to <BR/>.
+		$body = nl2br($body);
+
+		// Add topic message from retrieval to the body.
+		$body .= $response;
+	}
+	else {
+		// Cannot retrieve the message body using the URL.
+		$send_html_email = false;
+
+		// Generate beginning part of message in plain text format.
+		$body .= "https://" .
+			$theWebHost .
+			"/plugins/phpBB/viewtopicPhpbb.php?" .
+			"f=" . $forumId .
+			"&t=" . $topicId .
+			"&p=" . $postId . "\n" .
+			"Subject: " . $postSubject . "\n" .
+			"By: " . $this->getPosterName($posterId) . "\n\n";
+
+		// Content not HTML type; strip HTML tags.
+		$msgTopic = strip_tags($msgTopic);
+
+		// Add the topic message to the body. 
+		$body .= $msgTopic;
+	}
+
 
 	// Location of 'sendmail'.
 	$sys_sendmail_path = "/usr/sbin/sendmail";
@@ -1165,14 +1311,12 @@ function sendEmail($theWebHost,
 		$body2 .= "\nCC: $CC";
 	}
 	$send_html_email ? $type = "html" : $type = "plain";
-	if ($send_html_email === false) {
-		// Strip tags first (strip XML tags also).
-		$body = strip_tags($body);
-	}
+	$subject = '[' . $forumName . '] ' . $postSubject;
 	$body2 .= "\n" . util_encode_mimeheader("Subject", $subject, $charset) .
 		"\nContent-type: text/$type; charset=$charset" .
 		"\n\n" .
-		util_convert_body($body, $charset);
+		//util_convert_body($body, $charset);
+		$body;
 
         // Send email using sendmail.
         $message = $body2;

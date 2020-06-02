@@ -98,12 +98,11 @@ space between words. Group page name is not allowed.""", wiki=True) % wikiutil.e
             return _("Password not acceptable: %s") % wikiutil.escape(pw_error)
 
     # Encode password
-    if password and not password.startswith('{SHA}'):
-        try:
-            theuser.enc_password = user.encodePassword(password)
-        except UnicodeError, err:
-            # Should never happen
-            return "Can't encode password: %s" % wikiutil.escape(str(err))
+    try:
+        theuser.enc_password = user.encodePassword(request.cfg, password)
+    except UnicodeError, err:
+        # Should never happen
+        return "Can't encode password: %s" % wikiutil.escape(str(err))
 
     # try to get the email, for new users it is required
     email = wikiutil.clean_input(form.get('email', ''))
@@ -135,9 +134,9 @@ space between words. Group page name is not allowed.""", wiki=True) % wikiutil.e
     if request.cfg.require_email_verification:        
         if request.cfg.external_creation_check:
             p = subprocess.Popen([request.cfg.external_creation_check,
-                                  theuser.name,
-                                  theuser.email,
-                                  theuser.account_creation_host], shell=False, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                  theuser.name.encode('utf-8'),
+                                  theuser.email.encode('utf-8'),
+                                  theuser.account_creation_host.encode('utf-8')], shell=False, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             (create_error, ignored) = p.communicate(None)
             if create_error:
                 return _("Account creation failed: %s." % create_error)

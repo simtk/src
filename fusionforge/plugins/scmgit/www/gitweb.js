@@ -1,0 +1,1 @@
+/usr/share/gitweb/static/gitweb.js

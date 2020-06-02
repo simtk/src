@@ -5,10 +5,11 @@
     @copyright: 2000-2004 Juergen Hermann <jh@web.de>,
                 2005-2008 MoinMoin:ThomasWaldmann.
                 2008      MoinMoin:JohannesBerg
-                2016      Henry Kwong, Tod Hing - SimTK Team
+                2019      Henry Kwong, Tod Hing - SimTK Team
     @license: GNU GPL, see COPYING for details.
 """
 
+import hashlib
 import re
 import os
 import sys
@@ -28,7 +29,6 @@ from MoinMoin.events import PageRevertedEvent, FileAttachedEvent
 import MoinMoin.web.session
 from MoinMoin.packages import packLine
 from MoinMoin.security import AccessControlList
-from MoinMoin.support.python_compatibility import set
 
 _url_re_cache = None
 _farmconfig_mtime = None
@@ -143,7 +143,7 @@ module name does not include the ".py" suffix.
 }
         raise error.ConfigurationError(msg)
     except AttributeError, err:
-        logging.exception('An exception occured.')
+        logging.exception('An exception occurred.')
         msg = """AttributeError: %(err)s
 
 Could not find required "Config" class in "%(name)s.py".
@@ -333,14 +333,6 @@ class ConfigFunctionality(object):
             except ImportError:
                 self.chart_options = None
 
-        # "Render As Docbook" requires python-xml.
-        if 'RenderAsDocbook' not in self.actions_excluded:
-            try:
-                from xml.dom.ext.reader import Sax
-            except ImportError:
-                # this will also remove it from the actions menu:
-                self.actions_excluded.append('RenderAsDocbook')
-
         # 'setuid' special auth method auth method can log out
         self.auth_can_logout = ['setuid']
         self.auth_login_inputs = []
@@ -435,6 +427,24 @@ class ConfigFunctionality(object):
             except (KeyError, ValueError):
                 raise error.ConfigurationError("You must set a (at least %d chars long) secret string for secrets['%s']!" % (
                     secret_min_length, secret_key_name))
+
+        if self.password_scheme not in config.password_schemes_configurable:
+            raise error.ConfigurationError("not supported: password_scheme = %r" % self.password_scheme)
+
+        if self.passlib_support:
+            try:
+                from passlib.context import CryptContext
+            except ImportError, err:
+                raise error.ConfigurationError("Wiki is configured to use passlib, but importing passlib failed [%s]!" % str(err))
+            try:
+                self.cache.pwd_context = CryptContext(**self.passlib_crypt_context)
+            except (ValueError, KeyError, TypeError, UserWarning), err:
+                # ValueError: wrong configuration values
+                # KeyError: unsupported hash (seen with passlib 1.3)
+                # TypeError: configuration value has wrong type
+                raise error.ConfigurationError("passlib_crypt_context configuration is invalid [%s]." % str(err))
+        elif self.password_scheme == '{PASSLIB}':
+            raise error.ConfigurationError("passlib_support is switched off, thus you can't use password_scheme = '{PASSLIB}'.")
 
     def calc_secrets(self):
         """ make up some 'secret' using some config values """
@@ -551,7 +561,8 @@ file. It should match the actual charset of the configuration file.
             'page_front_page', 'page_category_regex', 'page_dict_regex',
             'page_group_regex', 'page_template_regex', 'page_license_page',
             'page_local_spelling_words', 'acl_rights_default',
-            'acl_rights_before', 'acl_rights_after', 'mail_from'
+            'acl_rights_before', 'acl_rights_after', 'mail_from',
+            'quicklinks_default', 'subscribed_pages_default',
             )
 
         for name in decode_names:
@@ -616,7 +627,6 @@ also the spelling of the directory name.
         plugin packages as "moin_plugin_<sha1(path)>.plugin".
         """
         import imp
-        from MoinMoin.support.python_compatibility import hash_new
 
         plugin_dirs = [self.plugin_dir] + self.plugin_dirs
         self._plugin_modules = []
@@ -626,7 +636,7 @@ also the spelling of the directory name.
             imp.acquire_lock()
             try:
                 for pdir in plugin_dirs:
-                    csum = 'p_%s' % hash_new('sha1', pdir).hexdigest()
+                    csum = 'p_%s' % hashlib.new('sha1', pdir).hexdigest()
                     modname = '%s.%s' % (self.siteid, csum)
                     # If the module is not loaded, try to load it
                     if not modname in sys.modules:
@@ -684,8 +694,11 @@ class DefaultConfig(ConfigFunctionality):
     # the WikiConfig macro. Settings must be added below to
     # the options dictionary.
 
+_default_backlink_method = lambda cfg, req: 'backlink' if req.user.valid else 'pagelink'
 
-def _default_password_checker(cfg, request, username, password):
+
+def _default_password_checker(cfg, request, username, password,
+                              min_length=6, min_different=4):
     """ Check if a password is secure enough.
         We use a built-in check to get rid of the worst passwords.
 
@@ -699,9 +712,9 @@ def _default_password_checker(cfg, request, username, password):
     """
     _ = request.getText
     # in any case, do a very simple built-in check to avoid the worst passwords
-    if len(password) < 6:
+    if len(password) < min_length:
         return _("Password is too short.")
-    if len(set(password)) < 4:
+    if len(set(password)) < min_different:
         return _("Password has not enough different characters.")
 
     username_lower = username.lower()
@@ -793,6 +806,37 @@ options_no_group_name = {
     ('password_checker', DefaultExpression('_default_password_checker'),
      'checks whether a password is acceptable (default check is length >= 6, at least 4 different chars, no keyboard sequence, not username used somehow (you can switch this off by using `None`)'),
 
+    ('password_scheme', '{PASSLIB}',
+     'Either "{PASSLIB}" (default) to use passlib for creating and upgrading password hashes (see also passlib_crypt_context for passlib configuration), '
+     'or "{SSHA}" (or any other of the builtin password schemes) to not use passlib (not recommended).'),
+
+    ('passlib_support', True,
+     'If True (default), import passlib and support password hashes offered by it.'),
+
+    ('passlib_crypt_context', dict(
+        # schemes we want to support (or deprecated schemes for which we still have
+        # hashes in our storage).
+        # note: bcrypt: we did not include it as it needs additional code (that is not pure python
+        #       and thus either needs compiling or installing platform-specific binaries) and
+        #       also there was some bcrypt issue in passlib < 1.5.3.
+        #       pbkdf2_sha512: not included as it needs at least passlib 1.4.0
+        #       sha512_crypt: supported since passlib 1.3.0 (first public release)
+        schemes=["sha512_crypt", ],
+        # default scheme for creating new pw hashes (if not given, passlib uses first from schemes)
+        #default="sha512_crypt",
+        # deprecated schemes get auto-upgraded to the default scheme at login
+        # time or when setting a password (including doing a moin account pwreset).
+        # for passlib >= 1.6, giving ["auto"] means that all schemes except the default are deprecated:
+        #deprecated=["auto"],
+        # to support also older passlib versions, rather give a explicit list:
+        #deprecated=[],
+        # vary rounds parameter randomly when creating new hashes...
+        #all__vary_rounds=0.1,
+    ),
+    "passlib CryptContext arguments, see passlib docs"),
+
+    ('recovery_token_lifetime', 12,
+     'how long the password recovery token is valid [h]'),
   )),
   # ==========================================================================
   'spam_leech_dos': ('Anti-Spam/Leech/DOS',
@@ -815,6 +859,11 @@ options_no_group_name = {
         # (like photo galleries) triggering surge protection, we assign rather high limits:
         'AttachFile': (300, 30),
         'cache': (600, 30), # cache action is very cheap/efficient
+        # special stuff to prevent someone trying lots of usernames / passwords to log in.
+        # we keep this commented / disabled so that this feature does not get activated by default
+        # (if somebody does not override surge_action_limits with own values):
+        #'auth-ip': (10, 3600),  # same remote ip (any name)
+        #'auth-name': (10, 3600),  # same name (any remote ip)
      },
      "Surge protection tries to deny clients causing too much load/traffic, see HelpOnConfiguration/SurgeProtection."),
     ('surge_lockout_time', 3600, "time [s] someone gets locked out when ignoring the warnings"),
@@ -833,7 +882,7 @@ options_no_group_name = {
     # and receive a FORBIDDEN for anything except viewing a page
     # list must not contain 'java' because of twikidraw wanting to save drawing uses this useragent
     ('ua_spiders',
-     ('archiver|cfetch|charlotte|crawler|gigabot|googlebot|heritrix|holmes|htdig|httrack|httpunit|'
+     ('archiver|bingbot|cfetch|charlotte|crawler|gigabot|googlebot|heritrix|holmes|htdig|httrack|httpunit|'
       'intelix|jeeves|larbin|leech|libwww-perl|linkbot|linkmap|linkwalk|litefinder|mercator|'
       'microsoft.url.control|mirror| mj12bot|msnbot|msrbot|neomo|nutbot|omniexplorer|puf|robot|scooter|seekbot|'
       'sherlock|slurp|sitecheck|snoopy|spider|teleport|twiceler|voilabot|voyager|webreaper|wget|yeti'),
@@ -882,21 +931,16 @@ options_no_group_name = {
     ('page_footer1', '', "Custom HTML markup sent ''before'' the system footer."),
     ('page_footer2', 
 r"""
-
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <script type="text/javascript" src="/js/jquery-1.11.2.min.js"></script>
-
 <!-- Set up CSS for Wiki. Internet Explorer needs this CSS to work properly. -->
 <!-- Otherwise, the header may not show up in Internet Explorer. -->
 <link rel='stylesheet' href='/themes/simtk/css/wiki.css' type='text/css' />
-
 <script>
-
 // Insert header and footer.
 // NOTE: Use project overview page content to generate header and footer.
-
 // Get URL of this page.
 var thisURL = window.location.href;
 var idxStart = thisURL.indexOf("/plugins/moinmoin/");
@@ -914,18 +958,14 @@ if (idx == -1) {
 // Get unix project name.
 var projName = tmpStr.substring(0, idx);
 var strLeading = thisURL.substring(0, idxStart);
-
 // Set to wait cursor and hide page first.
 $("html").css("cursor", "progress");
 $("body").hide();
-
 // Get project overview page URL for loading header and footer.
 var newURL = strLeading + "/projects/" + projName;
 var myReq = $.ajax({url: newURL, async: true, type: "POST"});
-
 myReq.done(function(strPageData) {
 	// Received project overview content.
-
 	// Get header.
 	var idx = strPageData.indexOf('<div class="project_overview_main">');
 	if (idx == -1) {
@@ -933,10 +973,8 @@ myReq.done(function(strPageData) {
 		throw new Error("project_overview_main DIV not present");
 	}
 	var strLeadingPageData = strPageData.substring(0, idx);
-
 	// Add submenu box.
 	strLeadingPageData += '<ul class="submenu"><div class="project_submenubox"><div class="project_submenu">Wiki</div></div><div style="clear: both;"></div></ul>';
-
 	// Add style for Wiki.
 	strLeadingPageData += '<link rel="stylesheet" type="text/css" charset="utf-8" media="all" href="/moin_static194/modern/css/common.css">';
 	strLeadingPageData += '<link rel="stylesheet" type="text/css" charset="utf-8" media="screen" href="/moin_static194/modern/css/screen.css">';
@@ -946,23 +984,22 @@ myReq.done(function(strPageData) {
 	strLeadingPageData += '<!--[if lt IE 8]>';
 	strLeadingPageData += '<link rel="stylesheet" type="text/css" charset="utf-8" media="all" href="/moin_static194/modern/css/msie.css">';
 	strLeadingPageData += '<![endif]-->';
-
-	// Load header content before Wiki content.
-	$("body").prepend(strLeadingPageData);
-
-
+	// Needs try/catch block here because loading in through http sometimes has problems. 
+	try {
+		// Load header content before Wiki content.
+		$("body").prepend(strLeadingPageData);
+	}
+	catch (errPageLoad) {
+	}
 	// Get footer.
-
 	// Update style after including Wiki styling, which has 
 	// some general styling CSS affecting FusionForge.
 	// Footer links.
 	strEndPageData = '<style>.the_footer a {color: #f75236; text-decoration: none;}</style>';
-
 	// Follow and join links
 	strEndPageData += '<style>a.share_text_link {color: #505050}</style>';
 	strEndPageData += '<style>a.share_text_link:visited {color: #505050}</style>';
 	strEndPageData += '<style>a.share_text_link:hover {color: #505050}</style>';
-
 	// Project menu.
 	// Project menu labels.
 	strEndPageData += '<style>.project_menu a:visited {color: #3666a7}</style>';
@@ -970,7 +1007,6 @@ myReq.done(function(strPageData) {
 	strEndPageData += '<style>.project_menu li ul li a {color: #333333}</style>';
 	strEndPageData += '<style>.project_menu li ul li a:visited {color: #333333}</style>';
 	strEndPageData += '<style>.project_menu .btnDropdown:hover {color: orange}</style>';
-
 	// Hamburger container.
 	strEndPageData += '<style>.hamburgerContainer ul li a:hover {color: #f75236}</style>';
 	strEndPageData += '<style>.hamburgerContainer ul li a:visited {color: #f75236}</style>';
@@ -978,7 +1014,6 @@ myReq.done(function(strPageData) {
 	strEndPageData += '<style>.hamburgerContainer ul li ul li a:hover {color: #333333}</style>';
 	strEndPageData += '<style>.hamburgerContainer ul li ul li a:visited {color: #333333}</style>';
 	strEndPageData += '<style>.hamburgerContainer ul li ul li a {color: #333333}</style>';
-
 	var idxFooter1 = strPageData.indexOf('<div class="the_footer">');
 	var idxFooter2 = strPageData.indexOf('<div class="feedback_button"');
 	if (idxFooter1 == -1 || idxFooter2 == -1) {
@@ -986,26 +1021,20 @@ myReq.done(function(strPageData) {
 		throw new Error("the_footer or feedback_button DIV not present ");
 	}
 	strEndPageData += strPageData.substring(idxFooter1, idxFooter2);
-
 	// Add feedback button.
 	strEndPageData += '<div class="feedback_button"><div class="text">Feedback</div></div>';
-
 	// Add footer content after footer id DIV.
 	$("#footer").after(strEndPageData);
-
 	// Set body background to white.
 	// Otherwise, a yellow background shows up.
 	$("body").css("background-color", "white");
-
 	// Restore to default cursor and show page.
 	$("body").show();
 	$("html").css("cursor", "default");
-
 	// Need to invoke resize() here, because upon loading of the wiki page,
 	// sometimes, the left and width dimensions are not available, but
 	// they are consistently available when the resize handler is invoked.
 	$(document).ready(function() {
-
 		// Invoke resize handler.
 		$("body").resize();
 		// Reduce padding below Wiki title.
@@ -1014,14 +1043,11 @@ myReq.done(function(strPageData) {
 		$("#logo").remove();
 		$("#pagelocation").remove();
 		$("#pagetrail").remove();
-
 		window.setTimeout(myresize, 300);
-
 		// Set up href for Contact page.
 		$(".contact_href").click(function(event) {
 			// Invoke event.preventDefault() first.
 			event.preventDefault();
-
 			// Get group_id if hidden DIV class "divGroupId" is present.
 			theGroupId = -1;
 			$(".divGroupId").each(function() {
@@ -1036,7 +1062,6 @@ myReq.done(function(strPageData) {
 				location.href="/feedback.php?touser=101";
 			}
 		});
-
 		// Scale image logos.
 		$("img").each(function() {
 			var theImage = new Image();
@@ -1046,19 +1071,15 @@ myReq.done(function(strPageData) {
 				// Skip.
 				return;
 			}
-
 			var myThis = $(this);
 			theImage.onload = function() {
 				// Image loaded.
-
 				// Get element's dimenions.
 				var elemWidth = 86;
 				var elemHeight = 86;
-
 				// Get image file's dimensions.
 				var theNaturalWidth = theImage.width;
 				var theNaturalHeight =  theImage.height;
-
 				// Use the dimension that is constraining.
 				var ratioH = elemHeight / theNaturalHeight;
 				var ratioW = elemWidth / theNaturalWidth;
@@ -1066,14 +1087,12 @@ myReq.done(function(strPageData) {
 				if (ratioH > ratioW) {
 					theRatio = ratioW;
 				}
-
 				// New dimensions of image.
 				var theScaledWidth = Math.floor(theRatio * theNaturalWidth);
 				var theScaledHeight = Math.floor(theRatio * theNaturalHeight);
 				// Add margin at top/bottom or left/right.
 				var marginTop = Math.floor((elemHeight - theScaledHeight)/2.0);
 				var marginLeft = Math.floor((elemWidth - theScaledWidth)/2.0);
-
 				// Set CSS for element with new dimensions with margin to center image.
 				myThis.css({
 					'width': theScaledWidth + 'px',
@@ -1086,11 +1105,9 @@ myReq.done(function(strPageData) {
 			};
 		});
 	});
-
 	function myresize() {
 		$(window).resize();
 	}
-
 	// NOTE: left and width information are available only after 
 	// $(window).resize() is invoked!!!
 	// NOTE: Even after resize() has been invoked, in Internet Explorer, 
@@ -1098,7 +1115,6 @@ myReq.done(function(strPageData) {
 	// of the Wiki page. However, user's subsequent manual resize actions of 
 	// Internet Explorer will give it the proper value.
 	$(window).resize(function() {
-
 		// For responsive change between hamburgerContainer and project_menu_row
 		// to work in Internet Explorer, the following check and CSS
 		// setting is needed.
@@ -1118,10 +1134,8 @@ myReq.done(function(strPageData) {
 				"text-align":"left",
 			});
 		}
-
 		// Get left and width from submenu DIV.
 		var theLeft = $(".maindiv .submenu").offset().left;
-
 		$("#header").css("margin-left", theLeft + "px");
 		$("#header").css("max-width", theWidth + "px");
 		$("#page").css("margin-left", theLeft + "px");
@@ -1129,9 +1143,7 @@ myReq.done(function(strPageData) {
 		$("#footer").css("margin-left", theLeft + "px");
 		$("#footer").css("max-width", theWidth + "px");
 	});
-
 });
-
 </script>
 """,
 "Custom HTML markup sent ''after'' the system footer."),
@@ -1159,6 +1171,9 @@ myReq.done(function(strPageData) {
     ('show_timings', False, "show some timing values at bottom of a page"),
     ('show_version', False, "show moin's version at the bottom of a page"),
     ('show_rename_redirect', False, "if True, offer creation of redirect pages when renaming wiki pages"),
+
+    ('backlink_method', DefaultExpression('_default_backlink_method'),
+     "function determining how the (last part of the) pagename should be rendered in the title area"),
 
     ('packagepages_actions_excluded',
      ['setthemename',  # related to questionable theme stuff, see below
@@ -1201,7 +1216,9 @@ myReq.done(function(strPageData) {
         'up': ('page_parent_page', {}, _("Up"), "up"),
      },
      "dict of {'iconname': (url, title, icon-img-key), ...}. Available only in classic theme."),
-
+    ('show_highlight_msg', False, "Show message that page has highlighted text "
+                                  "and provide link to non-highlighted "
+                                  "version."),
   )),
   # ==========================================================================
   'editor': ('Editor related', None, (
@@ -1213,6 +1230,7 @@ myReq.done(function(strPageData) {
     ('edit_locking', 'warn 10', "Editor locking policy: `None`, `'warn <timeout in minutes>'`, or `'lock <timeout in minutes>'`"),
     ('edit_ticketing', True, None),
     ('edit_rows', 20, "Default height of the edit box"),
+    ('comment_required', False, "if True, only allow saving if a comment is filled in"),
 
   )),
   # ==========================================================================
@@ -1328,6 +1346,8 @@ myReq.done(function(strPageData) {
      "if True, do a reverse DNS lookup on page SAVE. If your DNS is broken, set this to False to speed up SAVE."),
     ('log_timing', False,
      "if True, add timing infos to the log output to analyse load conditions"),
+    ('log_events_format', 1,
+     "0 = no events logging, 1 = standard format (like <= 1.9.7) [default], 2 = extended format"),
 
     # some dangerous mimetypes (we don't use "content-disposition: inline" for them when a user
     # downloads such attachments, because the browser might execute e.g. Javascript contained
@@ -1370,6 +1390,7 @@ myReq.done(function(strPageData) {
     ('search_results_per_page', 25, "Number of hits shown per page in the search results"),
 
     ('siteid', 'default', None),
+    ('xmlrpc_overwrite_user', True, "Overwrite authenticated user at start of xmlrpc code"),
   )),
 }
 
@@ -1534,6 +1555,58 @@ options = {
       ('import_pagename_envelope', u"%s", "Use this to add some fixed prefix/postfix to the generated target pagename."),
       ('import_pagename_regex', r'\[\[([^\]]*)\]\]', "Regular expression used to search for target pagename specification."),
       ('import_wiki_addrs', [], "Target mail addresses to consider when importing mail"),
+
+      ('notify_page_text', '%(intro)s%(difflink)s\n\n%(comment)s%(diff)s',
+       "Template for putting together the pieces for the page changed/deleted/renamed notification mail text body"),
+      ('notify_page_changed_subject', _('[%(sitename)s] %(trivial)sUpdate of "%(pagename)s" by %(username)s'),
+       "Template for the page changed notification mail subject header"),
+      ('notify_page_changed_intro',
+       _("Dear Wiki user,\n\n"
+         'You have subscribed to a wiki page or wiki category on "%(sitename)s" for change notification.\n\n'
+         'The "%(pagename)s" page has been changed by %(editor)s:\n'),
+       "Template for the page changed notification mail intro text"),
+      ('notify_page_deleted_subject', _('[%(sitename)s] %(trivial)sUpdate of "%(pagename)s" by %(username)s'),
+       "Template for the page deleted notification mail subject header"),
+      ('notify_page_deleted_intro',
+       _("Dear wiki user,\n\n"
+         'You have subscribed to a wiki page "%(sitename)s" for change notification.\n\n'
+         'The page "%(pagename)s" has been deleted by %(editor)s:\n\n'),
+       "Template for the page deleted notification mail intro text"),
+      ('notify_page_renamed_subject', _('[%(sitename)s] %(trivial)sUpdate of "%(pagename)s" by %(username)s'),
+       "Template for the page renamed notification mail subject header"),
+      ('notify_page_renamed_intro',
+       _("Dear wiki user,\n\n"
+         'You have subscribed to a wiki page "%(sitename)s" for change notification.\n\n'
+         'The page "%(pagename)s" has been renamed from "%(oldname)s" by %(editor)s:\n'),
+       "Template for the page renamed notification mail intro text"),
+      ('notify_att_added_subject', _('[%(sitename)s] New attachment added to page %(pagename)s'),
+       "Template for the attachment added notification mail subject header"),
+      ('notify_att_added_intro',
+       _("Dear Wiki user,\n\n"
+         'You have subscribed to a wiki page "%(page_name)s" for change notification. '
+         "An attachment has been added to that page by %(editor)s. "
+         "Following detailed information is available:\n\n"
+         "Attachment name: %(attach_name)s\n"
+         "Attachment size: %(attach_size)s\n"),
+       "Template for the attachment added notification mail intro text"),
+      ('notify_att_removed_subject', _('[%(sitename)s] Removed attachment from page %(pagename)s'),
+       "Template for the attachment removed notification mail subject header"),
+      ('notify_att_removed_intro',
+       _("Dear Wiki user,\n\n"
+         'You have subscribed to a wiki page "%(page_name)s" for change notification. '
+         "An attachment has been removed from that page by %(editor)s. "
+         "Following detailed information is available:\n\n"
+         "Attachment name: %(attach_name)s\n"
+         "Attachment size: %(attach_size)s\n"),
+       "Template for the attachment removed notification mail intro text"),
+      ('notify_user_created_subject',
+       _("[%(sitename)s] New user account created"),
+       "Template for the user created notification mail subject header"),
+      ('notify_user_created_intro',
+       _('Dear Superuser, a new user has just been created on "%(sitename)s". Details follow:\n\n'
+         '    User name: %(username)s\n'
+         '    Email address: %(useremail)s'),
+       "Template for the user created notification mail intro text"),
     )),
 
     'backup': ('Backup settings',
@@ -1543,6 +1616,57 @@ options = {
       ('users', [], 'List of trusted user names who are allowed to get a backup.'),
       ('include', [], 'List of pathes to backup.'),
       ('exclude', lambda self, filename: False, 'Function f(self, filename) that tells whether a file should be excluded from backup. By default, nothing is excluded.'),
+    )),
+    'rss': ('RSS settings',
+        'These settings control RSS behaviour.',
+    (
+      ('items_default', 15, "Default maximum items value for RSS feed. Can be "
+                            "changed via items URL query parameter of rss_rc "
+                            "action."),
+      ('items_limit', 100, "Limit for item count got via RSS (i. e. user "
+                           "can't get more than items_limit items even via "
+                           "changing items URL query parameter)."),
+      ('unique', 0, "If set to 1, for each page name only one RSS item would "
+                    "be shown. Can be changed via unique rss_rc action URL "
+                    "query parameter."),
+      ('diffs', 0, "Add diffs in RSS item descriptions by default. Can be "
+                   "changed via diffs URL query parameter of rss_rc action."),
+      ('ddiffs', 0, "If set to 1, links to diff view instead of page itself "
+                    "would be generated by default. Can be changed via ddiffs "
+                    "URL query parameter of rss_rc action."),
+      ('lines_default', 20, "Default line count limit for diffs added as item "
+                            "descriptions for RSS items. Can be changed via "
+                            "lines URL query parameter of rss_rc action."),
+      ('lines_limit', 100, "Limit for possible line count for diffs added as "
+                           "item descriptions in RSS."),
+      ('show_attachment_entries', 0, "If set to 1, items, related to "
+                                     "attachment management, would be added to "
+                                     "RSS feed. Can be changed via show_att "
+                                     "URL query parameter of rss_rc action."),
+      ('page_filter_pattern', "", "Default page filter pattern for RSS feed. "
+                                  "Empty pattern matches to any page. Pattern "
+                                  "beginning with circumflex is interpreted as "
+                                  "regular expression. Pattern ending with "
+                                  "slash matches page and all its subpages. "
+                                  "Otherwise pattern sets specific pagename. "
+                                  "Can be changed via page URL query parameter "
+                                  "of rss_rc action."),
+      ('show_page_history_link', True, "Add link to page change history "
+                                       "RSS feed in theme."),
+    )),
+    'search_macro': ('Search macro settings',
+        'Settings related to behaviour of search macros (such as FullSearch, '
+        'FullSearchCached, PageList)',
+    (
+      ('parse_args', False, "Do search macro parameter parsing. In previous "
+                            "versions of MoinMoin, whole search macro "
+                            "parameter string had been interpreted as needle. "
+                            "Now, to provide ability to pass additional "
+                            "parameters, this behaviour should be changed."),
+      ('highlight_titles', 1, "Perform title matches highlighting by default "
+                              "in search results generated by macro."),
+      ('highlight_pages', 1, "Add highlight parameter to links in search "
+                             "results generated by search macros by default."),
     )),
 }
 
