@@ -198,11 +198,12 @@ def page_list(request):
 </table>
 </body>
 </html>
-''' % "".join(["<option>%s</option>\n" % p for p in pages]))
+''' % "".join(["<option>%s</option>\n" % wikiutil.escape(p) for p in pages]))
 
 def link_dialog(request):
     # list of wiki pages
     name = request.values.get("pagename", "")
+    name_escaped = wikiutil.escape(name)
     if name:
         from MoinMoin import search
         # XXX error handling!
@@ -219,7 +220,7 @@ def link_dialog(request):
            </select>
           <td>
          </tr>
-''' % "\n".join(['<option value="%s">%s</option>' % (page, page)
+''' % "\n".join(['<option value="%s">%s</option>' % (wikiutil.escape(page), wikiutil.escape(page))
                  for page in pages])
     else:
         page_list = ""
@@ -237,13 +238,14 @@ def link_dialog(request):
     else:
         resultlist = iwpreferred[:-1]
     interwiki = "\n".join(
-        ['<option value="%s">%s</option>' % (key, key) for key in resultlist])
+        ['<option value="%s">%s</option>' % (wikiutil.escape(key), wikiutil.escape(key))
+         for key in resultlist])
 
     # wiki url
     url_prefix_static = request.cfg.url_prefix_static
     scriptname = request.script_root + '/'
     action = scriptname
-    basepage = request.page.page_name
+    basepage = wikiutil.escape(request.page.page_name)
     request.write(u'''
 <!--
  * FCKeditor - The text editor for internet
@@ -298,7 +300,7 @@ def link_dialog(request):
         <tr>
          <td>
           <span fckLang="PageDlgName">Page Name</span><br>
-          <input id="txtPagename" name="pagename" size="30" value="%(name)s">
+          <input id="txtPagename" name="pagename" size="30" value="%(name_escaped)s">
          </td>
          <td valign="bottom">
            <input id=btnSearchpage type="submit" value="Search">
@@ -381,7 +383,7 @@ def attachment_dialog(request):
     requestedPagename = wikiutil.escape(request.values.get("requestedPagename", ""), quote=True)
     destinationPagename = wikiutil.escape(request.values.get("destinationPagename", request.page.page_name), quote=True)
 
-    attachmentsPagename = requestedPagename or request.page.page_name
+    attachmentsPagename = requestedPagename or wikiutil.escape(request.page.page_name)
     attachments = _get_files(request, attachmentsPagename)
     attachments.sort()
     attachmentList = '''

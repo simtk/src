@@ -7,12 +7,12 @@
 
     @license: GNU GPL, see COPYING for details.
 """
+import sys
 
 from MoinMoin import wikiutil
 from MoinMoin.i18n import languages
 from MoinMoin.widget import html
 from MoinMoin.util.web import makeSelection
-from MoinMoin.support.python_compatibility import sorted
 import mimetypes
 
 Dependencies = ['pages']
@@ -116,11 +116,17 @@ def advanced_ui(macro):
             searchedlang, 3, True)
 
     # mimetype selection
+    # mimetypes.types_map has non-ascii encoded bytestrings sometimes!
+    coding = sys.getdefaultencoding() # same call used by stdlib mimetypes.py on win32
+    if coding == 'ascii':  # we might get 'ascii'
+        coding = 'utf-8'  # but we upgrade to utf-8, which is sometimes used for /etc/mime.types
+    decode = lambda s: s.decode(coding, 'replace') # use 'replace' -> never crash
     mimetype = form_get(request, 'mimetype')
     mt_select = makeSelection('mimetype',
             [('', _('any mimetype'))] +
             [(type, 'all %s files' % type) for type in getMimetypes()] +
-            [(m[1], '*%s - %s' % m) for m in sorted(mimetypes.types_map.items())],
+            [(decode(m[1]), '*%s - %s' % (decode(m[0]), decode(m[1])))
+             for m in sorted(mimetypes.types_map.items())],
             mimetype, 3, True)
 
     # misc search options (checkboxes)

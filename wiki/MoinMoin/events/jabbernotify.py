@@ -14,6 +14,8 @@ from MoinMoin import log
 logging = log.getLogger(__name__)
 
 from MoinMoin.Page import Page
+#NOTE: Problem below in v1.9.9; use following 2 imports from v1.9.4.
+#from MoinMoin.user import User, superusers
 from MoinMoin.user import User, getUserList
 from MoinMoin.support.python_compatibility import set
 from MoinMoin.action.AttachFile import getAttachUrl
@@ -143,6 +145,9 @@ def handle_user_created(event):
     email = event.user.email or u"NOT SET"
     username = event.user.name
 
+    #NOTE: Problem below in v1.9.9; use following 5 lines from v1.9.4.
+    #for usr in superusers(request):
+    #    if usr.jid and event_name in usr.jabber_subscribed_events:
     user_ids = getUserList(request)
     for id in user_ids:
         usr = User(request, id=id)

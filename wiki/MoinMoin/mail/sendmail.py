@@ -8,7 +8,7 @@
 """
 
 import os, re
-from email.Header import Header
+from email.header import Header
 
 from MoinMoin import log
 logging = log.getLogger(__name__)
@@ -68,9 +68,9 @@ def sendmail(request, to, subject, text, mail_from=None):
     @return: (is_ok, Description of error or OK message)
     """
     import smtplib, socket
-    from email.Message import Message
-    from email.Charset import Charset, QP
-    from email.Utils import formatdate, make_msgid
+    from email.message import Message
+    from email.charset import Charset, QP
+    from email.utils import formatdate, make_msgid
 
     _ = request.getText
     cfg = request.cfg
@@ -149,6 +149,9 @@ def sendmail(request, to, subject, text, mail_from=None):
                 except AttributeError:
                     # in case the connection failed, SMTP has no "sock" attribute
                     pass
+        except UnicodeError, e:
+            logging.exception("unicode error [%r -> %r]" % (mail_from, to, ))
+            return (0, str(e))
         except smtplib.SMTPException, e:
             logging.exception("smtp mail failed with an exception.")
             return (0, str(e))

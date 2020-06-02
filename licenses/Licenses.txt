@@ -1,6 +1,6 @@
-SimTK was developed by Simbios, the NIH National Center for Physics-Based Simulation of Biological Structures at Stanford, funded under the NIH Roadmap for Medical Research Grant U54 GM072970 with continued maintenance and enhancement funded under NIH grants R01 GM107340 & R01 GM104139, and the U.S. Army Medical Research & Material Command award W81XWH-15-1-0232R01.
+SimTK was developed by Simbios, the NIH National Center for Physics-Based Simulation of Biological Structures at Stanford, funded under the NIH Roadmap for Medical Research Grant U54 GM072970 with continued maintenance and enhancement funded under NIH grants R01GM124443 01A1, R01 GM107340, & R01 GM104139, and the U.S. Army Medical Research & Material Command award W81XWH-15-1-0232R01.
 
-Portions copyright 2005-2016 Stanford University and the Authors.
+Portions copyright 2005-2020 Stanford University and the Authors.
 
 There are several licenses which cover different parts of SimTK as described below.
 
@@ -16,17 +16,17 @@ SimTK may be used under the terms of the GNU General Public License v3.  A copy 
 
 2. FusionForge
 
-SimTK uses FusionForge v5.3.2 which is copyright under the terms of the GNU General Public License v2.  A copy of this license may be found in the accompanying file "GPL2.txt".
+SimTK uses FusionForge v6.0.5 which is copyright under the terms of the GNU General Public License v2.  A copy of this license may be found in the accompanying file "GPL2.txt".
 
 
 3. phpBB Forum
 
-SimTK uses phpBB v3.1.0-RC3 which is copyright under the terms of the GNU General Public License v2.  A copy of this license may be found in the accompanying file "GPL2.txt".
+SimTK uses phpBB v3.2.2 which is copyright under the terms of the GNU General Public License v2.  A copy of this license may be found in the accompanying file "GPL2.txt".
 
 
 4. MoinMoin Wiki
 
-SimTK uses MoinMoin v1.9.4 which is copyright under the terms of the GNU General Public License v2.  A copy of this license may be found in the accompanying file "GPL2.txt".
+SimTK uses MoinMoin v1.9.9 which is copyright under the terms of the GNU General Public License v2.  A copy of this license may be found in the accompanying file "GPL2.txt".
 
   
 5. securimage Captcha

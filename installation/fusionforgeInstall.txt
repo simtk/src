@@ -1,17 +1,14 @@
-FusionForge Installation in Debian 7.6
+FusionForge Installation in Debian 9.5
 ======================================
-1. Create the file “/etc/apt/preferences”
-Put in the content from below:
-Package: * Pin: release a=stable Pin-Priority: 700
-Package: * Pin: release a=testing Pin-Priority: 650
-Package: * Pin: release a=unstable Pin-Priority: 600
-
-2. Edit the file “/etc/apt/sources.list”
+1. Edit the file “/etc/apt/sources.list”
 Include the following line at the bottom:
-deb http://ftp.de.debian.org/debian wheezy-backports main
+deb http://fusionforge.fusionforge.org/deb/ jessie-6.0/
 
-3. Get and install FusionForge 5.3
-apt-get update; apt-get install fusionforge-standard fusionforge-plugin-scmhook fusionforge-plugin-scmsvn fusionforge-plugin-scmgit fusionforge-plugin-scmcvs fusionforge-plugin-mediawiki fusionforge-plugin-moinmoin fusionforge-plugin-blocks ntp imagemagick php5-xsl uuid-runtime
+2. Get and install FusionForge 6.0.5
+apt-get update; apt-get install fusionforge
+
+3. Get packages
+apt-get install fusionforge-plugin-scmcvs fusionforge-plugin-moinmoin fusionforge-plugin-blocks ntp imagemagick php7.0-xml php-mcrypt unzip php7.0-gd php-ssh2 mutt gpgsm awstats uuid-runtime php7.0-zip libdbi-perl libtext-autoformat-perl libmail-sendmail-perl libdbd-pg-perl php7.0-mbstring texlive dvipng
 
 4. Restart Apache server
 /etc/init.d/apache2 restart

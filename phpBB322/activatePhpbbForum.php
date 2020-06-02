@@ -6,7 +6,7 @@
  * 
  * Activate a phpBB forum.
  * 
- * Copyright 2005-2016, SimTK Team
+ * Copyright 2005-2018, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -87,7 +87,9 @@ function activatePhpbbForum($forumId, $auth) {
 			'group_message_limit'=>(int)'',
 			'group_max_recipients'=>(int)'',
 		);
+		// Do not include subforums, but only direct descendents of "PROJECTS" (i.e. parent_id=1).
 		$query_sub_1 = "SELECT forum_id,left_id,right_id FROM phpbb_forums " .
+			"WHERE parent_id=1 " .
 			"ORDER BY forum_id DESC LIMIT 1";
 		$result_sub_1 = queryForum($query_sub_1);
 		if (!$result_sub_1) {

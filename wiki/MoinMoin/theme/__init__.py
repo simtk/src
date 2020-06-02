@@ -3,7 +3,7 @@
     MoinMoin - Theme Package
 
     @copyright: 2003-2008 MoinMoin:ThomasWaldmann
-                2016 Henry Kwong, Tod Hing - SimTK Team
+                2016-2019 Henry Kwong, Tod Hing - SimTK Team
     @license: GNU GPL, see COPYING for details.
 """
 

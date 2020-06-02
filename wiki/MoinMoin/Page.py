@@ -31,7 +31,7 @@
                 2005-2008 by MoinMoin:ThomasWaldmann,
                 2006 by MoinMoin:FlorianFesti,
                 2007 by MoinMoin:ReimarBauer
-                2016 Henry Kwong, Tod Hing - SimTK Team
+                2016-2019 Henry Kwong, Tod Hing - SimTK Team
     @license: GNU GPL, see COPYING for details.
 """
 

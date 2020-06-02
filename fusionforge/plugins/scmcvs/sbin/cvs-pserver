@@ -1,0 +1,13 @@
+#!/bin/sh
+
+CVSROOT=$(forge_get_config repos_path scmcvs)
+CVSREADONLYFS=yes
+export CVSREADONLYFS
+
+# Execute pserver
+CVS_PSERV_REPOS=$(find $CVSROOT -mindepth 1 -maxdepth 1 -type d)
+allow_root_opts="--allow-root=$(echo $CVS_PSERV_REPOS | sed 's: : --allow-root=:g')"
+
+exec /usr/bin/cvs -f ${allow_root_opts} pserver
+
+# End of file.

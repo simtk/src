@@ -4,7 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
-* @copyright 2005-2018, Henry Kwong, Tod Hing - SimTK Team
+* @copyright 2005-2020, Henry Kwong, Tod Hing - SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -166,6 +166,25 @@ if ($mywatch == '' && $myunwatch == '') {
 		header("Location: " . $the_url_self . "&sid=" . $_SID);
 	}
 }
+
+
+?>
+
+<script type="text/javascript" src="/scripts/jquery/jquery-1.12.4.min.js"></script>
+<script>
+// Post event to parent window with scroll height information.
+$(window).on("load", function() {
+	parent.postMessage(
+		{
+			event_id: "ScrollHeight",
+			scroll_height: document.body.scrollHeight
+		},
+		"*");
+});
+</script>
+
+<?php
+
 
 $default_sort_days	= (!empty($user->data['user_post_show_days'])) ? $user->data['user_post_show_days'] : 0;
 $default_sort_key	= (!empty($user->data['user_post_sortby_type'])) ? $user->data['user_post_sortby_type'] : 't';

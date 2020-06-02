@@ -6,7 +6,7 @@
  * 
  * Synchronize FusionForge user with phpBB.
  * 
- * Copyright 2005-2018, SimTK Team
+ * Copyright 2005-2019, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -39,12 +39,16 @@ global $auth, $cache, $config, $db, $phpbb_root_path, $phpEx, $template, $user;
 
 define('IN_PHPBB', true);
 
-require (dirname(__FILE__) . "/../../../common/include/env.inc.php");
-require_once $gfcommon . "include/pre.php";
+//require (dirname(__FILE__) . "/../../../common/include/env.inc.php");
+//require_once $gfcommon . "include/pre.php";
+require "/usr/share/fusionforge/common/include/env.inc.php";
+require_once "/usr/share/fusionforge/common/include/pre.php";
 
 // Get root path for phpBB plugin.
-$phpbbDirWWW = $gfcommon . "../plugins/phpBB/www/";
-$phpbb_root_path = (defined('PHPBB_ROOT_PATH')) ? PHPBB_ROOT_PATH : $phpbbDirWWW;
+//$phpbbDirWWW = $gfcommon . "../plugins/phpBB/www/";
+//$phpbb_root_path = (defined('PHPBB_ROOT_PATH')) ? PHPBB_ROOT_PATH : $phpbbDirWWW;
+$phpbbDirWWW = "/usr/share/fusionforge/plugins/phpBB/www/";
+$phpbb_root_path = $phpbbDirWWW;
 
 // Generate $phpEx.
 $phpEx = substr(strrchr(__FILE__, '.'), 1);

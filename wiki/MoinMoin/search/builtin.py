@@ -270,19 +270,31 @@ class BaseIndex(object):
 
         @param request: current request
         """
-        import copy
         from MoinMoin.security import Permissions
-        from MoinMoin.logfile import editlog
+        from MoinMoin.user import User
 
         class SecurityPolicy(Permissions):
-
             def read(self, *args, **kw):
                 return True
 
-        r = copy.copy(request)
-        r.user.may = SecurityPolicy(r.user)
-        r.editlog = editlog.EditLog(r)
-        return r
+        user = User(request)
+        user.may = SecurityPolicy(user)
+
+        class FakeRequest(object):
+            """ minimal request object for indexing code """
+            def __init__(self, request, user):
+                NAMES = """action cfg clock current_lang dicts form
+                           getPragma getText href html_formatter
+                           isSpiderAgent mode_getpagelinks page
+                           parsePageLinks_running redirect redirectedOutput
+                           rev rootpage script_root session setContentLanguage
+                           setPragma theme uid_generator values write""".split()
+                for name in NAMES:
+                    value = getattr(request, name, None)
+                    setattr(self, name, value)
+                self.user = user
+
+        return FakeRequest(request, user)
 
 
 ##############################################################################

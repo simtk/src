@@ -140,6 +140,8 @@ logging = log.getLogger(__name__)
 from werkzeug import redirect, abort, url_quote, url_quote_plus
 
 from MoinMoin import user, wikiutil
+from MoinMoin.web.utils import check_surge_protect
+from MoinMoin.util.abuse import log_attempt
 
 
 def get_multistage_continuation_url(request, auth_name, extra_fields={}):
@@ -241,6 +243,11 @@ class MoinAuth(BaseAuth):
 
         if username and not password:
             return ContinueLogin(user_obj, _('Missing password. Please enter user name and password.'))
+        if not username and password:
+            return ContinueLogin(user_obj, _('Missing user name. Please enter user name and password.'))
+
+        check_surge_protect(request, action='auth-ip')
+        check_surge_protect(request, action='auth-name', username=username)
 
         u = user.User(request, name=username, password=password, auth_method=self.name)            
         if u.valid:
@@ -252,9 +259,11 @@ class MoinAuth(BaseAuth):
                 logging.debug("%s: could not authenticate user %r (not verified yet)" % (self.name, username))
                 return ContinueLogin(user_obj, _("User account not verified yet."))
             logging.debug("%s: successfully authenticated user %r (valid)" % (self.name, u.name))
+            log_attempt("auth/login (moin)", True, request, username)
             return ContinueLogin(u)
         else:
             logging.debug("%s: could not authenticate user %r (not valid)" % (self.name, username))
+            log_attempt("auth/login (moin)", False, request, username)
             return ContinueLogin(user_obj, _("Invalid username or password."))
 
     def login_hint(self, request):
@@ -377,9 +386,12 @@ class GivenAuth(BaseAuth):
             u.create_or_update()
         if u and u.valid:
             logging.debug("returning valid user %r" % u)
+            log_attempt("auth/request (given)", True, request, auth_username)
             return u, True # True to get other methods called, too
         else:
             logging.debug("returning %r" % user_obj)
+            if u and not u.valid:
+                log_attempt("auth/request (given)", False, request, auth_username)
             return user_obj, True
 
 
@@ -469,6 +481,7 @@ def setup_setuid(request, userobj):
         uid = request.session['setuid']
         userobj = user.User(request, uid, auth_method='setuid')
         userobj.valid = True
+        log_attempt("auth/login (setuid from %r)" % old_user.name, True, request, userobj.name)
     logging.debug("setup_suid returns %r, %r" % (userobj, old_user))
     return (userobj, old_user)
 
