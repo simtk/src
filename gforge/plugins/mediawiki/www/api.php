@@ -1,1 +1,0 @@
-../../../../mediawiki/api.php

@@ -6,7 +6,7 @@
 
     @copyright: 2000-2004 Juergen Hermann <jh@web.de>,
                 2006-2008 MoinMoin:ThomasWaldmann
-                2016      Henry Kwong, Tod Hing - SimTK Team
+                2016-2019 Henry Kwong, Tod Hing - SimTK Team
     @license: GNU GPL, see COPYING for details.
 """
 

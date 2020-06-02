@@ -4,7 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
-* @copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
+* @copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -35,7 +35,8 @@ class postgres extends \phpbb\db\driver\driver
 		// the file phpBB.ini if the file is present and has the relevant parameters.
 		if (file_exists("/etc/gforge/config.ini.d/phpBB.ini")) {
 			// The file phpBB.ini is present.
-			$arrPhpbbConfig = parse_ini_file("/etc/gforge/config.ini.d/phpBB.ini");
+			//$arrPhpbbConfig = parse_ini_file("/etc/gforge/config.ini.d/phpBB.ini");
+			$arrPhpbbConfig = parse_ini_file("/etc/fusionforge/config.ini.d/phpBB.ini");
 			// Check for each parameter's presence.
 			if (isset($arrPhpbbConfig["phpbb_host"])) {
 				$sqlserver = $arrPhpbbConfig["phpbb_host"];

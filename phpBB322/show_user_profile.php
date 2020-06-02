@@ -6,7 +6,7 @@
  * 
  * Display user profile.
  * 
- * Copyright 2005-2018, SimTK Team
+ * Copyright 2005-2020, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -41,6 +41,7 @@ $userId = $_REQUEST["userId"];
 if (isset($userId) && $userId != null && $userId != "") {
 	// For security reasons, use phpbb_users user_id instead username.
 	// NOTE: this parameter is visible in the URL.
+	$userId = (int) $userId;
 	$query = "SELECT username from phpbb_users where user_id=" . $userId;
 	$res = queryForum($query);
 	if (!$res) {
@@ -60,9 +61,76 @@ else {
 // Display the SimTK user profile.
 // Note: Since phpBB is in a plugin, need to use the top window to show the profile.
 // Note: Need to use replace() method to not alter the history.
-echo "<script>window.top.location.replace('/users/" . $userName . "');</script>";
+
+// Check whether user is active first.
+if (checkUser($userName) !== false) {
+	// User is active.
+	// Go to user profile page.
+	echo "<script>window.top.location.replace('/users/" . $userName . "');</script>";
+}
+else {
+	// User is not active.
+	// Show alert message and send back to referring page.
+	$strURL = $_SERVER['HTTP_REFERER'];
+	if (strpos($strURL, "viewforumbyname.php") !== false) {
+		// This referer is the front page of phpBB.
+		// Replace with "indexPhpbb.php" to include SimTK header with iFrame.
+		$strURL = str_replace("viewforumbyname.php", "indexPhpbb.php", $strURL);
+
+		// Split URL by "&".
+		// Keep only "fid=" parameter.
+		$arrTokens = explode("&", $strURL);
+		$strHead = $arrTokens[0];
+		$strToken = "";
+		for ($cntToken = 1; $cntToken < count($arrTokens); $cntToken++) {
+			if (strpos($arrTokens[$cntToken], "fid=") === 0) {
+				// Found parameter to replace "fid" with "group_id".
+				$strToken = str_replace("fid=", "group_id=", $arrTokens[$cntToken]);
+				break;
+			}
+		}
+		if ($strToken != "") {
+			// Has the token that contains group_id.
+			$strURL = $strHead . "&" . $strToken;
+		}
+		// Just in case the "fid=" appears before the first "&".
+		$strURL = str_replace("fid=", "group_id=", $strURL);
+	}
+	// Alert message.
+	echo "<script>alert('This user no longer has an active SimTK account');</script>";
+	// Go to referer page.
+	echo "<script>window.top.location.replace('" . $strURL . "');</script>";
+}
 
 exit;
+
+
+// Check whether user is active by user name.
+function checkUser($userName) {
+
+	$theCnt = 0;
+	$query  = "SELECT count(*) FROM users " .
+		"WHERE user_name=$1 " .
+		"AND status='A'";
+	$result = db_query_params($query, array($userName));
+	if (!$result) {
+		// Problem with query.
+		return false;
+	}
+	if ($row = db_fetch_array($result)) {
+		$theCnt = $row["count"];
+	}
+	db_free_result($result);
+
+	if ($theCnt > 0) {
+		// User is active.
+		return true;
+	}
+	else {
+		// User is not active.
+		return false;
+	}
+}
 
 ?>
 

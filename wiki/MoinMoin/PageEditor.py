@@ -12,7 +12,7 @@
 
     @copyright: 2000-2004 by Juergen Hermann <jh@web.de>,
                 2005-2007 by MoinMoin:ThomasWaldmann,
-                2007 by MoinMoin:ReimarBauer
+                2007-2013 by MoinMoin:ReimarBauer
     @license: GNU GPL, see COPYING for details.
 """
 
@@ -25,8 +25,8 @@ from MoinMoin.widget import html
 from MoinMoin.widget.dialog import Status
 from MoinMoin.logfile import editlog, eventlog
 from MoinMoin.mail.sendmail import encodeSpamSafeEmail
-from MoinMoin.support.python_compatibility import set
 from MoinMoin.util import filesys, timefuncs, web
+from MoinMoin.util.abuse import log_attempt
 from MoinMoin.events import PageDeletedEvent, PageRenamedEvent, PageCopiedEvent, PageRevertedEvent
 from MoinMoin.events import PagePreSaveEvent, Abort, send_event
 import MoinMoin.events.notification as notification
@@ -88,6 +88,8 @@ class PageEditor(Page):
         @keyword do_revision_backup: if 0, suppress making a page backup per revision
         @keyword do_editor_backup: if 0, suppress saving of draft copies
         @keyword uid_override: override user id and name (default None)
+        @keyword mtime: time for edit-log and event-log (using current time in UTC, if not given)
+                        number of seconds since the epoch, see the time module
         """
         Page.__init__(self, request, page_name, **keywords)
         self._ = request.getText
@@ -95,6 +97,7 @@ class PageEditor(Page):
         self.do_revision_backup = keywords.get('do_revision_backup', 1)
         self.do_editor_backup = keywords.get('do_editor_backup', 1)
         self.uid_override = keywords.get('uid_override', None)
+        self.mtime = keywords.get('mtime')
 
         self.lock = PageLock(self)
 
@@ -165,8 +168,10 @@ class PageEditor(Page):
 
         # check edit permissions
         if not request.user.may.write(self.page_name):
+            log_attempt('edit/no permissions', False, request, pagename=self.page_name)
             msg = _('You are not allowed to edit this page.')
         elif not self.isWritable():
+            log_attempt('edit/immutable', False, request, pagename=self.page_name)
             msg = _('Page is immutable!')
         elif self.rev:
             # Trying to edit an old version, this is not possible via
@@ -548,6 +553,7 @@ If you don't want that, hit '''%(cancel_button_text)s''' to cancel your changes.
             return False, _("You can't copy to an empty pagename.")
 
         if not self.request.user.may.write(newpagename):
+            log_attempt('copy/no permissions', False, request, pagename=self.page_name)
             return False, _('You are not allowed to copy this page!')
 
         newpage = PageEditor(request, newpagename)
@@ -600,6 +606,7 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
 
         if not (request.user.may.delete(self.page_name)
                 and request.user.may.write(newpagename)):
+            log_attempt('rename/no permissions', False, request, pagename=self.page_name)
             msg = _('You are not allowed to rename this page!')
             raise self.AccessDenied(msg)
 
@@ -707,6 +714,7 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
         success = True
         if not (request.user.may.write(self.page_name)
                 and request.user.may.delete(self.page_name)):
+            log_attempt('delete/no permissions', False, request, pagename=self.page_name)
             msg = _('You are not allowed to delete this page!')
             raise self.AccessDenied(msg)
 
@@ -723,7 +731,7 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
             # XXX do not only catch base class SaveError here, but
             # also the derived classes, so we can give better err msgs
             success = False
-            msg = "SaveError has occured in PageEditor.deletePage. We need locking there."
+            msg = "SaveError has occurred in PageEditor.deletePage. We need locking there."
 
         # delete pagelinks
         arena = self
@@ -913,6 +921,11 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
         _ = self._
         was_deprecated = self.pi.get('deprecated', False)
 
+        if self.mtime is None:
+            mtime_usecs = None
+        else:
+            mtime_usecs = wikiutil.timestamp2version(self.mtime)
+
         self.copy_underlay_page()
 
         # remember conflict state
@@ -1003,11 +1016,13 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
                 # Write the file using text/* mime type
                 f.write(self.encodeTextMimeType(text))
                 f.close()
-                mtime_usecs = wikiutil.timestamp2version(os.path.getmtime(pagefile))
+                if mtime_usecs is None:
+                    mtime_usecs = wikiutil.timestamp2version(os.path.getmtime(pagefile))
                 # set in-memory content
                 self.set_raw_body(text)
             else:
-                mtime_usecs = wikiutil.timestamp2version(time.time())
+                if mtime_usecs is None:
+                    mtime_usecs = wikiutil.timestamp2version(time.time())
                 # set in-memory content
                 self.set_raw_body(None)
 
@@ -1064,9 +1079,11 @@ Try a different name.""", wiki=True) % (wikiutil.escape(newpagename), )
 
         msg = ""
         if not request.user.may.save(self, newtext, rev, **kw):
+            log_attempt('save/no permissions', False, request, pagename=self.page_name)
             msg = _('You are not allowed to edit this page!')
             raise self.AccessDenied(msg)
         elif not self.isWritable():
+            log_attempt('save/immutable', False, request, pagename=self.page_name)
             msg = _('Page is immutable!')
             raise self.Immutable(msg)
         elif not newtext:
@@ -1110,6 +1127,7 @@ Please review the page and save then. Do not save this page as it is!""")
             if (not request.user.may.admin(self.page_name) and
                 parseACL(request, newtext).acl != acl.acl and
                 action != "SAVE/REVERT"):
+                log_attempt('acl change/no permissions', False, request, pagename=self.page_name)
                 msg = _("You can't change ACLs on this page since you have no admin rights on it!")
                 raise self.NoAdmin(msg)
 

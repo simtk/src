@@ -6,7 +6,7 @@
  *
  * Wrapper for app.php
  * 
- * Copyright 2005-2018, SimTK Team
+ * Copyright 2005-2019, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -72,6 +72,22 @@ if (!$group->usesPlugin($pluginname)) {
 		$pluginname), '');
 }
 
+// Store $group_id in $_COOKIE.
+//
+// NOTE: The Advanced Search needs this information to generate the variable 
+// {THE_FORUM_ID} which is passed to the template search_body.html 
+// to constrain the search to the current forum.
+// Otherwise, all forums will be search.
+
+if ($group_id != 0) {
+	// group_id is NOT 0. Set group_id cookie (i.e. "f_curr").
+	setcookie("f_curr", $group_id, time()+36000);
+}
+else {
+	// group_id is 0. Retrieve group_id from cookie.
+	$group_id = $_COOKIE["f_curr"];
+}
+
 $params = array ();
 $params['toptab'] = $pluginname;
 $params['group'] = $group_id;
@@ -114,31 +130,6 @@ if (!empty($strModerators)) {
 // Link to Forum statiscis page.
 echo "<a href='/project/stats/forum_stats.php?group_id=" . $group_id . "'>Forum Statistics and Usage</a>";
 echo $HTML->endSubMenu();
-
-// Store $group_id in $_COOKIE.
-//
-// NOTE: The Advanced Search needs this information to generate the variable 
-// {THE_FORUM_ID} which is passed to the template search_body.html 
-// to constrain the search to the current forum.
-// Otherwise, all forums will be search.
-
-if ($group_id != 0) {
-	// group_id is NOT 0. Set group_id cookie (i.e. "f_curr").
-	if (isset($_GET["group_id"])) {
-		$group_id = getIntFromRequest('group_id');
-	}
-	else if (isset($_GET["f"])) {
-		$group_id = getIntFromRequest('f');
-	}
-	else {
-		return;
-	}
-	setcookie("f_curr", $group_id, time()+36000);
-}
-else {
-	// group_id is 0. Retrieve group_id from cookie.
-	$group_id = $_COOKIE["f_curr"];
-}
 
 // Cross launch into phpbb.
 

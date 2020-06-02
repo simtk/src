@@ -19,6 +19,7 @@ from MoinMoin.web.utils import check_forbidden, check_surge_protect, fatal_respo
 from MoinMoin.Page import Page
 from MoinMoin import auth, config, i18n, user, wikiutil, xmlrpc, error
 from MoinMoin.action import get_names, get_available_actions
+from MoinMoin.util.abuse import log_attempt
 
 
 def set_umask(new_mask=0777^config.umask):
@@ -172,7 +173,11 @@ def handle_action(context, pagename, action_name='show'):
             get_available_actions(cfg, context.page, context.user):
         msg = _("You are not allowed to do %(action_name)s on this page.") % {
                 'action_name': wikiutil.escape(action_name), }
-        if not context.user.valid:
+        if context.user.valid:
+            log_attempt(action_name + '/action unavailable', False,
+                        context.request, context.user.name, pagename=pagename)
+        else:
+            log_attempt(action_name + '/action unavailable', False, context.request, pagename=pagename)
             # Suggest non valid user to login
             msg += " " + _("Login and try again.")
 
@@ -186,7 +191,10 @@ def handle_action(context, pagename, action_name='show'):
         if handler is None:
             msg = _("You are not allowed to do %(action_name)s on this page.") % {
                     'action_name': wikiutil.escape(action_name), }
-            if not context.user.valid:
+            if context.user.valid:
+                log_attempt(action_name + '/no handler', False, context.request, context.user.name, pagename=pagename)
+            else:
+                log_attempt(action_name + '/no handler', False, context.request, pagename=pagename)
                 # Suggest non valid user to login
                 msg += " " + _("Login and try again.")
             context.theme.add_msg(msg, "error")
@@ -231,39 +239,12 @@ def setup_i18n_preauth(context):
     """ Determine language for the request in absence of any user info. """
     if i18n.languages is None:
         i18n.i18n_init(context)
-
-    lang = None
-    if i18n.languages:
-        cfg = context.cfg
-        if not cfg.language_ignore_browser:
-            for l, w in context.request.accept_languages:
-                logging.debug("client accepts language %r, weight %r" % (l, w))
-                if l in i18n.languages:
-                    logging.debug("moin supports language %r" % l)
-                    lang = l
-                    break
-            else:
-                logging.debug("moin does not support any language client accepts")
-        if not lang:
-            if cfg.language_default in i18n.languages:
-                lang = cfg.language_default
-                logging.debug("fall back to cfg.language_default (%r)" % lang)
-    if not lang:
-        lang = 'en'
-        logging.debug("emergency fallback to 'en'")
-    logging.debug("setup_i18n_preauth returns %r" % lang)
+    lang = i18n.requestLanguage(context)
     return lang
 
 def setup_i18n_postauth(context):
     """ Determine language for the request after user-id is established. """
-    user = context.user
-    if user and user.valid and user.language:
-        logging.debug("valid user that has configured some specific language to use in his user profile")
-        lang = user.language
-    else:
-        logging.debug("either no valid user or no specific language configured in user profile, using lang setup by setup_i18n_preauth")
-        lang = context.lang
-    logging.debug("setup_i18n_postauth returns %r" % lang)
+    lang = i18n.userLanguage(context) or context.lang
     return lang
 
 class Application(object):
@@ -279,8 +260,15 @@ class Application(object):
             request = None
             request = self.Request(environ)
             context = init(request)
-            response = run(context)
-            context.clock.stop('total')
+            try:
+                response = run(context)
+            finally:
+                context.clock.stop('total')
+                if context.cfg.log_timing:
+                    dt = context.clock.timings['total']
+                    logging.info("timing: %s %s %s %3.3f %s" % (
+                        request.remote_addr, request.url, request.referrer,
+                        dt, "!" * int(dt) or "."))
         except HTTPException, e:
             response = e
         except error.ConfigurationError, e:

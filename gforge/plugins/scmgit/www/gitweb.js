@@ -1,1 +1,0 @@
-../../../../gitweb/static/gitweb.js

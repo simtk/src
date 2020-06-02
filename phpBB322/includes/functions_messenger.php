@@ -582,7 +582,8 @@ class messenger
 
 			if ($config['smtp_delivery'])
 			{
-				$result = smtpmail($this->addresses, mail_encode($this->subject), wordwrap(utf8_wordwrap($this->msg), 997, "\n", true), $err_msg, $headers);
+				//$result = smtpmail($this->addresses, mail_encode($this->subject), wordwrap(utf8_wordwrap($this->msg), 997, "\n", true), $err_msg, $headers);
+				$result = smtpmail($this->addresses, mail_encode($this->subject), $this->msg, $err_msg, $headers);
 			}
 			else
 			{
@@ -884,7 +885,8 @@ class queue
 
 						if ($config['smtp_delivery'])
 						{
-							$result = smtpmail($addresses, mail_encode($subject), wordwrap(utf8_wordwrap($msg), 997, "\n", true), $err_msg, $headers);
+							//$result = smtpmail($addresses, mail_encode($subject), wordwrap(utf8_wordwrap($msg), 997, "\n", true), $err_msg, $headers);
+							$result = smtpmail($addresses, mail_encode($subject), $msg, $err_msg, $headers);
 						}
 						else
 						{
@@ -1840,7 +1842,7 @@ function phpbb_mail($to, $subject, $msg, $headers, $eol, &$err_msg)
 	// Newlines are used as a delimiter for lines in mail_encode() according to RFC 2045 section 6.8.
 	// Because PHP can't decide what is wanted we revert back to the non-RFC-compliant way of separating by one space (Use '' as parameter to mail_encode() results in SPACE used)
 	$additional_parameters = $config['email_force_sender'] ? '-f' . $config['board_email'] : '';
-	$result = mail($to, mail_encode($subject, ''), wordwrap(utf8_wordwrap($msg), 997, "\n", true), $headers, $additional_parameters);
+	$result = mail($to, mail_encode($subject, ''), $msg, $headers, $additional_parameters);
 
 	$collector->uninstall();
 	$err_msg = $collector->format_errors();

@@ -6,7 +6,7 @@
     TODO: refactor it to handle separate events for page changes, creations, etc
 
     @copyright: 2007 by Karol Nowak <grywacz@gmail.com>
-                2016 Henry Kwong, Tod Hing - SimTK Team
+                2016-2019 Henry Kwong, Tod Hing - SimTK Team
     @license: GNU GPL, see COPYING for details.
 """
 

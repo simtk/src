@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Load Data Share server name from cronjobs.ini file.
+if test -f /usr/share/gforge/cronjobs/db/cronjobs.ini ; then
+	source /usr/share/gforge/cronjobs/db/cronjobs.ini
+fi
+
+# Test setting of Data Share server name variable.
+if [ "${datashare_server}" = "" ]; then
+	# Data Share server name not loaded from cronjobs.ini file; exit.
+	exit 1
+fi
+
+# Allow only integer for study id.
+if ! [[ $1 =~ ^-?[0-9]+$ ]]; then
+	# study id (argument 1) is not an integer; exit.
+	exit 1
+fi
+
+# Allow only alphabetic characters for subject prefix.
+if [[ $2 =~ [^a-zA-Z] ]]; then
+	# subject prefix (argument 2) is not alphabetic; exit.
+	exit 1
+fi
+
+# Set study_id variable.
+study_id=$1
+
+# Success.
+exit $?

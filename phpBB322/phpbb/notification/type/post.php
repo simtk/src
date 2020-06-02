@@ -4,6 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @copyright 2016-2020, SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -115,8 +116,20 @@ class post extends \phpbb\notification\type\base
 			'ignore_users'		=> array(),
 		), $options);
 
-		$users = array();
+		// Get users who desire receiving all replies.
+		$usersNotifyAll = array();
+		$sql = 'SELECT user_id FROM phpbb_users_notifyallreplies ' .
+			'WHERE forum_id=' . (int) $post['forum_id'] . ' ' .
+			'AND (topic_id=0 ' .
+			'OR topic_id=' . (int) $post['topic_id'] . ')';
+		$result = $this->db->sql_query($sql);
+		while ($row = $this->db->sql_fetchrow($result))
+		{
+			$usersNotifyAll[] = (int) $row['user_id'];
+		}
+		$this->db->sql_freeresult($result);
 
+		$users = array();
 		$sql = 'SELECT user_id
 			FROM ' . TOPICS_WATCH_TABLE . '
 			WHERE topic_id = ' . (int) $post['topic_id'] . '
@@ -154,11 +167,16 @@ class post extends \phpbb\notification\type\base
 			'read'				=> 0,
 		));
 
-		foreach ($notified_users as $user => $notification_data)
-		{
+		foreach ($notified_users as $user => $notification_data) {
+
+			if (in_array($user, $usersNotifyAll, true) === true) {
+				// User wants all replies. Skip.
+				continue;
+			}
+
 			unset($notify_users[$user]);
 
-			/** @var post $notification */
+			// @var post $notification
 			$notification = $this->notification_manager->get_item_type_class($this->get_type(), $notification_data);
 			$update_responders = $notification->add_responders($post);
 			if (!empty($update_responders))
@@ -273,6 +291,20 @@ class post extends \phpbb\notification\type\base
 			$username = $this->user_loader->get_username($this->get_data('poster_id'), 'username');
 		}
 
+		// Get users who desire receiving all replies.
+		$usersNotifyAll = array();
+		$sql = 'SELECT user_id FROM phpbb_users_notifyallreplies ' .
+			'WHERE forum_id=' . (int) $this->get_data('forum_id') . ' ' .
+			'AND (topic_id=0 ' .
+			'OR topic_id=' . (int) $this->item_id . ')';
+		$result = $this->db->sql_query($sql);
+		while ($row = $this->db->sql_fetchrow($result))
+		{
+			$usersNotifyAll[] = (int) $row['user_id'];
+		}
+		$this->db->sql_freeresult($result);
+
+
 		return array(
 			'AUTHOR_NAME'				=> htmlspecialchars_decode($username),
 			'POST_SUBJECT'				=> htmlspecialchars_decode(censor_text($this->get_data('post_subject'))),
@@ -284,6 +316,7 @@ class post extends \phpbb\notification\type\base
 			'U_VIEW_TOPIC'				=> generate_board_url() . "/viewtopic.{$this->php_ext}?f={$this->get_data('forum_id')}&t={$this->item_parent_id}",
 			'U_FORUM'					=> generate_board_url() . "/viewforum.{$this->php_ext}?f={$this->get_data('forum_id')}",
 			'U_STOP_WATCHING_TOPIC'		=> generate_board_url() . "/viewtopic.{$this->php_ext}?uid={$this->user_id}&f={$this->get_data('forum_id')}&t={$this->item_parent_id}&unwatch=topic",
+			'USERS_NOTIFYALL' => $usersNotifyAll,
 		);
 	}
 

@@ -1,0 +1,2 @@
+<?php
+$forge_pkg_version = '@PKGVERSION@';

@@ -12,6 +12,7 @@
       maintaining a cache of recent changes metadata)
 
     @copyright: 2006 MoinMoin:ThomasWaldmann
+                2016-2019 Henry Kwong, Tod Hing - SimTK Team
     @license: GNU GPL, see COPYING for details.
 """
 
@@ -159,7 +160,8 @@ class EditLog(LogFile):
         self._NUM_FIELDS = 9
         self._usercache = {}
 
-        idx_start = len('/var/lib/gforge/plugins/moinmoin/wikidata/')
+        # NOTE: Pathname has to be the full physical path and cannot have softlinked substitution.
+        idx_start = len('/var/lib/fusionforge/plugins/moinmoin/wikidata/')
         tmp_str = filename[idx_start:]
         idx_end = tmp_str.find('/')
         self.group_name = tmp_str[:idx_end]

@@ -1,1 +1,0 @@
-../../../../mediawiki/opensearch_desc.php

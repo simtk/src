@@ -4,7 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
-* @copyright 2005-2018, Henry Kwong, Tod Hing - SimTK Team
+* @copyright 2005-2020, SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -192,6 +192,24 @@ if ($forum_data['forum_type'] == FORUM_LINK && $forum_data['forum_link'])
 	redirect($forum_data['forum_link'], false, true);
 	return;
 }
+
+?>
+
+<script type="text/javascript" src="/scripts/jquery/jquery-1.12.4.min.js"></script>
+<script>
+// Post event to parent window with scroll height information.
+$(window).on("load", function() {
+	parent.postMessage(
+		{
+			event_id: "ScrollHeight",
+			scroll_height: document.body.scrollHeight
+		},
+		"*");
+});
+</script>
+
+<?php
+
 
 // Build navigation links
 generate_forum_nav($forum_data);

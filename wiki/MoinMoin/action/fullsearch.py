@@ -11,7 +11,7 @@
 import re, time
 from MoinMoin.Page import Page
 from MoinMoin import wikiutil
-from parsedatetime.parsedatetime import Calendar
+from parsedatetime import Calendar
 from MoinMoin.web.utils import check_surge_protect
 
 def checkTitleSearch(request):
@@ -81,6 +81,8 @@ def execute(pagename, request, fieldname='value', titlesearch=0, statistic=0):
     case = int(form.get('case', 0))
     regex = int(form.get('regex', 0)) # no interface currently
     hitsFrom = int(form.get('from', 0))
+    highlight_titles = int(form.get('highlight_titles', 1))
+    highlight_pages = int(form.get('highlight_pages', 1))
     mtime = None
     msg = ''
     historysearch = 0
@@ -200,17 +202,17 @@ def execute(pagename, request, fieldname='value', titlesearch=0, statistic=0):
         page = results.hits[0]
         if not page.attachment: # we did not find an attachment
             page = Page(request, page.page_name)
-            highlight = query.highlight_re()
-            if highlight:
-                querydict = {'highlight': highlight}
-            else:
-                querydict = {}
+            querydict = {}
+            if highlight_pages:
+                highlight = query.highlight_re()
+                if highlight:
+                    querydict.update({'highlight': highlight})
             url = page.url(request, querystr=querydict)
             request.http_redirect(url)
             return
     if not results.hits: # no hits?
         f = request.formatter
-        querydict = dict(wikiutil.parseQueryString(request.query_string))
+        querydict = wikiutil.parseQueryString(request.query_string).to_dict()
         querydict.update({'titlesearch': 0})
 
         request.theme.add_msg(_('Your search query {{{"%s"}}} didn\'t return any results. '
@@ -239,7 +241,7 @@ def execute(pagename, request, fieldname='value', titlesearch=0, statistic=0):
     hints = []
 
     if titlesearch:
-        querydict = dict(wikiutil.parseQueryString(request.query_string))
+        querydict = wikiutil.parseQueryString(request.query_string).to_dict()
         querydict.update({'titlesearch': 0})
 
         hints.append(''.join([
@@ -265,10 +267,14 @@ def execute(pagename, request, fieldname='value', titlesearch=0, statistic=0):
     info = not titlesearch
     if context:
         output = results.pageListWithContext(request, request.formatter,
-                info=info, context=context, hitsFrom=hitsFrom, hitsInfo=1)
+                info=info, context=context, hitsFrom=hitsFrom, hitsInfo=1,
+                highlight_titles=highlight_titles,
+                highlight_pages=highlight_pages)
     else:
         output = results.pageList(request, request.formatter, info=info,
-                hitsFrom=hitsFrom, hitsInfo=1)
+                hitsFrom=hitsFrom, hitsInfo=1,
+                highlight_titles=highlight_titles,
+                highlight_pages=highlight_pages)
 
     request.write(output)
 
