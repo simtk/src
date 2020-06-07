@@ -81,7 +81,6 @@ function &group_get_object($group_id, $res = false) {
 			//the db result handle was passed in
 		}
 		else {
-			$group_id = (int) $group_id;
 			$res = db_query_params('SELECT * FROM groups WHERE group_id=$1', array($group_id));
 		}
 		if (!$res || db_numrows($res) < 1) {

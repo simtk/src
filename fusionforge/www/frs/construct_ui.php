@@ -220,7 +220,7 @@ function constructPackageUI($HTML, $groupId, $groupObj, $packageInfo,
 		if (empty($packDoiIdentifier)) {
 			$packDoiIdentifier = " pending";
 		}
-		echo '<div class="download_details">doi:' . $packDoiIdentifier . '</div><br/>';
+		echo '<div class="download_details" style="margin-left:0px;">doi:' . $packDoiIdentifier . '</div><br/>';
 	}
 
 	echo "<div class='download_description'>" . $packDesc . "</div>";
@@ -355,7 +355,7 @@ function constructReleaseUI($HTML, $groupId, $groupObj,
 		if (empty($relDoiIdentifier)) {
 			$relDoiIdentifier = " pending";
 		}
-		echo '<div class="download_details">doi:' . $relDoiIdentifier . '</div><br/>';
+		echo '<div class="download_details" style="margin-left:0px;">doi:' . $relDoiIdentifier . '</div><br/>';
 	}
 
 	// Check if the release contains URLs only.
