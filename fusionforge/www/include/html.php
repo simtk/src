@@ -9,7 +9,7 @@
  * Copyright 2011-2016, Franck Villaume - TrivialDev
  * Copyright © 2011, 2012
  *	Thorsten “mirabilos” Glaser <t.glaser@tarent.de>
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2020, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -426,7 +426,9 @@ function html_use_jquery() {
 	//use_javascript('/scripts/jquery/jquery-1.10.2.js');
 	//use_javascript('/scripts/jquery/jquery-1.11.2.min.js');
 	//use_javascript('/scripts/jquery/jquery.min.js');
-	use_javascript('/scripts/jquery/jquery-1.12.4.min.js');
+	//use_javascript('/scripts/jquery/jquery-1.12.4.min.js');
+	use_javascript('/scripts/jquery/jquery-3.5.1.min.js');
+	use_javascript('/scripts/jquery/jquery-migrate-3.3.0.min.js');
 }
 
 function html_use_storage() {
@@ -449,8 +451,10 @@ function html_use_coolfieldset() {
 
 function html_use_jqueryui() {
 	html_use_jquery();
-	use_javascript('/scripts/jquery-ui/js/jquery-ui-1.11.2.js');
-	use_stylesheet('/scripts/jquery-ui/css/overcast/jquery-ui-1.11.2.css');
+	//use_javascript('/scripts/jquery-ui/js/jquery-ui-1.11.2.js');
+	//use_stylesheet('/scripts/jquery-ui/css/overcast/jquery-ui-1.11.2.css');
+	use_javascript('/scripts/jquery-ui/js/jquery-ui.min.js');
+	use_stylesheet('/scripts/jquery-ui/css/jquery-ui.min.css');
 }
 
 function html_use_jqueryjqplot() {

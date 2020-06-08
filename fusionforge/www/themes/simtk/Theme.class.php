@@ -1927,8 +1927,30 @@ echo $u->getFirstName();
 	 */
 	function headerStart($params) {
 		$this->headerHTMLDeclaration();
+
+		if (empty($_SERVER['HTTPS'])) {
+			$location = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+			header('HTTP/1.1 301 Moved Permanently');
+			header('Location: ' . $location);
+		}
+
 		?>
 	<head>
+		<style id="topStyle">
+		body {
+			display:none !important;
+		}
+		</style>
+
+		<script type="text/javascript">
+		if (self === top) {
+			var elemTopStyle = document.getElementById("topStyle");
+			elemTopStyle.parentNode.removeChild(topStyle);
+		}
+		else {
+			top.location = self.location;
+		}
+		</script>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
                 <?php // The 'viewport' bellow fixes: Icorrect iPhone Bootstrap3 Representation: http://stackoverflow.com/questions/19933848/bootstrap-3-not-xs-on-iphone-5 ?>
                 <meta name="viewport" content="width=device-width, initial-scale=1" />

@@ -3,6 +3,7 @@
  * Project List plugin for FusionForge
  * Copyright 2008, Nicolas Quienot - Linagora
  * Copyright 2015, Franck Villaume - TrivialDev
+ * Copyright 2005-2020, SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -23,6 +24,36 @@
 
 require_once '../env.inc.php';
 require_once $gfcommon.'include/pre.php';
+
+?>
+
+<head>
+
+<style id="topStyle">
+body {
+	display:none !important;
+}
+</style>
+
+<script type="text/javascript">
+if (self === top) {
+	var elemTopStyle = document.getElementById("topStyle");
+	elemTopStyle.parentNode.removeChild(topStyle);
+}
+else {
+	top.location = self.location;
+}
+</script>
+
+</head>
+
+<?php
+
+if (empty($_SERVER['HTTPS'])) {
+	$location = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+	header('HTTP/1.1 301 Moved Permanently');
+	header('Location: ' . $location);
+}
 
 $sysdebug_enable = false;
 

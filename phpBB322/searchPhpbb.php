@@ -6,7 +6,7 @@
  * 
  * Display phpBB search results.
  * 
- * Copyright 2005-2018, SimTK Team
+ * Copyright 2005-2020, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -43,7 +43,7 @@ $HTML->header(array());
 if (isset($_GET['author'])) {
 	$author = getStringFromRequest('author');
 	if (!preg_match('/^[a-z0-9][-a-z0-9_\.]+\z/', $author)) {
-                return;
+		exit_error("Invalid forum parameters", '');
         }
 }
 else {
