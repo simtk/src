@@ -51,6 +51,28 @@ $sort_dir		= $request->variable('sd', 'd');
 $return_chars	= $request->variable('ch', ($topic_id) ? -1 : 300);
 $search_forum	= $request->variable('fid', array(0));
 
+// Check input parameters.
+if ((!preg_match('/^[0-9a-zA-Z_]+$/', $mode) && trim($mode) != "") ||
+	(!preg_match('/^[0-9a-zA-Z_]+$/', $search_id) && trim($search_id) != "") ||
+	(!ctype_alnum($view) && trim($view) != "") ||
+	!is_numeric($start) ||
+	!is_numeric($post_id) ||
+	!is_numeric($topic_id) ||
+	!is_numeric($author_id)) {
+	trigger_error('Invalid parameters for forum search.');
+}
+
+
+if (!preg_match('/^[a-z0-9][-a-z0-9_\.]+\z/', $author) && trim($author) != "") {
+	trigger_error('Invalid author for forum search.');
+}
+if (!preg_match('/^[-a-z0-9_ +|.*\[\]\{\}]+\z/', $keywords) && trim($keywords) != "") {
+	trigger_error('Invalid keywords for forum search.');
+}
+if (!preg_match('/^[-a-z0-9_ +|.*\[\]\{\}]+\z/', $add_keywords) && trim($add_keywords) != "") {
+	trigger_error('Invalid add_keywords for forum search.');
+}
+
 // We put login boxes for the case if search_id is newposts, egosearch or unreadposts
 // because a guest should be able to log in even if guests search is not permitted
 

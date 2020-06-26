@@ -4,7 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
-* @copyright 2005-2018, Henry Kwong, Tod Hing - SimTK Team
+* @copyright 2005-2020, Henry Kwong, Tod Hing - SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -40,6 +40,18 @@ $sort_dir	= $request->variable('sd', $default_sort_dir);
 
 $mywatch	= $request->variable('watch', '');
 $myunwatch	= $request->variable('unwatch', '');
+
+// Check input parameters.
+if (!is_numeric($forum_id) ||
+	!is_numeric($start) ||
+	!is_numeric($sort_days) ||
+	(!preg_match('/^[0-9a-zA-Z_]+$/', $sort_key) && trim($sort_key) != "") ||
+	(!ctype_alnum($sort_dir) && trim($sort_dir) != "") ||
+	(!ctype_alnum($mywatch) && trim($mywatch) != "") ||
+	(!ctype_alnum($myunwatch) && trim($myunwatch) != "")) {
+	trigger_error('Invalid parameters for forum view.');
+}
+
 
 $strPhpbbURL = "/plugins/phpBB/indexPhpbb.php?f=" . $forum_id;
 
