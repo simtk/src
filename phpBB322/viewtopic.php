@@ -25,6 +25,10 @@ include($phpbb_root_path . 'includes/functions_user.' . $phpEx);
 
 // Retrieve user id given the seesion id.
 function getUserIdFromSid($db, $theSid) {
+	if (!ctype_alnum($theSid) && trim($theSid) != "") {
+		return false;
+	}
+
 	$theUID = false;
 	$sqlQueryUID = "SELECT session_user_id FROM phpbb_sessions " .
 		"WHERE session_id='" . $theSid . "'";
@@ -55,6 +59,25 @@ $view		= $request->variable('view', '');
 
 // Get the phpbb session_id.
 $the_sid	= $request->variable('sid', "");
+
+// Check input parameters.
+if ((!ctype_alnum($mywatch) && trim($mywatch) != "") ||
+	(!ctype_alnum($myunwatch) && trim($myunwatch) != "") ||
+	(!ctype_alnum($view) && trim($view) != "") ||
+	(!ctype_alnum($the_sid) && trim($the_sid) != "") ||
+	!is_numeric($forum_id) ||
+	!is_numeric($topic_id) ||
+	!is_numeric($post_id) ||
+	!is_numeric($start)) {
+	trigger_error('Invalid parameters for forum topic.');
+}
+else {
+	foreach ($voted_id as $key=>$val) {
+		if (!is_numeric($key) || !is_numeric($val)) {
+			trigger_error('Invalid parameters for forum topic.');
+		}
+	}
+}
 
 if ($mywatch == '' && $myunwatch == '') {
 

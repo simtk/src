@@ -6,7 +6,7 @@
  * 
  * File to display search results of projects.
  * 
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2020, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -251,9 +251,6 @@ $ff = new FusionForge();
 <script src='/category/jquery.history.js'></script>
 <script src='/category/FilterSearch.js'></script>
 <script src='/category/SimtkFilters.js'></script>
-
-<link rel="stylesheet" href='/js/jquery-ui-1.10.1.custom.min.css' />
-<script src='/js/jquery-ui-1.10.1.custom.min.js'></script>
 
 <link rel='stylesheet' href='../category/category.css' type='text/css' />
 <script type="text/javascript" src="/themes/simtk/js/simple-expand.js"></script>

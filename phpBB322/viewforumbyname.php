@@ -46,14 +46,25 @@ $in_forum_name  = $request->variable('fname', '');
 $mark_read	= $request->variable('mark', '');
 $start		= $request->variable('start', 0);
 
+// Check input parameters.
+if ((!preg_match('/^[0-9a-zA-Z_]+$/', $mark_read) && trim($mark_read) != "") ||
+	!is_numeric($in_forum_id) ||
+	!is_numeric($start)) {
+	trigger_error('Invalid parameters for forum view.');
+}
+
 // Get forum_id given the forum name.
 $forum_id = -1;
 // "'" is a delimiter in db. If there is "'" in forum name, escape it first.
 $in_forum_name = str_replace("'", "''", $in_forum_name);
-$sql = "SELECT forum_id FROM phpbb_forums WHERE forum_name='" . $in_forum_name . "' limit 1";
+
+$sql = "SELECT forum_id, forum_name FROM phpbb_forums";
 $result = $db->sql_query($sql);
 while ($row = $db->sql_fetchrow($result)) {
-	$forum_id = $row['forum_id'];
+	$forum_name = $row['forum_name'];
+	if ($row['forum_name'] == $in_forum_name) {
+		$forum_id = $row['forum_id'];
+	}
 }
 $db->sql_freeresult($result);
 
@@ -91,7 +102,10 @@ if ($forum_id == -1) {
 // Retry after forum activation.
 $result = $db->sql_query($sql);
 while ($row = $db->sql_fetchrow($result)) {
-	$forum_id = $row['forum_id'];
+	$forum_name = $row['forum_name'];
+	if ($row['forum_name'] == $in_forum_name) {
+		$forum_id = $row['forum_id'];
+	}
 }
 $db->sql_freeresult($result);
 if ($forum_id == -1) {
