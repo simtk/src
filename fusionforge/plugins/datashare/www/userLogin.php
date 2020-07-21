@@ -41,13 +41,14 @@ $group_id = getIntFromRequest('groupid');
 $study_id = getIntFromRequest('studyid');
 $nameDownload = trim(getStringFromRequest('nameDownload'));
 // Validate pathname for download.
-if (!empty($nameDownload) &&
-	(!empty(preg_replace("/[-A-Z0-9+_\. ~\/]/i", "", $nameDownload)) ||
-	strstr($nameDownload, ".."))) {
-	$warning_msg = "Invalid filename for download.";
-	$HTML->header(array('title'=>'Login'));
-	$HTML->footer(array());
-	exit;
+if (!empty($nameDownload)) {
+	$tmpName = preg_replace("/[-A-Z0-9+_\. ~\/]/i", "", $nameDownload);
+	if (!empty($tmpName) || strstr($nameDownload, "..")) {
+		$warning_msg = "Invalid filename for download.";
+		$HTML->header(array('title'=>'Login'));
+		$HTML->footer(array());
+		exit;
+	}
 }
 
 $login = getStringFromRequest('login');
