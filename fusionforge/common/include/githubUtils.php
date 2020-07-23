@@ -6,7 +6,7 @@
  * 
  * Utilities to retrieve GitHub information.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2020, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -198,7 +198,6 @@ function getGitHubFileSize($strUrl) {
 	$fileSize = false;
 
 	$handle = curl_init($strUrl);
-	curl_setopt($handle,  CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($handle, CURLOPT_FOLLOWLOCATION, true);
 	curl_setopt($handle, CURLOPT_HEADER, true);
 	curl_setopt($handle, CURLOPT_NOBODY, true);

@@ -41,15 +41,20 @@ defined('MAX_GITHUB_FILESIZE') or define('MAX_GITHUB_FILESIZE', 250 * 1024 * 102
 // Refresh file in the downloads direcotry using the given URL.
 function refreshFile($fileId, $url, &$packId) {
 
-	// Check GitHub archive file size at the given URL.
-	$tmpFileSize = getGitHubFileSize($url);
-	if ($tmpFileSize === false || $tmpFileSize > MAX_GITHUB_FILESIZE) {
-		return false;
-	}
-
 	$frsFile = frsfile_get_object($fileId);
 	if (!$frsFile) {
 		// Cannot get FRSFile object.
+		return false;
+	}
+
+	// Check GitHub archive file size at the given URL.
+	$tmpFileSize = getGitHubFileSize($url);
+	if ($tmpFileSize === false) {
+		notifyGitHubRefresh($fileId, $url, "Cannot get GitHub archive file size.");
+		return false;
+	}
+	if ($tmpFileSize > MAX_GITHUB_FILESIZE) {
+		notifyGitHubRefresh($fileId, $url, "GitHub archive file is too large: $tmpFileSize.");
 		return false;
 	}
 
@@ -85,14 +90,16 @@ function refreshFile($fileId, $url, &$packId) {
 	// Save file.
 	$fp = @fopen($fullPathName, "w+");
 	if ($fp === false) {
-		echo "Cannot save file: " . $fullPathName . "\n";
+		//echo "Cannot open file: " . $fullPathName . "\n";
+		notifyGitHubRefresh($fileId, $url, "Cannot open GitHub archive file.");
 		return false;
 	}
 	fwrite($fp, $content);
 	fclose($fp);
 	*/
 	if (!@copy($url, $fullPathName, stream_context_create($context))) {
-		echo "Cannot save file: " . $fullPathName . "\n";
+		//echo "Cannot save file: " . $fullPathName . "\n";
+		notifyGitHubRefresh($fileId, $url, "Cannot save GitHub archive file.");
 		return false;
 	}
 
@@ -100,6 +107,30 @@ function refreshFile($fileId, $url, &$packId) {
 	$fileSize = filesize($fullPathName);
 
 	return $fileSize;
+}
+
+// Send notification message on GitHub file refresh.
+function notifyGitHubRefresh($fileId, $url, $message) {
+
+	// Get FRSFile object.
+	$frsFile = frsfile_get_object($fileId);
+	if (!$frsFile) {
+		// Cannot get FrsFile object.
+		return;
+	}
+	
+	$strMsg = $message . "\n" . $url . "\n";
+
+	// Get project admins.
+	$groupObj = $frsFile->FRSRelease->FRSPackage->Group;
+	$projAdmins = $groupObj->getAdmins();
+	foreach ($projAdmins as $adminObj) {
+		// Send email to project admin.
+		$adminEmail = $adminObj->data_array["email"];
+		util_send_message($adminEmail, "Problem in GitHub archive file retrieval.", $strMsg);
+	}
+	// Send email to webmaster.
+	util_send_message("webmaster@simtk.org", "Problem in GitHub archive file retrieval.", $strMsg);
 }
 
 
