@@ -172,6 +172,14 @@ if (session_loggedin()) {
 			}
 		});
 
+		// Handle popover show and hide.
+		$(".myPopOver").hover(function() {
+			$(this).find(".popoverLic").popover("show");
+		});
+		$(".myPopOver").mouseleave(function() {
+			$(this).find(".popoverLic").popover("hide");
+		});
+
 <?php
 	// Flag components that have errors.
 	if (isset($arrErrors)) {
@@ -226,19 +234,19 @@ if (session_loggedin()) {
 
 	echo '<p>';
 	echo '<div style="margin-left:20px;width:600px;">';
-	echo '<strong>Top Level Folder Prefix:</strong><br/>';
-	echo 'Restrictions: Up to 80 alphabetic characters. ' .
-		'<a href="javascript://" data-toggle="popover" data-placement="right" ' .
-		'data-content="' .
-		'If your top level folders are named subject01, subject02, etc., then you specify subject as the prefix">See Example</a>';
+	echo '<strong>Top Level Folder Prefix:</strong> ';
+	echo '<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="If your top level folders are named subject01, subject02, etc., then you specify subject as the prefix.">?</a></span>';
+	echo '<br/>';
+
+	echo 'Restrictions: Up to 80 alphabetic characters.';
 	echo '<input type="text" name="subject_prefix" class="required" size="58" placeholder="subject" /></p>';
 	echo '</div>';
 
 	echo '<br /><p><strong>'._('Publicly Viewable')._(': ').'</strong></p>';
 
-	echo "<p><input type=\"radio\" name=\"is_private\" value=\"0\" checked> Public - anyone can view and download the data, regardless of whether they are a SimTK member or not";
-	echo "<p><input type=\"radio\" name=\"is_private\" value=\"1\"> Registered User - only SimTK members who are logged into SimTK can view and download the data.";
-	echo "<p><input type=\"radio\" name=\"is_private\" value=\"2\"> Private - only designated members of the project can view and download the data.";
+	echo '<p><input type="radio" name="is_private" value="0" checked> Public </input><span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Anyone can view and download the data, regardless of whether they are a SimTK member or not.">?</a><span>';
+	echo '<p><input type="radio" name="is_private" value="1"> Registered User </input><span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Only SimTK members who are logged into SimTK can view and download the data.">?</a></span>';
+	echo '<p><input type="radio" name="is_private" value="2"> Private </input><span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Only designated members of the project can view and download the data.">?</a></span>';
 
 ?>
 
@@ -246,48 +254,48 @@ if (session_loggedin()) {
 <br/>
 
 <strong>License agreement:</strong>
-<a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="You can display a download agreement to users before they download any file in this package. The option to show this agreement can be removed for a given file when that file is added to the package.<br/><br/>
+<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="You can display a download agreement to users before they download any file in this package. The option to show this agreement can be removed for a given file when that file is added to the package.<br/><br/>
 
-For code, we recommend that you add a license agreement as a comment header in every source file. This is in addition to or instead of this download agreement. A summary of each license is provided, but you should consult the license itself for the exact terms that apply.">?</a>
+For code, we recommend that you add a license agreement as a comment header in every source file. This is in addition to or instead of this download agreement. A summary of each license is provided, but you should consult the license itself for the exact terms that apply.">?</a></span>
 
 <br/>
 
 <div style="margin-left:20px;">
 
 <strong><label>Open Source Licenses</label></strong>
-<a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="
+<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="
 * Allows others to use your data/documentation/software for any purpose, commercial or non-commercial, make modifications, and redistribute it.<br/>
 * Includes a disclaimer of warranty.<br/>
 * Users are obligated to include your license terms if they redistribute. See <a href='http://www.opensource.org' target='_blank'>http://www.opensource.org</a> and <a href='http://en.wikipedia.org/wiki/Comparison_of_free_software_licenses' target='_blank'>Wikipedia</a> for more information.<br/>
 * SimTK provides some common open-source licenses to choose from.  Many other options exist. See <a href='https://spdx.org/licenses/' target='_blank'>list of other open-source licenses</a>.<br/><br/>
 
 These licenses differ in the additional obligations they place on the users.
-">?</a>
+">?</a></span>
 
 <p>
-<input type="radio" name="use_agreement" class="use_agreement" value="2" checked="checked"> MIT <a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Default license. No additional obligations.">?</a>
+<input type="radio" name="use_agreement" class="use_agreement" value="2" checked="checked"> MIT </input><span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Default license. No additional obligations.">?</a></span>
 </p>
 <p>
-<input type="radio" name="use_agreement" class="use_agreement" value="3"> LGPL <a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Modifications that are redistributed must include the modified source under the same terms.">?</a>
+<input type="radio" name="use_agreement" class="use_agreement" value="3"> LGPL </input><span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Modifications that are redistributed must include the modified source under the same terms.">?</a></span>
 </p>
 <p>
-<input type="radio" name="use_agreement" class="use_agreement" value="4"> GPL </input><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Any distributed work that includes all or part of GPL-licensed material must itself be offered under GPL, meaning that all the source code is available.">?</a>
+<input type="radio" name="use_agreement" class="use_agreement" value="4"> GPL </input><span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Any distributed work that includes all or part of GPL-licensed material must itself be offered under GPL, meaning that all the source code is available.">?</a></span>
 </p>
 <p>
-<input type="radio" name="use_agreement" class="use_agreement" value="6"> CC BY 4.0 </input><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Others can share and adapt the file(s) for any purpose, even commercially, but they must give proper attribution.  Similar to MIT license but applies to works beyond just software and related documentation.  Also, it provides more terms and conditions.">?</a>
+<input type="radio" name="use_agreement" class="use_agreement" value="6"> CC BY 4.0 </input><span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Others can share and adapt the file(s) for any purpose, even commercially, but they must give proper attribution.  Similar to MIT license but applies to works beyond just software and related documentation.  Also, it provides more terms and conditions.">?</a></span>
 </p>
 <p>
-<input type="radio" name="use_agreement" class="use_agreement" value="7"> Apache 2.0 </input><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Similar to MIT license. Some major differences: 1) Apache 2.0 offers more explicit patent protection and 2) it also requires listing all modifications to original software.">?</a>
+<input type="radio" name="use_agreement" class="use_agreement" value="7"> Apache 2.0 </input><span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Similar to MIT license. Some major differences: 1) Apache 2.0 offers more explicit patent protection and 2) it also requires listing all modifications to original software.">?</a></span>
 </p>
 
 <strong><label>Other licenses</label></strong>
-<a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content='Many other licenses can be used. See <a href="http://en.wikipedia.org/wiki/Comparison_of_free_software_licenses" target="_blank">Wikipedia</a> and <a href="http://creativecommons.org/licenses" target="_blank">Creative Commons</a>. For complex licenses, we recommend that you enter a URL for the license, e.g., "The [project name] license agreement can be read here: http://XXX."'>?</a>
+<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content='Many other licenses can be used. See <a href="http://en.wikipedia.org/wiki/Comparison_of_free_software_licenses" target="_blank">Wikipedia</a> and <a href="http://creativecommons.org/licenses" target="_blank">Creative Commons</a>. For complex licenses, we recommend that you enter a URL for the license, e.g., "The [project name] license agreement can be read here: http://XXX."'>?</a></span>
 
 <p>
-<input type="radio" name="use_agreement" class="use_agreement" value="5"> Creative Commons Attribution-Non-Commercial </input><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Similar to open-source licenses except your work can only be used for non-commercial purposes.">?</a>
+<input type="radio" name="use_agreement" class="use_agreement" value="5"> Creative Commons Attribution-Non-Commercial </input><span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Similar to open-source licenses except your work can only be used for non-commercial purposes.">?</a></span>
 </p>
 <p>
-<input type="radio" name="use_agreement" class="use_agreement" value="1"> Custom </input><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Specify a custom license.">?</a>
+<input type="radio" name="use_agreement" class="use_agreement" value="1"> Custom </input><span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Specify a custom license.">?</a></span>
 </p>
 <p>
 <input type="radio" name="use_agreement" class="use_agreement" value="0"> None </input>

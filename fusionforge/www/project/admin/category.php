@@ -5,7 +5,7 @@
  *
  * Admin file to manage keywords, ontology and categories for projects.
  * 
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2020, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -37,6 +37,9 @@ require_once $gfwww.'include/role_utils.php';
 require_once $gfwww.'project/admin/project_admin_utils.php';
 require_once $gfcommon.'include/GroupJoinRequest.class.php';
 
+// Use jqeury-ui.
+html_use_jqueryui();
+
 $group_id = getIntFromRequest('group_id');
 
 session_require_perm ('project_admin', $group_id) ;
@@ -45,7 +48,8 @@ session_require_perm ('project_admin', $group_id) ;
 $group = group_get_object($group_id);
 if (!$group || !is_object($group)) {
 	exit_no_group();
-} elseif ($group->isError()) {
+}
+elseif ($group->isError()) {
 	exit_error($group->getErrorMessage(),'admin');
 }
 
@@ -129,32 +133,29 @@ if ($remove = getStringFromRequest('remove')) {
 }
 */
 
-// do this after submit
+// Do this after submit.
 $keywordsArray = array();
-$sql = "SELECT DISTINCT keyword FROM project_keywords where project_id = " . $group->getID() . " order by keyword";
+$sql = "SELECT DISTINCT keyword FROM project_keywords where project_id = " . 
+	$group->getID() . " order by keyword";
 $resKeywords = db_query_params($sql, array());
 $numRowsKeywords = db_numrows($resKeywords);
 for ($i=0; $i<$numRowsKeywords; $i++) {
-   $keywordsArray[] = db_result($resKeywords, $i, 'keyword');
+	$keywordsArray[] = db_result($resKeywords, $i, 'keyword');
 }
 
 $ontologyArray = array();
-$sql = "SELECT DISTINCT bro_resource FROM project_bro_resources WHERE project_id = " . $group->getID() . " ORDER BY bro_resource ASC";
+$sql = "SELECT DISTINCT bro_resource FROM project_bro_resources WHERE project_id = " . 
+	$group->getID() . " ORDER BY bro_resource ASC";
 $resOntology = db_query_params($sql, array());
 $numRowsOntology = db_numrows($resOntology);
 for ($i=0; $i<$numRowsOntology; $i++) {
-   $ontologyArray[] = db_result($resOntology, $i, 'bro_resource');
+	$ontologyArray[] = db_result($resOntology, $i, 'bro_resource');
 }
-
 
 project_admin_header(array('title'=>'Admin','group'=>$group->getID()));
 
 ?>
 
-<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
-<script src="//code.jquery.com/jquery-1.10.2.js"></script>
-<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
-  
 <style>
 .myButton {
 	height: 18px;
@@ -163,33 +164,45 @@ project_admin_header(array('title'=>'Admin','group'=>$group->getID()));
 </style>
 
 <script>
-  $(function() {
-    $( "#keywords" ).autocomplete({
-      source: "getkeywordsajax.php",
-	  minLength: 1,
-    });
-  });
+
+$(function() {
+	$( "#keywords" ).autocomplete({
+		source: "getkeywordsajax.php",
+		minLength: 1,
+	});
+});
+
+$(function() {
+	$( "#ontology" ).autocomplete({
+		source: "getontologyajax.php",
+		minLength: 1,
+	});
+});
   
-  $(function() {
-    $( "#ontology" ).autocomplete({
-      source: "getontologyajax.php",
-	  minLength: 1,
-    });
-  });
-  
+$(document).ready(function() {
+	// Handle popover show and hide.
+	$(".myPopOver").hover(function() {
+		$(this).find(".popoverLic").popover("show");
+	});
+	$(".myPopOver").mouseleave(function() {
+		$(this).find(".popoverLic").popover("hide");
+	});
+});
+
 </script>
   
 <table class="my-layout-table">
-	<tr>
-		<td>
+<tr>
+<td>
 
 <?php 
 
-       if (getStringFromRequest('wizard')) {
-         echo $HTML->boxTop(_('<h3>Continue Project Setup - Category/Communities</h3>'));
-       } else {
-//         echo $HTML->boxTop(_('<h3>Category/Communities</h3>'));
-       }
+	if (getStringFromRequest('wizard')) {
+		echo $HTML->boxTop(_('<h3>Continue Project Setup - Category/Communities</h3>'));
+	}
+	else {
+		//echo $HTML->boxTop(_('<h3>Category/Communities</h3>'));
+	}
 ?>
 
 <form id="myForm" action="<?php echo getStringFromServer('PHP_SELF'); ?>" method="post">
@@ -198,27 +211,36 @@ project_admin_header(array('title'=>'Admin','group'=>$group->getID()));
 <input type="hidden" id="valDelKeyword" name="valDelKeyword" value=""/>
 <input type="hidden" id="valDelOntology" name="valDelOntology" value=""/>
 
-<?php if (getStringFromRequest('wizard')) { ?>
-  <input type="hidden" name="wizard" value="1" />
-<?php } ?>
+<?php
+if (getStringFromRequest('wizard')) {
+?>
+
+<input type="hidden" name="wizard" value="1" />
+
+<?php
+}
+?>
 
 <h2><?php echo _('Keywords'); ?></h2>
 <p>
+
 <?php
+
 if ($numRowsKeywords <= 0) {
-  echo "<b>No keywords</b><br />";
-} else {
-  for ($i=0; $i<$numRowsKeywords; $i++) {
-     echo db_result($resKeywords, $i, 'keyword') . 
-	" <input class='myButton' " .
-	"type='image' " .
-	"name='delKeyword' " .
-	"onclick='$(\"#valDelKeyword\").val(\"" . 
-	db_result($resKeywords, $i, 'keyword') . 
-	"\");' " .
-	"src='/themes/simtk/images/list-remove.png' " .
-	"alt='Delete Keyword'><br/>";
-  }
+	echo "<b>No keywords</b><br />";
+}
+else {
+	for ($i=0; $i<$numRowsKeywords; $i++) {
+		echo db_result($resKeywords, $i, 'keyword') .
+			" <input class='myButton' " .
+			"type='image' " .
+			"name='delKeyword' " .
+			"onclick='$(\"#valDelKeyword\").val(\"" .
+			db_result($resKeywords, $i, 'keyword') .
+			"\");' " .
+			"src='/themes/simtk/images/list-remove.png' " .
+			"alt='Delete Keyword'><br/>";
+	}
 }
 	
 ?>
@@ -226,133 +248,138 @@ if ($numRowsKeywords <= 0) {
 </p>
 
 <p>
-<input type="text" 
-	id="keywords" 
-	name="keywords" 
-	size="30" 
-	maxlength="80" /> 
-<input class="myButton" 
-	type="image" 
-	src="/themes/simtk/images/list-add.png" 
-	alt="Add Keyword">
+<input type="text" id="keywords" name="keywords" size="30" maxlength="80" /> 
+<input class="myButton" type="image" src="/themes/simtk/images/list-add.png" alt="Add Keyword">
 </p>
 
 <h2><?php echo _('Ontology'); ?></h2>
 <p>
+
 <?php
+
 if ($numRowsOntology <= 0) {
-  echo "<b>No ontology terms</b><br />";
-} else {
-  for ($i=0; $i<$numRowsOntology; $i++) {
-    echo db_result($resOntology, $i, 'bro_resource') . 
-	" <input class='myButton' " .
-	"type='image' " .
-	"name='delOntology' " .
-	"onclick='$(\"#valDelOntology\").val(\"" . 
-	db_result($resOntology, $i, 'bro_resource') . 
-	"\");' " .
-	"src='/themes/simtk/images/list-remove.png' " .
-	"alt='Delete Ontology'><br />";
-  }
+	echo "<b>No ontology terms</b><br />";
 }
+else {
+	for ($i=0; $i<$numRowsOntology; $i++) {
+		echo db_result($resOntology, $i, 'bro_resource') .
+			" <input class='myButton' " .
+			"type='image' " .
+			"name='delOntology' " .
+			"onclick='$(\"#valDelOntology\").val(\"" .
+			db_result($resOntology, $i, 'bro_resource') .
+			"\");' " .
+			"src='/themes/simtk/images/list-remove.png' " .
+			"alt='Delete Ontology'><br />";
+	}
+}
+
 ?>
+
 <p>
-<input type="text" 
-	id="ontology" 
-	name="ontology" 
-	size="30" 
-	maxlength="80" /> 
-<input class="myButton" 
-	type="image" 
-	src="/themes/simtk/images/list-add.png" 
-	alt="Add Ontology">
+<input type="text" id="ontology" name="ontology" size="30" maxlength="80" /> 
+<input class="myButton" type="image" src="/themes/simtk/images/list-add.png" alt="Add Ontology">
 </p>
 
-<?php 
+<?php
 
-   $troveCatLinkArr = $group->getTroveGroupLink();
-   $troveCatLinkPendingArr = $group->getTroveGroupLinkPending();
-   $resultPrimary = getPrimaryContent(); 
-   $resultBioApp = getBiologicalApplications();
-   $resultBioFocus = getBiocomputationalFocus();
+$troveCatLinkArr = $group->getTroveGroupLink();
+$troveCatLinkPendingArr = $group->getTroveGroupLinkPending();
+$resultPrimary = getPrimaryContent();
+$resultBioApp = getBiologicalApplications();
+$resultBioFocus = getBiocomputationalFocus();
 
-   echo "<h2>Primary Content of Your SimTK Project</h2>";
-  
-   while ($row = db_fetch_array($resultPrimary)) {
+echo "<h2>Primary Content of Your SimTK Project</h2>";
+
+while ($row = db_fetch_array($resultPrimary)) {
 	echo '<input type="checkbox" name="categories[]" value="' . $row['trove_cat_id'] . '"';
 	if ((isset($troveCatLinkArr[$row['trove_cat_id']]) &&
 		$troveCatLinkArr[$row['trove_cat_id']])) {
 		echo "checked";
 	}
-	echo '> ' . $row['fullname'] . 
-		' <a href="#" data-toggle="tooltip" data-placement="right" title="' .
-		$row['simtk_intro_text'] . '"> ?</a><br/>';
-   
-   }
 
-   echo "<h2>Biological Applications for Your Project</h2>";
-  
-   while ($row = db_fetch_array($resultBioApp)) {
-	echo '<input type="checkbox" name="categories[]" value="' . $row['trove_cat_id'] . '"';
+	echo '> ' . $row['fullname'] .
+		' <span class="myPopOver">' .
+		'<a href="javascript://" class="popoverLic" data-html="true" ' .
+		'data-toggle="popover" data-placement="right" data-content="' .
+		$row['simtk_intro_text'] . '">?</a></span><br/>';
+}
+
+echo "<h2>Biological Applications for Your Project</h2>";
+
+while ($row = db_fetch_array($resultBioApp)) {
+	echo '<input type="checkbox" name="categories[]" value="' . 
+		$row['trove_cat_id'] . '"';
 	if ((isset($troveCatLinkArr[$row['trove_cat_id']]) &&
 		$troveCatLinkArr[$row['trove_cat_id']])) {
 		echo "checked";
 	}
-	echo '> ' . $row['fullname'] . 
-		'<a href="#" data-toggle="tooltip" data-placement="right" title="' .
-		$row['simtk_intro_text'] . '"> ?</a><br/>';
-   
-   }
-   
-   echo "<h2>Biocomputational Focus of Your Project</h2>";
-  
-   while ($row = db_fetch_array($resultBioFocus)) {
-	echo '<input type="checkbox" name="categories[]" value="' . $row['trove_cat_id'] . '"';
+
+	echo '> ' . $row['fullname'] .
+		' <span class="myPopOver">' .
+		'<a href="javascript://" class="popoverLic" data-html="true" ' .
+		'data-toggle="popover" data-placement="right" data-content="' .
+		$row['simtk_intro_text'] . '">?</a></span><br/>';
+}
+
+echo "<h2>Biocomputational Focus of Your Project</h2>";
+
+while ($row = db_fetch_array($resultBioFocus)) {
+	echo '<input type="checkbox" name="categories[]" value="' . 
+		$row['trove_cat_id'] . '"';
 	if ((isset($troveCatLinkArr[$row['trove_cat_id']]) &&
 		$troveCatLinkArr[$row['trove_cat_id']])) {
 		echo "checked";
 	}
-	echo '> ' . $row['fullname'] . 
-		'<a href="#" data-toggle="tooltip" data-placement="right" title="' .
-		$row['simtk_intro_text'] . '"> ?</a><br/>';
-   
-   }
-   
+
+	echo '> ' . $row['fullname'] .
+		' <span class="myPopOver">' .
+		'<a href="javascript://" class="popoverLic" data-html="true" ' .
+		'data-toggle="popover" data-placement="right" data-content="' .
+		$row['simtk_intro_text'] . '">?</a></span><br/>';
+}
+
 // This function is used to render checkboxes below
 function c($v) {
 	if ($v) {
 		return 'checked="checked"';
-	} else {
+	}
+	else {
 		return '';
 	}
 }
 
+if (getStringFromRequest('wizard')) {
 
-if (getStringFromRequest('wizard')) { ?>
+?>
 
-   <p>
-   <input type="submit" name="submit" value="<?php echo _('Save and Continue') ?>" />
-   </p>
+<p>
+<input type="submit" name="submit" value="<?php echo _('Save and Continue') ?>" />
+</p>
 
-  <?php      }
-else { ?>
+<?php
+}
+else {
+?>
 
-  <br/>
-  <p>
-  <input type="submit" class="btn-cta" name="submit" value="<?php echo _('Update') ?>" />
-  </p>
+<br/>
+<p>
+<input type="submit" class="btn-cta" name="submit" value="<?php echo _('Update') ?>" />
+</p>
 
-<?php } ?>
+<?php
+}
+?>
 
 </form>
 
 <?php
 plugin_hook('hierarchy_views', array($group_id, 'admin'));
+echo $HTML->boxBottom();
+?>
 
-echo $HTML->boxBottom();?>
-
-		</td>
-	</tr>
+</td>
+</tr>
 </table>
 
 <?php
