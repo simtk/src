@@ -106,14 +106,6 @@ $(document).ready(function() {
 	$('#notification_freq').change(function() {
 		this.form.submit();
 	});
-
-	// Handle popover show and hide.
-	$(".myPopOver").hover(function() {
-		$(this).find(".popoverLic").popover("show");
-	});
-	$(".myPopOver").mouseleave(function() {
-		$(this).find(".popoverLic").popover("hide");
-	});
 });
 </script>
 
@@ -153,7 +145,7 @@ $(document).ready(function() {
 			?>
 			</select>
             <p><input type="radio" name="public" value="true" checked>Public Follow
-			<input type="radio" name="public" value="false">Private Follow  <span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right"  title="Following Projects" data-content="There are two types of project followers, public or private. Public follower: Others will see your name and profile in the list of project followers. By becoming a public follower, other members of SimTK may message you regarding your interest and involvement in the project. Private follower: Your name and profile will NOT be displayed in the list of followers.">(Public vs Private?)</a></span>
+			<input type="radio" name="public" value="false">Private Follow  <a href="/plugins/following/follow-info.php">(Public vs Private?)</a>
 	    </p>
 		<input type="hidden" name="follow" value="1">
 		<input type="submit" name="followsubmit" class="btn-cta" value="Follow" />

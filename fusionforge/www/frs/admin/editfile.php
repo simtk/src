@@ -254,6 +254,13 @@ frs_admin_header(array('title'=>'Update File','group'=>$group_id));
 
 <script>
 	$(document).ready(function() {
+		// Handle popover show and hide.
+		$(".myPopOver").hover(function() {
+			$(this).find(".popoverLic").popover("show");
+		});
+		$(".myPopOver").mouseleave(function() {
+			$(this).find(".popoverLic").popover("hide");
+		});
 		if ($('#docLink').is(":checked") || $('#githubLink').is(":checked")) {
 			// Disable inputs for File upload.
 			$('.upFile').prop("disabled", true);
@@ -516,10 +523,9 @@ if ($frsp->getUseAgreement() != 0) {
 	<td>
 	<table>
 		<tr>
-			<td>Link URL:<a href="javascript://" 
-				data-html-"true"
-				data-toggle="popover" 
-				data-placement="top"
+			<td>Link URL:<span class="myPopOver">
+				<a href="javascript://" class="popoverLic" 
+				data-html="true" data-toggle="popover" data-placement="top"
 				data-content="To add a zip file of the most current files in the repository, list the URL with '/archive/master.zip' appended to the GitHub repository name (e.g., 
 <?php
 
@@ -536,7 +542,7 @@ else {
 	echo "https://github.com/simtk/src/archive/master.zip";
 }
 
-?>).  You can also specify one particular file by listing the URL to that file (e.g., https://github.com/simtk/src/archive/v3.0.5.tar.gz).">&nbsp;?&nbsp;</a><input type="text" 
+?>).  You can also specify one particular file by listing the URL to that file (e.g., https://github.com/simtk/src/archive/v3.0.5.tar.gz).">&nbsp;?&nbsp;</a></span><input type="text" 
 				id="githubArchiveUrl" 
 				name="githubArchiveUrl" 
 				size="45"
