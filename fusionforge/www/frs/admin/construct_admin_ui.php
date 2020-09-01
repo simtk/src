@@ -41,14 +41,27 @@ function constructHeaderUI($groupId, $package_id, $release_id) {
 
 <script type="text/javascript" src="/themes/simtk/js/simple-expand.js"></script>
 <script type="text/javascript">
-	$(function() {
-		$('.expander').simpleexpand();
-		// Find "Downloads" header and make it a hyperlink to this "Downloads" page.
-		$(".maindiv>h2:contains('Downloads')").html(
-			"<a href='/frs/?group_id=" + 
-			<?php echo $groupId; ?> +
-			"'>Downloads</a>");
+
+$(function() {
+	$('.expander').simpleexpand();
+	// Find "Downloads" header and make it a hyperlink to this "Downloads" page.
+	$(".maindiv>h2:contains('Downloads')").html(
+		"<a href='/frs/?group_id=" + 
+		<?php echo $groupId; ?> +
+		"'>Downloads</a>");
+});
+
+
+$(document).ready(function() {
+	// Handle popover show and hide.
+	$(".myPopOver").hover(function() {
+		$(this).find(".popoverLic").popover("show");
 	});
+	$(".myPopOver").mouseleave(function() {
+		$(this).find(".popoverLic").popover("hide");
+	});
+});
+
 </script>
 
 <link rel="stylesheet" type="text/css" href="/themes/simtk/css/theme.css">
@@ -269,7 +282,10 @@ function closePackageUI($packageInfo) {
 	// Check if the package (itself, its releases, or files) has any DOI association.
 	if ($packObj->hasDOI()) {
 		echo '<br />';
-		echo '<a href="#" data-toggle="popover" data-placement="right" data-trigger="hover" title="DOI" data-content="This package has one or more DOIs associated with it and can no longer be deleted. Release files associated with a DOI also cannot be updated or deleted.">Warning: DOI Association</a>';
+		echo '<span class="myPopOver"><a href="javascript://" ' .
+			'class="popoverLic" data-html="true" ' .
+			'data-toggle="popover" data-placement="right" title="DOI" ' .
+			'data-content="This package has one or more DOIs associated with it and can no longer be deleted. Release files associated with a DOI also cannot be updated or deleted.">Warning: DOI Association</a></span>';
 	}
 	// Close "download_package" div.
 	echo '</div>';
@@ -807,10 +823,12 @@ function genLicenseLink($packId) {
 		// Generate popup string.
 		// NOTE: Has to use "javscript://" to avoid 
 		// automatically scrolling to top upon clicking.
-		$strLicense = '<a href="javascript://" data-toggle="popover" data-placement="right" ' .
+		$strLicense = '<span class="myPopOver"><a href="javascript://" ' .
+			'class="popoverLic" data-html="true" ' .
+			'data-toggle="popover" data-placement="right" ' .
 			'data-content="' . $strLicense . 
 			'" title="' . $strUseAgreement . ' Use Agreement" ' .
-			'">' . 'View License' . '</a>';
+			'">' . 'View License' . '</a></span>';
 	}
 
 	return $strLicense;

@@ -41,11 +41,19 @@ $now = time();
 
 $arrPackages = array();
 
-// Find GitHub archive files that need refreshing (i.e. "refresh_archive>0").
+// Find GitHub archive files that need refreshing (i.e. "refresh_archive>0")
+// AND DOI has not been assigned.
 $strQuery = "SELECT file_id, filename, refresh_archive, " .
 	"simtk_filelocation, release_time, file_size " .
-	"FROM frs_file " .
+	"FROM frs_file ff " .
+	"JOIN frs_release fr " .
+	"ON ff.release_id=fr.release_id " .
+	"JOIN frs_package fp " .
+	"ON fp.package_id=fr.package_id " .
 	"WHERE simtk_filetype='GitHubArchive' " .
+	"AND ff.doi_identifier IS NULL " .
+	"AND fr.doi_identifier IS NULL " .
+	"AND fp.doi_identifier IS NULL " .
 	"AND refresh_archive>0";
 //echo $strQuery . "\n";
 $res = db_query_params($strQuery, array());
@@ -64,7 +72,7 @@ while ($row = db_fetch_array($res)) {
 
 	// Get number of days since epoch for last release time of file.
 
-	echo "$fileId : $fileName : $refreshArchive : $url : $relTime : $fSize \n";
+	//echo "$fileId : $fileName : $refreshArchive : $url : $relTime : $fSize \n";
 
 	// Check whether it is time to refresh the file.
 	if ($now - $relTime >= $refreshArchive * 86400) {

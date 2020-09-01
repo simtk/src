@@ -41,14 +41,26 @@ function constructHeaderUI($HTML, $groupObj, $theGroupInfo, $groupId, $package_i
 
 <script type="text/javascript" src="/themes/simtk/js/simple-expand.js"></script>
 <script type="text/javascript">
-	$(function() {
-		$('.expander').simpleexpand();
-		// Find "Downloads" header and make it a hyperlink to this "Downloads" page.
-		$(".maindiv>h2:contains('Downloads')").html(
-			"<a href='/frs/?group_id=" + 
-			<?php echo $groupId; ?> +
-			"'>Downloads</a>");
+
+$(function() {
+	$('.expander').simpleexpand();
+	// Find "Downloads" header and make it a hyperlink to this "Downloads" page.
+	$(".maindiv>h2:contains('Downloads')").html(
+		"<a href='/frs/?group_id=" + 
+		<?php echo $groupId; ?> +
+		"'>Downloads</a>");
+});
+
+$(document).ready(function() {
+	// Handle popover show and hide.
+	$(".myPopOver").hover(function() {
+		$(this).find(".popoverLic").popover("show");
 	});
+	$(".myPopOver").mouseleave(function() {
+		$(this).find(".popoverLic").popover("hide");
+	});
+});
+
 </script>
 
 <link rel="stylesheet" type="text/css" href="/themes/simtk/css/theme.css">
@@ -754,10 +766,12 @@ function genLicenseLink($packId, &$strLic) {
 		// Generate popup string.
 		// NOTE: Has to use "javscript://" to avoid 
 		// automatically scrolling to top upon clicking.
-		$strLicense = '<a href="javascript://" data-toggle="popover" data-placement="right" ' .
+		$strLicense = '<span class="myPopOver"><a href="javascript://" ' .
+			'class="popoverLic" data-html="true" ' .
+			'data-toggle="popover" data-placement="right" ' .
 			'data-content="' . $strLic . 
 			'" title="' . $strUseAgreement . ' Use Agreement" ' .
-			'>' . 'View License' . '</a>';
+			'>' . 'View License' . '</a></span>';
 	}
 
 	return $strLicense;

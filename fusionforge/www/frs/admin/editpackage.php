@@ -154,6 +154,27 @@ td {
 <script src='/frs/download.js'></script>
 <link rel='stylesheet' href='/frs/download.css' type='text/css' />
 
+<script>
+	$(document).ready(function() {
+		$(".use_agreement").click(function() {
+			if ($(this).val() == 0) {
+				$(".license_preview").hide();
+			}
+			else {
+				$(".license_preview").show();
+			}
+		});
+
+		// Handle popover show and hide.
+		$(".myPopOver").hover(function() {
+			$(this).find(".popoverLic").popover("show");
+		});
+		$(".myPopOver").mouseleave(function() {
+			$(this).find(".popoverLic").popover("hide");
+		});
+	});
+</script>
+
 <div><h4>Update Package <?php echo $frsp->getName(); ?></h4></div>
 
 <fieldset>
@@ -247,7 +268,7 @@ if (trim($frsp->getLogoFile()) != "") {
 <tr>
 <td>
 	<strong>Download notes:</strong><br/>(Optional)
-	<a href="#" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-trigger="hover" data-content="Display some notes to users before they download a file in this package. This feature can be activated for a file when it is added to the package.">?</a>
+	<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Display some notes to users before they download a file in this package. This feature can be activated for a file when it is added to the package.">?</a></span>
 </td>
 <td>
 	<textarea class='' style='margin-top:5px;' rows='6' cols='50' name='package_notes' title='Notes displayed to users before they download a file in this package.'><?php echo $frsp->getDownloadNotes(); ?></textarea>
@@ -255,102 +276,98 @@ if (trim($frsp->getLogoFile()) != "") {
 </tr>
 
 <tr>
-<td>
-	<strong>License agreement:</strong><br/>(Optional)
-	<a href="#" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-trigger="hover" data-content="You can display a download agreement to users before they download any file in this package. The option to show this agreement can be removed for a given file when that file is added to the package.<br/><br/>
+<td colspan="2">
 
-For code, we recommend that you add a license agreement as a comment header in every source file. This is in addition to or instead of this download agreement. A summary of each license is provided, but you should consult the license itself for the exact terms that apply.">?</a>
-</td>
-<td>
+<p>
+	<strong>License agreement:</strong> (Optional)
+	<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="You can display a download agreement to users before they download any file in this package. The option to show this agreement can be removed for a given file when that file is added to the package.<br/><br/>
 
-	<ul>
+For code, we recommend that you add a license agreement as a comment header in every source file. This is in addition to or instead of this download agreement. A summary of each license is provided, but you should consult the license itself for the exact terms that apply.">?</a></span>
+</p>
+
+<div style="margin-left:20px;">
+	<p>
 		<strong><label>Open Source Licenses</label></strong>
-		<a href="#" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-trigger="hover" data-content="
+		<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="
 * Allows others to use your data/documentation/software for any purpose, commercial or non-commercial, make modifications, and redistribute it.<br/>
 * Includes a disclaimer of warranty.<br/>
-* Users are obligated to include your license terms if they redistribute. See <a href='http://www.opensource.org' target='_blank'>http://www.opensource.org</a> and <a href='http://en.wikipedia.org/wiki/Comparison_of_free_software_licenses' target='_blank'>Wikipedia</a> for more information.<br/><br/>
+* Users are obligated to include your license terms if they redistribute. See <a href='http://www.opensource.org' target='_blank'>http://www.opensource.org</a> and <a href='http://en.wikipedia.org/wiki/Comparison_of_free_software_licenses' target='_blank'>Wikipedia</a> for more information.<br/>
+* SimTK provides some common open-source licenses to choose from.  Many other options exist. See <a href='https://spdx.org/licenses/' target='_blank'>list of other open-source licenses</a>.<br/><br/>
 
 These licenses differ in the additional obligations they place on the users.
-">?</a>
+">?</a></span>
+	</p>
 
-	<li>
-		<input type="radio" name="use_agreement" class="use_agreement" value="2" <?php if ($frsp->getUseAgreement() === "2") echo "checked='checked'"; ?> ><label>MIT</label>
+	<p>
+		<input type="radio" name="use_agreement" class="use_agreement" value="2" <?php if ($frsp->getUseAgreement() === "2") echo "checked='checked'"; ?> ><label>&nbsp;MIT </label>
 		</input>
-		<a href="#" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-trigger="hover" data-content="Default license. No additional obligations.">?</a>
-	</li>
+		<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Default license. No additional obligations.">?</a></span>
+	</p>
 
-	<li>
-		<input type="radio" name="use_agreement" class="use_agreement" value="3" <?php if ($frsp->getUseAgreement() === "3") echo "checked='checked'"; ?> ><label>LGPL</label>
+	<p>
+		<input type="radio" name="use_agreement" class="use_agreement" value="3" <?php if ($frsp->getUseAgreement() === "3") echo "checked='checked'"; ?> ><label>&nbsp;LGPL </label>
 		</input>
-		<a href="#" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-trigger="hover" data-content="Modifications that are redistributed must include the modified source under the same terms.">?</a>
-	</li>
+		<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Modifications that are redistributed must include the modified source under the same terms.">?</a></span>
+	</p>
 
-	<li>
-		<input type="radio" name="use_agreement" class="use_agreement" value="4" <?php if ($frsp->getUseAgreement() === "4") echo "checked='checked'"; ?> ><label>GPL</label>
+	<p>
+		<input type="radio" name="use_agreement" class="use_agreement" value="4" <?php if ($frsp->getUseAgreement() === "4") echo "checked='checked'"; ?> ><label>&nbsp;GPL </label>
 		</input>
-		<a href="#" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-trigger="hover" data-content="Any distributed work that includes all or part of GPL-licensed material must itself be offered under GPL, meaning that all the source code is available.">?</a>
-	</li>
+		<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Any distributed work that includes all or part of GPL-licensed material must itself be offered under GPL, meaning that all the source code is available.">?</a></span>
+	</p>
 
-	<li>
-		<input type="radio" name="use_agreement" class="use_agreement" value="6" <?php if ($frsp->getUseAgreement() === "6") echo "checked='checked'"; ?> ><label>CC BY 4.0</label>
+	<p>
+		<input type="radio" name="use_agreement" class="use_agreement" value="6" <?php if ($frsp->getUseAgreement() === "6") echo "checked='checked'"; ?> ><label>&nbsp;CC BY 4.0 </label>
 		</input>
-		<a href="#" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-trigger="hover" data-content="Others can share and adapt the file(s) for any purpose, even commercially, but they must give proper attribution.  Similar to MIT license but applies to works beyond just software and related documentation.  Also, it provides more terms and conditions.">?</a>
-	</li>
+		<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Others can share and adapt the file(s) for any purpose, even commercially, but they must give proper attribution.  Similar to MIT license but applies to works beyond just software and related documentation.  Also, it provides more terms and conditions.">?</a></span>
+	</p>
 	
-	<li>
-		<input type="radio" name="use_agreement" class="use_agreement" value="7" <?php if ($frsp->getUseAgreement() === "7") echo "checked='checked'"; ?> ><label>Apache 2.0</label>
+	<p>
+		<input type="radio" name="use_agreement" class="use_agreement" value="7" <?php if ($frsp->getUseAgreement() === "7") echo "checked='checked'"; ?> ><label>&nbsp;Apache 2.0 </label>
 		</input>
-		<a href="#" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-trigger="hover" data-content="Similar to MIT license. Some major differences: 1) Apache 2.0 offers more explicit patent protection and 2) it also requires listing all modifications to original software.">?</a>
-	</li>
+		<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Similar to MIT license. Some major differences: 1) Apache 2.0 offers more explicit patent protection and 2) it also requires listing all modifications to original software.">?</a></span>
+	</p>
 	
 		<strong><label>Other licenses</label></strong>
-		<a href="#" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-trigger="hover" data-content='Many other licenses can be used. See <a href="http://en.wikipedia.org/wiki/Comparison_of_free_software_licenses" target="_blank">Wikipedia</a> and <a href="http://creativecommons.org/licenses" target="_blank">Creative Commons</a>. For complex licenses, we recommend that you enter a URL for the license, e.g., "The [project name] license agreement can be read here: http://XXX."'>?</a>
+		<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content='Many other licenses can be used. See <a href="http://en.wikipedia.org/wiki/Comparison_of_free_software_licenses" target="_blank">Wikipedia</a> and <a href="http://creativecommons.org/licenses" target="_blank">Creative Commons</a>. For complex licenses, we recommend that you enter a URL for the license, e.g., "The [project name] license agreement can be read here: http://XXX."'>?</a></span>
 
-	<li>
-		<input type="radio" name="use_agreement" class="use_agreement" value="5" <?php if ($frsp->getUseAgreement() === "5") echo "checked='checked'"; ?> ><label>Creative Commons Attribution-Non-Commercial</label>
+	<p>
+		<input type="radio" name="use_agreement" class="use_agreement" value="5" <?php if ($frsp->getUseAgreement() === "5") echo "checked='checked'"; ?> ><label>&nbsp;Creative Commons Attribution-Non-Commercial </label>
 		</input>
-		<a href="#" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-trigger="hover" data-content="Similar to open-source licenses except your work can only be used for non-commercial purposes.">?</a>
-	</li>
+		<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Similar to open-source licenses except your work can only be used for non-commercial purposes.">?</a></span>
+	</p>
 
-	<li>
-		<input type="radio" name="use_agreement" class="use_agreement" value="1" <?php if ($frsp->getUseAgreement() === "1") echo "checked='checked'"; ?> ><label>Custom</label>
+	<p>
+		<input type="radio" name="use_agreement" class="use_agreement" value="1" <?php if ($frsp->getUseAgreement() === "1") echo "checked='checked'"; ?> ><label>&nbsp;Custom </label>
 		</input>
-		<a href="#" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-trigger="hover" data-content="Specify a custom license.">?</a>
-	</li>
+		<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Specify a custom license.">?</a></span>
+	</p>
 
-	<li>
-		<input type="radio" name="use_agreement" class="use_agreement" value="0" <?php if ($frsp->getUseAgreement() === "0") echo "checked='checked'"; ?> ><label>None</label>
+	<p>
+		<input type="radio" name="use_agreement" class="use_agreement" value="0" <?php if ($frsp->getUseAgreement() === "0") echo "checked='checked'"; ?> ><label>&nbsp;None </label>
 		</input>
-	</li>
-</ul>
+	</p>
 
-</td>
-</tr>
+	<div style="width: 500px;">
+		<span class="edit_notice" style="color:#f75236;<?php
+			if ($frsp->getUseAgreement() === "0") {
+				echo "display:none;";
+			}
+		?>">Update first line of license with (1) copyright year and (2) organization or copyright holder</span>
+	</div>
 
-<tr>
-<td>
-</td>
-<td style="width: 500px;">
-	<span class="edit_notice" style="color:#f75236;<?php
-		if ($frsp->getUseAgreement() === "0") {
-			echo "display:none;";
-		}
-	?>">Update first line of license with (1) copyright year and (2) organization or copyright holder</span>
-</td>
-</tr>
+	<input type="hidden" class="custom_license" value="<?php echo $frsp->getCustomAgreement(); ?>" />
+	<textarea class='license_preview' style='margin-top:5px;' rows='10' cols='50' name='license_preview' title='Preview license'><?php echo $frsp->getCustomAgreement(); ?></textarea>
 
-<tr>
-<td>
-</td>
-<td>
-<input type="hidden" class="custom_license" value="<?php echo $frsp->getCustomAgreement(); ?>" />
-<textarea class='license_preview' style='margin-top:5px;' rows='10' cols='50' name='license_preview' title='Preview license'><?php echo $frsp->getCustomAgreement(); ?></textarea>
+</div>
 </td>
 </tr>
 
 <tr>
 <td>
 <input type="submit" name="submit" value="Update Package" class="btn-cta" />
+</td>
+<td>
 </td>
 </tr>
 

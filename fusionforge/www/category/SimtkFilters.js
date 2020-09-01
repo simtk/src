@@ -4,7 +4,7 @@
  * 
  * File to filter projects display.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2020, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -284,6 +284,8 @@ setup: function(c, inUseInitCategoryId, inIsAllGroups) {
 			// Item selected in "Sort by" select.
 			// Take action according to the item selected.
 			var selected = $('.mySelect').val();
+			// Reset to page 0 before switching selection criteria.
+			pageSelection = 0;
 			if (selected == "Date") {
 				// Invoke sort by date.
 				mySortDate();
