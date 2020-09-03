@@ -178,9 +178,9 @@ function constructPackageUI($HTML, $groupId, $groupObj, $packageInfo,
         	$strURL = "https://" . getServerName() .
 			"/frs?group_id=" . $groupObj->getID() .
 			'#pack_' . $packId;
-		echo "<div>(<a href='" . $strURL . "'>" . 
+		echo "<div><a href='" . $strURL . "'>" . 
 			$strURL . 
-			"</a>)</div><br/>";
+			"</a></div><br/>";
 	}
 
 	if ($packDoi) {
