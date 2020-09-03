@@ -6,7 +6,7 @@
  * 
  * Construct UI for downloads display.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2020, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -59,6 +59,23 @@ $(document).ready(function() {
 	$(".myPopOver").mouseleave(function() {
 		$(this).find(".popoverLic").popover("hide");
 	});
+
+	// Scroll to package id anchor if present.
+	// NOTE: This script is necessary because Chrome and Edge browsers 
+	// sometimes do not scroll to anchor.
+	// Get URL and locate package id anchor.
+	var theUrl = window.location.href;
+	var idxPackId = theUrl.lastIndexOf("#pack_");
+	if (idxPackId != -1) {
+		// Package id anchor is present.
+		var packId = theUrl.substr(idxPackId + 6).trim();
+		// Check for numeric package id.
+		if ($.isNumeric(packId)) {
+			$("html, body").animate({
+				scrollTop: $("#pack_" + packId).offset().top
+				}, "slow");
+		}
+	}
 });
 
 </script>
@@ -201,7 +218,8 @@ function constructPackageUI($HTML, $groupId, $groupObj, $packageInfo,
 		echo "</div>";
 	}
 	echo "<div class='wrapper_text'>";
-	echo "<div class='download_title'>" . $packName;
+	echo "<a href='#pack_" . $packId . "'>";
+	echo "<div id='pack_" . $packId . "' class='download_title'>" . $packName;
 	if ($packageInfo["is_public"] != "1") {
 		// Private.
 		if ($packageInfo["status_id"] != "1") {
@@ -223,6 +241,7 @@ function constructPackageUI($HTML, $groupId, $groupObj, $packageInfo,
 		}
 	}
 	echo "</div>"; // download_title
+	echo "</a>";
 
 	if (isset($packageInfo["doi_identifier"])) {
 		$packDoiIdentifier = $packageInfo["doi_identifier"];

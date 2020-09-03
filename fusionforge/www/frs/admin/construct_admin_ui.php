@@ -6,7 +6,7 @@
  * 
  * Construct UI for downloads administration.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2020, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -172,6 +172,16 @@ function constructPackageUI($HTML, $groupId, $groupObj, $packageInfo,
 		}
 	}
 	echo "</div>"; // download_title
+
+	// Show package id anchor if package is public and not hidden.
+	if ($packageInfo["is_public"] == "1" && $packageInfo["status_id"] == "1") {
+        	$strURL = "https://" . getServerName() .
+			"/frs?group_id=" . $groupObj->getID() .
+			'#pack_' . $packId;
+		echo "<div>(<a href='" . $strURL . "'>" . 
+			$strURL . 
+			"</a>)</div><br/>";
+	}
 
 	if ($packDoi) {
 		$strCancelPackageDoiLink = "/frs/admin/cancelPackageDoi.php?" .
@@ -832,6 +842,28 @@ function genLicenseLink($packId) {
 	}
 
 	return $strLicense;
+}
+
+
+// Get server name.
+function getServerName() {
+	$theServer = false;
+	if (isset($_SERVER['SERVER_NAME'])) {
+		$theServer = $_SERVER['SERVER_NAME'];
+	}
+	else {
+		// Parse configuration to get web_host.
+		if (file_exists("/etc/gforge/config.ini.d/post-install.ini")) {
+			// The file post-install.ini is present.
+			$arrConfig = parse_ini_file("/etc/gforge/config.ini.d/post-install.ini");
+			// Check for each parameter's presence.
+			if (isset($arrConfig["web_host"])) {
+				$theServer = $arrConfig["web_host"];
+			}
+		}
+	}
+
+	return $theServer;
 }
 
 ?>
