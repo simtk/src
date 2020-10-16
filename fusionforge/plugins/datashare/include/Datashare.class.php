@@ -343,10 +343,7 @@ class Datashare extends FFError {
 			foreach ($admins as $admin) {
 				$admin_email = $admin->getEmail();
 				setup_gettext_for_user ($admin);
-				util_send_message($admin_email,
-					sprintf('New %s Study Submitted', 
-						forge_get_config('forge_name')), 
-					$message);
+				util_send_message($admin_email, 'DATA SHARE APPROVAL', $message);
 				setup_gettext_from_context();
 			}
 
