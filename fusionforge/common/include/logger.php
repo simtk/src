@@ -2,7 +2,7 @@
 /**
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright (C) 2011-2012 Alain Peyrat - Alcatel-Lucent
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2020, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -52,9 +52,19 @@ if (isset($group_id) && is_numeric($group_id) && $group_id) {
 		$pathwithoutprefix = substr (getStringFromServer('REQUEST_URI'),
 					     strlen (normalized_urlprefix ()) - 1);
 	}
+	// Check variable before usage to avoid excess Apache log entries.
+	if (!isset($pathwithoutprefix)) {
+		// Not set. Ignore.
+		return;
+	}
 	$pathwithoutprefix_exploded = explode('?', $pathwithoutprefix);
 	$pathwithoutprefix = $pathwithoutprefix_exploded[0];
 	$expl_pathinfo = explode('/',$pathwithoutprefix);
+	// Check array variable before usage to avoid excess Apache log entries.
+	if (!isset($expl_pathinfo[1])) {
+		// Not set. Ignore.
+		return;
+	}
 	if (($expl_pathinfo[1]=='foundry') || ($expl_pathinfo[1]=='projects')) {
 		$group_name = $expl_pathinfo[2];
 		if ($group_name) {

@@ -4741,8 +4741,7 @@ We look forward to helping your project succeed!<br/><br/>
 				'Please visit the following URL to approve or reject this project' .
 				': ' . "\n" . 
 				util_make_url('/admin/approve-pending.php');
-			util_send_message($admin_email, 
-				sprintf('Your %s Project Is Being Reviewed', forge_get_config('forge_name')), $message);
+			util_send_message($admin_email, 'PROJECT APPROVAL', $message);
 			setup_gettext_from_context();
 		}
 
