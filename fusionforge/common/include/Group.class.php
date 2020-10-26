@@ -4726,7 +4726,10 @@ We look forward to helping your project succeed!<br/><br/>
 			$admin_email = $admin->getEmail();
 			setup_gettext_for_user ($admin);
 
-			$message = "Thank you for creating a project on SimTK.  The " .
+			$message = 'Please visit the following URL to approve or reject this project' .
+				': ' . "\n" . 
+				util_make_url('/admin/approve-pending.php');
+			$message .= "\n\nThank you for creating a project on SimTK.  The " .
 				$shortServerName .
 				" admin team is reviewing your project submission, and you will receive an email within 72 hours notifying you of their decision. If you have any questions in the meantime, you can contact webmaster@simtk.org." .
 				"\n\n" . 
@@ -4737,11 +4740,7 @@ We look forward to helping your project succeed!<br/><br/>
 					' (' . $submitter->getUnixName() . ')' . "\n\n";
 			}
 
-			$message .= "\n" . 
-				'Please visit the following URL to approve or reject this project' .
-				': ' . "\n" . 
-				util_make_url('/admin/approve-pending.php');
-			util_send_message($admin_email, 'PROJECT APPROVAL', $message);
+			util_send_message($admin_email, 'SimTK Project Needs Approval', $message);
 			setup_gettext_from_context();
 		}
 
