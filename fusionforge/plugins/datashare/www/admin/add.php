@@ -254,7 +254,7 @@ if (session_loggedin()) {
 <br/>
 
 <strong>License agreement:</strong>
-<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="You can display a download agreement to users before they download any file in this package. The option to show this agreement can be removed for a given file when that file is added to the package.<br/><br/>
+<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="You can display a download agreement to users before they download any file in this study.<br/><br/>
 
 For code, we recommend that you add a license agreement as a comment header in every source file. This is in addition to or instead of this download agreement. A summary of each license is provided, but you should consult the license itself for the exact terms that apply.">?</a></span>
 
