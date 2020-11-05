@@ -207,7 +207,12 @@ function getGitHubFileSize($strUrl) {
 	$response = curl_exec($handle);
 	//echo $response;
 
-	// Check for 404 (file not found).
+	// Check for valid URL.
+	$httpCode = curl_getinfo($handle, CURLINFO_RESPONSE_CODE);
+	if ($httpCode != 200) {
+		curl_close($handle);
+		return false;
+	}
 	$fileSize = curl_getinfo($handle, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
 	//echo $fileSize;
 
