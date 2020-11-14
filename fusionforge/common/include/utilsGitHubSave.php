@@ -47,14 +47,23 @@ function refreshFile($fileId, $url, &$packId) {
 		return false;
 	}
 
+	$publicGroupName = $frsFile->FRSRelease->FRSPackage->Group->getPublicName();
+	$groupName = $frsFile->FRSRelease->FRSPackage->Group->getUnixName();
+	$packName = $frsFile->FRSRelease->FRSPackage->getFileName();
+	$relName = $frsFile->FRSRelease->getFileName();
+	$fileName = $frsFile->getName();
+	$packId = $frsFile->FRSRelease->FRSPackage->getID();
+
 	// Check GitHub archive file size at the given URL.
 	$tmpFileSize = getGitHubFileSize($url);
 	if ($tmpFileSize === false) {
-		notifyGitHubRefresh($fileId, $url, "Cannot get GitHub archive file size.");
+		notifyGitHubRefresh($fileId, $url, $publicGroupName, $groupName,
+			"Cannot get GitHub archive file size.");
 		return false;
 	}
 	if ($tmpFileSize > MAX_GITHUB_FILESIZE) {
-		notifyGitHubRefresh($fileId, $url, "GitHub archive file is too large: $tmpFileSize.");
+		notifyGitHubRefresh($fileId, $url, $publicGroupName, $groupName,
+			"GitHub archive file is too large: $tmpFileSize.");
 		return false;
 	}
 
@@ -70,11 +79,6 @@ function refreshFile($fileId, $url, &$packId) {
 	);
 
 	// Generate full path name.
-	$groupName = $frsFile->FRSRelease->FRSPackage->Group->getUnixName();
-	$packName = $frsFile->FRSRelease->FRSPackage->getFileName();
-	$relName = $frsFile->FRSRelease->getFileName();
-	$fileName = $frsFile->getName();
-	$packId = $frsFile->FRSRelease->FRSPackage->getID();
 	$fullPathName = forge_get_config('upload_dir') . '/' .
 		$groupName . '/' .
 		$packName . '/' .
@@ -91,7 +95,8 @@ function refreshFile($fileId, $url, &$packId) {
 	$fp = @fopen($fullPathName, "w+");
 	if ($fp === false) {
 		//echo "Cannot open file: " . $fullPathName . "\n";
-		notifyGitHubRefresh($fileId, $url, "Cannot open GitHub archive file.");
+		notifyGitHubRefresh($fileId, $url, $publicGroupName, $groupName,
+			"Cannot open GitHub archive file.");
 		return false;
 	}
 	fwrite($fp, $content);
@@ -99,7 +104,8 @@ function refreshFile($fileId, $url, &$packId) {
 	*/
 	if (!@copy($url, $fullPathName, stream_context_create($context))) {
 		//echo "Cannot save file: " . $fullPathName . "\n";
-		notifyGitHubRefresh($fileId, $url, "Cannot save GitHub archive file.");
+		notifyGitHubRefresh($fileId, $url, $publicGroupName, $groupName,
+			"Cannot save GitHub archive file.");
 		return false;
 	}
 
@@ -110,7 +116,7 @@ function refreshFile($fileId, $url, &$packId) {
 }
 
 // Send notification message on GitHub file refresh.
-function notifyGitHubRefresh($fileId, $url, $message) {
+function notifyGitHubRefresh($fileId, $url, $publicGroupName, $groupName, $message) {
 
 	// Get FRSFile object.
 	$frsFile = frsfile_get_object($fileId);
@@ -119,7 +125,12 @@ function notifyGitHubRefresh($fileId, $url, $message) {
 		return;
 	}
 	
-	$strMsg = $message . "\n" . $url . "\n";
+	$strMsg = "There was a problem updating the following file in your SimTK project ";
+	$strMsg .= '"' . $publicGroupName .'" (';
+	$strMsg .= "https://" . forge_get_config('web_host') . "/projects/" . $groupName;
+	$strMsg .= "):";
+	$strMsg .= "\n\n" . $message . "\n" . $url . "\n\n";
+	$strMsg .= "Please check the link to GitHub.\n";
 
 	// Get project admins.
 	$groupObj = $frsFile->FRSRelease->FRSPackage->Group;
@@ -127,10 +138,10 @@ function notifyGitHubRefresh($fileId, $url, $message) {
 	foreach ($projAdmins as $adminObj) {
 		// Send email to project admin.
 		$adminEmail = $adminObj->data_array["email"];
-		util_send_message($adminEmail, "Problem in GitHub archive file retrieval.", $strMsg);
+		util_send_message($adminEmail, "Problem retrieving GitHub file", $strMsg);
 	}
 	// Send email to webmaster.
-	util_send_message("webmaster@simtk.org", "Problem in GitHub archive file retrieval.", $strMsg);
+	util_send_message("webmaster@simtk.org", "Problem retrieving GitHub file", $strMsg);
 }
 
 
