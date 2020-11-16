@@ -2,7 +2,7 @@
 /**
  * Project Admin: Obtain a package/study DOI.
  *
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2020, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -258,7 +258,13 @@ td {
 
 <?php if (isset($package_id) && $package_id != 0) { ?>
 
-		<font color="#ff0000">Warning: You will not be able to remove or edit this package after the DOI has been issued.  You will not be able to remove or edit releases or files it contains either.</font>
+		<font color="#ff0000">Warning: After the DOI has been issued, You will not be able to:
+		<ul>
+		<li>remove or edit this package,</li>
+		<li>remove or edit releases within the package,</li>
+		<li>remove or update any files asscoiated with this package. If the package includes a link to a GitHub file, that file will no longer be updated.</li>
+		</ul>
+		</font>
 
 <?php } else if (isset($study_id) && $study_id != 0) { ?>
 

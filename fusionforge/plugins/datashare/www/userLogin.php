@@ -45,7 +45,7 @@ if (!empty($nameDownload)) {
 	$tmpName = preg_replace("/[-A-Z0-9+_\. ~\/]/i", "", $nameDownload);
 	if (!empty($tmpName) || strstr($nameDownload, "..")) {
 		$warning_msg = "Invalid filename for download.";
-		$HTML->header(array('title'=>'Login'));
+		$HTML->header(array('title'=>'Log in'));
 		$HTML->footer(array());
 		exit;
 	}
@@ -64,7 +64,7 @@ if (forge_get_config('use_ssl') && !session_issecure()) {
 }
 
 // Check for valid login; if validatd, redirect.
-if ($login == "Login") {
+if ($login == "Log in") {
 	// Log out user first.
 	session_logout();
 
@@ -90,7 +90,7 @@ if ($login == "Login") {
 		$warning_msg = "Invalid Password Or User Name";
 	}
 }
-else if ($skip == "Skip") {
+else if ($skip == "I do not have an account") {
 	$urlView = "view.php?plugin=datashare&" .
 		"id=$group_id&studyid=$study_id&typeConfirm=$typeConfirm";
 	if ($nameDownload != "") {
@@ -103,7 +103,7 @@ else if ($skip == "Skip") {
 }
 
 
-$HTML->header(array('title'=>'Login'));
+$HTML->header(array('title'=>'Log in'));
 
 
 // Otherwise, display the login form again
@@ -117,7 +117,7 @@ $HTML->header(array('title'=>'Login'));
 </script>
 
 
-<h2>Please login if you have a SimTK account.</h2>
+<h2>Please log in if you have a SimTK account</h2>
 <form action="/plugins/datashare/userLogin.php" method="post">
 <?php
 	if ($nameDownload != "") {
@@ -132,8 +132,8 @@ $HTML->header(array('title'=>'Login'));
 	</p>
 	<p>Password:<br/>
 	<input type="password" name="form_pw" ></p>
-	<p><input type="submit" class="btn-cta" name="login" value="Login">
-	<input type="submit" class="btn-cta" name="skip" value="Skip"></p>
+	<p><input type="submit" class="btn-cta" name="login" value="Log in">
+	<input type="submit" class="btn-cta" name="skip" value="I do not have an account"></p>
 </form>
 
 <?php
