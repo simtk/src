@@ -258,17 +258,22 @@ td {
 
 <?php if (isset($package_id) && $package_id != 0) { ?>
 
-		<font color="#ff0000">Warning: After the DOI has been issued, You will not be able to:
+		<font color="#ff0000"><br/><img src="sign-warning-icon-17898.png" style="width:30px;height:30px;" alt="Warning:"></img> After the DOI has been issued, you will not be able to:
 		<ul>
-		<li>remove or edit this package,</li>
-		<li>remove or edit releases within the package,</li>
+		<li>remove or edit this package</li>
+		<li>remove or edit releases within the package</li>
 		<li>remove or update any files asscoiated with this package. If the package includes a link to a GitHub file, that file will no longer be updated.</li>
 		</ul>
 		</font>
 
 <?php } else if (isset($study_id) && $study_id != 0) { ?>
 
-		<font color="#ff0000">Warning: You will not be able to remove or edit this study after the DOI has been issued.  You will not be able to import, edit, or remove files it contains either.</font>
+		<font color="#ff0000"><br/><img src="sign-warning-icon-17898.png" style="width:30px;height:30px;" alt="Warning:"></img> After the DOI has been issued, you will not be able to:
+		<ul>
+		<li>remove or edit this study</li>
+		<li>import, edit, or remove files associated with this study.</li>
+		</ul>
+		</font>
 
 <?php } ?>
 
