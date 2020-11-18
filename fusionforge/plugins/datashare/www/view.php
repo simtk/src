@@ -102,7 +102,7 @@ echo "</h4>";
 
 echo "<div class=\"project_overview_main\">\n";
 echo "<div style=\"display: table; width: 100%;\">\n";
-echo "<div style=\"padding-left:0px;\" class=\"main_col\">\n";
+echo "<div class=\"main_col\">\n";
 
 if ($study_result) {
 	$token = $study_result[0]->token;

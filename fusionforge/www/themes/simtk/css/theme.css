@@ -8673,7 +8673,7 @@ Project layout at some othe styles
   }
 }
 ul.submenu {
-  padding-left: 5px !important;
+  padding-left: 0px !important;
 }
 .statbox {
   background-image: url(../images/package-bkg-gradient.png);
