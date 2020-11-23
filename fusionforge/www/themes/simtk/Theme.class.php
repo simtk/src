@@ -1762,6 +1762,9 @@ echo $u->getFirstName();
 			case "/plugins/datashare/admin/stats.php":
 				$pageTitle = "Data Share: Admin";
 				break;
+			case "/plugins/datashare/admin/cancelStudyDoi.php":
+				$pageTitle = "Data Share: Admin";
+				break;
 			case "/plugins/datashare/admin/":
 				$pageTitle = "Data Share: Admin";
 				break;

@@ -182,7 +182,7 @@ if (session_loggedin()) {
 					echo '<span class="myPopOver"><a href="javascript://" ' .
 						'class="popoverLic" data-html="true" ' .
 						'data-toggle="popover" data-placement="right" title="DOI" ' .
-						'data-content="Note: DOI assigned so resource cannot be edited or removed.">Warning: DOI Association</a></span>';
+						'data-content="Note: DOI assigned so resource cannot be edited or removed.">Note: DOI assigned</a></span>';
 				}
 			}
 			echo "</td>";
