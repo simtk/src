@@ -285,7 +285,7 @@ if (getStringFromRequest('submit') || $submitAndNotify || $submitNoNotify) {
 				exit_error($frsf->getErrorMessage(), 'frs');
 			}
 			else {
-				$feedback .= 'DOI Request Canceled.';
+				$feedback .= 'DOI request canceled';
 			}
 		}
 		else {
@@ -310,7 +310,7 @@ if (getStringFromRequest('submit') || $submitAndNotify || $submitNoNotify) {
 				exit_error($frsp->getErrorMessage(), 'frs');
 			}
 			else {
-				$feedback .= 'DOI Request Canceled.';
+				$feedback .= 'DOI request canceled';
 			}
 		}
 		else {

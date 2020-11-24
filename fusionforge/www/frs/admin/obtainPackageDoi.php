@@ -178,6 +178,14 @@ if (isset($study_id) && $study_id != 0) {
 
 <script>
 	$(document).ready(function() {
+<?php
+
+if ($theEntityType == "study") {
+	// Update header for Data Share.
+	echo "$('.project_submenu').html('Data Share: Admin');";
+}
+
+?>
 		$('#doi').change(function() {
 			if (this.checked)
 				//$('#doi_info').fadeIn('slow');
