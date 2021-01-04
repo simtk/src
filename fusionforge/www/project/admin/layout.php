@@ -4,7 +4,7 @@
  * 
  * Admin page for controlling project main page layout such as publication vs standard, etc.
  * 
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2020, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -44,7 +44,8 @@ session_require_perm ('project_admin', $group_id) ;
 $group = group_get_object($group_id);
 if (!$group || !is_object($group)) {
 	exit_no_group();
-} elseif ($group->isError()) {
+}
+elseif ($group->isError()) {
 	exit_error($group->getErrorMessage(),'admin');
 }
 
@@ -58,7 +59,7 @@ if (getStringFromRequest('submit')) {
 	$display_downloads = getStringFromRequest('form_display_downloads');
 	$display_related = getStringFromRequest('form_display_related');
 	$display_download_pulldown = getStringFromRequest('form_display_download_pulldown');
-    $form_download_description = getStringFromRequest('form_download');
+	$form_download_description = getStringFromRequest('form_download');
 	$form_layout = getStringFromRequest('form_layout');
 
 	$res = $group->updateLayout(session_get_user(), $display_news, $display_related, $display_downloads, $display_download_pulldown, $form_download_description, $form_layout); 
@@ -71,8 +72,6 @@ if (getStringFromRequest('submit')) {
         if (getStringFromRequest('wizard')) {
            header("Location: settings.php?group_id=$group_id&wizard=1");
         }
-
-
 }
 
 // get current values
@@ -84,16 +83,28 @@ $layout = $group->getLayout();
 
 project_admin_header(array('title'=>'Admin','group'=>$group->getID()));
 
+if (getStringFromRequest('wizard')) {
+	echo $HTML->boxTop(_('<h3>Continue Project Setup - Layout</h3>'));
+}
+else {
+	//echo $HTML->boxTop(_('<h3>Layout</h3>'));
+}
+
 ?>
 
-<?php 
+<script>
 
-       if (getStringFromRequest('wizard')) {
-         echo $HTML->boxTop(_('<h3>Continue Project Setup - Layout</h3>'));
-       } else {
-//         echo $HTML->boxTop(_('<h3>Layout</h3>'));
-       }
-?>
+$(document).ready(function() {
+	// Handle popover show and hide.
+	$(".myPopOver").hover(function() {
+		$(this).find(".popoverLic").popover("show");
+	});
+	$(".myPopOver").mouseleave(function() {
+		$(this).find(".popoverLic").popover("hide");
+	});
+});
+
+</script>
 
 <form action="<?php echo getStringFromServer('PHP_SELF'); ?>" method="post" enctype="multipart/form-data">
 
@@ -107,8 +118,8 @@ project_admin_header(array('title'=>'Admin','group'=>$group->getID()));
 Layout of the Project's Overview
 
 <p>
-<input type="radio" name="form_layout" value="0" <?php if ($layout == 0) { echo " checked";} ?> /> Standard <a href="#" data-toggle="popover" data-placement="right" data-trigger="hover" title="Standard Project" data-content="A Standard Project will display the description of the project at the top of the project home page">?</a><br />
-<input type="radio" name="form_layout" value="1" <?php if ($layout == 1) { echo " checked";} ?> /> Publication <a href="#" data-toggle="popover" data-placement="right"  data-trigger="hover" title="Publication Project" data-content="A Publication Project will display the primary publication at the top of the project home page.  A primary publication must exist and the download description section must be completed.">?</a>
+<input type="radio" name="form_layout" value="0" <?php if ($layout == 0) { echo " checked";} ?> /> Standard <span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" title="Standard Project" data-content="A Standard Project will display the description of the project at the top of the project home page">?</a></span><br/>
+<input type="radio" name="form_layout" value="1" <?php if ($layout == 1) { echo " checked";} ?> /> Publication <span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right"  title="Publication Project" data-content="A Publication Project will display the primary publication at the top of the project home page.  A primary publication must exist and the download description section must be completed.">?</a>
 </p>
 
 

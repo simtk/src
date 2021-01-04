@@ -418,11 +418,6 @@ $(window).load(function() {
                  $('.popup').popupWindow({ 
                   centerBrowser:1
                   });
-                 $(function () {
-			if ($('[data-toggle="popover"]').length) {
-	                  $('[data-toggle="popover"]').popover()
-			}
-                  });
                 </script>
 
 <?php
@@ -907,7 +902,7 @@ else {
 	}
 	$cnt = 0;
 	foreach ($arrCommunityNames as $catId=>$fullName) {
-		if ($cnt++ >= 5) {
+		if ($cnt++ >= 6) {
 			break;
 		}
 		$dispCommName = abbrGroupName($fullName);
@@ -1039,7 +1034,7 @@ echo $u->getFirstName();
                 echo '</div>';
 
 		echo '<div style="font-size:12px;">';
-		echo 'Version 4.0.4. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 6.0.5.';
+		echo 'Version 4.1.0. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 6.0.5.';
                 echo '</div>';
 
             echo '</div>';
@@ -1767,6 +1762,9 @@ echo $u->getFirstName();
 			case "/plugins/datashare/admin/stats.php":
 				$pageTitle = "Data Share: Admin";
 				break;
+			case "/plugins/datashare/admin/cancelStudyDoi.php":
+				$pageTitle = "Data Share: Admin";
+				break;
 			case "/plugins/datashare/admin/":
 				$pageTitle = "Data Share: Admin";
 				break;
@@ -2023,17 +2021,6 @@ echo $u->getFirstName();
 				echo "<script type=\"text/javascript\" src=\"{$this->themeurl}js/simple-expand.js\"></script>\n";
 				
 		?>
-		
-		<script type="text/javascript">
-			$(function () {
-				if ($('[data-toggle="tooltip"]').length) {
-					$('[data-toggle="tooltip"]').tooltip();
-				}
-				if ($('[data-toggle="popover"]').length) {
-					$('[data-toggle="popover"]').popover();
-				}
-			});
-		</script>
 		
         <?php
 	}

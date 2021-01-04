@@ -6,7 +6,7 @@
  * 
  * Construct UI for downloads display.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2020, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -41,14 +41,45 @@ function constructHeaderUI($HTML, $groupObj, $theGroupInfo, $groupId, $package_i
 
 <script type="text/javascript" src="/themes/simtk/js/simple-expand.js"></script>
 <script type="text/javascript">
-	$(function() {
-		$('.expander').simpleexpand();
-		// Find "Downloads" header and make it a hyperlink to this "Downloads" page.
-		$(".maindiv>h2:contains('Downloads')").html(
-			"<a href='/frs/?group_id=" + 
-			<?php echo $groupId; ?> +
-			"'>Downloads</a>");
+
+$(function() {
+	$('.expander').simpleexpand();
+	// Find "Downloads" header and make it a hyperlink to this "Downloads" page.
+	$(".maindiv>h2:contains('Downloads')").html(
+		"<a href='/frs/?group_id=" + 
+		<?php echo $groupId; ?> +
+		"'>Downloads</a>");
+});
+
+$(document).ready(function() {
+	// Handle popover show and hide.
+	$(".myPopOver").hover(function() {
+		$(this).find(".popoverLic").popover("show");
 	});
+	$(".myPopOver").mouseleave(function() {
+		$(this).find(".popoverLic").popover("hide");
+	});
+
+	$(window).on("load", function() {
+		// Scroll to package id anchor if present, after window completed load.
+		// NOTE: This script is necessary because Chrome and Edge browsers 
+		// sometimes do not scroll to anchor.
+		// Get URL and locate package id anchor.
+		var theUrl = window.location.href;
+		var idxPackId = theUrl.lastIndexOf("#pack_");
+		if (idxPackId != -1) {
+			// Package id anchor is present.
+			var packId = theUrl.substr(idxPackId + 6).trim();
+			// Check for numeric package id.
+			if ($.isNumeric(packId)) {
+				$("html, body").animate({
+					scrollTop: $("#pack_" + packId).offset().top
+					}, "slow");
+			}
+		}
+	});
+});
+
 </script>
 
 <link rel="stylesheet" type="text/css" href="/themes/simtk/css/theme.css">
@@ -189,7 +220,7 @@ function constructPackageUI($HTML, $groupId, $groupObj, $packageInfo,
 		echo "</div>";
 	}
 	echo "<div class='wrapper_text'>";
-	echo "<div class='download_title'>" . $packName;
+	echo "<div id='pack_" . $packId . "' class='download_title'>" . $packName;
 	if ($packageInfo["is_public"] != "1") {
 		// Private.
 		if ($packageInfo["status_id"] != "1") {
@@ -754,10 +785,12 @@ function genLicenseLink($packId, &$strLic) {
 		// Generate popup string.
 		// NOTE: Has to use "javscript://" to avoid 
 		// automatically scrolling to top upon clicking.
-		$strLicense = '<a href="javascript://" data-toggle="popover" data-placement="right" ' .
+		$strLicense = '<span class="myPopOver"><a href="javascript://" ' .
+			'class="popoverLic" data-html="true" ' .
+			'data-toggle="popover" data-placement="right" ' .
 			'data-content="' . $strLic . 
 			'" title="' . $strUseAgreement . ' Use Agreement" ' .
-			'>' . 'View License' . '</a>';
+			'>' . 'View License' . '</a></span>';
 	}
 
 	return $strLicense;

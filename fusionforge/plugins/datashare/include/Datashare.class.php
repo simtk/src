@@ -237,7 +237,8 @@ class Datashare extends FFError {
 	/**
 	 *	@return	boolean	success
 	*/
-	function insertStudy($group_id, $title, $description, $is_private, $template, $subject_prefix="subject") {
+	function insertStudy($group_id, $title, $description, $is_private, $template, 
+		$subject_prefix="subject", $useAgreement=0, $customAgreement="") {
 
 		$group_id = (int) $group_id;
 
@@ -285,6 +286,10 @@ class Datashare extends FFError {
 				'You can only use alphabetic characters for top level folder prefix');
 			return false;
 		}
+		if ($useAgreement == 0) {
+			// Use agreement is "None". Do not fill in custom agreement.
+			$customAgreement = '';
+		}
 
 		$result = $this->getStudyByGroup($group_id);
 		$rowcount=count($result);
@@ -296,8 +301,9 @@ class Datashare extends FFError {
 			// insert new row
 			$res=db_query_params('INSERT INTO plugin_datashare ' .
 				'(group_id, title, description, is_private, ' .
-				'token, active, template_id, user_id, date_created, subject_prefix) ' .
-				'VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
+				'token, active, template_id, user_id, date_created, ' .
+				'subject_prefix, simtk_use_agreement, simtk_custom_agreement) ' .
+				'VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)',
 				array($group_id, 
 					htmlspecialchars($title), 
 					htmlspecialchars($description), 
@@ -307,7 +313,11 @@ class Datashare extends FFError {
 					$template,
 					$userId,
 					time(),
-					$subject_prefix));
+					$subject_prefix,
+					$useAgreement,
+					htmlspecialchars($customAgreement)
+				)
+			);
 			if (!$res || db_affected_rows($res) < 1) {
 				$this->setError(_('Error creating new study'));
 				db_rollback();
@@ -333,10 +343,7 @@ class Datashare extends FFError {
 			foreach ($admins as $admin) {
 				$admin_email = $admin->getEmail();
 				setup_gettext_for_user ($admin);
-				util_send_message($admin_email,
-					sprintf('New %s Study Submitted', 
-						forge_get_config('forge_name')), 
-					$message);
+				util_send_message($admin_email, 'DATA SHARE APPROVAL', $message);
 				setup_gettext_from_context();
 			}
 
@@ -349,7 +356,8 @@ class Datashare extends FFError {
 		}
 	}
 	
-	function updateStudy($study_id, $title, $description, $is_private, $subject_prefix="subject") {
+	function updateStudy($study_id, $title, $description, $is_private, 
+		$subject_prefix="subject", $useAgreement=0, $customAgreement="") {
 
 		// Check parameter validity.
 		if (!$title || trim($title) == "") {
@@ -395,16 +403,23 @@ class Datashare extends FFError {
 			}
 		}
 
-		//$sqlCmd="UPDATE plugin_datashare SET title = $1, description = $2, is_private = $3 WHERE study_id= $study_id";
+		if ($useAgreement == 0) {
+			// Use agreement is "None". Do not fill in custom agreement.
+			$customAgreement = '';
+		}
+
 		db_begin();
 		if ($isSubjPrefixUpdate === false) {
 			$res=db_query_params('UPDATE plugin_datashare SET ' .
-				'title=$1, description=$2, is_private=$3 ' .
-				'WHERE study_id=$4',
+				'title=$1, description=$2, is_private=$3, ' .
+				'simtk_use_agreement=$4, simtk_custom_agreement=$5 ' .
+				'WHERE study_id=$6',
 				array(
 					htmlspecialchars($title),
 					htmlspecialchars($description),
 					$is_private,
+					$useAgreement,
+					htmlspecialchars($customAgreement),
 					$study_id
 				)
 			);
@@ -412,14 +427,17 @@ class Datashare extends FFError {
 		else {
 			// Subject prefix has update.
 			$res=db_query_params('UPDATE plugin_datashare SET ' .
-				'title=$1, description=$2, is_private=$3, subject_prefix=$4, active=$5 ' .
-				'WHERE study_id=$6',
+				'title=$1, description=$2, is_private=$3, subject_prefix=$4, active=$5, ' .
+				'simtk_use_agreement=$6, simtk_custom_agreement=$7 ' .
+				'WHERE study_id=$8',
 				array(
 					htmlspecialchars($title),
 					htmlspecialchars($description),
 					$is_private,
 					$subject_prefix,
 					-4,
+					$useAgreement,
+					htmlspecialchars($customAgreement),
 					$study_id
 				)
 			);

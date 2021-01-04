@@ -103,9 +103,25 @@ else {
 	return;
 }
 
-
 $pluginname="datashare";
 datashare_header(array('title'=>'Datashare','pagename'=>"$pluginname",'sectionvals'=>array(group_getname($group_id))),$group_id);
+
+?>
+
+<script>
+
+$(document).ready(function() {
+	// Handle popover show and hide.
+	$(".myPopOver").hover(function() {
+		$(this).find(".popoverLic").popover("show");
+	});
+	$(".myPopOver").mouseleave(function() {
+		$(this).find(".popoverLic").popover("hide");
+	});
+});
+</script>
+
+<?php
 
 echo "\n";
 echo "<div class=\"project_overview_main\">\n";
@@ -163,7 +179,10 @@ if (session_loggedin()) {
 				}
 				else {
 					echo '<div><i>doi:' . $study->getDOI($result->study_id). '</i></div>';
-					echo '<a href="#" data-toggle="popover" data-placement="right" data-trigger="hover" title="DOI" data-content="Note: DOI assigned so resource cannot be edited or removed.">Warning: DOI Association</a>';
+					echo '<span class="myPopOver"><a href="javascript://" ' .
+						'class="popoverLic" data-html="true" ' .
+						'data-toggle="popover" data-placement="right" title="DOI" ' .
+						'data-content="Note: DOI assigned so resource cannot be edited or removed.">Note: DOI assigned</a></span>';
 				}
 			}
 			echo "</td>";

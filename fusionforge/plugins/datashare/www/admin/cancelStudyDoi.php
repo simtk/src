@@ -3,7 +3,7 @@
 /**
  * Datashare Admin: Cancel a DOI request on study.
  *
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2020, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -40,6 +40,7 @@ elseif ($group->isError()) {
 	exit_error($group->getErrorMessage(),'datashare');
 }
 
+$study = false;
 if (session_loggedin()) {
 	if (!forge_check_perm ('datashare', $group_id, 'write')) {
 		exit_error("Access Denied: You cannot access the datashare admin section for a project unless you are an admin on that project", 'datashare');
@@ -69,7 +70,7 @@ if (session_loggedin()) {
 					exit_error($frsf->getErrorMessage(), 'datashare');
 				}
 				else {
-					$feedback .= 'DOI Request Canceled.';
+					$feedback .= 'DOI request canceled';
 					session_redirect('/plugins/datashare/admin?group_id=' . $group_id);
 				}
 			}
@@ -80,12 +81,18 @@ if (session_loggedin()) {
 	}
 }
 
+
+if ($study == false ||
+	$study->getStudy($study_id) == false ||
+	!isset($study->getStudy($study_id)[0])) {
+	exit_error("Cannot get study for cancellation", 'Datashare Error');
+}
+
 datashare_header(array('title'=>'Datashare','pagename'=>"datashare",'sectionvals'=>array(group_getname($group_id))),$group_id);
 
 
 // Cancel a DOI request.
 
-echo '<hr />';
 echo '<div><h3>' . $study->getStudy($study_id)[0]->title . '</h3></div>';
 echo '<form action="cancelStudyDoi.php?group_id='.$group_id.'" method="post">
 	<input type="hidden" name="func" value="cancel_study_doi" />

@@ -6,7 +6,7 @@
  * 
  * File to layout setting of project.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2020, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -98,8 +98,18 @@ project_admin_header(array('title'=>'Admin','group'=>$group->getID()));
 ?>
 
 <script type="text/javascript">
-function ShowPopup(hoveritem)
-{
+
+$(document).ready(function() {
+	// Handle popover show and hide.
+	$(".myPopOver").hover(function() {
+		$(this).find(".popoverLic").popover("show");
+	});
+	$(".myPopOver").mouseleave(function() {
+		$(this).find(".popoverLic").popover("hide");
+	});
+});
+
+function ShowPopup(hoveritem) {
 	hp = document.getElementById("titlepopup");
 
 	// Set position of hover-over popup
@@ -110,8 +120,7 @@ function ShowPopup(hoveritem)
 	hp.style.visibility = "Visible";
 }
 
-function HidePopup()
-{
+function HidePopup() {
 	hp = document.getElementById("titlepopup");
 	hp.style.visibility = "Hidden";
 }
@@ -144,11 +153,11 @@ function HidePopup()
 Layout of the Project's Overview
 
 <p>
-<input type="radio" name="form_layout" value="0" <?php if ($layout == 0) { echo " checked";} ?> /> Standard <a href="#" data-toggle="popover" data-placement="right" data-trigger="hover" title="Standard Project" data-content="A Standard Project will display the description of the project at the top of the project home page">?</a><br />
-<input type="radio" name="form_layout" value="1" <?php if ($layout == 1) { echo " checked";} ?> /> Publication <a href="#" data-toggle="popover" data-placement="right"  data-trigger="hover" title="Publication Project" data-content="A Publication Project will display the primary publication at the top of the project home page.  A primary publication must exist and the download description section must be completed.">?</a>
+<input type="radio" name="form_layout" value="0" <?php if ($layout == 0) { echo " checked";} ?> /> Standard <span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" title="Standard Project" data-content="A Standard Project will display the description of the project at the top of the project home page">?</a></span><br/>
+<input type="radio" name="form_layout" value="1" <?php if ($layout == 1) { echo " checked";} ?> /> Publication <span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right"  title="Publication Project" data-content="A Publication Project will display the primary publication at the top of the project home page.  A primary publication must exist and the download description section must be completed.">?</a></span>
 </p>
 
-Privacy <a href="#" data-toggle="popover" data-placement="right" data-trigger="hover" title="Privacy" data-content="Checking the box below prevents access to all subsections of your project (team, documents, source control, downloads, etc.). Only your overview page remains publicly viewable. The privacy of download packages, documents, and source control, can be independently controlled. This is the preferred way to manage the privacy of your project.">?</a>
+Privacy <span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" title="Privacy" data-content="Checking the box below prevents access to all subsections of your project (team, documents, source control, downloads, etc.). Only your overview page remains publicly viewable. The privacy of download packages, documents, and source control, can be independently controlled. This is the preferred way to manage the privacy of your project.">?</a></span>
 
 <p>
 <?php //echo "isPublic: " . $group->isPublic() . "<br />"; ?>
