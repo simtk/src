@@ -902,7 +902,7 @@ else {
 	}
 	$cnt = 0;
 	foreach ($arrCommunityNames as $catId=>$fullName) {
-		if ($cnt++ >= 5) {
+		if ($cnt++ >= 6) {
 			break;
 		}
 		$dispCommName = abbrGroupName($fullName);
