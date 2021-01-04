@@ -2,6 +2,7 @@
 <?php
 /**
  * Copyright 1999-2001 (c) VA Linux Systems
+ * Copyright 2005-2020, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -25,7 +26,7 @@ require_once $gfcommon.'include/cron_utils.php';
 
 $err='';
 
-$today_formatted=date('Ymd',(time()-(30*60*60*24)));
+$today_formatted=date('Ymd',(time()-(40*60*60*24)));
 
 db_begin();
 
