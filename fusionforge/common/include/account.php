@@ -131,10 +131,16 @@ function account_groupnamevalid($name) {
 		return 0;
 	}
 
+/*
+	// Commented out check for presence of underscore character "_" 
+	// because the check for DNS name validation for the project identifier
+	// is not necessary and does not match with project identifier requirement 
+	// in the project creation page. 
 	if(preg_match("/_/",$name)) {
 		$GLOBALS['register_error'] = _('Group name cannot contain underscore for DNS reasons.');
 		return 0;
 	}
+*/
 
 	return 1;
 }
