@@ -6,7 +6,7 @@
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * http://fusionforge.org/
- * Copyright 2016-2020, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -258,33 +258,71 @@ frs_admin_header(array('title'=>'Update File','group'=>$group_id));
 		$(".myPopOver").hover(function() {
 			$(this).find(".popoverLic").popover("show");
 		});
+
 		$(".myPopOver").mouseleave(function() {
 			$(this).find(".popoverLic").popover("hide");
 		});
-		if ($('#docLink').is(":checked") || $('#githubLink').is(":checked")) {
+
+		if ($('#docLink').is(":checked")) {
 			// Disable inputs for File upload.
 			$('.upFile').prop("disabled", true);
 			$('[name="group_list_id"]').prop("disabled", true);
-			$('#doi').attr('checked', false);
+			$('#doi').prop('checked', false);
 			$('#doi_info').hide();
 			$('#doi').prop("disabled", true);
+			$('.downloadFileOptions').hide("slow");
 		}
 		else {
 			// Enable inputs for File upload.
 			$('.upFile').prop("disabled", false);
 			$('[name="group_list_id"]').prop("disabled", false);
 			$('#doi').prop("disabled", false);
+			$('.downloadFileOptions').show("slow");
 		}
+
+		if ($('#docLink').is(":checked") || 
+			$('#githubLink').is(":checked")) {
+			$('.cellDoi').hide("slow");
+		}
+		else {
+			$('.cellDoi').show("slow");
+		}
+
 		$('#docFile').click(function() {
 			// Show the Display Name warning.
 			$('#warnDispName').show("slow");
 			$('#labelDispName').html("<strong>Rename File<br/>for display & download:<br/>(optional)</strong>");
 
 			// Enable inputs for File upload.
+			$('.downloadFileOptions').show("slow");
+			$('.cellDoi').show("slow");
 			$('.upFile').prop("disabled", false);
 			$('[name="group_list_id"]').prop("disabled", false);
 			$('#doi').prop("disabled", false);
+<?php
+if ($frsf->getShowAgreement() === "1") {
+	echo '
+		$("#showAgreement").prop("checked", true);
+	';
+}
+if ($frsf->getCollectData() === "1") {
+	echo '
+		$("#collectInfo").prop("checked", true);
+	';
+}
+if ($frsf->getUseMailList() === "1") {
+	echo '
+		$("#useMailList").prop("checked", true);
+	';
+}
+if ($frsf->getShowNotes() === "1") {
+	echo '
+		$("#showNotes").prop("checked", true);
+	';
+}
+?>
 		});
+
 		$('#docLink').click(function() {
 			// Hide the Display Name warning.
 			$('#warnDispName').hide("slow");
@@ -292,41 +330,71 @@ frs_admin_header(array('title'=>'Update File','group'=>$group_id));
 
 			// Disable inputs for File upload.
 			$('.upFile').prop("disabled", true);
-			$('#doi').attr('checked', false);
+			$('#doi').prop('checked', false);
 			$('#doi_info').hide();
 			$('#doi').prop("disabled", true);
 			$('[name="group_list_id"]').prop("disabled", true);
+			$('.upFile').prop('checked', false);
+			$('.downloadFileOptions').hide("slow");
+			$('.cellDoi').hide("slow");
 		});
+
 		$('#githubLink').click(function() {
 			// Show the Display Name warning.
 			$('#warnDispName').show("slow");
 			$('#labelDispName').html("<strong>Rename File<br/>for display & download:<br/>(optional)</strong>");
 
-			// Disable inputs for File upload.
-			$('.upFile').prop("disabled", true);
-			$('#doi').attr('checked', false);
+			// Enable inputs for File upload.
+			$('.downloadFileOptions').show("slow");
+			$('.cellDoi').hide("slow");
+			$('.upFile').prop("disabled", false);
+			$('[name="group_list_id"]').prop("disabled", false);
+			$('#doi').prop('checked', false);
 			$('#doi_info').hide();
 			$('#doi').prop("disabled", true);
-			$('[name="group_list_id"]').prop("disabled", true);
+<?php
+if ($frsf->getShowAgreement() === "1") {
+	echo '
+		$("#showAgreement").prop("checked", true);
+	';
+}
+if ($frsf->getCollectData() === "1") {
+	echo '
+		$("#collectInfo").prop("checked", true);
+	';
+}
+if ($frsf->getUseMailList() === "1") {
+	echo '
+		$("#useMailList").prop("checked", true);
+	';
+}
+if ($frsf->getShowNotes() === "1") {
+	echo '
+		$("#showNotes").prop("checked", true);
+	';
+}
+?>
 		});
 
-		$('#collect_info').click(function() {
-			var theValue = $('#collect_info').is(":checked");
+		$('#collectInfo').click(function() {
+			var theValue = $('#collectInfo').is(":checked");
 			if (theValue == 0) {
-				$('#use_mail_list').prop('checked', 0);
-				$('#use_mail_list').prop('disabled', true);
+				$('#useMailList').prop('checked', 0);
+				$('#useMailList').prop('disabled', true);
 				$('[name="group_list_id"]').prop("disabled", true);
 			}
 			else {
-				$('#use_mail_list').prop('disabled', false);
+				$('#useMailList').prop('disabled', false);
 				$('[name="group_list_id"]').prop("disabled", false);
 			}
 		});
-		if (!$('#collect_info').is(":checked")) {
-			$('#use_mail_list').prop('checked', 0);
-			$('#use_mail_list').prop('disabled', true);
+
+		if (!$('#collectInfo').is(":checked")) {
+			$('#useMailList').prop('checked', 0);
+			$('#useMailList').prop('disabled', true);
 			$('[name="group_list_id"]').prop("disabled", true);
 		}
+
 		$('#doi').change(function() {
 			if (this.checked)
 				//$('#doi_info').fadeIn('slow');
@@ -334,6 +402,7 @@ frs_admin_header(array('title'=>'Update File','group'=>$group_id));
 			else
 				$('#doi_info').hide();
 		});
+
 		$("#submitAndNotify").click(function() {
 			if ($('#doi').is(":checked")) {
 				if (!confirm("I confirm that I would like to have this file, its release, and the package it belongs to made permanent. Please issue a DOI.")) {
@@ -342,6 +411,7 @@ frs_admin_header(array('title'=>'Update File','group'=>$group_id));
 			}
 			$(this).prop("value", "Updating File...");
 		});
+
 		$("#submitNoNotify").click(function() {
 			if ($('#doi').is(":checked")) {
 				if (!confirm("I confirm that I would like to have this file, its release, and the package it belongs to made permanent. Please issue a DOI.")) {
@@ -399,7 +469,7 @@ td {
 </tr>
 
 <tr>
-	<td style="width:25%;padding-top:2px;"><input type="radio" id="docFile" 
+	<td style="min-width:200px;width:25%;padding-top:2px;"><input type="radio" id="docFile" 
 		name="docType" value="1" <?php 
 		if ($frsf->isURL() === false) {
 			echo "checked='checked'"; 
@@ -412,7 +482,6 @@ td {
 	<tr>
 		<td>New File:
 		<?php echo '&nbsp;(max upload size: ' . 
-//			human_readable_bytes(util_get_maxuploadfilesize()) . 
 			human_readable_bytes(getUploadFileSizeLimit($group_id)) . 
 			')'; ?>
 		</td>
@@ -422,73 +491,13 @@ td {
 		<input class="upFile" type="file" id="newfile" name="userfile"  size="30" />
 		</td>
 	</tr>
-	<tr>
-		<td>Download Options:</td>
-	</tr>
-
-	<tr>
-	<td style="padding-left:30px;"><input class="upFile" type="checkbox" id="collect_info" name="collect_info" value="1" <?php if ($frsf->getCollectData() === "1") echo "checked='checked'"; ?> />&nbsp;Collect user information (requires user login).</td>
-	</td>
-	<td></td>
-	</tr>
-	<tr>
-		<td style="padding-left:30px;">
-			-->Please keep above <strong>checked</strong> for non documentation files.
-		</td>
-	</tr>
-
-<?php
-// Only show agreement if the package has one; i.e. the value is not 0 ("None".)
-if ($frsp->getUseAgreement() != 0) {
-?>
-	<tr>
-	<td style="padding-left:30px;"><input class="upFile" type="checkbox" name="show_agreement" value="1" <?php if ($frsf->getShowAgreement() === "1") echo "checked='checked'"; ?> />&nbsp;Show download agreement</td>
-	<td></td>
-	</tr>
-<?php
-}
-?>
-	<tr>
-	<td style="padding-left:30px;"><input class="upFile" type="checkbox" name="show_notes" value="1" <?php if ($frsf->getShowNotes() === "1") echo "checked='checked'"; ?> />&nbsp;Show download notes</td>
-	<td></td>
-	</tr>
-
-<?php
-	$strMailingListPopup = frs_show_mailinglist_popup($group_id, 'group_list_id', $frsf->getGroupListId());
-	if ($strMailingListPopup != false && trim($strMailingListPopup) != "") {
-		echo '
-	<tr>
-	<td style="padding-left:30px;"><input class="upFile" type="checkbox" id="use_mail_list" name="use_mail_list" value="1" ';
-		if ($frsf->getUseMailList() === "1") {
-			echo "checked='checked'";
-		}
- 		echo ' />&nbsp;';
-
-		echo "Ask user to join mailing list:&nbsp;";
-		echo $strMailingListPopup;
-		echo '
-	</td>
-	</tr>
-	<tr>
-		<td style="padding-left:30px;">
-			-->"Collect user information" must be checked to use mailing lists.
-		</td>
-	</tr>
-		';
-	}
-?>
 
 	</table>
 	</td>
 </tr>
 
-<tr style="height:15px;">
-<td></td>
-<td></td>
-</tr>
-
 <tr>
-	<td style="padding-top:2px;"><input type="radio" id="docLink" 
+	<td style="min-width:200px;padding-top:2px;"><input type="radio" id="docLink" 
 		name="docType" value="2" <?php 
 		if ($frsf->isURL() === true) {
 			echo "checked='checked'"; 
@@ -513,7 +522,7 @@ if ($frsp->getUseAgreement() != 0) {
 </tr>
 
 <tr>
-	<td style="padding-top:2px;"><input type="radio" id="githubLink" name="docType" 
+	<td style="min-width:200px;padding-top:2px;"><input type="radio" id="githubLink" name="docType" 
 		value="3" <?php 
 		if ($frsf->isGitHubArchive() === true) {
 			echo "checked='checked'";
@@ -606,6 +615,54 @@ else {
 </tr>
 
 <tr>
+	<td colspan="2"><div class="downloadFileOptions"><h2>Download File Options</h2></div>
+	</td>
+</tr>
+
+<tr>
+	<td colspan="2"><div class="downloadFileOptions"><input class="upFile" type="checkbox" id="collectInfo" name="collect_info" value="1" <?php if ($frsf->getCollectData() === "1") echo "checked='checked'"; ?> />&nbsp;&nbsp;Collect user information (requires user login) <span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="top" data-content="Please keep box <strong>checked</strong> for non documentation files">&nbsp;?&nbsp;</a></span></div>
+	</td>
+</tr>
+
+<?php
+// Only show agreement if the package has one; i.e. the value is not 0 ("None".)
+if ($frsp->getUseAgreement() != 0) {
+?>
+<tr>
+	<td colspan="2"><div class="downloadFileOptions"><input class="upFile" id="showAgreement" type="checkbox" name="show_agreement" value="1" <?php if ($frsf->getShowAgreement() === "1") echo "checked='checked'"; ?> />&nbsp;&nbsp;Show download agreement</div>
+	</td>
+</tr>
+<?php
+}
+?>
+<tr>
+	<td colspan="2"><div class="downloadFileOptions"><input class="upFile" id="showNotes" type="checkbox" name="show_notes" value="1" <?php if ($frsf->getShowNotes() === "1") echo "checked='checked'"; ?> />&nbsp;&nbsp;Show download notes</div>
+	</td>
+</tr>
+
+<?php
+$strMailingListPopup = frs_show_mailinglist_popup($group_id, 'group_list_id', $frsf->getGroupListId());
+if ($strMailingListPopup != false && trim($strMailingListPopup) != "") {
+	echo '
+<tr>
+	<td colspan="2"><div class="downloadFileOptions"><input class="upFile" type="checkbox" id="useMailList" name="use_mail_list" value="1" ';
+	if ($frsf->getUseMailList() === "1") {
+		echo "checked='checked'";
+	}
+ 	echo ' />&nbsp;';
+
+	echo "Ask user to join mailing list:&nbsp;";
+	echo $strMailingListPopup;
+	echo '
+	<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="top" data-content=' . "'" . '"Collect user information" must be checked to use mailing lists' . "'" . '>&nbsp;?&nbsp;</a></span> 
+	</div>
+	</td>
+</tr>
+	';
+}
+?>
+
+<tr>
 	<td colspan="2"><h2>Provide File/Link Details</h2></td>
 </tr>
 
@@ -666,11 +723,11 @@ else {
 	<td><input type="text" name="release_date" value="<?php echo date('Y-m-d', $frsf->getReleaseTime()); ?>" size="10" maxlength="10" /></td>
 </tr>
 <tr>
-	<td><strong>DOI:</strong></td>
-	<td><input type="checkbox" name="doi" id="doi" value="1" />&nbsp;Obtain a DOI for file
+	<td><span class="cellDoi"><strong>DOI:</strong></span></td>
+	<td><span class="cellDoi"><input type="checkbox" name="doi" id="doi" value="1" />&nbsp;Obtain a DOI for file
 	<div id="doi_info" style="display:none">
         <font color="#ff0000">Warning: You will not be able to remove or edit this file after the DOI has been issued.  You will not be able to delete the release or the package it belongs to either.</font>
-    </div>
+    </div></span>
 	</td>
 </tr>
 <tr>
