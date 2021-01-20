@@ -4,7 +4,7 @@
  *
  * Theme.class.php
  * 
- * Copyright 2005-2020, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -909,7 +909,9 @@ else {
 		echo '<li class="intend"><a href="/category/communityPage.php?cat=' . $catId . 
 			'&sort=date&page=0&srch=&" tabindex="-1">' . $dispCommName . '</a></li>';
 	}
-	echo '<li class="intend"><a href="/communities.php" tabindex="-1">All communities</a></li>';
+	echo '<li class="intend"><a href="/communities.php" tabindex="-1">All Communities</a></li>';
+	echo '<li class="intend"><a href="/aboutCommunities.php" tabindex="-1">About Communities</a></li>';
+	echo '<li class="intend"><a href="/sendmessage.php?touser=101&subject=Community%20Request" tabindex="-1">Request Community</a></li>';
 	if ($cntCommunityNames > 0) {
 ?>
 			</ul>
@@ -1034,7 +1036,7 @@ echo $u->getFirstName();
                 echo '</div>';
 
 		echo '<div style="font-size:12px;">';
-		echo 'Version 4.1.0. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 6.0.5.';
+		echo 'Version 4.1.1. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 6.0.5.';
                 echo '</div>';
 
             echo '</div>';
