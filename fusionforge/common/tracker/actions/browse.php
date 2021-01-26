@@ -9,7 +9,7 @@
  * Copyright 2011, Iñigo Martinez
  * Copyright 2012, Thorsten “mirabilos” Glaser <t.glaser@tarent.de>
  * Copyright 2014, Stéphane-Eymeric Bredthauer
- * Copyright 2016-2020, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -36,9 +36,7 @@ global $group_id;
 global $group;
 global $HTML;
 
-//
-//  make sure this person has permission to view artifacts
-//
+// Make sure this person has permission to view artifacts.
 session_require_perm('tracker', $ath->getID(), 'read');
 
 $query_id = getIntFromRequest('query_id');
@@ -260,6 +258,14 @@ if ($art_arr && ($art_cnt = count($art_arr)) > 0) {
 	$focus = 0;
 }
 $paging = 0;
+
+// Check if tracker access is allowed.
+if (!$ath->isPermitted()) {
+	echo $HTML->warning_msg("Permission denied. This project's administrator will have to grant you permission to view this page.");
+	$ath->footer();
+	return;
+}
+
 if (session_loggedin()) {
 	/* logged in users get configurable paging */
 	$paging = $u->getPreference("paging");

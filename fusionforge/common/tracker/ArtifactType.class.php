@@ -8,7 +8,7 @@
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012, Thorsten “mirabilos” Glaser <t.glaser@tarent.de>
  * Copyright 2014, Franck Villaume - TrivialDev
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -30,6 +30,40 @@ require_once $gfcommon.'include/FFError.class.php';
 require_once $gfcommon.'tracker/ArtifactExtraFieldElement.class.php';
 require_once $gfcommon.'tracker/ArtifactStorage.class.php';
 
+// Check whether logged-in user has access to the private tracker.
+function checkPrivateTrackerPermissions($groupId) {
+
+	if (forge_check_global_perm('forge_admin')) {
+		// forge_admin always has permission.
+		return true;
+	}
+
+	$theGroupObj = group_get_object($groupId);
+	if (!$theGroupObj) {
+		// Cannot get group object.
+		return false;
+	}
+
+	if (!session_loggedin() ||
+		!($theUserObj = &session_get_user())) {
+		// Not logged in or cannot get user object.
+		return false;
+	}
+
+	$theUserID = $theUserObj->getID();
+	$memberObjs = $theGroupObj->getMembers();
+	foreach ($memberObjs as $memberObj) {
+		if ($memberObj->getID() == $theUserID) {
+			// OK. User is a member of group.
+			return true;
+		}
+	}
+
+	// Not a member of project.
+	return false;
+}
+
+
 /**
  * Gets an ArtifactType object from the artifact type id
  *
@@ -42,10 +76,10 @@ function &artifactType_get_object($artType_id, $res = false) {
 	if (!isset($ARTIFACTTYPE_OBJ["_".$artType_id."_"])) {
 		if ($res) {
 			//the db result handle was passed in
-		} else {
+		}
+		else {
 /*
-			$res = db_query_params('SELECT * FROM artifact_group_list_vw WHERE group_artifact_id=$1',
-						array($artType_id));
+			$res = db_query_params('SELECT * FROM artifact_group_list_vw WHERE group_artifact_id=$1', array($artType_id));
 */
 			// Get columns from artifact_group_list instead of from artifact_group_list_vw table.
 			$strSql = 'SELECT * FROM artifact_group_list agl ' .
@@ -53,22 +87,37 @@ function &artifactType_get_object($artType_id, $res = false) {
 				'USING (group_artifact_id) ' .
 				'WHERE group_artifact_id=$1';
 
-			if (!session_loggedin()) {
-				// User is not logged in.
-				// Only show trackers that are public.
-				$strSql .= ' AND simtk_is_public=1 ';
-			}
-
-			$res = db_query_params($strSql,
-				array($artType_id));
-
+			$res = db_query_params($strSql, array($artType_id));
 		}
 		if (!$res || db_numrows($res) < 1) {
 			$ARTIFACTTYPE_OBJ["_".$artType_id."_"] = false;
-		} else {
+		}
+		else {
 			$data = db_fetch_array($res);
-			$Group = group_get_object($data["group_id"]);
+			$groupId = $data["group_id"];
+			$Group = group_get_object($groupId);
 			$ARTIFACTTYPE_OBJ["_".$artType_id."_"] = new ArtifactType($Group, $data["group_artifact_id"], $data);
+
+			// Check if user is member of project.
+			// If not, only get trackers that are public.
+			if (!checkPrivateTrackerPermissions($groupId)) {
+				$strSql = 'SELECT * FROM artifact_group_list agl ' .
+					'LEFT JOIN artifact_counts_agg aca ' .
+					'USING (group_artifact_id) ' .
+					'WHERE group_artifact_id=$1 ' .
+					'AND simtk_is_public=1';
+
+				$res = db_query_params($strSql, array($artType_id));
+				if (!$res || db_numrows($res) < 1) {
+					$ARTIFACTTYPE_OBJ["_".$artType_id."_"] = false;
+				}
+				else {
+					$data = db_fetch_array($res);
+					$groupId = $data["group_id"];
+					$Group = group_get_object($groupId);
+					$ARTIFACTTYPE_OBJ["_".$artType_id."_"] = new ArtifactType($Group, $data["group_artifact_id"], $data);
+				}
+			}
 		}
 	}
 	return $ARTIFACTTYPE_OBJ["_".$artType_id."_"];
@@ -333,12 +382,6 @@ class ArtifactType extends FFError {
 			'WHERE group_artifact_id=$1 ' .
 			'AND group_id=$2';
 
-		if (!session_loggedin()) {
-			// User is not logged in.
-			// Only show trackers that are public.
-			$strSql .= ' AND simtk_is_public=1 ';
-		}
-
 		$res = db_query_params($strSql,
 			array($artifact_type_id, $this->Group->getID()));
 		if (!$res || db_numrows($res) < 1) {
@@ -348,6 +391,31 @@ class ArtifactType extends FFError {
 			return false;
 		}
 		$this->data_array = db_fetch_array($res);
+
+		// Check if user is member of project.
+		// If not, only get trackers that are public.
+		if (!checkPrivateTrackerPermissions($this->Group->getID())) {
+
+			// Free result first.
+			db_free_result($res);
+
+			$strSql = 'SELECT * FROM artifact_group_list agl ' .
+				'LEFT JOIN artifact_counts_agg aca ' .
+				'USING (group_artifact_id) ' .
+				'WHERE group_artifact_id=$1 ' .
+				'AND group_id=$2 ' .
+				'AND simtk_is_public=1';
+
+			$res = db_query_params($strSql,
+				array($artifact_type_id, $this->Group->getID()));
+			if (!$res || db_numrows($res) < 1) {
+				// Do not setError() here.
+				// Otherwise, the page exits with undesirable side effects.
+				//$this->setError('ArtifactType: Invalid ArtifactTypeID');
+				return false;
+			}
+			$this->data_array = db_fetch_array($res);
+		}
 		db_free_result($res);
 		return true;
 	}
@@ -431,6 +499,46 @@ class ArtifactType extends FFError {
 	 */
 	function getSimtkIsPublic() {
 		return $this->data_array['simtk_is_public'];
+	}
+
+	// Check whether access to the tracker is permitted.
+	function isPermitted() {
+
+		if ($this->getSimtkIsPublic()) {
+			// Public tracker.
+			return true;
+		}
+
+		// Tracker is private. User must be logged in.
+
+		if (!session_loggedin() ||
+			!($theUserObj = &session_get_user())) {
+			// Not logged in or cannot get user object.
+			return false;
+		}
+
+		if (forge_check_global_perm('forge_admin')) {
+			// forge_admin always has permission.
+			return true;
+		}
+
+		$theGroupObj = $this->getGroup();
+		if ($theGroupObj == false) {
+			// Cannot get group object.
+			return false;
+		}
+
+		$theUserID = $theUserObj->getID();
+		$memberObjs = $theGroupObj->getMembers();
+		foreach ($memberObjs as $memberObj) {
+			if ($memberObj->getID() == $theUserID) {
+				// OK. User is a member of group.
+				return true;
+			}
+		}
+
+		// Not a member of group.
+		return false;
 	}
 
 	/**
@@ -610,6 +718,13 @@ class ArtifactType extends FFError {
 				$this->setError(_('You can only monitor if you are logged in.'));
 				return false;
 			}
+			else {
+				// Check if tracker access is allowed.
+				if (!$this->isPermitted()) {
+					$this->setError("Permission denied. This project's administrator will have to grant you permission.");
+					return false;
+				}
+			}
 			$user_id = user_getid();
 		}
 
@@ -641,7 +756,8 @@ class ArtifactType extends FFError {
 	}
 
 	function isMonitoring() {
-		if (!session_loggedin()) {
+		// Check if user is logged and tracker access is allowed.
+		if (!session_loggedin() || !$this->isPermitted()) {
 			return false;
 		}
 		$result = db_query_params('SELECT count(*) AS count FROM artifact_type_monitor
@@ -1198,6 +1314,7 @@ class ArtifactType extends FFError {
 		}
 		return $this->voters;
 	}
+
 }
 
 // Local Variables:

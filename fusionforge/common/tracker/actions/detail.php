@@ -6,7 +6,7 @@
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012-2015, Franck Villaume - TrivialDev
  * Copyright 2012, Thorsten “mirabilos” Glaser <t.glaser@tarent.de>
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -29,6 +29,14 @@ global $ath;
 global $ah;
 global $group_id;
 global $aid;
+
+// Make sure this person has permission to view artifacts.
+session_require_perm('tracker', $ath->getID(), 'read');
+
+// Check if tracker access is allowed.
+if (!$ath->isPermitted()) {
+	exit_permission_denied();
+}
 
 html_use_jqueryui();
 html_use_coolfieldset();

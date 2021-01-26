@@ -5,7 +5,7 @@
  * Copyright 2010-2011, Franck Villaume - Capgemini
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012,2014, Franck Villaume - TrivialDev
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -44,7 +44,7 @@ $atf->header();
 if (!$at_arr || count($at_arr) < 1) {
 	echo $HTML->information(_('No trackers have been set up, or you cannot view them.'));
 	echo '<p>';
-	echo sprintf(_('The Admin for this project will have to set up data types using the %1$s admin page %2$s'), '<a href="'.util_make_url ('/tracker/admin/?group_id='.$group_id).'">', '</a>');
+	echo sprintf(_('The Admin for this project will have to set up data types using the %1$s admin page %2$s'), '<a href="'.util_make_url ('/tracker/admin/?group_id='.$group->getID()).'">', '</a>');
 	echo "</p>";
 } else {
 	plugin_hook ("blocks", "tracker index");
@@ -66,8 +66,16 @@ if (!$at_arr || count($at_arr) < 1) {
 				continue;
 			}
 
+			$atid = $at_arr[$j]->getID();
+			$ath = new ArtifactTypeHtml($group, $atid);
+			// Check if tracker access is allowed.
+			if ($ath && is_object($ath) && !$ath->isError() && !$ath->isPermitted()) {
+				// Access not permitted.
+				continue;
+			}
+
 			$cells = array();
-			$cells[][] = util_make_link('/tracker/?atid='.$at_arr[$j]->getID().'&group_id='.$group_id.'&func=browse',
+			$cells[][] = util_make_link('/tracker/?atid='.$at_arr[$j]->getID().'&group_id='.$group->getID().'&func=browse',
 							html_image("ic/tracker20w.png","20","20").' '.$at_arr[$j]->getName());
 			$cells[][] = $at_arr[$j]->getDescription();
 			$cells[] = array((int) $at_arr[$j]->getOpenCount(), 'class' => 'align-center');

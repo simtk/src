@@ -6,7 +6,7 @@
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * Copyright 2012, Thorsten “mirabilos” Glaser <t.glaser@tarent.de>
- * Copyright 2016-2020, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -139,7 +139,7 @@ switch (getStringFromRequest('func')) {
 					}
 				}
 			}
-			session_redirect('/tracker/?group_id='.$group_id.'&atid='.$atid.'&aid='.$aid);
+			session_redirect('/tracker/?group_id='.$group->getID().'&atid='.$atid.'&aid='.$aid);
 		}
 		break;
 	}
@@ -320,9 +320,10 @@ switch (getStringFromRequest('func')) {
 			}
 
 			// Admin, Techs and Submitter can add files.
-			if (forge_check_perm ('tracker', $ath->getID(), 'tech')
-					|| forge_check_perm ('tracker', $ath->getID(), 'manager')
-					|| (session_loggedin() && ($ah->getSubmittedBy() == user_getid()))) {
+			// Check if user is logged and tracker access is allowed.
+			if (forge_check_perm ('tracker', $ath->getID(), 'tech') || 
+				forge_check_perm ('tracker', $ath->getID(), 'manager') || 
+				(session_loggedin() && $ath->isPermitted() && ($ah->getSubmittedBy() == user_getid()))) {
 				//
 				//	  Attach files to this Artifact.
 				//
@@ -411,7 +412,8 @@ switch (getStringFromRequest('func')) {
 		break;
 	}
 	case 'monitor' : {
-		if (!session_loggedin()) {
+		// Check if user is logged and tracker access is allowed.
+		if (!session_loggedin() || !$ath->isPermitted()) {
 			exit_permission_denied();
 		}
 		$start = getIntFromRequest('startmonitor');
@@ -533,7 +535,7 @@ switch (getStringFromRequest('func')) {
 	}
 	case 'download' : {
 		$aid = getIntFromRequest('aid');
-		session_redirect('/tracker/download.php?group_id='.$group_id.'&atid='.$atid.'&aid='.$aid.'&file_id='.$file_id);
+		session_redirect('/tracker/download.php?group_id='.$group->getID().'&atid='.$atid.'&aid='.$aid.'&file_id='.$file_id);
 		break;
 	}
 	case 'detail' : {
