@@ -4,7 +4,7 @@
  *
  * Copyright 1999-2001 (c) VA Linux Systems; 2005 GForge, LLC
  * Copyright 2012,2014, Franck Villaume - TrivialDev
- * Copyright 2016-2020, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -40,6 +40,14 @@ function isAllowAnon($idGroupArtifact) {
 
 function artifact_submission_form($ath, $group) {
 	global $HTML;
+
+	// Check if tracker access is allowed.
+	if (!$ath->isPermitted()) {
+		echo $HTML->warning_msg("Permission denied. This project's administrator will have to grant you permission to view this page.");
+		echo '</td></tr></table></form>';
+		return;
+	}               
+
 	/*
 		Show the free-form text submitted by the project admin
 	*/
@@ -71,6 +79,7 @@ function artifact_submission_form($ath, $group) {
 		// Prompt user to log in.
 		exit_not_logged_in();
 	}
+
 ?>
 		</td>
 	</tr>

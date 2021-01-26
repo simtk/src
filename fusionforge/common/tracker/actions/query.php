@@ -4,7 +4,7 @@
  * Copyright 2010 (c) Fusionforge Team
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012-2014, Franck Villaume - TrivialDev
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -33,6 +33,10 @@ global $atid;
 
 if (!session_loggedin()) {
 	exit_not_logged_in();
+}
+// Check if tracker access is allowed.
+if (!$ath->isPermitted()) {
+	exit_permission_denied();
 }
 
 $query_id = getIntFromRequest('query_id');

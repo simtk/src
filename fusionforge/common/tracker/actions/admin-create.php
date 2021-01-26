@@ -7,7 +7,7 @@
  * Copyright 2010, FusionForge Team
  * Copyright 2011, Franck Villaume - Capgemini
  * Copyright 2012-2014, Franck Villaume - TrivialDev
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -129,7 +129,7 @@ if (forge_check_perm ('tracker_admin', $group->getID())) { ?>
 	<strong><?php echo _('Description')._(':'); ?></strong><br />
 	<input type="text" name="description" value="" size="50" class="required" required="required" /></p>
 	<p>
-	<input type="checkbox" name="simtk_is_public" value="1" /> <strong><?php echo 'Publicly Available' ?></strong></p>
+	<input type="checkbox" name="simtk_is_public" value="1" /> <strong><?php echo 'Publicly Available (If not checked, tracker is available to project members only.)' ?></strong></p>
 	<p>
 	<input type="checkbox" name="simtk_allow_anon" value="1" /> <strong><?php echo 'Allow non-logged-in postings' ?></strong></p>
 	<p>
