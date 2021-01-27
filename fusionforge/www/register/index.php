@@ -20,7 +20,7 @@
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012, Jean-Christophe Masson - French National Education Department
  * Copyright 2013-2014, Franck Villaume - TrivialDev
- * Copyright 2016-2019, Tod Hing, Henry Kwong - SimTK Team
+ * Copyright 2016-2021, Tod Hing, Henry Kwong - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -273,10 +273,10 @@ if ( !forge_get_config ('project_auto_approval') ) {
 </textarea>
 
 <h2><?php echo 'Short project identifier' ?></h2>
-<?php echo "The identifier is part of the URL for your project.<p/><strong>Restrictions: 3-15 characters; lower-case; only characters, numbers, dashes (-), and underscores (_).</strong>" ?>
+<?php echo "The identifier is part of the URL for your project.<p/><strong>Restrictions: 3-15 characters; lower-case; only characters, numbers, dashes (-), and underscores (_).<br/>Must begin with character or number.</strong>" ?>
 <p>
 <br />
-<input class="required" type="text" maxlength="15" size="15" name="unix_name" placeholder="<?php echo _('Short Name'); ?>" />
+<input class="required" type="text" maxlength="20" size="20" name="unix_name" placeholder="<?php echo _('Short project identifier'); ?>" />
 </p>
 
 <h2><?php echo 'Privacy' ?></h2>
