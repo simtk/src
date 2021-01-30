@@ -273,7 +273,7 @@ if ( !forge_get_config ('project_auto_approval') ) {
 </textarea>
 
 <h2><?php echo 'Short project identifier' ?></h2>
-<?php echo "The identifier is part of the URL for your project.<p/><strong>Restrictions: 3-15 characters; lower-case; only characters, numbers, dashes (-), and underscores (_).<br/>Must begin with character or number.</strong>" ?>
+<?php echo "The identifier is part of the URL for your project.<p/><strong>Restrictions:<br/>&nbsp;&nbsp;3-15 characters; lower-case; only characters, numbers, dashes (-), and underscores (_).<br/>&nbsp;&nbsp;Must begin with character or number.</strong>" ?>
 <p>
 <br />
 <input class="required" type="text" maxlength="20" size="20" name="unix_name" placeholder="<?php echo _('Short project identifier'); ?>" />

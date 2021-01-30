@@ -909,6 +909,7 @@ else {
 		echo '<li class="intend"><a href="/category/communityPage.php?cat=' . $catId . 
 			'&sort=date&page=0&srch=&" tabindex="-1">' . $dispCommName . '</a></li>';
 	}
+	echo '<li class="divider"></li>';
 	echo '<li class="intend"><a href="/communities.php" tabindex="-1">All Communities</a></li>';
 	echo '<li class="intend"><a href="/aboutCommunities.php" tabindex="-1">About Communities</a></li>';
 	echo '<li class="intend"><a href="/sendmessage.php?touser=101&subject=Community%20Request" tabindex="-1">Request Community</a></li>';
