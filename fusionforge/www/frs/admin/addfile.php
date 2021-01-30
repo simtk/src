@@ -583,12 +583,12 @@ else {
 </tr>
 
 <tr>
-	<td colspan="2"><div class="downloadFileOptions"><h2>Download File Options</h2></div>
+	<td colspan="2"><div class="downloadFileOptions"><h2>Select Download File Options</h2></div>
 	</td>
 </tr>
 
 <tr>
-	<td colspan="2"><div class="downloadFileOptions"><input class="upFile" type="checkbox" id="collectInfo" name="collect_info" value="1" checked="checked" />&nbsp;&nbsp;Collect user information (requires user login) <span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="top" data-content="Please keep box <strong>checked</strong> for non documentation files">&nbsp;?&nbsp;</a></span></div>
+	<td colspan="2"><div class="downloadFileOptions"><input class="upFile" type="checkbox" id="collectInfo" name="collect_info" value="1" checked="checked" />&nbsp;&nbsp;Collect user information for download statistics (requires user login)</div>
 	</td>
 	</tr>
 
