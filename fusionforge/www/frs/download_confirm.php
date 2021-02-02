@@ -6,7 +6,7 @@
  * 
  * File that handles download of file with confirmation.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -336,9 +336,52 @@ default:
 // Generate page bottom.
 generatePageBottom();
 
+// Get user id.
+// Anonymous user.
+$userId = 100;
+if (session_loggedin()) {
+	// User is logged in.
+	$usrObj =& session_get_user();
+	$userId = $usrObj->getID();
+}
+
 ?>
 
 <script type="text/javascript" src="/themes/simtk/js/jquery.customSelect.min.js"></script>
+<script type="text/javascript" src="/frs/utilsDownloadProgress.js"></script>
+
+<script>
+$(document).ready(function() {
+	// Handle submit action.
+	$("#mySubmit").click(function() {
+		// Hide the license div, if present, once submitted.
+		$(".divLicense").hide();
+
+		// Get timestamp associated with the download.
+		var theTimeStamp = $("input[name='timestamp']").val();
+		var theRemoteAddr = "<?php echo $_SERVER["REMOTE_ADDR"]; ?>";
+		var theUserId = "<?php echo $userId; ?>";
+
+		// Token file to keep track of download.
+		var tokenDownloadProgress = "download_" +
+			theRemoteAddr + "." +
+                        theUserId + "." +
+                        theTimeStamp;
+
+		// Start tracking of download progress.
+		trackDownloadProgress("msgDownload", 
+			"myBrowse",
+			"mySubmit",
+			tokenDownloadProgress);
+	});
+
+	// Return to download page.
+	$("#myBrowse").click(function() {
+		event.preventDefault();
+		window.location.href = "/frs/?group_id=" + <?php echo $group_id; ?>;
+	});
+});
+</script>
 
 <?php
 
