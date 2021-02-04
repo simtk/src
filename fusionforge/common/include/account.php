@@ -75,7 +75,7 @@ function account_namevalid($name, $unix=false, $check_exists=true) {
 
 	if (!preg_match('/^[a-z0-9][-a-z0-9_\.]+\z/', $name)) {
 		$charStart = $name[0];
-		if (!ctype_alpha($charStart) || !ctype_digit($charStart)) {
+		if (!ctype_alpha($charStart) && !ctype_digit($charStart)) {
 			$GLOBALS['register_error'] = 'Name must begin with character or number.';
 		}
 		else {
@@ -127,6 +127,11 @@ function account_namevalid($name, $unix=false, $check_exists=true) {
  */
 function account_groupnamevalid($name) {
 	if (!account_namevalid($name, 1)) return false;
+
+	if (strpos($name, ".") !== false) {
+		$GLOBALS['register_error'] = _('Illegal character in name.');
+		return false;
+	}
 
 	// illegal names
 	$regExpReservedGroupNames = "^(www[0-9]?|cvs[0-9]?|shell[0-9]?|ftp[0-9]?|"

@@ -340,6 +340,10 @@ class Group extends FFError {
 		} elseif (!$this->validateGroupName($group_name)) {
 			$this->setError(_('Invalid project name'));
 			return false;
+		} elseif (preg_match('/[A-Z]/', $unix_name)) {
+			$this->setError('Invalid project identifier: ' . $unix_name .
+				'. ' . 'Must not contain upper-case characters.');
+			return false;
 		} elseif (!account_groupnamevalid($unix_name)) {
 			$this->setError('Invalid project identifier: ' . $unix_name);
 			return false;

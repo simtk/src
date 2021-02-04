@@ -61,7 +61,7 @@ sortProjectList ($template_projects) ;
 $full_name = trim(getStringFromRequest('full_name'));
 $purpose = trim(getStringFromRequest('purpose'));
 $description = trim(getStringFromRequest('description'));
-$unix_name = trim(strtolower(getStringFromRequest('unix_name')));
+$unix_name = trim(getStringFromRequest('unix_name'));
 $scm = getStringFromRequest('scm');
 $private = getStringFromRequest('private');
 $built_from_template = getIntFromRequest('built_from_template');
