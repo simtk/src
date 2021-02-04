@@ -346,7 +346,7 @@ class GFUser extends FFError {
 		}
 		//testing if there is at least one capital letter in the unix name
 		if  (preg_match('/[A-Z]/', $unix_name)) {
-			$this->setError(_('Invalid login name - must not contain upper-case characters or spaces'));
+			$this->setError(_('Invalid login name. Must not contain upper-case characters.'));
 			return false;
 		}
 		$unix_name = strtolower($unix_name);
