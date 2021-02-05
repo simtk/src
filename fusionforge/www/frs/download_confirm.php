@@ -116,8 +116,6 @@ case 'file':
 		genMailListUI($listName);
 	}
 
-	echo "</div>";
-
 	if ($frsFile->getShowAgreement() > 0) {
 		// File shows agreement.
 		genAgreedSubmitButton($frsPackage);
@@ -155,6 +153,9 @@ case 'latestzip':
 
 	// Generate the page top.
 	generatePageTop($group_id, $expl_pathinfo);
+
+	// DIV containing the user fields.
+	echo "<div id='divUserInputs'>";
 
 	if ($simtkCollectData > 0) {
 		// Get text of previous expected use.
