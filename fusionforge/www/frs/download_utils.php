@@ -310,12 +310,20 @@ function genAgreedSubmitButton($frsPackage) {
 	}
 
 	echo INPUT_TIMESTAMP;
+
+	// DIV containing the user fields.
+	echo "</div>";
+
 	echo INPUT_AGREED_SUBMIT;
 }
 
 // Generate UI for submit button.
 function genSubmitButton() {
 	echo INPUT_TIMESTAMP;
+
+	// DIV containing the user fields.
+	echo "</div>";
+
 	echo INPUT_SUBMIT;
 }
 
