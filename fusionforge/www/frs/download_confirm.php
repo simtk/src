@@ -91,6 +91,9 @@ case 'file':
 	// Generate the page top.
 	generatePageTop($group_id, $expl_pathinfo);
 
+	// DIV containing the user fields.
+	echo "<div id='divUserInputs'>";
+
 	$showDownloadNotes = $frsFile->getShowNotes();
 	if ($showDownloadNotes > 0) {
 		genDownloadNotesUI($frsPackage);
@@ -112,6 +115,8 @@ case 'file':
 		// Prompt for mail list membership.
 		genMailListUI($listName);
 	}
+
+	echo "</div>";
 
 	if ($frsFile->getShowAgreement() > 0) {
 		// File shows agreement.
@@ -354,6 +359,18 @@ if (session_loggedin()) {
 $(document).ready(function() {
 	// Handle submit action.
 	$("#mySubmit").click(function() {
+
+		if ($(".expected_use").length) {
+			// Expected use textarea is present.
+			var valExpectedUse = $(".expected_use").val();
+			if ($.trim(valExpectedUse).length == 0 ||
+				valExpectedUse.length < 7) {
+				// Ignore submission. Expected use is not filled in.
+				$(".expected_use")[0].scrollIntoView(false);
+				return;
+			}
+		}
+
 		// Hide the license div, if present, once submitted.
 		$(".divLicense").hide();
 
@@ -372,6 +389,7 @@ $(document).ready(function() {
 		trackDownloadProgress("msgDownload", 
 			"myBrowse",
 			"mySubmit",
+			"divUserInputs",
 			tokenDownloadProgress);
 	});
 

@@ -48,14 +48,12 @@ DEFINE('MSG_DOWNLOAD', '<div class="msgDownload"></div>');
 DEFINE('INPUT_TIMESTAMP', '<input type="hidden" name="timestamp" value="' . microtime(true) . '" />');
 
 DEFINE('INPUT_AGREED_SUBMIT', 
-	'<br/><p>Note: if the download does not start, make sure you have allowed pop-ups. In most browsers, you can do this by selecting the small icon to "allow pop-ups..." in the URL bar.  Once pop-ups are allowed, click the link again to download.</p>' .
 	'<input type="hidden" name="agreed" value="1" />' . '<br/>' .
 	'<input id="mySubmit" type="submit" name="submit" ' .
 	'value="I Agree & Download Now" class="btn-cta" />' . '&nbsp;' .
 	'<input id="myBrowse" type="submit" name="browse" value="Return to Download" class="btn-cta" />');
 
 DEFINE('INPUT_SUBMIT', 
-	'<br/><p>Note: if the download does not start, make sure you have allowed pop-ups. In most browsers, you can do this by selecting the small icon to "allow pop-ups..." in the URL bar.  Once pop-ups are allowed, click the link again to download.</p>' .
 	'<input type="hidden" name="agreed" value="0" />' . '<br/>' .
 	'<input id="mySubmit" type="submit" name="submit" ' .
 	'value="Download Now" class="btn-cta" />' . '&nbsp;' .
@@ -245,6 +243,8 @@ function generatePageTop($group_id, $expl_pathinfo) {
 	echo '<div style="display: table; width: 100%;">';
 	echo '<div class="main_col">';
 
+	echo MSG_DOWNLOAD;
+
 	// Generate form to collect user input before download.
 	// Add back "file", "file id", "file name" and "group id"
 	// to the URL to invoke with "download_start.php".
@@ -297,7 +297,6 @@ function genDownloadNotesUI($frsPackage) {
 
 // Generate UI for use agreement and Agreed & submit button.
 function genAgreedSubmitButton($frsPackage) {
-	echo MSG_DOWNLOAD;
 	// Display download agreement.
 	// Note: the custom agreement is the saved agreement.
 	// Note: Check to ensure use agreement is not 0 ("None") first.
@@ -316,7 +315,6 @@ function genAgreedSubmitButton($frsPackage) {
 
 // Generate UI for submit button.
 function genSubmitButton() {
-	echo MSG_DOWNLOAD;
 	echo INPUT_TIMESTAMP;
 	echo INPUT_SUBMIT;
 }
