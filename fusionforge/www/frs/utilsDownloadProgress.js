@@ -34,10 +34,14 @@
 function trackDownloadProgress(divDownload,
 	divBrowse, 
 	divSubmit,
+	divUserInputs,
 	tokenDownloadProgress) {
 
 	// Hide submit button once download started.
 	$("#" + divSubmit).hide();
+
+	// Hide user input div once download started.
+	$("#" + divUserInputs).hide();
 
 	// Disable browse button.
 	$("#" + divBrowse).prop("disabled", true);
