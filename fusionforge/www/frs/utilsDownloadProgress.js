@@ -48,7 +48,7 @@ function trackDownloadProgress(divDownload,
 	$("#" + divBrowse).css("opacity", 0.5);
 
 	// Show download started message.
-	$("." + divDownload).html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom"><b>Downloading file... Please wait. Do not navigate away from this page until the download is complete.</b></div>');
+	$("." + divDownload).html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom"><b>Downloading file. Please wait: Do not navigate away from this page until the download is complete.</b></div>');
 	$("." + divDownload)[0].scrollIntoView(false);
 
 	// Start tracking download progress.
@@ -80,7 +80,7 @@ function getDownloadStatus(divDownload,
 
 		if (statusCompletion != "done") {
 			// Not finished yet. Update message with download progress.
-			$("." + divDownload).html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom"><b>Downloading file... (' + statusCompletion + ')  Do not navigate away from this page until the download is complete.</b></div>');
+			$("." + divDownload).html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom"><b>Downloading file (' + statusCompletion + '). Please wait: Do not navigate away from this page until the download is complete.</b></div>');
 
 			// Continue tracking download progress.
 			setTimeout(getDownloadStatus,
