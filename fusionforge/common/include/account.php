@@ -6,6 +6,7 @@
  * Copyright 2010, Franck Villaume - Capgemini
  * Copyright 2012, Franck Villaume - TrivialDev
  * Copyright (C) 2015  Inria (Sylvain Beucler)
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -73,7 +74,13 @@ function account_namevalid($name, $unix=false, $check_exists=true) {
 	}
 
 	if (!preg_match('/^[a-z0-9][-a-z0-9_\.]+\z/', $name)) {
-		$GLOBALS['register_error'] = _('Illegal character in name.');
+		$charStart = $name[0];
+		if (!ctype_alpha($charStart) && !ctype_digit($charStart)) {
+			$GLOBALS['register_error'] = 'Name must begin with character or number.';
+		}
+		else {
+			$GLOBALS['register_error'] = _('Illegal character in name.');
+		}
 		return false;
 	}
 
@@ -119,7 +126,12 @@ function account_namevalid($name, $unix=false, $check_exists=true) {
  *
  */
 function account_groupnamevalid($name) {
-	if (!account_namevalid($name, 1)) return 0;
+	if (!account_namevalid($name, 1)) return false;
+
+	if (strpos($name, ".") !== false) {
+		$GLOBALS['register_error'] = _('Illegal character in name.');
+		return false;
+	}
 
 	// illegal names
 	$regExpReservedGroupNames = "^(www[0-9]?|cvs[0-9]?|shell[0-9]?|ftp[0-9]?|"
@@ -128,7 +140,7 @@ function account_groupnamevalid($name) {
 		. "mirrors?|.*_scmro|.*_scmrw)$";
 	if(preg_match("/$regExpReservedGroupNames/i",$name)) {
 		$GLOBALS['register_error'] = _('Name is reserved for DNS purposes.');
-		return 0;
+		return false;
 	}
 
 /*
@@ -138,11 +150,11 @@ function account_groupnamevalid($name) {
 	// in the project creation page. 
 	if(preg_match("/_/",$name)) {
 		$GLOBALS['register_error'] = _('Group name cannot contain underscore for DNS reasons.');
-		return 0;
+		return false;
 	}
 */
 
-	return 1;
+	return true;
 }
 
 /**

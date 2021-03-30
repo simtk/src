@@ -6,7 +6,7 @@
  * Copyright 2010 (c) FusionForge Team
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2013-2014, Franck Villaume - TrivialDev
- * Copyright 2016-2020, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -440,9 +440,8 @@ function retrieveErrorMessages($error_msg, &$arrErrors) {
 	<div class="account_table">
 		<div class="account_row">
 			<div class="account_column">
-				<input type="text" name="unix_name" class="required" value="<?php if (isset($unix_name)) echo $unix_name; ?>" placeholder="Login name (lower-case, no space)"/>
+				<input type="text" name="unix_name" class="required" value="<?php if (isset($unix_name)) echo $unix_name; ?>" placeholder="Login name (lower-case, no space, must begin with character or number)"/>
 			</div> <!-- account_column -->
-			<div class="responsive_placeholder"></div>
 		</div> <!-- account_row -->
 		<div class="account_row">
 			<div class="account_column">

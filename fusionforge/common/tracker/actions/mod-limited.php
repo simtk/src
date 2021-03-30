@@ -6,7 +6,7 @@
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012-2015, Franck Villaume - TrivialDev
  * Copyright 2012, Thorsten “mirabilos” Glaser <t.glaser@tarent.de>
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -58,7 +58,8 @@ jQuery(document).ready(function() {
 
 <table width="80%">
 <?php
-if (session_loggedin()) {
+// Check if user is logged and tracker access is allowed.
+if (session_loggedin() && $ath->isPermitted()) {
 ?>
 		<tr>
 			<td><?php
@@ -185,7 +186,7 @@ $cntComment = $count? ' ('.$count.')' : '';
 $tabcnt=0;
 $file_list = $ah->getFiles();
 $count=count($file_list);
-$countAttach = $count? ' ('.$count.')' : '';
+$cntAttach = $count? ' ('.$count.')' : '';
 $pm = plugin_manager_get_object();
 $pluginsListeners = $pm->GetHookListeners('artifact_extra_detail');
 $pluginfound = false;

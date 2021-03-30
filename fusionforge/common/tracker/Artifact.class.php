@@ -8,7 +8,7 @@
  * Copyright (C) 2009-2013 Alain Peyrat, Alcatel-Lucent
  * Copyright 2012, Thorsten “mirabilos” Glaser <t.glaser@tarent.de>
  * Copyright 2014-2015, Franck Villaume - TrivialDev
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -606,8 +606,14 @@ class Artifact extends FFError {
 	function setMonitor() {
 		global $feedback;
 		if (session_loggedin()) {
+			// Check if tracker access is allowed.
+			if (!$this->ArtifactType->isPermitted()) {
+				$this->setError("Permission denied. This project's administrator will have to grant you permission.");
+				return false;
+			}
 			$user_id = user_getid();
-		} else {
+		}
+		else {
 			$this->setError(_('You can only monitor if you are logged in.'));
 			return false;
 		}
@@ -632,7 +638,8 @@ class Artifact extends FFError {
 	}
 
 	function isMonitoring() {
-		if (!session_loggedin()) {
+		// Check if user is logged and tracker access is allowed.
+		if (!session_loggedin() || !$this->ArtifactType->isPermitted()) {
 			return false;
 		}
 		$MonitorElementObject = new MonitorElement('artifact');
@@ -784,6 +791,7 @@ class Artifact extends FFError {
 			$this->setError(_('You are not currently allowed to submit items to this tracker.'));
 			return false;
 		}
+
 		if (session_loggedin()) {
 			$user_id=user_getid();
 			$user = user_get_object($user_id);
@@ -791,10 +799,18 @@ class Artifact extends FFError {
 				$this->setError('Error: Logged In User But Could Not Get User Object');
 				return false;
 			}
+
+			// Check if tracker access is allowed.
+			if (!$this->ArtifactType->isPermitted()) {
+				$this->setError("Permission denied. This project's administrator will have to grant you permission.");
+				return false;
+			}
+
 			//	we'll store this email even though it will likely never be used -
 			//	since we have their correct user_id, we can join the USERS table to get email
 			$by=$user->getEmail();
-		} else {
+		}
+		else {
 			$user_id=100;
 			if (!$by || !validate_email($by)) {
 				$this->setMissingParamsError();
@@ -1223,7 +1239,8 @@ class Artifact extends FFError {
 	 * @return	bool	true on success / false on failure
 	 */
 	function assignToMe() {
-		if (!session_loggedin() || !(forge_check_perm('tracker', $this->ArtifactType->getID(), 'manager') || forge_check_perm('tracker', $this->ArtifactType->getID(), 'tech'))) {
+		// Check if user is logged and tracker access is allowed.
+		if (!session_loggedin() || !$this->ArtifactType->isPermitted() || !(forge_check_perm('tracker', $this->ArtifactType->getID(), 'manager') || forge_check_perm('tracker', $this->ArtifactType->getID(), 'tech'))) {
 			$this->setPermissionDeniedError();
 			return false;
 		}

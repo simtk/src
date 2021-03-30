@@ -6,7 +6,7 @@
  * 
  * Utiliy to handle file downloads.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -43,13 +43,21 @@ DEFINE('INPUT_MAIL_LIST', '<p style="font-weight: bold; margin-bottom: 1.2em;">'
 	'I would like to find out about new releases and other ' .
 	'important announcements regarding this release. ');
 
+DEFINE('MSG_DOWNLOAD', '<div class="msgDownload"></div>');
+
+DEFINE('INPUT_TIMESTAMP', '<input type="hidden" name="timestamp" value="' . microtime(true) . '" />');
+
 DEFINE('INPUT_AGREED_SUBMIT', 
-	'<input type="hidden" name="agreed" value="1" />' .
-	'<br/><input type="submit" name="submit" value="I Agree & Download Now" class="btn-cta" />');
+	'<input type="hidden" name="agreed" value="1" />' . '<br/>' .
+	'<input id="mySubmit" type="submit" name="submit" ' .
+	'value="I Agree & Download Now" class="btn-cta" />' . '&nbsp;' .
+	'<input id="myBrowse" type="submit" name="browse" value="Return to Download" class="btn-cta" />');
 
 DEFINE('INPUT_SUBMIT', 
-	'<input type="hidden" name="agreed" value="0" />' .
-	'<br/><input type="submit" name="submit" value="Download Now" class="btn-cta" />');
+	'<input type="hidden" name="agreed" value="0" />' . '<br/>' .
+	'<input id="mySubmit" type="submit" name="submit" ' .
+	'value="Download Now" class="btn-cta" />' . '&nbsp;' .
+	'<input id="myBrowse" type="submit" name="browse" value="Return to Download" class="btn-cta" />');
 
 // Check whether the logged in user is member of the mail list
 // specified for this file.
@@ -235,6 +243,8 @@ function generatePageTop($group_id, $expl_pathinfo) {
 	echo '<div style="display: table; width: 100%;">';
 	echo '<div class="main_col">';
 
+	echo MSG_DOWNLOAD;
+
 	// Generate form to collect user input before download.
 	// Add back "file", "file id", "file name" and "group id"
 	// to the URL to invoke with "download_start.php".
@@ -245,8 +255,8 @@ function generatePageTop($group_id, $expl_pathinfo) {
 		// Note: $expl_pathinfo[5] may not be present.
 		echo '/' . $expl_pathinfo[5];
 	}
-	if (isset($expl_pathinfo[5]) && 
-		stripos($expl_pathinfo[5], "?group_id=") === FALSE) { 
+	if (isset($expl_pathinfo[5]) &&
+		stripos($expl_pathinfo[5], "?group_id=") === FALSE) {
 		echo '?group_id=' . $group_id;
 	}
 	echo '">';
@@ -291,18 +301,94 @@ function genAgreedSubmitButton($frsPackage) {
 	// Note: the custom agreement is the saved agreement.
 	// Note: Check to ensure use agreement is not 0 ("None") first.
 	if ($frsPackage->getUseAgreement() != 0) {
+		echo "<div class='divLicense'>";
 		echo "<div style='margin-top:5px;'><strong>License Agreement:</strong></div>";
 		echo "<Textarea disabled rows='10' cols='50' >" . 
 			html_entity_decode($frsPackage->getCustomAgreement()) . 
 			"</Textarea><br/>";
+		echo "</div>";
 	}
+
+	echo INPUT_TIMESTAMP;
+
+	// DIV containing the user fields.
+	echo "</div>";
 
 	echo INPUT_AGREED_SUBMIT;
 }
 
 // Generate UI for submit button.
 function genSubmitButton() {
+	echo INPUT_TIMESTAMP;
+
+	// DIV containing the user fields.
+	echo "</div>";
+
 	echo INPUT_SUBMIT;
+}
+
+// Send file in chunks.
+function sendFileChunked($fileName, $fileSize, $tokenDownloadProgress=false) {
+
+	// Report download progress every 20MB.
+	$lastCounterChange = 0;
+	$thresholdReport = 20*(1024*1024);
+
+	// 1MB chunks
+	$chunksize = 1*(1024*1024);
+
+	$buffer = '';
+	$byteCounter = 0;
+
+	$handle = fopen($fileName, 'rb');
+	if ($handle === false) {
+		return false;
+	}
+
+	ob_start();
+	while (!feof($handle)) {
+		$buffer = fread($handle, $chunksize);
+		echo $buffer;
+		ob_flush();
+		flush();
+		$byteCounter += strlen($buffer);
+
+		if ($tokenDownloadProgress !== false) {
+			// Token file is used for tracking download progress.
+			if ($byteCounter - $lastCounterChange > $thresholdReport) {
+				// Get download tokens directory.
+				$dirTokens = "/opt/tmp/tokens/";
+				if (is_dir($dirTokens))  {
+					$fp = fopen($dirTokens . $tokenDownloadProgress, 
+						"w+");
+					fwrite($fp, ((int) ($byteCounter * 100 / $fileSize)) . "%\n");
+					fclose($fp);
+				}
+
+				// Move tracking counter to last reported value.
+				$lastCounterChange = $byteCounter;
+			}
+		}
+	}
+	if ($tokenDownloadProgress !== false) {
+		// Get download tokens directory.
+		$dirTokens = "/opt/tmp/tokens/";
+		if (is_dir($dirTokens))  {
+			$fp = fopen($dirTokens . $tokenDownloadProgress, 
+				"w+");
+			fwrite($fp, "done\n");
+			fclose($fp);
+		}
+	}
+	ob_end_flush();
+
+	$status = fclose($handle);
+	if ($status) {
+		// Return number of bytes delivered like readfile() does.
+		return $byteCounter;
+	}
+
+	return $status;
 }
 
 ?>

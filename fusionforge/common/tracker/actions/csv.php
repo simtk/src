@@ -2,6 +2,7 @@
 /**
  * Copyright (C) 2009 Alain Peyrat, Alcatel-Lucent
  * Copyright 2012-2014, Franck Villaume - TrivialDev
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -69,6 +70,11 @@ if (session_loggedin()) {
 		$pref = array_merge( $default, array('headers' => $headers, 'sep' => $sep));
 		$u->setPreference('csv', serialize($pref));
 	}
+}
+
+// Check if tracker access is allowed.
+if (!$ath->isPermitted()) {
+	exit_permission_denied();
 }
 
 $url_set_format = '/tracker/?group_id='.$group_id.'&amp;atid='.$ath->getID().'&amp;func=format_csv&amp;sep='.urlencode($sep).'&amp;headers='.$headers;

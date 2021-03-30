@@ -6,7 +6,7 @@
  *
  * Contains functions to build project menu with links and titles.
  * 
- * Copyright 2005-2020, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -124,6 +124,14 @@ function sectionPopupMenuItems($sectionName, $groupId, &$menuTitles, &$menuUrls,
 		if (session_loggedin()) {
 			foreach ($arrTrackersInfo as $name=>$arrInfo) {
 				$atid = $arrInfo['atid'];
+				$ath = new ArtifactTypeHtml($groupObj, $atid);
+
+				// Check if tracker access is allowed.
+				if ($ath && is_object($ath) && !$ath->isError() && !$ath->isPermitted()) {
+					// Access not permitted.
+					continue;
+				}
+
 				if (forge_check_perm('tracker', $atid, 'read')) {
 					$menuTitles[] = $name;
 					$menuUrls[]  = '/tracker/?atid=' . $atid . '&group_id=' . $groupId . '&func=browse';
@@ -145,6 +153,14 @@ function sectionPopupMenuItems($sectionName, $groupId, &$menuTitles, &$menuUrls,
 					continue;
 				}
 				$atid = $arrInfo['atid'];
+				$ath = new ArtifactTypeHtml($groupObj, $atid);
+
+				// Check if tracker access is allowed.
+				if ($ath && is_object($ath) && !$ath->isError() && !$ath->isPermitted()) {
+					// Access not permitted.
+					continue;
+				}
+
 				if (forge_check_perm('tracker', $atid, 'read')) {
 					$menuTitles[] = $name;
 					$menuUrls[]  = '/tracker/?atid=' . $atid . '&group_id=' . $groupId . '&func=browse';
@@ -323,6 +339,14 @@ function sectionSubMenuItems($sectionName, $theSubMenuTitle, $groupId,
 			return;
 		}
 		$atid = $arrInfo['atid'];
+		$ath = new ArtifactTypeHtml($groupObj, $atid);
+
+		// Check if tracker access is allowed.
+		if ($ath && is_object($ath) && !$ath->isError() && !$ath->isPermitted()) {
+			// Access not permitted.
+			return;
+		}
+
 		if (session_loggedin()) {
 			if (forge_check_perm('tracker', $atid, 'read')) {
 				$submenuTitles[] = $theSubMenuTitle . " tracker";
@@ -334,7 +358,6 @@ function sectionSubMenuItems($sectionName, $theSubMenuTitle, $groupId,
 				$submenuTitles[] = "Submit new";
 				$submenuUrls[]  = '/tracker/?atid=' . $atid . '&group_id=' . $groupId . '&func=add';
 			//}
-			$ath = new ArtifactTypeHtml($groupObj, $atid);
 			if ($ath && is_object($ath) && !$ath->isError()) {
 				if ($ath->isMonitoring()) {
 					$submenuTitles[] = "Stop Follow";

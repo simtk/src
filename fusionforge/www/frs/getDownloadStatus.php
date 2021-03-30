@@ -1,10 +1,10 @@
 <?php
-
+  
 /**
  *
- * communities.php
+ * getDownloadStatus.php
  * 
- * All Communities page.
+ * Retrieving status of file download from browser.
  * 
  * Copyright 2005-2021, SimTK Team
  *
@@ -30,60 +30,43 @@
  * You should have received a copy of the GNU General Public 
  * License along with SimTK. If not, see  
  * <http://www.gnu.org/licenses/>.
- */ 
- 
-require_once 'env.inc.php';
+ */
+
+require_once '../env.inc.php';
 require_once $gfcommon.'include/pre.php';
-$HTML->header(array());
-
-$arrCommunities = array();
-$resCommunities = db_query_params('SELECT trove_cat_id, fullname, simtk_intro_text FROM trove_cat ' .
-	'WHERE parent=1000 ' .
-	'ORDER BY trove_cat_id',
-	array());
-?>
-
-<h2>Communities</h2>
-<br/>
-<div class="btn-ctabox"><a class="btn-cta" href="/sendmessage.php?touser=101&subject=Community%20Request">Request a community</a></div>
-
-<br/>
-
-<div class="news_communities_trending_projects">
-<div class="two_third_col">
-<div class="categories_home">
-
-<?php
-while ($theRow = db_fetch_array($resCommunities)) {
-
-	$trove_cat_id = $theRow['trove_cat_id'];
-	$fullname = $theRow['fullname'];
-	$descr = $theRow['simtk_intro_text'];
-?>
-
-	<div class="item_home_categories">
-		<div class="categories_text">
-			<h4>
-				<a href="/category/communityPage.php?cat=<?php
-					echo $trove_cat_id; ?>&sort=date&page=0&srch=&" class="title"><?php
-					echo $fullname; ?>
-				</a>
-			</h4>
-			<p><?php echo $descr; ?>
-			</p>
-		</div>
-		<div style="clear: both;"></div>
-	</div>
-
-<?php
+if (isset($_REQUEST["tokenDownloadProgress"])) {
+	$tokenDownloadProgress = $_REQUEST["tokenDownloadProgress"];
 }
+
+if ($tokenDownloadProgress === false) {
+	// Token file not present. Done.
+	echo json_encode("done");
+	return;
+}
+
+// Get download tokens directory.
+$dirTokens = "/opt/tmp/tokens/";
+if (!is_dir($dirTokens))  {
+	// Download tokens directory not present. Done.
+	echo json_encode("done");
+	return;
+}
+
+if (file_exists($dirTokens . $tokenDownloadProgress)) {
+	// Open file for read only.
+	$fpTokenDownloadProgress = fopen($dirTokens . $tokenDownloadProgress, "r");
+	// Content is perecentage of completion; hence, read only up to 20 characacters.
+	$strCompletion = fread($fpTokenDownloadProgress, 20);
+	fclose($fpTokenDownloadProgress);
+
+	// Return % of completion, or the string "done".
+	echo json_encode($strCompletion);
+}
+else {
+	// File has not been created yet.
+	echo json_encode("0%");
+}
+
 ?>
 
-</div>
-</div>
-</div>
-
-<?php
-$HTML->footer(array());
-?>
 

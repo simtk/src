@@ -7,7 +7,7 @@
  * Copyright 2010 (c) FusionForge Team
  * Copyright 2013, Franck Villaume - TrivialDev
  * http://fusionforge.org/
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -42,11 +42,22 @@ function addMailListMembership($listName) {
 
 	if (!session_loggedin()) {
 		// User is not logged in.
+		return;
 	}
 
 	if ($listName == "") {
 		// Mail list not available.
+		return;
 	}
+	$listName = trim($listName);
+	$sqlMailList = 'SELECT list_name FROM mail_group_list WHERE list_name=$1';
+	$resMailList = db_query_params($sqlMailList, array($listName));
+	if (!$resMailList || db_numrows($resMailList) <= 0) {
+		// Mailing list does not exist.
+		db_free_result($resMailList);
+		return;
+	}
+	db_free_result($resMailList);
 
 	// Add user to mail list.
 	$theUser = session_get_user();
@@ -109,17 +120,35 @@ function alertMissingElement($strMissingElem, $elemPath="") {
 	exit;
 }
 
-function send_file($filename, $filepath, $agreed, $expected_use = "", $file_id = NULL, $mode = NULL) {
+function send_file($filename, $filepath, $theTimeStamp, $agreed, 
+	$expected_use = "", $file_id = NULL, $mode = NULL) {
+
+	// Anonymous user.
+	$userId = 100;
+	if (session_loggedin()) {
+		// Get logged in user.
+		$usrObj =& session_get_user();
+		$userId = $usrObj->getID();
+	}
+	// Token file to keep track of download.
+	$tokenDownloadProgress = "download_" . 
+		$_SERVER["REMOTE_ADDR"] . "." . 
+		$userId . "." .
+		$theTimeStamp;
 
 	if (!file_exists($filepath)) {
 		//session_redirect404();
 		alertMissingElement($filename, $filepath);
 	}
 
-	header('Content-disposition: attachment; filename="'.str_replace('"', '', $filename).'"');
-	sysdebug_off("Content-type: application/binary");
-	$length = filesize($filepath);
-	header("Content-length: $length");
+	header('Content-disposition: attachment; filename="' .
+		str_replace('"', '', $filename) .
+		'"');
+	header("Content-type: application/binary");
+
+	// Get file size.
+	$theFileSize = filesize($filepath);
+	header("Content-length: $theFileSize");
 
 	// Note: ob_clean() and flush() are needed here!!!
 	// Otherwise, the zip file downloaded to MAC cannot be opened.
@@ -128,7 +157,8 @@ function send_file($filename, $filepath, $agreed, $expected_use = "", $file_id =
 	ob_clean();
 	flush();
 
-	readfile_chunked($filepath);
+	// Read and send file in chunks.
+	$status = sendFileChunked($filepath, $theFileSize, $tokenDownloadProgress);
 
 	if (!$file_id) {
 		return;
@@ -256,6 +286,7 @@ $agreed = getIntFromRequest('agreed');
 $expected_use = getStringFromRequest('expected_use');
 $add_to_mailing_list = getStringFromRequest('add_to_mailing_list');
 $mail_list_name = getStringFromRequest('mail_list_name');
+$theTimeStamp = floatval(getStringFromRequest('timestamp'));
 
 
 $normalized_urlprefix = normalized_urlprefix();
@@ -396,7 +427,7 @@ case 'file':
 	}
 
 	// Send file.
-	send_file($filename, $filepath, $agreed, $expected_use, $file_id);
+	send_file($filename, $filepath, $theTimeStamp, $agreed, $expected_use, $file_id);
 
 	break;
 
@@ -533,7 +564,7 @@ case 'latestzip':
 		addMailListMembership($mail_list_name);
 	}
 
-	send_file($filename, $filepath, $agreed, $expected_use, $package_id, $mode);
+	send_file($filename, $filepath, $theTimeStamp, $agreed, $expected_use, $package_id, $mode);
 
 	break;
 
@@ -667,7 +698,7 @@ case 'latestfile':
 		addMailListMembership($mail_list_name);
 	}
 
-	send_file($filename, $filepath, $agreed, $expected_use, $file_id);
+	send_file($filename, $filepath, $theTimeStamp, $agreed, $expected_use, $file_id);
 
 	break;
 
@@ -812,7 +843,7 @@ case 'release':
 		addMailListMembership($mail_list_name);
 	}
 
-	send_file($filename, $filepath, $agreed, $expected_use, $release_id, $mode);
+	send_file($filename, $filepath, $theTimeStamp, $agreed, $expected_use, $release_id, $mode);
 
 	break;
 
