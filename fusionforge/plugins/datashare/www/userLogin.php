@@ -9,7 +9,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2011, Roland Mas
  * Copyright 2011, Franck Villaume - Capgemini
- * Copyright 2016-2020, SimTK Team
+ * Copyright 2016-2021, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -33,6 +33,7 @@ Header("Cache-Control: must-revalidate");
 
 require_once '../../env.inc.php';
 require_once $gfcommon .'include/pre.php';
+require_once $gfplugins .'datashare/include/Datashare.class.php';
 
 global $warning_msg;
 
@@ -40,7 +41,22 @@ $typeConfirm = getIntFromRequest('typeConfirm');
 $group_id = getIntFromRequest('groupid');
 $study_id = getIntFromRequest('studyid');
 $nameDownload = trim(getStringFromRequest('nameDownload'));
-// Validate pathname for download.
+$pathSelected = trim(getStringFromRequest('pathSelected'));
+$strFilesHash = trim(getStringFromRequest('filesHash'));
+
+$isPrivate = true;
+$study = new Datashare($group_id);
+if ($study) {
+	$study_result = $study->getStudy($study_id);
+	if (isset($study_result[0])) {
+		$isPrivate = $study_result[0]->is_private;
+	}
+	else {
+		$isPrivate = true;
+	}
+}
+
+// Validate download name.
 if (!empty($nameDownload)) {
 	$tmpName = preg_replace("/[-A-Z0-9+_\. ~\/]/i", "", $nameDownload);
 	if (!empty($tmpName) || strstr($nameDownload, "..")) {
@@ -49,6 +65,42 @@ if (!empty($nameDownload)) {
 		$HTML->footer(array());
 		exit;
 	}
+}
+// Validate selected path.
+if (!empty($pathSelected)) {
+	$tmpName = preg_replace("/[-A-Z0-9+_\. ~\/]/i", "", $pathSelected);
+	if (!empty($tmpName) || strstr($pathSelected, "..")) {
+		$warning_msg = "Invalid pathname selected.";
+		$HTML->header(array('title'=>'Log in'));
+		$HTML->footer(array());
+		exit;
+	}
+}
+
+if (session_loggedin()) {
+	// User is logged in already.
+	// Do not prompt user to log in again.
+	$urlView = "view.php?plugin=datashare&" .
+		"id=$group_id&studyid=$study_id&typeConfirm=$typeConfirm";
+
+	// Use filesHash instead of nameDownload if fileHash is present.
+	if ($strFilesHash != "") {
+		// Files hash. Add file hash.
+		// NOTE: Encode string before sending it as part of the URL.
+		$urlView .= "&filesHash=" . urlencode($strFilesHash);
+	}
+	else if ($nameDownload != "") {
+		// File download. Add file name.
+		$urlView .= "&nameDownload=" . $nameDownload;
+	}
+
+	if ($pathSelected != "") {
+		// Path selected. Add path.
+		$urlView .= "&pathSelected=" . $pathSelected;
+	}
+
+	header("Location: $urlView");
+	exit;
 }
 
 $login = getStringFromRequest('login');
@@ -70,9 +122,21 @@ if ($login == "Log in") {
 
 	$urlView = "view.php?plugin=datashare&" .
 		"id=$group_id&studyid=$study_id&typeConfirm=$typeConfirm";
-	if ($nameDownload != "") {
+
+	// Use filesHash instead of nameDownload if fileHash is present.
+	if ($strFilesHash != "") {
+		// Files hash. Add file hash.
+		// NOTE: Encode string before sending it as part of the URL.
+		$urlView .= "&filesHash=" . urlencode($strFilesHash);
+	}
+	else if ($nameDownload != "") {
 		// File download. Add file name.
 		$urlView .= "&nameDownload=" . $nameDownload;
+	}
+
+	if ($pathSelected != "") {
+		// Path selected. Add path.
+		$urlView .= "&pathSelected=" . $pathSelected;
 	}
 
 	if (trim($form_loginname) == "" || trim($form_pw) == "") {
@@ -93,9 +157,21 @@ if ($login == "Log in") {
 else if ($skip == "I do not have an account") {
 	$urlView = "view.php?plugin=datashare&" .
 		"id=$group_id&studyid=$study_id&typeConfirm=$typeConfirm";
-	if ($nameDownload != "") {
+
+	// Use filesHash instead of nameDownload if fileHash is present.
+	if ($strFilesHash != "") {
+		// Files hash. Add file hash.
+		// NOTE: Encode string before sending it as part of the URL.
+		$urlView .= "&filesHash=" . urlencode($strFilesHash);
+	}
+	else if ($nameDownload != "") {
 		// File download. Add file name.
 		$urlView .= "&nameDownload=" . $nameDownload;
+	}
+
+	if ($pathSelected != "") {
+		// Path selected. Add path.
+		$urlView .= "&pathSelected=" . $pathSelected;
 	}
 
 	header("Location: $urlView");
@@ -117,12 +193,40 @@ $HTML->header(array('title'=>'Log in'));
 </script>
 
 
+<?php
+if ($isPrivate) {
+?>
+<h2>Please log in to access this study</h2>
+<h5>No account? <a href="/account/register.php">Create your free account</a></h5>
+<?php
+}
+else {
+?>
 <h2>Please log in if you have a SimTK account</h2>
+<?php
+}
+?>
+
 <form action="/plugins/datashare/userLogin.php" method="post">
 <?php
-	if ($nameDownload != "") {
+	// Use filesHash instead of nameDownload if fileHash is present.
+	// NOTE: Decode the string first, in case the string has been encoded already.
+	// If string has been decoded already, it is fine to decode it again
+	// because deocding a string does not change the string.
+	// However, if the string has been encoded already, decode the string first
+	// to avoid encoding an encoded string.
+	if ($strFilesHash != "") {
+		echo '<input type="hidden" name="filesHash" value="' .
+			urlencode(urldecode($strFilesHash)) . '">';
+	}
+	else if ($nameDownload != "") {
 		echo '<input type="hidden" name="nameDownload" value="' . $nameDownload . '">';
 	}
+
+	if ($pathSelected != "") {
+		echo '<input type="hidden" name="pathSelected" value="' . $pathSelected . '">';
+	}
+
 	echo '<input type="hidden" name="groupid" value="' . $group_id . '">';
 	echo '<input type="hidden" name="studyid" value="' . $study_id . '">';
 	echo '<input type="hidden" name="typeConfirm" value="' . $typeConfirm . '">';
@@ -133,7 +237,15 @@ $HTML->header(array('title'=>'Log in'));
 	<p>Password:<br/>
 	<input type="password" name="form_pw" ></p>
 	<p><input type="submit" class="btn-cta" name="login" value="Log in">
+
+<?php
+if (!$isPrivate) {
+?>
 	<input type="submit" class="btn-cta" name="skip" value="I do not have an account"></p>
+<?php
+}
+?>
+
 </form>
 
 <?php
