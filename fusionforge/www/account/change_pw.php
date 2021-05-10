@@ -5,7 +5,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2010 (c) Franck Villaume - Capgemini
  * Copyright 2014, Franck Villaume - TrivialDev
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -57,9 +57,9 @@ if (getStringFromRequest('submit')) {
 		form_release_key(getStringFromRequest('form_key'));
 		$error_msg = 'Old password is incorrect';
 	}
-	else if (preg_match("/.{6,}/", $passwd) == false) {
+	else if (preg_match("/.{10,}/", $passwd) == false) {
 		form_release_key(getStringFromRequest('form_key'));
-		$error_msg = 'You must supply valid password (at least 6 chars).';
+		$error_msg = 'You must supply valid password (at least 10 characters, a number, lower and upper-case letter).';
 	}
 	else if ($passwd != $passwd2) {
 		form_release_key(getStringFromRequest('form_key'));
@@ -67,7 +67,7 @@ if (getStringFromRequest('submit')) {
 	}
 	else if (!$u->setPasswd($passwd)) {
 		form_release_key(getStringFromRequest('form_key'));
-		$error_msg = 'Could not change password: ' . $u->getErrorMessage();
+		$error_msg = $u->getErrorMessage();
 	}
 	else {
 		$error_msg = 'Congratulations. You have changed your password.';
@@ -86,7 +86,7 @@ site_user_header(array('title'=>_('Change Password')));
 		<input id="old_passwd" type="password" name="old_passwd" required="required" />
 	</label>
 	</p>
-	<p><?php echo _('New Password (at least 6 chars)')._(':').utils_requiredField() ?>
+	<p><?php echo _('New Password (at least 10 characters, a number, lower and upper-case letter)')._(':').utils_requiredField() ?>
 	<br />
 	<label for="passwd">
 		<input id="passwd" type="password" name="passwd" required="required" />

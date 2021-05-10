@@ -6,7 +6,7 @@
  *
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2010 (c) Franck Villaume
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -66,14 +66,14 @@ $context = array(
 
 if (getStringFromRequest("submit")) {
 
-	if (preg_match("/.{6,}/", $passwd) == false) {
-		$error_msg = 'You must supply valid password (at least 6 chars).';
+	if (preg_match("/.{10,}/", $passwd) == false) {
+		$error_msg = 'You must supply valid password (at least 10 characters, a number, lower and upper-case letter).';
 	}
 	else if ($passwd != $passwd2) {
 		$error_msg = 'New passwords do not match.';
 	}
 	else if (!$u->setPasswd($passwd)) {
-		$error_msg = "Could not reset password: " . $u->getErrorMessage();
+		$error_msg = $u->getErrorMessage();
 	}
 	else {
 		// Update user credentials in phpbb_users.
@@ -109,7 +109,7 @@ echo '</p>';
 ?>
 
 <form action="<?php echo util_make_url('/account/lostlogin.php'); ?>" method="post">
-<p><?php echo _('New Password (at least 6 chars)')._(':').utils_requiredField(); ?>
+<p><?php echo _('New Password (at least 10 characters, a number, lower and upper-case letter)')._(':').utils_requiredField(); ?>
 <br />
 <label for="passwd">
 	<input id="passwd" type="password" name="passwd" required="required" />
