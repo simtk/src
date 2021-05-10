@@ -6,7 +6,7 @@
  * 
  * File to get a new password for user.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -87,13 +87,12 @@ if ($loginname) {
 
 
 		util_send_message($u->getEmail(),
-			sprintf('%s Account Lost Password', forge_get_config('forge_name')),
+			sprintf('%s Verification', forge_get_config('forge_name')),
 			$message);
 
 		echo $strPassChgMsg = "For security reasons, we are asking you to change your password. " .
 			'An email with the subject "SimTK Verification" has been sent to the address you have on file. ' .
-			"Click on the link in the email to change your account password. " .
-			'Note that this is not the email you received informing you about "Unauthorized access to SimTK - user passwords must be updated". <br/><br/>' .
+			"Click on the link in the email to change your account password.<br/><br/>" .
 			"Should you have any questions about this, you can email security@simtk.org. " .
 			"Thanks for your cooperation.";
 	}

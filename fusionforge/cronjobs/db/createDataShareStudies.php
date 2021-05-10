@@ -6,7 +6,7 @@
  * 
  * Cronjob to create data share studies.
  * 
- * Copyright 2005-2020, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -117,6 +117,16 @@ while ($rowStudies = db_fetch_array($resStudies)) {
 // at the DataShare server.
 function createStudy($studyId, $subject_prefix) {
 
+	if (!is_numeric($studyId)) {
+		error_log("Invalid study id: $studyId \n");
+		return false;
+	}
+	if (!preg_match('/^[-A-Za-z0-9_.]+\z/', $subject_prefix)) {
+		error_log("Invalid subject prefix: $subject_prefix \n");
+		return false;
+	}
+	$studyId = (int) $studyId;
+
 	$arrRes = array();
 
 	// Create study in Data Share server.
@@ -173,6 +183,16 @@ function createStudy($studyId, $subject_prefix) {
 // The local script in SimTK server executes study creation commands remotely
 // at the DataShare server.
 function updateStudy($studyId, $subject_prefix) {
+
+	if (!is_numeric($studyId)) {
+		error_log("Invalid study id: $studyId \n");
+		return false;
+	}
+	if (!preg_match('/^[-A-Za-z0-9_.]+\z/', $subject_prefix)) {
+		error_log("Invalid subject prefix: $subject_prefix \n");
+		return false;
+	}
+	$studyId = (int) $studyId;
 
 	$arrRes = array();
 

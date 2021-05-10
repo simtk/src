@@ -32,11 +32,19 @@
  *
  */
 function account_pwvalid($pw) {
-	if (strlen($pw) < 6) {
-		$GLOBALS['register_error'] = _('Password must be at least 6 characters.');
+	if (strlen($pw) < 10) {
+		$GLOBALS['register_error'] = _('Password must be at least 10 characters.');
 		return 0;
 	}
-	return 1;
+	if (preg_match('/[A-Z]+/', $pw) && 
+		preg_match('/[a-z]+/', $pw) && 
+		preg_match('/[0-9]+/', $pw)) {
+		return 1;
+	}
+	else {
+		$GLOBALS['register_error'] = 'Password must include lower and upper-case characters and at least one number.';
+		return 0;
+	}
 }
 
 /**
