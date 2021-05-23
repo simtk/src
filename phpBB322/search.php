@@ -4,7 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
-* @copyright 2005-2020, SimTK Team
+* @copyright 2005-2021, SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -63,13 +63,13 @@ if ((!preg_match('/^[0-9a-zA-Z_]+$/', $mode) && trim($mode) != "") ||
 }
 
 
-if (!preg_match('/^[a-z0-9][-a-z0-9_\.]+\z/', $author) && trim($author) != "") {
+if (!preg_match('/^[a-z0-9][-a-z0-9_\.]+\z/i', $author) && trim($author) != "") {
 	trigger_error('Invalid author for forum search.');
 }
-if (!preg_match('/^[-a-z0-9_ +|.*\[\]\{\}]+\z/', $keywords) && trim($keywords) != "") {
+if (!preg_match('/^[-a-z0-9_ +|.*\[\]\{\}]+\z/i', $keywords) && trim($keywords) != "") {
 	trigger_error('Invalid keywords for forum search.');
 }
-if (!preg_match('/^[-a-z0-9_ +|.*\[\]\{\}]+\z/', $add_keywords) && trim($add_keywords) != "") {
+if (!preg_match('/^[-a-z0-9_ +|.*\[\]\{\}]+\z/i', $add_keywords) && trim($add_keywords) != "") {
 	trigger_error('Invalid add_keywords for forum search.');
 }
 
