@@ -77,25 +77,26 @@ if (getStringFromRequest('submit')) {
 site_user_header(array('title'=>_('Change Password')));
 
 ?>
+	<p><span class="required_note"><br/>Required fields outlined in blue.</span></p>
 
 	<form action="<?php echo util_make_url('/account/change_pw.php'); ?>" method="post">
 	<input type="hidden" name="form_key" value="<?php echo form_generate_key(); ?>"/>
-	<p><?php echo _('Old Password')._(':').utils_requiredField() ?>
+	<p><?php echo _('Old Password')._(':') ?>
 	<br />
 	<label for="old_passwd">
-		<input id="old_passwd" type="password" name="old_passwd" required="required" />
+		<input id="old_passwd" type="password" name="old_passwd" class="required" />
 	</label>
 	</p>
-	<p><?php echo _('New Password (at least 10 characters, a number, lower and upper-case letter)')._(':').utils_requiredField() ?>
+	<p><?php echo _('New Password (at least 10 characters, a number, lower and upper-case letter)')._(':') ?>
 	<br />
 	<label for="passwd">
-		<input id="passwd" type="password" name="passwd" required="required" />
+		<input id="passwd" type="password" name="passwd" class="required" />
 	</label>
 	</p>
-	<p><?php echo _('New Password (repeat)')._(':').utils_requiredField() ?>
+	<p><?php echo _('New Password (repeat)')._(':') ?>
 	<br />
 	<label for="passwd2">
-		<input id="passwd2" type="password" name="passwd2" required="required" />
+		<input id="passwd2" type="password" name="passwd2" class="required" />
 	</label>
 	</p>
 	<p>
