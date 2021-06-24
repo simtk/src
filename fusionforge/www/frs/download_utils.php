@@ -122,7 +122,7 @@ function getFileExpectedUse($fileId) {
 		"simtk_expected_use != '' AND " .
 		"file_id IN " .
 		"(SELECT file_id FROM frs_file f WHERE release_id=" .
-		"(SELECT release_id FROM frs_file f WHERE file_id=$2")) " .
+		"(SELECT release_id FROM frs_file f WHERE file_id=$2)) " .
 		"ORDER BY month DESC, day DESC";
 	$res = db_query_params($sqlQuery, array($theUser->getID(), $fileId));
 	if ($res && db_numrows( $res ) > 0 ) {
@@ -151,7 +151,7 @@ function getReleaseExpectedUse($releaseId) {
 		"WHERE user_id=$1 AND " .
 		"simtk_expected_use != '' AND " .
 		"file_id IN " .
-		"(SELECT file_id FROM frs_file f WHERE release_id=$2") " .
+		"(SELECT file_id FROM frs_file f WHERE release_id=$2) " .
 		"ORDER BY month DESC, day DESC LIMIT 1";
 	$res = db_query_params($sqlQuery, array($theUser->getID(), $releaseId));
 	if ($res && db_numrows( $res ) > 0 ) {
@@ -179,7 +179,7 @@ function getReleaseGroupListId($releaseId) {
 	$sqlQuery = "SELECT simtk_group_list_id FROM frs_file f " .
 		"WHERE simtk_group_list_id!=0 AND " .
 		"file_id IN " .
-		"(SELECT file_id FROM frs_file f WHERE release_id=$1") " .
+		"(SELECT file_id FROM frs_file f WHERE release_id=$1) " .
 		"ORDER BY post_date DESC LIMIT 1";
 	$res = db_query_params($sqlQuery, array($releaseId));
 	if ($res && db_numrows( $res ) > 0 ) {
