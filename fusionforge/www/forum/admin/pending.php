@@ -7,6 +7,7 @@
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2005 (c) Daniel Perez
  * Copyright (C) 2012 Alain Peyrat - Alcatel-Lucent
+ * Copyright 2005-2021, SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -35,7 +36,7 @@ require_once $gfcommon.'forum/AttachManager.class.php'; //attachment manager
 
 $action = getStringFromRequest('action');
 $group_id = getIntFromRequest('group_id');
-$forum_id = getStringFromRequest("forum_id");
+$forum_id = htmlspecialchars(getStringFromRequest("forum_id"));
 
 $fa = new ForumAdmin ($group_id);
 

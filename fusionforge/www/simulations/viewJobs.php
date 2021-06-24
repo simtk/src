@@ -6,7 +6,7 @@
  * 
  * UI for viewing all simulation jobs.
  * 
- * Copyright 2005-2016, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -53,8 +53,8 @@ if (!session_loggedin() || !($u = &session_get_user())) {
 $userID = $u->getID();
 $userName = $u->getUnixName();
 $realName = $u->getRealName();
-$sql = "SELECT email FROM users WHERE user_id=" . $userID;
-$result = db_query_params($sql, array());
+$sql = "SELECT email FROM users WHERE user_id=$1";
+$result = db_query_params($sql, array($userID));
 $rows = db_numrows($result);
 for ($i = 0; $i < $rows; $i++) {
 	$userEmail = db_result($result, $i, 'email');

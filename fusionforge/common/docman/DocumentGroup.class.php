@@ -8,6 +8,7 @@
  * Copyright 2010, Franck Villaume - Capgemini
  * Copyright (C) 2011-2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012-2013, Franck Villaume - TrivialDev
+ * Copyright 2016-2021, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -383,12 +384,14 @@ class DocumentGroup extends FFError {
 	 */
 	function isMonitoredBy($userid = 'ALL') {
 		if ( $userid == 'ALL' ) {
-			$condition = '';
+			$result = db_query_params('SELECT * FROM docgroup_monitored_docman ' .
+				'WHERE docgroup_id = $1',
+				array($this->getID()));
 		} else {
-			$condition = 'user_id = '.$userid.' AND';
+			$result = db_query_params('SELECT * FROM docgroup_monitored_docman ' .
+				'WHERE user_id = $1 AND docgroup_id = $2',
+				array($userid, $this->getID()));
 		}
-		$result = db_query_params('SELECT * FROM docgroup_monitored_docman WHERE '.$condition.' docgroup_id = $1',
-						array($this->getID()));
 
 		if (!$result || db_numrows($result) < 1)
 			return false;

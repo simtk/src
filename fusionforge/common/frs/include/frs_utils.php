@@ -7,7 +7,7 @@
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2011, Franck Villaume - Capgemini
  * Copyright 2013-2014, Franck Villaume - TrivialDev
- * Copyright 2016-2020, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -229,8 +229,8 @@ function frs_show_mailinglist_popup ($group_id, $name='group_list_id', $checked_
 	if (!$group_id) {
 		return _('Error: group id required');
 	}
-	$strQuery = "SELECT unix_group_name from groups where group_id=$group_id";
-	$res = db_query_params($strQuery, array());
+	$strQuery = "SELECT unix_group_name from groups where group_id=$1";
+	$res = db_query_params($strQuery, array($group_id));
 	if (db_numrows($res) == 0) {
 		// No value available.
 		return false;
@@ -238,9 +238,10 @@ function frs_show_mailinglist_popup ($group_id, $name='group_list_id', $checked_
 	$unix_group_name = db_result($res, 0, 'unix_group_name');
 
 	$strQuery = "SELECT group_list_id, list_name FROM mail_group_list " .
-		"WHERE group_id=$group_id AND list_name!='$unix_group_name" . "-commits' " .
+		"WHERE group_id=$1 AND list_name!=$2 " .
 		"ORDER BY list_name";
-	$resMailingLists = db_query_params($strQuery, array());
+	$resMailingLists = db_query_params($strQuery, 
+		array($group_id, $unix_group_name . "-commits"));
 	if (db_numrows($resMailingLists) == 0) {
 		// No valid mailing list found.
 		return false;
@@ -664,8 +665,8 @@ function getUploadFileSizeLimit($theGroupId) {
 	}
 
 	$strQuery = "SELECT post_max_size FROM frs_quota " .
-		"WHERE group_id=" . $theGroupId;
-	$resFilesizeLimit = db_query_params($strQuery, array());
+		"WHERE group_id=$1";
+	$resFilesizeLimit = db_query_params($strQuery, array($theGroupId));
 	$numrows = db_numrows($resFilesizeLimit);
 	if ($numrows > 0) {
 		while ($row = db_fetch_array($resFilesizeLimit)) {

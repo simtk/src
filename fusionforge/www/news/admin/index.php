@@ -5,7 +5,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2002-2004 (c) GForge Team
  * Copyright (C) 2010 Alain Peyrat - Alcatel-Lucent
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -49,7 +49,7 @@ if ($group_id && $group_id != forge_get_config('news_group')) {
 
 	$status = getIntFromRequest('status');
 	$summary = getStringFromRequest('summary');
-	$details = getStringFromRequest('details');
+	$details = getHtmlTextFromRequest('details');
 
 	/*
 

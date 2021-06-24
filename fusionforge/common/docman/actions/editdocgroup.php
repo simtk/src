@@ -6,6 +6,7 @@
  * Copyright 2002-2003, Tim Perdue/GForge, LLC
  * Copyright 2010-2011, Franck Villaume - Capgemini
  * Copyright 2013, Franck Villaume - TrivialDev
+ * Copyright 2016-2021, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -44,7 +45,7 @@ if (!forge_check_perm('docman', $g->getID(), 'approve')) {
 	session_redirect('/docman/?group_id='.$group_id.'&view=listfile&dirid='.$dirid.'&warning_msg='.urlencode($return_msg));
 }
 
-$groupname = getStringFromRequest('groupname');
+$groupname = htmlspecialchars(getStringFromRequest('groupname'));
 $parent_dirid = getIntFromRequest('parent_dirid');
 $dg = new DocumentGroup($g, $dirid);
 if ($dg->isError())

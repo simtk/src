@@ -8,6 +8,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright (C) 2010 Alain Peyrat - Alcatel-Lucent
  * Copyright 2014, Franck Villaume - TrivialDev
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -33,8 +34,8 @@ global $HTML;
 
 session_require_global_perm ('forge_admin');
 
-$user_name = getStringFromRequest('user_name');
-$pattern   = getStringFromRequest('pattern');
+$user_name = htmlspecialchars(getStringFromRequest('user_name'));
+$pattern   = htmlspecialchars(getStringFromRequest('pattern'));
 
 if (getStringFromRequest('submit') && $user_name) {
 	$type = getStringFromRequest('type');

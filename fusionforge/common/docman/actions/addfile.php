@@ -9,6 +9,7 @@
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012, Thorsten Glaser - tarent solutions GmbH
  * Copyright 2012, Franck Villaume - TrivialDev
+ * Copyright 2016-2021, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -34,10 +35,10 @@ global $group_id; // id of group
 global $dirid;
 
 $doc_group = getIntFromRequest('doc_group');
-$title = trim(getStringFromRequest('title'));
+$title = htmlspecialchars(trim(getStringFromRequest('title')));
 $description = getStringFromRequest('description');
-$citation = getStringFromRequest('citation');        // added 9-3-2014 Tod Hing
-$file_url = getStringFromRequest('file_url');
+$citation = htmlspecialchars(getStringFromRequest('citation'));        // added 9-3-2014 Tod Hing
+$file_url = htmlspecialchars(getStringFromRequest('file_url'));
 $uploaded_data = getUploadedFile('uploaded_data');
 $manual_path = getStringFromRequest('manual_path');
 $type = getStringFromRequest('type');

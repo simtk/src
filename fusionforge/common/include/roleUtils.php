@@ -4,7 +4,7 @@
  *
  * roleUtils.php
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from
  * Simbios, the NIH National Center for Physics-Based
@@ -72,18 +72,18 @@ function insertRole($groupId, $roleName) {
 
 	// Check whether entry exists already.
 	$strCheckPresence = "SELECT role_id FROM pfo_role WHERE " .
-		"home_group_id=" .  $groupId . " AND " .
-		"role_name='" . $roleName . "'";
-	$resRoleId = db_query_params($strCheckPresence, array());
+		"home_group_id=$1 AND " .
+		"role_name=$2";
+	$resRoleId = db_query_params($strCheckPresence, array($groupId, $roleName));
 	if (!$resRoleId || db_numrows($resRoleId) < 1) {
 		// Entry not present yet. Insert entry.
 
 		// Insert home_group_id and role_name into pfo_role table.
 		$strPFORoleInsert = "INSERT INTO pfo_role " .
 			"(home_group_id, role_name) VALUES (" .
-			$groupId . ",'" . $roleName . "')";
+			"$1,$2)";
 		//echo $strPFORoleInsert . "\n";
-		$resInsert = db_query_params($strPFORoleInsert, array());
+		$resInsert = db_query_params($strPFORoleInsert, array($groupId, $roleName));
 		if (!$resInsert || db_affected_rows($resInsert) < 1) {
 			echo "Error: $strPFORoleInsert\n";
 		}
@@ -202,10 +202,10 @@ function insertRoleSetting($roleId, $groupId, $sectionName, $value) {
 
 	// Check whether anonymous role entry exists in pfo_role_setting table already.
 	$strCheckPresence = "SELECT role_id FROM pfo_role_setting WHERE " .
-		"role_id=" . $roleId . " AND " .
-		"section_name='" . $sectionName . "' AND " .
-		"ref_id=" . $groupId;
-	$resIsPresent = db_query_params($strCheckPresence, array());
+		"role_id=$1 AND " .
+		"section_name=$2 AND " .
+		"ref_id=$3";
+	$resIsPresent = db_query_params($strCheckPresence, array($roleId, $sectionName, $groupId));
 	if (!$resIsPresent || db_numrows($resIsPresent) < 1) {
 		// Entry not present yet. Insert entry.
 
@@ -213,10 +213,10 @@ function insertRoleSetting($roleId, $groupId, $sectionName, $value) {
 		//echo "pfo_role_setting: " . $roleId . ":" . $groupId . "\n";
 		$strPFORoleSettingInsert = "INSERT INTO pfo_role_setting " .
 			"(role_id, section_name, ref_id, perm_val) " .
-			"VALUES (" .
-			$roleId . ",'" . $sectionName . "'," . $groupId . "," . $value . ")";
+			"VALUES ($1,$2,$3,$4)";
 		//echo "pfo_role_setting: $strPFORoleSettingInsert \n";
-		$resInsert = db_query_params($strPFORoleSettingInsert, array());
+		$resInsert = db_query_params($strPFORoleSettingInsert, 
+			array($roleId, htmlspecialchars($sectionName), $groupId, $value));
 		if (!$resInsert || db_affected_rows($resInsert) < 1) {
 			echo "Error: $strPFORoleSettingInsert\n";
 		}
@@ -274,9 +274,9 @@ function insertTrackersRoles($roleId, $roleName, $groupId) {
 	}
 
 	// Find all trackers given the group id.
-	$strSelectTrackers = "SELECT group_artifact_id FROM artifact_group_list WHERE group_id=" . $groupId;
+	$strSelectTrackers = "SELECT group_artifact_id FROM artifact_group_list WHERE group_id=$1";
 
-	$resTrackers = db_query_params($strSelectTrackers, array());
+	$resTrackers = db_query_params($strSelectTrackers, array($groupId));
 	if ($resTrackers) {
 		while ($rowTracker = db_fetch_array($resTrackers)) {
 			// NOTE: Tracker is handled differently than other modules!!!
@@ -329,9 +329,9 @@ function insertRoleProjectRefs($roleId, $groupId) {
 
 	// Check whether entry exists already.
 	$strCheckPresence = "SELECT role_id FROM role_project_refs WHERE " .
-		"role_id=" .  $roleId . " AND " .
-		"group_id=" . $groupId;
-	$resIsPresent = db_query_params($strCheckPresence, array());
+		"role_id=$1 AND " .
+		"group_id=$2";
+	$resIsPresent = db_query_params($strCheckPresence, array($roleId, $groupId));
 	if (!$resIsPresent || db_numrows($resIsPresent) < 1) {
 		// Entry not present yet. Insert entry.
 
@@ -339,10 +339,10 @@ function insertRoleProjectRefs($roleId, $groupId) {
 		//echo "role_project_refs: " . $roleId . ":" . $groupId . "\n";
 		$strPFOGroupRoleInsert = "INSERT INTO role_project_refs " .
 			"(role_id, group_id) VALUES (" .
-			$roleId . "," . $groupId . ")";
+			"$1,$2)";
 
 		//echo $strPFOGroupRoleInsert . "\n";
-		$resInsert = db_query_params($strPFOGroupRoleInsert, array());
+		$resInsert = db_query_params($strPFOGroupRoleInsert, array($roleId, $groupId));
 		if (!$resInsert || db_affected_rows($resInsert) < 1) {
 			echo "Error: $strPFOGroupRoleInsert\n";
 		}

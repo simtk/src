@@ -6,7 +6,7 @@
  * 
  * The class which contains all methods for the following plugin.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -107,8 +107,8 @@ class Following extends FFError {
 			"AND pf.time=lq.last_time " .
 			"AND u.status='A' " .
 			"AND pf.follows=true " .
-			"AND pf.group_id='". $this->group->getID() ."'",
-			array());
+			"AND pf.group_id=$1",
+			array($this->group->getID()));
 
 		if (!$res || db_numrows($res) < 1) {
 			$this->setError(_('following: fetch error'));
@@ -360,11 +360,11 @@ class Following extends FFError {
 
 	function unfollow($group_id,$user_name) {
 
-        $sqlCmd="DELETE from project_follows WHERE group_id=".$group_id . " AND user_name = '" . $user_name . "'";
+        $sqlCmd="DELETE from project_follows WHERE group_id=$1 AND user_name=$2";
 
 		db_begin();
 
-                $res=db_query_params($sqlCmd,array());
+                $res=db_query_params($sqlCmd,array($group_id, $user_name));
 
                 if (!$res || db_affected_rows($res) < 1) {
                         $this->setOnUpdateError(db_error());
@@ -397,18 +397,18 @@ class Following extends FFError {
 			return false;
 		}
 
-                $sqlCmd="UPDATE project_follows SET follows = true, public = " . $public .  
-                         " WHERE group_id=".$group_id . " AND user_name = '" . $user_name . "'";
+                $sqlCmd="UPDATE project_follows SET follows=true, public=$1 " .  
+                         " WHERE group_id=$2 AND user_name=$3";
 
 		db_begin();
 
-                $res=db_query_params($sqlCmd,array());
+                $res=db_query_params($sqlCmd,array($public, $group_id, $user_name));
 
 
                 if (!$res || db_affected_rows($res) < 1) {
                   // insert new row
-                  $sql = "INSERT INTO project_follows (group_id, user_name, follows, public) VALUES ($group_id, '$user_name', true,$public);";
-                  $res=db_query_params($sql,array());
+                  $sql = "INSERT INTO project_follows (group_id, user_name, follows, public) VALUES ($1, $2, true, $3);";
+                  $res=db_query_params($sql,array($group_id, $user_name, $public));
 
 
                 }

@@ -66,9 +66,9 @@ if (getStringFromRequest('submit')) {
 		$_moddaterange = getStringFromRequest('_moddaterange');
 		$_opendaterange = getStringFromRequest('_opendaterange');
 		$_closedaterange = getStringFromRequest('_closedaterange');
-		$_summary = getStringFromRequest('_summary');
-		$_description = getStringFromRequest('_description');
-		$_followups = getStringFromRequest('_followups');
+		$_summary = htmlspecialchars(getStringFromRequest('_summary'));
+		$_description = htmlspecialchars(getStringFromRequest('_description'));
+		$_followups = htmlspecialchars(getStringFromRequest('_followups'));
 		$query_options = array_keys(getArrayFromRequest('query_options'));
 		if (!$aq->create($query_name,$_status,$_assigned_to,$_moddaterange,$_sort_col,$_sort_ord,$extra_fields,$_opendaterange,$_closedaterange,
 			$_summary,$_description,$_followups,$query_type, $query_options, $_submitted_by)) {
@@ -115,9 +115,9 @@ if (getStringFromRequest('submit')) {
 		$_moddaterange = getStringFromRequest('_moddaterange');
 		$_opendaterange = getStringFromRequest('_opendaterange');
 		$_closedaterange = getStringFromRequest('_closedaterange');
-		$_summary = getStringFromRequest('_summary');
-		$_description = getStringFromRequest('_description');
-		$_followups = getStringFromRequest('_followups');
+		$_summary = htmlspecialchars(getStringFromRequest('_summary'));
+		$_description = htmlspecialchars(getStringFromRequest('_description'));
+		$_followups = htmlspecialchars(getStringFromRequest('_followups'));
 		$extra_fields = getStringFromRequest('extra_fields');
 		$query_options = array_keys(getArrayFromRequest('query_options'));
 		if (!$aq->update($query_name,$_status,$_assigned_to,$_moddaterange,$_sort_col,$_sort_ord,$extra_fields,$_opendaterange,$_closedaterange,

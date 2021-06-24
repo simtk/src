@@ -6,7 +6,7 @@
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * http://fusionforge.org/
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -61,7 +61,7 @@ elseif ($frsp->isError()) {
 if (getStringFromRequest('submit')) {
 	$citation = getStringFromRequest('citation');
 	$citation_year = getIntFromRequest('citation_year');
-	$url = getStringFromRequest('url');
+	$url = htmlspecialchars(getStringFromRequest('url'));
 	$cite = getStringFromRequest('cite');
 
 	if (isset($cite) && $cite == 1) {

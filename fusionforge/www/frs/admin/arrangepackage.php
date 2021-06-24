@@ -6,7 +6,7 @@
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * http://fusionforge.org/
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -48,7 +48,7 @@ session_require_perm ('frs', $group_id, 'write') ;
 // Arrange packages.
 if (getStringFromRequest('submit')) {
 
-	$header_order = getStringFromRequest('header_order');
+	$header_order = htmlspecialchars(getStringFromRequest('header_order'));
 	$arrPackages = explode(",", $header_order);
 	for ($cnt = 0; $cnt < count($arrPackages); $cnt++) {
 		$idx = stripos($arrPackages[$cnt], "=");

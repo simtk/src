@@ -11,6 +11,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2013, French Ministry of National Education
  * Copyright 2013, Franck Villaume - TrivialDev
+ * Copyright 2005-2021, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -35,7 +36,7 @@ require_once $gfwww.'admin/admin_utils.php';
 
 global $HTML;
 
-$search = trim(getStringFromRequest('search'));
+$search = htmlspecialchars(trim(getStringFromRequest('search')));
 $usersearch = trim(getStringFromRequest('usersearch'));
 
 site_admin_header(array('title'=>_('Admin Search Results')));
@@ -100,7 +101,7 @@ if ($usersearch) {
 } // end if ($usersearch)
 
 if (getStringFromRequest('groupsearch')) {
-	$status = getStringFromRequest('status');
+	$status = htmlspecialchars(getStringFromRequest('status'));
 	$is_public = getIntFromRequest('is_public', -1);
 	$crit_desc = '';
 	$qpa = db_construct_qpa() ;

@@ -91,12 +91,12 @@ if ($submitAndNotify || $submitNoNotify) {
 	// Build a Unix time value from the supplied Y-m-d value
 	$release_date = strtotime($release_date);
 	$processor_id = getIntFromRequest('processor_id');
-	$file_desc = getStringFromRequest('file_desc');
+	$file_desc = htmlspecialchars(getStringFromRequest('file_desc'));
 	$docType = getIntFromRequest('docType');
-	$url = trim(getStringFromRequest('url'));
-	$githubArchiveUrl = trim(getStringFromRequest('githubArchiveUrl'));
+	$url = htmlspecialchars(trim(getStringFromRequest('url')));
+	$githubArchiveUrl = htmlspecialchars(trim(getStringFromRequest('githubArchiveUrl')));
 	$refreshArchive = getIntFromRequest('refreshArchive');
-	$disp_name = trim(getStringFromRequest('disp_name'));
+	$disp_name = htmlspecialchars(trim(getStringFromRequest('disp_name')));
 	$collect_info = getIntFromRequest('collect_info');
 	$use_mail_list = getIntFromRequest('use_mail_list');
 	$group_list_id = getIntFromRequest('group_list_id');

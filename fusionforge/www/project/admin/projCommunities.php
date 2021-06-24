@@ -6,7 +6,7 @@
  * 
  * File to set up project communities.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -62,7 +62,7 @@ $group->clearError();
 // If this was a submission, make updates.
 if ($submit = getStringFromRequest('submit')) {
 
-	$categories = getStringFromRequest('categories');
+	$categories = htmlspecialchars(getStringFromRequest('categories'));
 	$resTroveGroupLink = $group->updateTroveGroupLink($categories, true);
 	if (!$resTroveGroupLink) {
 		$error_msg .= $group->getErrorMessage();

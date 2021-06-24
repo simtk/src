@@ -6,7 +6,7 @@
  * 
  * Get file downloads statistics.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -78,7 +78,7 @@ $res = db_query_params ("SELECT u.lab_name, u.university_name, u.firstname,
           WHERE fdf.file_id=ff.file_id
             AND ff.release_id=fr.release_id
             AND fr.package_id=fp.package_id
-            AND fp.group_id='".$group_id."'
+            AND fp.group_id=$1
             AND fdf.user_id=u.user_id
           ORDER BY fdf.\"month\" DESC,
                    fdf.\"day\" DESC,
@@ -86,7 +86,7 @@ $res = db_query_params ("SELECT u.lab_name, u.university_name, u.firstname,
                    UPPER(fr.name),
                    UPPER(ff.filename),
                    UPPER(u.lastname),
-                   UPPER(u.firstname)", array());
+                   UPPER(u.firstname)", array($group_id));
 
 if ($res) {
    $downloadText="Year, Month, Day, Package Name, Release Name, File Name, User Name, Lab, University, Agreed To License, Expected Use\n";

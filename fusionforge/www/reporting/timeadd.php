@@ -4,6 +4,7 @@
  *
  * Copyright 2004 (c) GForge LLC - Tim Perdue
  * Copyright (C) 2011-2012 Alain Peyrat - Alcatel-Lucent
+ * Copyright 2005-2021, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -40,10 +41,10 @@ $week = getIntFromRequest('week');
 $project_task_id = getIntFromRequest('project_task_id');
 
 if (getStringFromRequest('submit')) {
-	$report_date = getStringFromRequest('report_date');
-	$time_code = getStringFromRequest('time_code');
-	$old_time_code = getStringFromRequest('old_time_code');
-	$hours = getStringFromRequest('hours');
+	$report_date = getIntFromRequest('report_date');
+	$time_code = getIntFromRequest('time_code');
+	$old_time_code = getIntFromRequest('old_time_code');
+	$hours = htmlspecialchars(getStringFromRequest('hours'));
 
 	if (getStringFromRequest('delete')) {
 		if ($project_task_id && $report_date && $old_time_code) {

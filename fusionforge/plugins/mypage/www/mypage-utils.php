@@ -5,7 +5,7 @@
  * 
  * Utility page which contains functions for retrieving user projects, followed projects.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -176,11 +176,11 @@ function getProjectsFollowing($user,&$cntProjectsFollowing) {
 
 function removeFollowing($group_id,$user_name) {
 
-        $sqlCmd="DELETE from project_follows WHERE group_id=".$group_id . " AND user_name = '" . $user_name . "'";
+        $sqlCmd="DELETE from project_follows WHERE group_id=$1 AND user_name=$2";
         //echo "sql: " . $sqlCmd;
 		db_begin();
 
-        $res=db_query_params($sqlCmd,array());
+        $res=db_query_params($sqlCmd,array($group_id, $user_name));
 
         if (!$res || db_affected_rows($res) < 1) {
 		   db_rollback();
@@ -199,9 +199,9 @@ function addFollowing($user_name, $public, $group_id) {
 		// insert new row
 		$sql = "INSERT INTO project_follows " .
 			"(group_id, user_name, follows, public) " .
-			"VALUES ($group_id, '$user_name', true, $public)";
+			"VALUES ($1, $2, true, $3)";
 		//echo "sql: " . $sql;
-		$res = db_query_params($sql, array());
+		$res = db_query_params($sql, array($group_id, $user_name, $public));
 		if (!$res || db_affected_rows($res) < 1) {
 			db_rollback();
 			return false;
@@ -215,11 +215,11 @@ function addFollowing($user_name, $public, $group_id) {
 
 		// Update row.
 		$sql = "UPDATE project_follows " .
-			"SET follows = true, public = " . $public .  " " .
-			"WHERE group_id=" . $group_id . " " .
-			"AND user_name = '" . $user_name . "'";
+			"SET follows = true, public=$1 " .
+			"WHERE group_id=$2 " .
+			"AND user_name=$3";
 		//echo "sql: " . $sql . "<br />";
-		$res = db_query_params($sql, array());
+		$res = db_query_params($sql, array($public, $group_id, $user_name));
 		if (!$res || db_affected_rows($res) < 1) {
 			db_rollback();
 			return false;
@@ -234,13 +234,13 @@ function addFollowing($user_name, $public, $group_id) {
 }
 
 function isFollowing($user_name,$group_id) {
-    $result = db_query_params("SELECT groups.group_id FROM project_follows, groups WHERE groups.group_id = " . $group_id . " and groups.group_id = project_follows.group_id and project_follows.follows = true and user_name='". $user_name . "'",array());
+    $result = db_query_params("SELECT groups.group_id FROM project_follows, groups WHERE groups.group_id=$1 and groups.group_id = project_follows.group_id and project_follows.follows = true and user_name=$2",array($group_id, $user_name));
 	$cntFollowingProject = db_numrows($result);
     return $cntFollowingProject;
 }
 	
 function isFollowingProject($user,$group_id) {
-    $result = db_query_params("SELECT groups.group_id FROM project_follows, groups WHERE groups.group_id = " . $group_id . " and groups.group_id = project_follows.group_id and project_follows.follows = true and user_name='". $user->getUnixName() . "'",array());
+    $result = db_query_params("SELECT groups.group_id FROM project_follows, groups WHERE groups.group_id=$1 and groups.group_id = project_follows.group_id and project_follows.follows = true and user_name=$2",array($group_id, $user->getUnixName()));
 	$cntFollowingProject = db_numrows($result);
     return $cntFollowingProject;
 }
@@ -288,13 +288,13 @@ function getTotalUsersProject(&$cntUsersProject, $trove_cat_id, $limit = 15) {
 }
 
 function getTroveCat($group_id) {
-    $result = db_query_params ("SELECT trove_cat_id FROM trove_group_link where group_id = $group_id",array ());
+    $result = db_query_params ("SELECT trove_cat_id FROM trove_group_link where group_id=$1",array($group_id));
     $cntTroveCat = db_numrows($result);
 	return (db_result($result, $i, 'trove_cat_id'));
 }
 
 function getTroveCategories($group_id) {
-    $result = db_query_params ("SELECT trove_cat_id FROM trove_group_link where group_id = $group_id",array ());
+    $result = db_query_params ("SELECT trove_cat_id FROM trove_group_link where group_id=$1",array($group_id));
     $cntTroveCat = db_numrows($result);
 	// Build array of projects that user follows.
 	$arrTroveCat = array();
@@ -308,9 +308,9 @@ function getTroveCategories($group_id) {
 
 function getProjectsByCat(&$cntProjectsByCat, $trove_cat_id, $date = 0) {
     if (!$date) {
-       $result = db_query_params ("SELECT group_id FROM trove_group_link where trove_cat_id = $trove_cat_id",array ());
+       $result = db_query_params ("SELECT group_id FROM trove_group_link where trove_cat_id=$1",array($trove_cat_id));
 	} else {
-	   $result = db_query_params ("SELECT groups.group_id,register_time,unix_group_name,simtk_logo_file,simtk_summary,group_name FROM groups,trove_group_link where groups.group_id = trove_group_link.group_id and trove_cat_id = $trove_cat_id and register_time > $date",array ());
+	   $result = db_query_params ("SELECT groups.group_id,register_time,unix_group_name,simtk_logo_file,simtk_summary,group_name FROM groups,trove_group_link where groups.group_id = trove_group_link.group_id and trove_cat_id=$1 and register_time > $date",array($trove_cat_id));
 	}
     $cntProjectsByCat = db_numrows($result);
 	return $result;

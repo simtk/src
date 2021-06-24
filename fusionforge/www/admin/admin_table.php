@@ -5,6 +5,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2010 (c) Franck Villaume - Capgemini
  * Copyright 2012,2014 Franck Villaume - TrivialDev
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -75,7 +76,7 @@ function admin_table_postadd($table, $unit) {
 		exit_form_double_submit('home');
 	}
 
-	$field_list = getStringFromRequest('__fields__');
+	$field_list = htmlspecialchars(getStringFromRequest('__fields__'));
 	$fields = explode(",", $field_list);
 	$values = array(); $v = array ();
 	$qpa = db_construct_qpa(array(), 'INSERT INTO ' . $table . ' (' . $field_list . ') VALUES (') ;
@@ -246,7 +247,7 @@ function admin_table_postedit($table, $unit, $primary_key, $id) {
 		}
 		$i++ ;
 		if ($var != $primary_key) {
-			$qpa = db_construct_qpa($qpa, "$var=$1", array ($val)) ;
+			$qpa = db_construct_qpa($qpa, "htmlspecialchars($var)=$1", array (htmlspecialchars($val))) ;
 		}
 	}
 	$qpa = db_construct_qpa($qpa, 'WHERE '.$primary_key.'=$1',
@@ -258,7 +259,7 @@ function admin_table_postedit($table, $unit, $primary_key, $id) {
 		echo $HTML->error_msg(db_error());
 	}
 
-	$field_list = getStringFromRequest('__fields__');
+	$field_list = htmlspecialchars(getStringFromRequest('__fields__'));
 	if (strlen($field_list)) {
 		$fields = explode(",", $field_list);
 		$values = array(); $v = array ();
@@ -348,7 +349,7 @@ session_require_global_perm('forge_admin');
 $HTML->header(array('title'=>sprintf(_('Edit the %ss Table'), ucwords(getUnitLabel($unit)))));
 
 // $table, $unit and $primary_key are variables passed from the parent scripts
-$id = getStringFromRequest('id');
+$id = htmlspecialchars(getStringFromRequest('id'));
 
 switch (getStringFromRequest('function')) {
 	case 'add' : {

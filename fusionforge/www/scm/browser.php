@@ -5,6 +5,7 @@
  * Copyright 2004, Tim Perdue -GForge LLC
  * Copyright 2004-2009, Roland Mas
  * Copyright 2012,2014, Franck Villaume - TrivialDev
+ * Copyright 2005-2021, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -29,7 +30,7 @@ require_once $gfwww.'scm/include/scm_utils.php';
 
 $group_id = getIntFromRequest("group_id");
 
-$repo_name = getStringFromRequest("repo_name", "none");
+$repo_name = htmlspecialchars(getStringFromRequest("repo_name", "none"));
 $user_id = getIntFromRequest("user_id");
 
 $hook_params = array();

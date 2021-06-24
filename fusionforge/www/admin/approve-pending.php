@@ -5,7 +5,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2010 (c) Franck Villaume - Capgemini
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -59,7 +59,7 @@ function activate_group($group_id) {
 		// Check the simtk_is_public flag for setting privacy.
 		$private = 0;
 		$resPriv = db_query_params("SELECT simtk_is_public FROM groups " .
-			"WHERE group_id=" . $group_id, array());
+			"WHERE group_id=$1", array($group_id));
 		if ($resPriv) {
 			while ($rowPriv = db_fetch_array($resPriv)) {
 				$private = $rowPriv['simtk_is_public'];
@@ -95,8 +95,8 @@ if ($action == 'activate') {
 	$group_id = getIntFromRequest('group_id');
 	$response_id = getIntFromRequest('response_id');
 	$add_to_can = getStringFromRequest('add_to_can');
-	$response_text = getStringFromRequest('response_text');
-	$response_title = getStringFromRequest('response_title');
+	$response_text = htmlspecialchars(getStringFromRequest('response_text'));
+	$response_title = htmlspecialchars(getStringFromRequest('response_title'));
 
 	$group = group_get_object($group_id);
 	if (!$group || !is_object($group)) {

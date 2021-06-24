@@ -6,7 +6,7 @@
  * 
  * Cancel simulation job for the user.
  * 
- * Copyright 2005-2016, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -38,17 +38,17 @@ require_once 'util_simulations.php';
 
 // Retrieve parameters.
 $theUserName = user_getname();
-$theJobName = getStringFromRequest("JobName");
+$theJobName = htmlspecialchars(getStringFromRequest("JobName"));
 $theGroupId = getIntFromRequest("GroupId");
 
 // Look up simulation job for the user.
 $sqlJob = "SELECT server_name, job_timestamp FROM simulation_jobs_details " .
-	"WHERE user_name='" . $theUserName . "' " .
+	"WHERE user_name=$3 " .
 	"AND group_id=$1 " .
 	"AND job_name=$2";
 
 $resJob = db_query_params($sqlJob, 
-	array($theGroupId, $theJobName));
+	array($theGroupId, $theJobName, $theUserName));
 $rowsJob = db_numrows($resJob);
 
 $theResult["Status"] = false;

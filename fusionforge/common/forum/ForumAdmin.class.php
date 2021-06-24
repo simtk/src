@@ -8,6 +8,7 @@
  * Copyright 2010 (c) Franck Villaume - Capgemini
  * Copyright (C) 2010-2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2014, Franck Villaume - TrivialDev
+ * Copyright 2016-2021, SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -254,7 +255,7 @@ class ForumAdmin extends FFError {
 		if ($action=="view_pending") {
 			//show the pending messages, awaiting moderation
 			$group_id = $this->group_id;
-			$forum_id = getStringFromRequest("forum_id");
+			$forum_id = getIntFromRequest("forum_id");
 			if ($this->isGroupAdmin()) {
 				$this->PrintAdminOptions();
 			}

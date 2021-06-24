@@ -6,7 +6,7 @@
  * Copyright 2010 (c) Franck Villaume - Capgemini
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012-2014, Franck Villaume - TrivialDev
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -55,7 +55,7 @@ if ($report->isError()) {
 	exit_error($report->getErrorMessage(),'admin');
 }
 
-$area = getStringFromRequest('area');
+$area = htmlspecialchars(getStringFromRequest('area'));
 $SPAN = getIntFromRequest('SPAN', REPORT_TYPE_MONTHLY);
 $start = getIntFromRequest('start');
 $end = getIntFromRequest('end');

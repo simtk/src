@@ -6,7 +6,7 @@
  * 
  * File for setting up related projects.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -61,7 +61,7 @@ $numRowsProjects = db_numrows($result_projects);
 // If this was a submission, make updates
 if (getStringFromRequest('submit')) {
 	
-	$header_order = getStringFromRequest('header_order');
+	$header_order = htmlspecialchars(getStringFromRequest('header_order'));
 	$res = $group->updateRelatedProjects($header_order);
 
 	if (!$res) {

@@ -5,7 +5,7 @@
  * Copyright 2010 (c) FusionForge Team
  * Copyright 2010 (c) Franck Villaume - Capgemini
  * Copyright 2012-2014, Franck Villaume - TrivialDev
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -39,9 +39,9 @@ if (getStringFromRequest('add_extrafield')) {
 	$attribute1 = getStringFromRequest('attribute1');
 	$attribute2 = getStringFromRequest('attribute2');
 	$is_required = getStringFromRequest('is_required');
-	$alias = getStringFromRequest('alias');
+	$alias = htmlspecialchars(getStringFromRequest('alias'));
 	$hide100 = getStringFromRequest('hide100');
-	$show100label = getStringFromRequest('show100label');
+	$show100label = htmlspecialchars(getStringFromRequest('show100label'));
 
 	$ab = new ArtifactExtraField($ath);
 
@@ -66,7 +66,7 @@ if (getStringFromRequest('add_extrafield')) {
 //	Delete an extra field and its contents
 //
 } elseif (getStringFromRequest('deleteextrafield')) {
-	$id = getStringFromRequest('id');
+	$id = htmlspecialchars(getStringFromRequest('id'));
 	$ab = new ArtifactExtraField($ath,$id);
 
 	if (!$ab || !is_object($ab)) {
@@ -96,7 +96,7 @@ if (getStringFromRequest('add_extrafield')) {
 //	Add an element to an extra field
 //
 } elseif (getStringFromRequest('add_opt')) {
-	$boxid = getStringFromRequest('boxid');
+	$boxid = htmlspecialchars(getStringFromRequest('boxid'));
 	$ab = new ArtifactExtraField($ath,$boxid);
 	if (!$ab || !is_object($ab)) {
 		$error_msg .= _('Unable to create ArtifactExtraField Object');
@@ -145,7 +145,7 @@ if (getStringFromRequest('add_extrafield')) {
 //	Update a canned response
 //
 } elseif (getStringFromRequest('update_canned')) {
-	$id = getStringFromRequest('id');
+	$id = htmlspecialchars(getStringFromRequest('id'));
 	$title = getStringFromRequest('title');
 	$body = getStringFromRequest('body');
 
@@ -169,7 +169,7 @@ if (getStringFromRequest('add_extrafield')) {
 //
 } elseif (getStringFromRequest('copy_opt')) {
 	$copyid = getStringFromRequest('copyid');
-	$selectid = getStringFromRequest('selectid');
+	$selectid = htmlspecialchars(getStringFromRequest('selectid'));
 
 	$copy_rows=count($copyid);
 	if ($copy_rows > 0) {
@@ -226,14 +226,14 @@ if (getStringFromRequest('add_extrafield')) {
 //	Update an extra field
 //
 } elseif (getStringFromRequest('update_box')) {
-	$id = getStringFromRequest('id');
+	$id = htmlspecialchars(getStringFromRequest('id'));
 	$name = getStringFromRequest('name');
 	$attribute1 = getStringFromRequest('attribute1');
 	$attribute2 = getStringFromRequest('attribute2');
 	$is_required = getStringFromRequest('is_required');
-	$alias = getStringFromRequest('alias');
+	$alias = htmlspecialchars(getStringFromRequest('alias'));
 	$hide100 = getStringFromRequest('hide100');
-	$show100label = getStringFromRequest('show100label');
+	$show100label = htmlspecialchars(getStringFromRequest('show100label'));
 
 	$ac = new ArtifactExtraField($ath, $id);
 	if (!$ac || !is_object($ac)) {
@@ -259,9 +259,9 @@ if (getStringFromRequest('add_extrafield')) {
 //	Update an Element
 //
 } elseif (getStringFromRequest('update_opt')) {
-	$id = getStringFromRequest('id');
+	$id = htmlspecialchars(getStringFromRequest('id'));
 	$name = getStringFromRequest('name');
-	$boxid = getStringFromRequest('boxid');
+	$boxid = htmlspecialchars(getStringFromRequest('boxid'));
 
 	$ac = new ArtifactExtraField($ath,$boxid);
 	if (!$ac || !is_object($ac)) {
@@ -275,7 +275,7 @@ if (getStringFromRequest('add_extrafield')) {
 		} elseif ($ao->isError()) {
 			$error_msg .= $ao->getErrorMessage();
 		} else {
-			$name = getStringFromRequest('name');
+			$name = htmlspecialchars(getStringFromRequest('name'));
 			$status_id = getIntFromRequest('status_id');
 			if (!$ao->update($name,$status_id)) {
 				$error_msg .= _('Update failed')._(': ').$ao->getErrorMessage();
@@ -333,7 +333,7 @@ if (getStringFromRequest('add_extrafield')) {
 //
 } elseif (getStringFromRequest('customize_list')) {
 	if (getStringFromRequest('add_field')) {
-		$field_to_add = getStringFromRequest('field_to_add');
+		$field_to_add = htmlspecialchars(getStringFromRequest('field_to_add'));
 		if ($field_to_add) {
 			$browse_fields = $ath->getBrowseList();
 			$result = $ath->setBrowseList(($browse_fields ? $browse_fields.',' : '').$field_to_add);
@@ -343,7 +343,7 @@ if (getStringFromRequest('add_extrafield')) {
 		}
 	}
 	elseif (getStringFromRequest('updownorder_field')) {
-		$id = getStringFromRequest('id');
+		$id = htmlspecialchars(getStringFromRequest('id'));
 		$new_pos = getIntFromRequest('new_pos');
 		if ($new_pos) {
 			$browse_fields = explode(',',$ath->getBrowseList());
@@ -371,24 +371,24 @@ if (getStringFromRequest('add_extrafield')) {
 		$out_after = array();
 		foreach ($order as $field => $new_pos) {
 			if (! $new_pos || ! is_numeric($new_pos)) {
-				$not_changed[] = $field;
+				$not_changed[] = htmlspecialchars($field);
 				continue;
 			}
 			$new_pos = intval($new_pos);
 			if ($new_pos < 1 ) {
 				if (! isset($out_before[$new_pos]))
 					$out_before[$new_pos] = array();
-				$out_before[$new_pos][] = $field;
+				$out_before[$new_pos][] = htmlspecialchars($field);
 			}
 			elseif ($new_pos > $list_size) {
 				if (! isset($out_after[$new_pos]))
 					$out_after[$new_pos] = array();
-				$out_after[$new_pos][] = $field;
+				$out_after[$new_pos][] = htmlspecialchars($field);
 			}
 			else {
 				if (! isset($changed[$new_pos - 1]))
 					$changed[$new_pos - 1] = array();
-				$changed[$new_pos - 1][] = $field;
+				$changed[$new_pos - 1][] = htmlspecialchars($field);
 			}
 		}
 		ksort($changed, SORT_NUMERIC);
@@ -483,9 +483,9 @@ if (getStringFromRequest('add_extrafield')) {
 //	Up or down elements
 //
 } elseif (getStringFromRequest('updownorder_opt')) {
-	$boxid = getStringFromRequest('boxid');
+	$boxid = htmlspecialchars(getStringFromRequest('boxid'));
 	$id = getIntFromRequest('id');
-	$new_pos = getStringFromRequest('new_pos');
+	$new_pos = htmlspecialchars(getStringFromRequest('new_pos'));
 	$ac = new ArtifactExtraField($ath,$boxid);
 	if (!$ac || !is_object($ac)) {
 		$error_msg .= _('Unable to create ArtifactExtraField Object');
@@ -504,7 +504,7 @@ if (getStringFromRequest('add_extrafield')) {
 //  Change order of elements
 //
 } elseif (getStringFromRequest('post_changes_order')) {
-	$boxid = getStringFromRequest('boxid');
+	$boxid = htmlspecialchars(getStringFromRequest('boxid'));
 	$order = getArrayFromRequest('order');
 	$ac = new ArtifactExtraField($ath,$boxid);
 	if (!$ac || !is_object($ac)) {
@@ -529,7 +529,7 @@ if (getStringFromRequest('add_extrafield')) {
 	}
 
 } elseif (getStringFromRequest('post_changes_alphaorder')) {
-	$boxid = getStringFromRequest('boxid');
+	$boxid = htmlspecialchars(getStringFromRequest('boxid'));
 	$ac = new ArtifactExtraField($ath,$boxid);
 	if (!$ac || !is_object($ac)) {
 		$error_msg .= _('Unable to create ArtifactExtraField Object');
@@ -583,8 +583,8 @@ if (getStringFromRequest('add_extrafield')) {
 	$sure = getStringFromRequest('sure');
 	$really_sure = getStringFromRequest('really_sure');
 
-	$id = getStringFromRequest('id');
-	$boxid = getStringFromRequest('boxid');
+	$id = htmlspecialchars(getStringFromRequest('id'));
+	$boxid = htmlspecialchars(getStringFromRequest('boxid'));
 	$ab = new ArtifactExtraField($ath,$boxid);
 	if (!$ab || !is_object($ab)) {
 		$error_msg .= _('Unable to create ArtifactExtraField Object');

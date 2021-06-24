@@ -10,6 +10,7 @@
  * Copyright 2010 (c) Franck Villaume - Capgemini
  * Copyright (C) 2010 Alain Peyrat - Alcatel-Lucent
  * Copyright 2014, Franck Villaume - TrivialDev
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -42,9 +43,9 @@ if (getStringFromRequest('action')) {
 	}
 	switch (getStringFromRequest('action')) {
 		case 'add': {
-			$mail_type = getStringFromRequest('mail_type');
-			$mail_message = getStringFromRequest('mail_message');
-			$mail_subject = getStringFromRequest('mail_subject');
+			$mail_type = htmlspecialchars(getStringFromRequest('mail_type'));
+			$mail_message = htmlspecialchars(getStringFromRequest('mail_message'));
+			$mail_subject = htmlspecialchars(getStringFromRequest('mail_subject'));
 
 			if (!$mail_type) {
 				form_release_key(getStringFromRequest('form_key'));

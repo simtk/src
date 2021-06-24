@@ -3,6 +3,7 @@
  * FusionForge logout page
  *
  * Copyright 1999-2001 (c) VA Linux Systems
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -27,7 +28,7 @@ Header( "Cache-Control: must-revalidate");
 require_once '../env.inc.php';
 require_once $gfcommon.'include/pre.php';
 
-$return_to = getStringFromRequest('return_to');
+$return_to = htmlspecialchars(getStringFromRequest('return_to'));
 
 //
 //      Validate return_to

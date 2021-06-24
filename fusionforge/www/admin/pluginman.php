@@ -8,6 +8,7 @@
  * Copyright 2011, Alain Peyrat - Alcatel-Lucent
  * Copyright (C) 2011, 2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2013, Franck Villaume - TrivialDev
+ * Copyright 2005-2021, SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -43,7 +44,7 @@ if (!forge_get_config('use_scm')) {
 $pm = plugin_manager_get_object();
 
 if (getStringFromRequest('update')) {
-	$pluginname = getStringFromRequest('update');
+	$pluginname = htmlspecialchars(getStringFromRequest('update'));
 
 	if ((getStringFromRequest('action') == 'deactivate')) {
 

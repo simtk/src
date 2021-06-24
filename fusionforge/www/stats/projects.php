@@ -5,6 +5,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2010 (c) FusionForge Team
  * Copyright (C) 2010 Alain Peyrat - Alcatel-Lucent
+ * Copyright 2005-2021, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -27,8 +28,8 @@ require_once '../env.inc.php';
 require_once $gfcommon.'include/pre.php';
 require_once $gfwww.'stats/site_stats_utils.php';
 
-$report=getStringFromRequest('report');
-$orderby=getStringFromRequest('orderby');
+$report=htmlspecialchars(getStringFromRequest('report'));
+$orderby=htmlspecialchars(getStringFromRequest('orderby'));
 $projects=getIntFromRequest('projects');
 $trovecatid=getIntFromRequest('trovecatid');
 

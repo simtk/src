@@ -6,7 +6,7 @@
  * 
  * Activate a phpBB forum.
  * 
- * Copyright 2005-2020, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -362,8 +362,8 @@ function activatePhpbbForum($forumId, $auth) {
 		$forum_id = $row["forum_id"];
 
 		// Grab if forum is private or public.
-		$query_1 = "SELECT simtk_is_public from groups WHERE group_id = $forumId";
-		$result_1 = db_query_params($query_1, array());
+		$query_1 = "SELECT simtk_is_public from groups WHERE group_id=$1";
+		$result_1 = db_query_params($query_1, array($forumId));
 		$public_forum = 1;
 		while ($row = pg_fetch_array($result_1)) {
 			if ($row["simtk_is_public"] === 0) {

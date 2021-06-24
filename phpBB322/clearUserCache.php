@@ -6,7 +6,7 @@
  * 
  * Clear the user cache to get updated permissions.
  * 
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -105,10 +105,10 @@ while ($row = db_fetch_array($result)) {
 	//echo($username . "<br/>\n");
 	//echo($status . "<br/>\n");
 
-	$query_2 = "SELECT user_id, username FROM phpbb_users WHERE username = '" . $username . "'";
+	$query_2 = "SELECT user_id, username FROM phpbb_users WHERE username = $1";
 	//echo ($query_2 . "<br/>\n");
 
-	$result_2 = pg_query_params($myconn, $query_2, array());
+	$result_2 = pg_query_params($myconn, $query_2, array($username));
 	if ($row_2 = pg_fetch_array($result_2)) {
 
 		// The user is present in phpbb_users.
