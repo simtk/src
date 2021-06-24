@@ -7,7 +7,7 @@
  * Copyright (C) 2011-2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2011, Franck Villaume - Capgemini
  * Copyright 2012-2014, Franck Villaume - TrivialDev
- * Copyright 2016-2020, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -553,7 +553,9 @@ class FRSPackage extends FFError {
 			$this->setError(_('FRSPackage Name Must Be At Least 3 Characters'));
 			return false;
 		}
-
+		if (!util_is_valid_filename($name)) {
+			$this->setError(_('Package Name can only be alphanumeric'));
+		}
 		if (!forge_check_perm('frs', $this->Group->getID(), 'write')) {
 			$this->setPermissionDeniedError();
 			return false;

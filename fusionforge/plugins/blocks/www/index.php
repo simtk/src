@@ -4,6 +4,7 @@
  * Copyright (C) 2006 Alain Peyrat, Alcatel-Lucent
  * Copyright (C) 2010 Alain Peyrat <aljeux@free.fr>
  * Copyright (C) 2012-2014 Alain Peyrat - Alcatel-Lucent
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of FusionForge.
  *
@@ -141,9 +142,9 @@ function blocks_Project_Header($params) {
 }
 
 $type = getStringFromRequest('type');
-$id = getStringFromRequest('id');
-$pluginname = getStringFromRequest('pluginname');
-$name = getStringFromRequest('name');
+$id = htmlspecialchars(getStringFromRequest('id'));
+$pluginname = htmlspecialchars(getStringFromRequest('pluginname'));
+$name = htmlspecialchars(getStringFromRequest('name'));
 $body = getHtmlTextFromRequest('body');
 $activate = getArrayFromRequest('activate');
 

@@ -9,7 +9,7 @@
  * Copyright (C) 2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2014, Franck Villaume - TrivialDev
  * http://fusionforge.org/
- * Copyright 2016-2020, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -203,9 +203,9 @@ if ($submitAndNotify || $submitNoNotify) {
 // Get latest release associated with this package
 $prevReleaseId = -1;
 $strFrsQuery = "SELECT release_id FROM frs_release " .
-	"WHERE package_id=" . $frsp->getID() . " " .
+	"WHERE package_id=$1 " .
 	"ORDER BY release_date DESC LIMIT 1";
-$res = db_query_params($strFrsQuery, array());
+$res = db_query_params($strFrsQuery, array($frsp->getID()));
 if ($res && $row = db_fetch_array($res)) {
 	// Found a previous release for this package. Allow it to be used as a template.
 	$prevReleaseId = $row['release_id'];

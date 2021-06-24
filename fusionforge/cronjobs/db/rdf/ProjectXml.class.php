@@ -6,7 +6,7 @@
  * 
  * File to generate project XML.
  * 
- * Copyright 2005-2016, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -101,7 +101,7 @@ class ProjectXml extends XmlObject {
 			simtk_download_overview AS download_overview,
 			simtk_download_notes AS download_notes,
 			simtk_preformatted_download_notes AS preformatted_download_notes 
-			FROM groups WHERE group_id=$groupId AND simtk_is_system=0", array());
+			FROM groups WHERE group_id=$1 AND simtk_is_system=0", array($groupId));
 		if (!$resGroup) {
 			return false;
 		}
@@ -153,7 +153,7 @@ class ProjectXml extends XmlObject {
 		$xmlData .= escapeOnce( util_strip_insecure_tags( util_add_linebreaks( util_whitelist_tags( db_result($resGroup, 0, "download_overview"), "<object><embed><param><video>"), true ) ) );
 		$xmlData .= "</download_overview_with_breaks>";
 		
-		$resRecommended = db_query_params("SELECT * FROM recommended_projects_norms WHERE group_id=$groupId", array());
+		$resRecommended = db_query_params("SELECT * FROM recommended_projects_norms WHERE group_id=$1", array($groupId));
 		$numRows = db_numrows($resRecommended);
 		$r = array();
 		if ($numRows <= 5) {
@@ -181,7 +181,7 @@ class ProjectXml extends XmlObject {
 		$xmlData .= "<recommended_projects>";
 		$xmlData .= $resRecommended;
 		foreach ($r as $dst_group) {
-			$resDstProj = db_query_params("SELECT group_id, group_name, simtk_logo_file AS logo_file, simtk_logo_type AS logo_type, unix_group_name FROM groups WHERE group_id=$dst_group", array());
+			$resDstProj = db_query_params("SELECT group_id, group_name, simtk_logo_file AS logo_file, simtk_logo_type AS logo_type, unix_group_name FROM groups WHERE group_id=$1", array($dst_group));
 			$xmlData .= "<proj>";
 			$xmlData .= "<group_id>";
 			$xmlData .= db_result($resDstProj, 0, 'group_id');
@@ -206,9 +206,9 @@ class ProjectXml extends XmlObject {
 		// ################## Followers
 		$privateFollowers = db_query_params(
 			"SELECT user_name FROM project_follows
-			WHERE group_id='$groupId'
+			WHERE group_id=$1
 			AND follows=true
-			AND public=false", array()
+			AND public=false", array($groupId)
 		);
 		if ($privateFollowers) {
 			$xmlData .= db_result_to_xml($privateFollowers, "private_follower");
@@ -226,11 +226,11 @@ class ProjectXml extends XmlObject {
 				users.lab_name
 			FROM users,project_follows
 			WHERE project_follows.user_name=users.user_name
-			AND project_follows.group_id='$groupId'
+			AND project_follows.group_id=$1
 			AND project_follows.follows=true
 			AND project_follows.public=true
 			AND users.status='A'
-			ORDER BY UPPER(users.lastname)", array()
+			ORDER BY UPPER(users.lastname)", array($groupId)
 		);
 
 		if ($resFollowers) {
@@ -253,9 +253,9 @@ class ProjectXml extends XmlObject {
 				lab_name
 			FROM users,user_group
 			WHERE user_group.user_id=users.user_id
-			AND user_group.group_id='$groupId'
+			AND user_group.group_id=$1
 			AND users.status='A'
-			ORDER BY user_group_id,UPPER(realname)", array()
+			ORDER BY user_group_id,UPPER(realname)", array($groupId)
 		);
 
 		if ($resMembers) {
@@ -266,8 +266,8 @@ class ProjectXml extends XmlObject {
 
 					  $resPubs = db_query_params(
 							  "SELECT * from plugin_publications
-							  WHERE group_id='$groupId'
-							  ORDER BY is_primary DESC, publication_year DESC, UPPER(publication) DESC", array()
+							  WHERE group_id=$1
+							  ORDER BY is_primary DESC, publication_year DESC, UPPER(publication) DESC", array($groupId)
 					  );
 
 					  if ($resPubs) {
@@ -295,11 +295,11 @@ class ProjectXml extends XmlObject {
 								  frs_release.name AS release_name,frs_release.release_id AS release_id,frs_release.release_date AS release_date
 						  FROM frs_package,frs_release
 						  WHERE frs_package.package_id=frs_release.package_id 
-						  AND (frs_package.group_id='$this->groupId') 
+						  AND (frs_package.group_id=$1) 
 						  AND frs_package.status_id=1 
 						  AND frs_release.status_id=1 
 						  ORDER BY frs_package.name,frs_package.package_id,frs_release.release_date DESC";
-					$resFiles = db_query_params( $sql , array());
+					$resFiles = db_query_params( $sql , array($this->groupId));
 	
 					if ($resFiles) {
 						$frsFieldNames = db_fieldnames($resFiles);
@@ -330,7 +330,7 @@ class ProjectXml extends XmlObject {
 							JOIN frs_file ff ON (fp.processor_id = ff.processor_id)
 							JOIN frs_release fr ON (ff.release_id = fr.release_id)
 							JOIN frs_package f ON (fr.package_id = f.package_id)
-							WHERE type_id != 9997 AND group_id = " . $this->groupId , array());
+							WHERE type_id != 9997 AND group_id = $1" , array($this->groupId));
 						$xmlData .= "<platform_list>";
 						if ($resPlatforms)
 						{
@@ -348,8 +348,8 @@ class ProjectXml extends XmlObject {
 					}
 				}
 				if ($project->usesSCM()) {
-					$sqlCmd="SELECT COALESCE(SUM(commits),0) AS commits FROM stats_cvs_group WHERE group_id='$this->groupId'";
-					$resSCM = db_query_params($sqlCmd, array());
+					$sqlCmd="SELECT COALESCE(SUM(commits),0) AS commits FROM stats_cvs_group WHERE group_id=$1";
+					$resSCM = db_query_params($sqlCmd, array($this->groupId));
 					if ($resSCM) {
 						$scmFieldNames = db_fieldnames($resSCM);
 						$scmNumRows = db_numrows($resSCM);
@@ -468,7 +468,7 @@ class ProjectXml extends XmlObject {
 		$groupId = $this->groupId;
 		$project = $this->project;
 
-		$resGroup = db_query_params("SELECT * FROM groups WHERE group_id=$groupId AND is_system=0", array());
+		$resGroup = db_query_params("SELECT * FROM groups WHERE group_id=$1 AND is_system=0", array($groupId));
 		if (!$resGroup) {
 			return false;
 		}

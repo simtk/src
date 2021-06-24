@@ -4,6 +4,7 @@
  *
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2002-2004 (c) GForge Team
+ * Copyright 2005-2021, SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -106,8 +107,8 @@ function store_file($id, $input_file) {
 if (getStringFromRequest('submit')) {
 	$input_file = getUploadedFile('input_file');
 	$id = getIntFromRequest('id');
-	$description = getStringFromRequest('description');
-	$filetype = getStringFromRequest('filetype');
+	$description = htmlspecialchars(getStringFromRequest('description'));
+	$filetype = htmlspecialchars(getStringFromRequest('filetype'));
 
 	if (!util_check_fileupload($input_file)) {
 		exit_error("Error","Invalid filename");

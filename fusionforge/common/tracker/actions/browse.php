@@ -105,7 +105,7 @@ if (!isset($_sort_col)) {
 	$_sort_col = 'priority';
 	$_sort_ord = 'DESC';
 }
-$offset = getStringFromRequest('offset');
+$offset = htmlspecialchars(getStringFromRequest('offset'));
 $_sort_col = getStringFromRequest('_sort_col',$_sort_col);
 $_sort_ord = getStringFromRequest('_sort_ord',$_sort_ord);
 $max_rows = getIntFromRequest('max_rows', 25);
@@ -120,7 +120,7 @@ if ($set == 'custom') {
 	$i = $ath->getCustomStatusField();
 	$tmp_extra_fields = getArrayFromRequest('extra_fields');
 	if (isset($tmp_extra_fields[$i])) {
-		$_extra_fields[$i] = $tmp_extra_fields[$i];
+		$_extra_fields[$i] = htmlspecialchars($tmp_extra_fields[$i]);
 	}
 }
 

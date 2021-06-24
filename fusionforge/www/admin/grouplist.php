@@ -4,6 +4,7 @@
  *
  * Copyright 1999-2000 (c) The SourceForge Crew
  * Copyright 2013,2015 Franck Villaume - TrivialDev
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -28,9 +29,9 @@ require_once $gfwww.'admin/admin_utils.php';
 site_admin_header(array('title'=>_('Project List')));
 
 $sortorder = getStringFromRequest('sortorder', 'group_name');
-$group_name_search = getStringFromRequest('group_name_search');
-$status = getStringFromRequest('status');
-$usingplugin = getStringFromRequest('usingplugin');
+$group_name_search = htmlspecialchars(getStringFromRequest('group_name_search'));
+$status = htmlspecialchars(getStringFromRequest('status'));
+$usingplugin = htmlspecialchars(getStringFromRequest('usingplugin'));
 $filter = '';
 
 $sortorder = util_ensure_value_in_set($sortorder,

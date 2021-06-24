@@ -3,7 +3,7 @@
  * Tracker Facility
  *
  * Copyright 2010 (c) FusionForge Team
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -24,13 +24,13 @@
 
 $name = getStringFromRequest('name', $ath->getName());
 $description = getStringFromRequest('description', $ath->getDescription());
-$email_address = getStringFromRequest('email_address', $ath->getEmailAddress());
-$email_all = getStringFromRequest('email_all', $ath->emailAll());
-$simtk_allow_anon = getStringFromRequest('simtk_allow_anon', $ath->getSimtkAllowAnon());
-$due_period = getStringFromRequest('due_period', $ath->getDuePeriod() / 86400);
-$status_timeout = getStringFromRequest('status_timeout', $ath->getStatusTimeout() / 86400);
-$submit_instructions = getStringFromRequest('submit_instructions', $ath->getSubmitInstructions());
-$browse_instructions = getStringFromRequest('browse_instructions', $ath->getBrowseInstructions());
+$email_address = htmlspecialchars(getStringFromRequest('email_address', $ath->getEmailAddress()));
+$email_all = htmlspecialchars(getStringFromRequest('email_all', $ath->emailAll()));
+$simtk_allow_anon = htmlspecialchars(getStringFromRequest('simtk_allow_anon', $ath->getSimtkAllowAnon()));
+$due_period = htmlspecialchars(getStringFromRequest('due_period', $ath->getDuePeriod() / 86400));
+$status_timeout = htmlspecialchars(getStringFromRequest('status_timeout', $ath->getStatusTimeout() / 86400));
+$submit_instructions = htmlspecialchars(getStringFromRequest('submit_instructions', $ath->getSubmitInstructions()));
+$browse_instructions = htmlspecialchars(getStringFromRequest('browse_instructions', $ath->getBrowseInstructions()));
 
 //
 //	FORM TO UPDATE ARTIFACT TYPES

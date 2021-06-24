@@ -5,7 +5,7 @@
  * 
  * admin page for creating new news.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -55,7 +55,7 @@ if (!$group || !is_object($group)) {
 	exit_error($group->getErrorMessage(), 'news');
 }
 
-$summary = getStringFromRequest('summary');
+$summary = htmlspecialchars(getStringFromRequest('summary'));
 $details = getHtmlTextFromRequest('details');
 $display_local = getStringFromRequest('display_local');
 if (!$display_local) {

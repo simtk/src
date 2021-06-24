@@ -5,6 +5,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2010 (c) FusionForge Team
+ * Copyright 2005-2021, SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -70,10 +71,10 @@ $default_content_type = 'text/html';
 // http://fusionforge.example.com/projects/PROJNAME?forced_accept=application/rdf%2Bxml&forced_content_type=text/html (urlencoded) for instance
 
 // Instead of content-negociating with an Accept: header, potentially use the forced_accept arg
-$forced_accept = getStringFromRequest('forced_accept', false);
+$forced_accept = htmlspecialchars(getStringFromRequest('forced_accept', false));
 
 // Instead of displaying the default rendering for the content-type, may force it with forced_content_type arg (text/plain for instance instead of XML)
-$forced_content_type = getStringFromRequest('forced_content_type', false);
+$forced_content_type = htmlspecialchars(getStringFromRequest('forced_content_type', false));
 
 
 //

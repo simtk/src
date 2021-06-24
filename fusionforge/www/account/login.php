@@ -7,7 +7,7 @@
  * notice).
  *
  * Copyright 1999-2001 (c) VA Linux Systems
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -33,7 +33,7 @@ require_once '../env.inc.php';
 require_once $gfcommon.'include/pre.php';
 require_once $gfwww.'include/login-form.php';
 
-$return_to = getStringFromRequest('return_to');
+$return_to = htmlspecialchars(getStringFromRequest('return_to'));
 $triggered = getIntFromRequest('triggered');
 
 /*

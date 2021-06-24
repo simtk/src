@@ -5,7 +5,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2010-2014, Franck Villaume - TrivialDev
  * Copyright 2013, French Ministry of National Education
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -64,6 +64,8 @@ if (forge_get_config('require_unique_email')) {
 }
 ?>
 
+<p><span class="required_note"><br/>Required field outlined in blue.</span></p>
+
 <form action="<?php echo util_make_url('/account/pending-resend.php'); ?>" method="post">
 <p><?php
 if (forge_get_config('require_unique_email')) {
@@ -74,7 +76,7 @@ if (forge_get_config('require_unique_email')) {
 ?>
 <br />
 <label for="loginname">
-	<input id="loginname" required="required" type="text" name="loginname"/>
+	<input id="loginname" class="required" type="text" name="loginname"/>
 </label>
 </p>
 <p><input type="submit" class="btn-cta" name="submit" value="<?php echo _('Submit'); ?>" /></p>

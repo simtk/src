@@ -4,6 +4,7 @@
  *
  * Copyright 2003-2004 (c) GForge LLC
  * Copyright (C) 2010 Alain Peyrat - Alcatel-Lucent
+ * Copyright 2005-2021, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -30,7 +31,7 @@ require_once $gfcommon.'reporting/ReportSetup.class.php';
 session_require_global_perm ('forge_stats', 'admin') ;
 
 $time_code = getIntFromRequest('time_code');
-$category_name = trim(getStringFromRequest('category_name'));
+$category_name = htmlspecialchars(trim(getStringFromRequest('category_name')));
 
 if (getStringFromRequest('submit')) {
 	if (getStringFromRequest('add')) {

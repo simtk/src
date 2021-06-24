@@ -6,7 +6,7 @@
  * 
  * Launch the request simulation job.
  * 
- * Copyright 2005-2016, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -62,25 +62,25 @@ $userID = $u->getID();
 $userName = $u->getUnixName();
 
 // Retrieve parameters for job submitted.
-$strRemoteServerName = $_POST["ServerName"];
-$emailAddr = $_POST["EmailAddr"];
-$jobName = $_POST["JobName"];
-$modelName = $_POST["ModelName"];
-$modifyScriptName = $_POST["ModifyScriptName"];
-$submitScriptName = $_POST["SubmitScriptName"];
-$postprocessScriptName = $_POST["PostprocessScriptName"];
-$installDirName = $_POST["InstallDirName"];
-$softwareName = $_POST["SoftwareName"];
-$softwareVersion = $_POST["SoftwareVersion"];
-$cfgName = $_POST["ConfigFileName"];
-$execCheck = $_POST["ExecCheck"];
-$maxRunTime = $_POST["MaxRunTime"];
-$modifyModel = $_POST["ModifyModel"];
+$strRemoteServerName = htmlspecialchars($_POST["ServerName"]);
+$emailAddr = htmlspecialchars($_POST["EmailAddr"]);
+$jobName = htmlspecialchars($_POST["JobName"]);
+$modelName = htmlspecialchars($_POST["ModelName"]);
+$modifyScriptName = htmlspecialchars($_POST["ModifyScriptName"]);
+$submitScriptName = htmlspecialchars($_POST["SubmitScriptName"]);
+$postprocessScriptName = htmlspecialchars($_POST["PostprocessScriptName"]);
+$installDirName = htmlspecialchars($_POST["InstallDirName"]);
+$softwareName = htmlspecialchars($_POST["SoftwareName"]);
+$softwareVersion = htmlspecialchars($_POST["SoftwareVersion"]);
+$cfgName = htmlspecialchars($_POST["ConfigFileName"]);
+$execCheck = htmlspecialchars($_POST["ExecCheck"]);
+$maxRunTime = htmlspecialchars($_POST["MaxRunTime"]);
+$modifyModel = htmlspecialchars($_POST["ModifyModel"]);
 
 // NOTE: All newlines were with replaced <br/> before sending via POST
 // because Firefox strips the character, but other browsers are fine.
 // Replacing <br/> with newlines to restore the content.
-$cfgText = $_POST["ConfigText"];
+$cfgText = htmlspecialchars($_POST["ConfigText"]);
 $cfgText = str_replace("<br/>", "\n", $cfgText);
 
 // Submit request and get result.

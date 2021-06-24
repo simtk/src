@@ -4,7 +4,7 @@
  *
  * follow.php
  * 
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -43,7 +43,7 @@ require_once $gfcommon.'widget/WidgetLayoutManager.class.php';
 require_once $gfplugins.'following/www/following-utils.php';
 require_once $gfplugins.'following/include/Following.class.php';
 
-$group_id = getStringFromRequest('group_id');
+$group_id = htmlspecialchars(getStringFromRequest('group_id'));
 
 //session_require_perm ('project_read', $group_id) ;
 

@@ -6,7 +6,7 @@
  * 
  * Process file downloads database data.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -63,8 +63,8 @@ function getFrsGroupInfo($groupId) {
 	$arrGroup = array();
 	$sqlGroup = "SELECT simtk_is_public, simtk_download_notes, " .
 		"simtk_preformatted_download_notes, simtk_download_overview FROM groups " .
-		"WHERE group_id=$groupId";
-	$resGroup = db_query_params($sqlGroup, array());
+		"WHERE group_id=$1";
+	$resGroup = db_query_params($sqlGroup, array($groupId));
 	if ($resGroup && db_numrows($resGroup) > 0) {
 		$row = db_fetch_array($resGroup);
 		$arrGroup["is_public"] = $row['simtk_is_public'];

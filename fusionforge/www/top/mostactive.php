@@ -7,6 +7,7 @@
  * Copyright 2002-2004 (c) GForge Team
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2013, Franck Villaume - TrivialDev
+ * Copyright 2005-2021, SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -31,7 +32,7 @@ require_once $gfcommon.'include/Stats.class.php';
 
 $offset = getIntFromRequest('offset');
 $type = getStringFromRequest('type');
-$limit = getStringFromRequest('limit');
+$limit = getIntFromRequest('limit');
 
 if (!$offset || $offset < 0) {
 	$offset=0;

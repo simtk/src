@@ -67,7 +67,7 @@ switch (getStringFromRequest('func')) {
 		$details = getStringFromRequest('details');
 		$assigned_to = getStringFromRequest('assigned_to');
 		$priority = getStringFromRequest('priority');
-		$extra_fields = getStringFromRequest('extra_fields');
+		$extra_fields = htmlspecialchars(getStringFromRequest('extra_fields'));
 
 		/*
 			Create a new Artifact
@@ -166,9 +166,9 @@ switch (getStringFromRequest('func')) {
 		for ($i=0; $i < $count; $i++) {
 			$ah=new Artifact($ath,$artifact_id_list[$i]);
 			if (!$ah || !is_object($ah)) {
-				$error_msg .= '[#'.$artifact_id_list[$i].']'._(': ')._('Artifact Could Not Be Created').'<br />';
+				$error_msg .= '[#'.htmlspecialchars($artifact_id_list[$i]).']'._(': ')._('Artifact Could Not Be Created').'<br />';
 			} elseif ($ah->isError()) {
-				$error_msg .= '[#'.$artifact_id_list[$i].']'._(': ').$ah->getErrorMessage().'<br />';
+				$error_msg .= '[#'.htmlspecialchars($artifact_id_list[$i]).']'._(': ').$ah->getErrorMessage().'<br />';
 			} else {
 				$_summary = '';
 				$_priority=(($priority != 100) ? $priority : $ah->getPriority());
@@ -238,7 +238,7 @@ switch (getStringFromRequest('func')) {
 		$details = getStringFromRequest('details');
 		$description = getStringFromRequest('description');
 		$new_artifact_type_id = getIntFromRequest('new_artifact_type_id');
-		$extra_fields = getStringFromRequest('extra_fields');
+		$extra_fields = htmlspecialchars(getStringFromRequest('extra_fields'));
 		$user_email = getStringFromRequest('user_email', false);
 		$was_error = false;
 
@@ -378,7 +378,7 @@ switch (getStringFromRequest('func')) {
 					//
 					//	Delete list of files from this artifact
 					//
-					$delete_file = getStringFromRequest('delete_file');
+					$delete_file = htmlspecialchars(getStringFromRequest('delete_file'));
 					if ($delete_file) {
 						$count=count($delete_file);
 						for ($i=0; $i<$count; $i++) {
@@ -487,7 +487,7 @@ switch (getStringFromRequest('func')) {
 		}
 		session_require_perm ('tracker', $ath->getID(), 'manager') ;
 
-		$aid = getStringFromRequest('aid');
+		$aid = htmlspecialchars(getStringFromRequest('aid'));
 		$ah= new ArtifactHtml($ath,$aid);
 		if (!$ah || !is_object($ah)) {
 			exit_error(_('Artifact Could Not Be Created'),'tracker');

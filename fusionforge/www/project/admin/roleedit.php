@@ -9,7 +9,7 @@
  *	Thorsten Glaser <t.glaser@tarent.de>
  * Copyright 2014, Stéphane-Eymeric Bredthauer
  * Copyright 2014, Franck Villaume - TrivialDev
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -36,8 +36,8 @@ require_once $gfcommon.'include/rbac_texts.php';
 $group_id = getIntFromRequest('group_id');
 session_require_perm ('project_admin', $group_id) ;
 
-$role_id = getStringFromRequest('role_id');
-$data = getStringFromRequest('data');
+$role_id = htmlspecialchars(getStringFromRequest('role_id'));
+$data = htmlspecialchars(getStringFromRequest('data'));
 
 $group = group_get_object($group_id);
 
@@ -46,7 +46,7 @@ if (getStringFromRequest('delete')) {
 }
 
 if (getStringFromRequest('add')) {
-	$role_name = trim(getStringFromRequest('role_name')) ;
+	$role_name = htmlspecialchars(trim(getStringFromRequest('role_name')));
 	$role = new Role ($group) ;
 	$role_id=$role->createDefault($role_name) ;
 }
@@ -81,7 +81,7 @@ $data = $new_data ;
 if (getStringFromRequest('submit')) {
 	if (($role->getHomeProject() != NULL) && 
 		($role->getHomeProject()->getID() == $group_id)) {
-		$role_name = trim(getStringFromRequest('role_name'));
+		$role_name = htmlspecialchars(trim(getStringFromRequest('role_name')));
 		$public = getIntFromRequest('public') ? true : false ;
 	}
 	else {

@@ -6,7 +6,7 @@
  * 
  * File to handle community administration.
  * 
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -59,7 +59,7 @@ if (!forge_check_global_perm('forge_admin') && $cntUsers <= 0) {
 
 
 // Delete featured project.
-$delFeaturedProj = getStringFromRequest('valDelFeaturedProj');
+$delFeaturedProj = htmlspecialchars(getStringFromRequest('valDelFeaturedProj'));
 if (trim($delFeaturedProj) != "") {
 	$strMsg = delFeaturedProject($delFeaturedProj, $cat_id);
 	if ($strMsg !== NULL && $strMsg != "") {
@@ -69,7 +69,7 @@ if (trim($delFeaturedProj) != "") {
 }
 
 // Add featured project.
-$addFeaturedProj = getStringFromRequest('addFeaturedProj');
+$addFeaturedProj = htmlspecialchars(getStringFromRequest('addFeaturedProj'));
 if ($addFeaturedProj != "") {
 	// Add featured project.
 	$strMsg = addFeaturedProject($addFeaturedProj, $cat_id);
@@ -82,7 +82,7 @@ if ($addFeaturedProj != "") {
 
 // Delete administrator.
 // NOTE: delAdmin is not present in FireFox. Use hidden parameter valDelAdmin.
-$strUserId = getStringFromRequest('valDelAdmin');
+$strUserId = htmlspecialchars(getStringFromRequest('valDelAdmin'));
 if (trim($strUserId) != "") {
 	$strMsg = delAdministrator($strUserId, $cat_id);
 	if ($strMsg !== NULL && $strMsg != "") {
@@ -92,7 +92,7 @@ if (trim($strUserId) != "") {
 }
 
 // Add administrator.
-$strUserId = getStringFromRequest('valAddAdmin');
+$strUserId = htmlspecialchars(getStringFromRequest('valAddAdmin'));
 if ($strUserId != "") {
 	// Add administrator.
 	$strMsg = addAdministrator($strUserId, $cat_id);
@@ -104,7 +104,7 @@ if ($strUserId != "") {
 
 
 // Delete pending project
-$delPendingProj = getStringFromRequest('delPendingProj');
+$delPendingProj = htmlspecialchars(getStringFromRequest('delPendingProj'));
 if (trim($delPendingProj) != "") {
 	$strMsg = delPendingProject($delPendingProj, $cat_id);
 	if ($strMsg !== NULL && $strMsg != "") {
@@ -114,7 +114,7 @@ if (trim($delPendingProj) != "") {
 }
 
 // Approve pending project
-$approvePendingProj = getStringFromRequest('approvePendingProj');
+$approvePendingProj = htmlspecialchars(getStringFromRequest('approvePendingProj'));
 if (trim($approvePendingProj) != "") {
 	$strMsg = approvePendingProject($approvePendingProj, $cat_id);
 	if ($strMsg !== NULL && $strMsg != "") {
@@ -126,8 +126,8 @@ if (trim($approvePendingProj) != "") {
 
 // Update community information.
 if (getStringFromRequest('submit')) {
-	$communityName = trim(getStringFromRequest('communityName'));
-	$communityDesc = trim(getStringFromRequest('communityDescription'));
+	$communityName = htmlspecialchars(trim(getStringFromRequest('communityName')));
+	$communityDesc = htmlspecialchars(trim(getStringFromRequest('communityDescription')));
 	$autoApprove = trim(getStringFromRequest('autoApprove'));
 
 	if ($communityName != "") {
@@ -172,22 +172,22 @@ db_free_result($resInfo);
 $sqlGNames = "SELECT DISTINCT group_name gn, unix_group_name FROM groups g " .
 	"JOIN featured_projects fp " .
 	"ON g.group_id=fp.group_id " .
-	"WHERE fp.trove_cat_id=" . $cat_id;
+	"WHERE fp.trove_cat_id=$1" .
 $sqlFeaturedProjs = "SELECT * FROM (" .
         $sqlGNames . ") gNames " .
         "ORDER BY gNames.gn";
-$resFeaturedProjs = db_query_params($sqlFeaturedProjs, array());
+$resFeaturedProjs = db_query_params($sqlFeaturedProjs, array($cat_id));
 
 
 // Look up administrators.
 $sqlUNames = "SELECT realname, user_name, u.user_id as uid FROM users u " .
 	"JOIN trove_admin ta " .
 	"ON u.user_id=ta.user_id " .
-	"WHERE ta.trove_cat_id=" . $cat_id;
+	"WHERE ta.trove_cat_id=$1" .
 $sqlAdmins = "SELECT * FROM (" .
         $sqlUNames . ") uNames " .
         "ORDER BY uNames.realname";
-$resAdmins = db_query_params($sqlAdmins, array());
+$resAdmins = db_query_params($sqlAdmins, array($cat_id));
 
 // Look up projects with pending join request.
 $sqlPendingProj = "SELECT tglp.group_id as gid, " .
@@ -196,9 +196,9 @@ $sqlPendingProj = "SELECT tglp.group_id as gid, " .
 	"FROM trove_group_link_pending tglp " .
 	"JOIN groups g " .
 	"ON tglp.group_id=g.group_id " .
-	"WHERE tglp.trove_cat_id=" . $cat_id .
+	"WHERE tglp.trove_cat_id=$1" .
 	"ORDER BY group_name";
-$resPendingProj = db_query_params($sqlPendingProj, array());
+$resPendingProj = db_query_params($sqlPendingProj, array($cat_id));
 
 
 $HTML->header(array());

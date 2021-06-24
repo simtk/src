@@ -42,7 +42,7 @@ $group_id = getIntFromRequest('groupid');
 $study_id = getIntFromRequest('studyid');
 $nameDownload = trim(getStringFromRequest('nameDownload'));
 $pathSelected = trim(getStringFromRequest('pathSelected'));
-$strFilesHash = trim(getStringFromRequest('filesHash'));
+$strFilesHash = htmlspecialchars(trim(getStringFromRequest('filesHash')));
 
 $isPrivate = true;
 $study = new Datashare($group_id);

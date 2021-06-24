@@ -17,17 +17,17 @@ class ProjectNewsXml2 extends ProjectXml {
 		// ######################### News
 
 		if ($project->usesNews()) {
-			$resNews = db_query(
+			$resNews = db_query_params(
 				"SELECT u.user_name, u.realname,
 					nb.id, nb.forum_id, nb.summary, nb.post_date, nb.details, 
 					nb.request_global::int, nb.sidebar_display::int 
 				FROM users AS u, plugin_simtk_news AS nb, groups 
 				WHERE u.user_id = nb.submitted_by 
-				AND nb.group_id='$groupId'
+				AND nb.group_id=$1
 				AND nb.is_approved <> 4
 				AND nb.group_id=groups.group_id
 				AND groups.status='A'
-				ORDER BY post_date DESC"
+				ORDER BY post_date DESC", array($groupId)
 			);
 
 			if ($resNews) {

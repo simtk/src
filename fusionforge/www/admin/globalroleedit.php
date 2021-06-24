@@ -5,6 +5,7 @@
  * Copyright 2010-2011, Roland Mas
  * Copyright (c) 2011 Thorsten Glaser <t.glaser@tarent.de>
  * Copyright 2013-2014, Franck Villaume - TrivialDev
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -30,10 +31,10 @@ require_once $gfwww.'include/role_utils.php';
 site_admin_header(array('title'=>_('Site Admin')));
 
 $role_id = getIntFromRequest('role_id');
-$data = getStringFromRequest('data');
+$data = htmlspecialchars(getStringFromRequest('data'));
 
 if (getStringFromRequest('add')) {
-	$role_name = trim(getStringFromRequest('role_name')) ;
+	$role_name = htmlspecialchars(trim(getStringFromRequest('role_name')));
 	$role = new Role (NULL) ;
 	$role_id=$role->createDefault($role_name) ;
 } else {
@@ -67,7 +68,7 @@ $data = $new_data ;
 
 if (getStringFromRequest('submit')) {
 	if ($role instanceof RoleExplicit) {
-		$role_name = trim(getStringFromRequest('role_name'));
+		$role_name = htmlspecialchars(trim(getStringFromRequest('role_name')));
 		$public = getIntFromRequest('public') ? true : false ;
 	} else {
 		$role_name = $role->getName() ;
@@ -98,7 +99,7 @@ if (getStringFromRequest('submit')) {
 
 if (getStringFromRequest('adduser')) {
 	if ($role instanceof RoleExplicit) {
-		$user_name = getStringFromRequest ('form_unix_name') ;
+		$user_name = htmlspecialchars(getStringFromRequest('form_unix_name'));
 		$u = user_get_object_by_name ($user_name) ;
 		if ($u && $u instanceof GFUser && !$u->isError()) {
 			if ($role->addUser ($u)) {

@@ -5,6 +5,7 @@
  * Copyright 2003 GForge, LLC
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012, Franck Villaume - TrivialDev
+ * Copyright 2005-2021, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -48,8 +49,8 @@ if (getStringFromRequest('add_to_task')) {
 	$_order = getStringFromRequest('_order');
 	$max_rows = getIntFromRequest('max_rows');
 	$set = getStringFromRequest('set');
-	$_assigned_to = getStringFromRequest('_assigned_to');
-	$_status = getStringFromRequest('_status');
+	$_assigned_to = htmlspecialchars(getStringFromRequest('_assigned_to'));
+	$_status = htmlspecialchars(getStringFromRequest('_status'));
 	$_category_id = getIntFromRequest('_category_id');
 
 	// $group object is created in tracker.php

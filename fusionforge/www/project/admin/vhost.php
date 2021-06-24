@@ -5,6 +5,7 @@
  * Portions Copyright 1999-2001 (c) VA Linux Systems
  * The rest Copyright 2002-2004 (c) GForge Team
  * Copyright 2014, Franck Villaume - TrivialDev
+ * Copyright 2005-2021, SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -46,7 +47,7 @@ if (!$group || !is_object($group)) {
 }
 
 if (getStringFromRequest('createvhost')) {
-	$vhost_name = getStringFromRequest('vhost_name');
+	$vhost_name = htmlspecialchars(getStringFromRequest('vhost_name'));
 
 	$homedir = account_group_homedir($group->getUnixName());
 	$docdir = $homedir.'/htdocs/';

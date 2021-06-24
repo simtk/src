@@ -6,7 +6,7 @@
  * 
  * File to retrieving project administrators in the community.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -52,11 +52,11 @@ if (!isset($_GET['term']) || strlen($_GET['term']) <= 2) {
 }
 
 // Look up matching users from projects in category.
-$arrUsers = lookupUsersFromCateogry($_GET['term'], $category);
+$arrUsers = lookupUsersFromCateogry(htmlspecialchars($_GET['term']), $category);
 if (count($arrUsers) < 1) {
 	// No users found from projects in category.
 	// Try looking up from all users.
-	$arrUsers = lookupAllUsers($_GET['term'], $category);
+	$arrUsers = lookupAllUsers(htmlspecialchars($_GET['term']), $category);
 }
 
 // Case-insensitve sort array.
@@ -152,7 +152,7 @@ function lookupAllUsers($term, $catId) {
 	$arrUsers = array();
 
 	$sqlUser = "SELECT user_id, realname, university_name FROM users " .
-		"WHERE LOWER(realname) LIKE '%" . strtolower($term) . "%' " .
+		"WHERE LOWER(realname) LIKE '%" . strtolower(htmlspecialchars($term)) . "%' " .
 		"AND status='A' " .
 		"AND user_id NOT IN " .
 		"(SELECT user_id from trove_admin WHERE trove_cat_id=$1)";

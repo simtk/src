@@ -6,7 +6,7 @@
  * 
  * Project administration summary wizard.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -57,9 +57,9 @@ $group->clearError();
 if (getStringFromRequest('submit')) {
 	$form_group_name = getStringFromRequest('form_group_name');
 	$form_shortdesc = getStringFromRequest('form_shortdesc');
-	$form_summary = getStringFromRequest('form_summary');
-	$form_download_description = getStringFromRequest('form_download_description');
-	$form_homepage = getStringFromRequest('form_homepage');
+	$form_summary = htmlspecialchars(getStringFromRequest('form_summary'));
+	$form_download_description = htmlspecialchars(getStringFromRequest('form_download_description'));
+	$form_homepage = htmlspecialchars(getStringFromRequest('form_homepage'));
 	$logo_image_id = getIntFromRequest('logo_image_id');
 	$use_mail = getStringFromRequest('use_mail');
 	$use_survey = getStringFromRequest('use_survey');

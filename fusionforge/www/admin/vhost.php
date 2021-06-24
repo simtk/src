@@ -10,6 +10,7 @@
  *
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2014, Franck Villaume - TrivialDev
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -42,7 +43,7 @@ session_require_global_perm ('forge_admin');
 
 if (getStringFromRequest('add')) {
 	$groupname = getStringFromRequest('groupname');
-	$vhost_name = getStringFromRequest('vhost_name');
+	$vhost_name = htmlspecialchars(getStringFromRequest('vhost_name'));
 	//$group_id = getIntFromRequest('group_id');
 
 	if ($groupname) {

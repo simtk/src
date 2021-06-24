@@ -6,7 +6,7 @@
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * http://fusionforge.org/
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -76,7 +76,7 @@ $upload_dir = forge_get_config('ftp_upload_dir') . "/" . $group->getUnixName();
 // Arrange release info
 if (getStringFromRequest('submit')) {
 
-	$header_order = getStringFromRequest('header_order');
+	$header_order = htmlspecialchars(getStringFromRequest('header_order'));
 	$arrFiles = explode(",", $header_order);
 	for ($cnt = 0; $cnt < count($arrFiles); $cnt++) {
 		$idx = stripos($arrFiles[$cnt], "=");
@@ -86,7 +86,7 @@ if (getStringFromRequest('submit')) {
 		}
 		$fileId = substr($arrFiles[$cnt], 0, $idx);
 		$rank = substr($arrFiles[$cnt], $idx + 1);
-		$header = getStringFromRequest($fileId);
+		$header = htmlspecialchars(getStringFromRequest($fileId));
 
 		if (!$frsr->arrangeFiles($fileId, $rank, $header)) {
 			exit_error($frsr->getErrorMessage(),'frs');

@@ -30,10 +30,10 @@ require_once $gfcommon.'include/account.php';
 
 $passwd = getStringFromRequest('passwd');
 $passwd2 = getStringFromRequest('passwd2');
-$confirm_hash = getStringFromRequest('confirm_hash');
+$confirm_hash = htmlspecialchars(getStringFromRequest('confirm_hash'));
 
 if (!$confirm_hash) {
-	$confirm_hash = getStringFromRequest('ch');
+	$confirm_hash = htmlspecialchars(getStringFromRequest('ch'));
 }
 if (!$confirm_hash) {
 	exit_missing_param('',array(_('Confirm Hash')),'my');
@@ -108,17 +108,19 @@ printf (_('Welcome, %s. You may now change your password.'),$u->getUnixName());
 echo '</p>';
 ?>
 
+<p><span class="required_note"><br/>Required fields outlined in blue.</span></p>
+
 <form action="<?php echo util_make_url('/account/lostlogin.php'); ?>" method="post">
-<p><?php echo _('New Password (at least 10 characters, a number, lower and upper-case letter)')._(':').utils_requiredField(); ?>
+<p><?php echo _('New Password (at least 10 characters, a number, lower and upper-case letter)')._(':'); ?>
 <br />
 <label for="passwd">
-	<input id="passwd" type="password" name="passwd" required="required" />
+	<input id="passwd" type="password" name="passwd" class="required" />
 </label>
 </p>
-<p><?php echo _('New Password (repeat)')._(':').utils_requiredField(); ?>
+<p><?php echo _('New Password (repeat)')._(':'); ?>
 <br />
 <label for="passwd2">
-	<input id="passwd2" type="password" name="passwd2" required="required" />
+	<input id="passwd2" type="password" name="passwd2" class="required" />
 </label>
 <input type="hidden" name="confirm_hash" value="<?php print $confirm_hash; ?>" /></p>
 <p><input type="submit" name="submit" value="<?php echo _('Update'); ?>" class="btn-cta" /></p>

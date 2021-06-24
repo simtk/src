@@ -8,7 +8,7 @@
  * Copyright 2010-2011, Franck Villaume - Capgemini
  * Copyright 2011-2013, Franck Villaume - TrivialDev
  * Copyright (C) 2011-2012 Alain Peyrat - Alcatel-Lucent
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -639,12 +639,14 @@ class Document extends FFError {
 	 */
 	function isMonitoredBy($userid = 'ALL') {
 		if ( $userid == 'ALL' ) {
-			$condition = '';
+			$result = db_query_params('SELECT * FROM docdata_monitored_docman ' .
+				'WHERE doc_id=$1',
+				array($this->getID()));
 		} else {
-			$condition = 'user_id='.$userid.' AND';
+			$result = db_query_params('SELECT * FROM docdata_monitored_docman ' .
+				'WHERE user_id=$1 AND doc_id=$2',
+				array($userid, $this->getID()));
 		}
-		$result = db_query_params('SELECT * FROM docdata_monitored_docman WHERE '.$condition.' doc_id=$1',
-						array($this->getID()));
 
 		if (!$result || db_numrows($result) < 1)
 			return false;

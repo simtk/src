@@ -9,7 +9,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2011, Roland Mas
  * Copyright 2011, Franck Villaume - Capgemini
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -40,9 +40,9 @@ global $warning_msg;
 
 $plugin = plugin_get_object('authbuiltin');
 
-$return_to = getStringFromRequest('return_to');
+$return_to = htmlspecialchars(getStringFromRequest('return_to'));
 $login = getStringFromRequest('login');
-$form_loginname = getStringFromRequest('form_loginname');
+$form_loginname = htmlspecialchars(getStringFromRequest('form_loginname'));
 $form_pw = getStringFromRequest('form_pw');
 $triggered = getIntFromRequest('triggered');
 

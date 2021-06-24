@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright 2005 (c) GForge Group, LLC
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -23,7 +24,7 @@ require_once $gfcommon.'tracker/ArtifactFactory.class.php';
 global $ath;
 
 $headers = getIntFromRequest('headers');
-$sep = getStringFromRequest('sep', ',');
+$sep = htmlspecialchars(getStringFromRequest('sep', ','));
 
 $date = date('Y-m-d');
 
@@ -45,9 +46,9 @@ $_sort_col = getStringFromRequest('_sort_col');
 $_sort_ord = getStringFromRequest('_sort_ord');
 $max_rows = getIntFromRequest('max_rows');
 $set = getStringFromRequest('set');
-$_assigned_to = getStringFromRequest('_assigned_to');
-$_status = getStringFromRequest('_status');
-$_changed_from = getStringFromRequest('_changed_from');
+$_assigned_to = getIntFromRequest('_assigned_to');
+$_status = getIntFromRequest('_status');
+$_changed_from = htmlspecialchars(getStringFromRequest('_changed_from'));
 
 $af->setup($offset,$_sort_col,$_sort_ord,$max_rows,$set,$_assigned_to,$_status,$_changed_from);
 

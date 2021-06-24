@@ -6,7 +6,7 @@
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * http://fusionforge.org/
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -50,9 +50,9 @@ session_require_perm ('frs', $group_id, 'write') ;
 // Update release info
 if (getStringFromRequest('submit')) {
 	$notes = getStringFromRequest('notes');
-	$uploaded_notes = getUploadedFile('uploaded_notes');
-	$preformatted = getStringFromRequest('preformatted');
-	$overview = getStringFromRequest('overview');
+	$uploaded_notes = htmlspecialchars(getUploadedFile('uploaded_notes'));
+	$preformatted = htmlspecialchars(getStringFromRequest('preformatted'));
+	$overview = htmlspecialchars(getStringFromRequest('overview'));
 	$exec_changes = true;
 
 	// Check for uploaded release notes

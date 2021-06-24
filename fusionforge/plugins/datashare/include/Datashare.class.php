@@ -171,7 +171,7 @@ class Datashare extends FFError {
 	function getStudy($study_id) {
 
 		$study_id = (int) $study_id;
-		$res = db_query_params("SELECT * FROM plugin_datashare WHERE study_id = $study_id",array());
+		$res = db_query_params("SELECT * FROM plugin_datashare WHERE study_id = $1",array($study_id));
 
 		if (!$res || db_numrows($res) < 1) {
 			return false;
@@ -205,10 +205,10 @@ class Datashare extends FFError {
 
 		$group_id = (int) $group_id;
 		$res = db_query_params("SELECT * FROM plugin_datashare " .
-			"WHERE group_id = $group_id " .
+			"WHERE group_id = $1 " .
 			"AND (active=0 OR active=1 OR active=-2 OR active=-3 OR active=-4) " .
 			"ORDER BY title",
-			array());
+			array($group_id));
 
 		if (!$res || db_numrows($res) < 1) {
 			return false;

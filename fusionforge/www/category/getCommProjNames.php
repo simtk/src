@@ -6,7 +6,7 @@
  * 
  * File to retrieving project names in the community.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -50,13 +50,13 @@ $sqlGNames = "SELECT DISTINCT group_name gn, g.group_id gid FROM groups g " .
 // Use public projects only.
 $sqlGNames .= "WHERE g.status='A' " .
 	"AND g.group_id NOT IN " .
-	"(SELECT group_id FROM featured_projects WHERE trove_cat_id=" . $_GET['category'] . ") " .
-	"AND trove_cat_id=" . $_GET['category'] . " " .
+	"(SELECT group_id FROM featured_projects WHERE trove_cat_id=" . ((int) $_GET['category']) . ") " .
+	"AND trove_cat_id=" . ((int) $_GET['category']) . " " .
 	"AND NOT g.simtk_is_public=0 ";
 
 // Use filtered term.
 if (isset($_GET['term'])) {
-	$sqlGNames .= "AND LOWER(group_name) like '%" . strtolower($_GET['term']) . "%' ";
+	$sqlGNames .= "AND LOWER(group_name) like '%" . strtolower(htmlspecialchars($_GET['term'])) . "%' ";
 } 
 
 // Order the results.
