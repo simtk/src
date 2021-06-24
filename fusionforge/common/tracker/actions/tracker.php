@@ -67,7 +67,7 @@ switch (getStringFromRequest('func')) {
 		$details = getStringFromRequest('details');
 		$assigned_to = getStringFromRequest('assigned_to');
 		$priority = getStringFromRequest('priority');
-		$extra_fields = htmlspecialchars(getStringFromRequest('extra_fields'));
+		$extra_fields = getArrayFromRequest('extra_fields');
 
 		/*
 			Create a new Artifact
@@ -238,7 +238,7 @@ switch (getStringFromRequest('func')) {
 		$details = getStringFromRequest('details');
 		$description = getStringFromRequest('description');
 		$new_artifact_type_id = getIntFromRequest('new_artifact_type_id');
-		$extra_fields = htmlspecialchars(getStringFromRequest('extra_fields'));
+		$extra_fields = getArrayFromRequest('extra_fields');
 		$user_email = getStringFromRequest('user_email', false);
 		$was_error = false;
 
