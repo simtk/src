@@ -5,7 +5,7 @@
  *
  * Admin file to manage keywords, ontology and categories for projects.
  * 
- * Copyright 2005-2020, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -58,7 +58,7 @@ $group->clearError();
 $error_msg = "";
 
 // Delete ontology.
-if ($delOntology = getStringFromRequest('valDelOntology')) {
+if ($delOntology = htmlspecialchars(getStringFromRequest('valDelOntology'))) {
 	$resOntology = $group->deleteOntology($delOntology);
 	if (!$resOntology) {
 		$theMsg = $group->getErrorMessage();
@@ -69,7 +69,7 @@ if ($delOntology = getStringFromRequest('valDelOntology')) {
 }
 
 // Delete keyword.
-if ($delKeyword = getStringFromRequest('valDelKeyword')) {
+if ($delKeyword = htmlspecialchars(getStringFromRequest('valDelKeyword'))) {
 	$resKeyword = $group->deleteKeyword($delKeyword);
 	if (!$resKeyword) {
 		$theMsg = $group->getErrorMessage();
@@ -95,7 +95,7 @@ if (!empty($ontology) || !empty($keywords)) {
 // If this was a submission, make updates
 if ($submit = getStringFromRequest('submit')) {
 
-	$categories = getStringFromRequest('categories');
+	$categories = htmlspecialchars(getStringFromRequest('categories'));
 	$resTroveGroupLink = $group->updateTroveGroupLink($categories);
 	if (!$resTroveGroupLink) {
 		$theMsg = $group->getErrorMessage();
@@ -117,10 +117,10 @@ if ($remove = getStringFromRequest('remove')) {
 
     
     if ($remove == "ontology") {
-	  $ontology = getStringFromRequest('ontology');
+	  $ontology = htmlspecialchars(getStringFromRequest('ontology'));
 	  $res = $group->deleteOntology($ontology);
 	} else if ($remove == "keyword") {
-	  $keyword = getStringFromRequest('keyword');
+	  $keyword = htmlspecialchars(getStringFromRequest('keyword'));
 	  $res = $group->deleteKeyword($keyword);
 	}
 
@@ -135,18 +135,18 @@ if ($remove = getStringFromRequest('remove')) {
 
 // Do this after submit.
 $keywordsArray = array();
-$sql = "SELECT DISTINCT keyword FROM project_keywords where project_id = " . 
-	$group->getID() . " order by keyword";
-$resKeywords = db_query_params($sql, array());
+$sql = "SELECT DISTINCT keyword FROM project_keywords where project_id = $1" . 
+	" order by keyword";
+$resKeywords = db_query_params($sql, array($group->getID()));
 $numRowsKeywords = db_numrows($resKeywords);
 for ($i=0; $i<$numRowsKeywords; $i++) {
 	$keywordsArray[] = db_result($resKeywords, $i, 'keyword');
 }
 
 $ontologyArray = array();
-$sql = "SELECT DISTINCT bro_resource FROM project_bro_resources WHERE project_id = " . 
-	$group->getID() . " ORDER BY bro_resource ASC";
-$resOntology = db_query_params($sql, array());
+$sql = "SELECT DISTINCT bro_resource FROM project_bro_resources WHERE project_id = $1" . 
+	" ORDER BY bro_resource ASC";
+$resOntology = db_query_params($sql, array($group->getID()));
 $numRowsOntology = db_numrows($resOntology);
 for ($i=0; $i<$numRowsOntology; $i++) {
 	$ontologyArray[] = db_result($resOntology, $i, 'bro_resource');

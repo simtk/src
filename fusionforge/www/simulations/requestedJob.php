@@ -6,7 +6,7 @@
  * 
  * UI to display requested simulation job and prompt for agreement to license.
  * 
- * Copyright 2005-2016, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -91,31 +91,31 @@ if (!$isPermitted) {
 
 
 // Retrieve parameters for job submitted.
-$strRemoteServerName = $_POST["ServerName"];
-$softwareName = $_POST["SoftwareName"];
-$softwareVersion = $_POST["SoftwareVersion"];
-$modelName = $_POST["ModelName"];
+$strRemoteServerName = htmlspecialchars($_POST["ServerName"]);
+$softwareName = htmlspecialchars($_POST["SoftwareName"]);
+$softwareVersion = htmlspecialchars($_POST["SoftwareVersion"]);
+$modelName = htmlspecialchars($_POST["ModelName"]);
 if (isset($_POST["ConfigFileName"])) {
-	$cfgName = $_POST["ConfigFileName"];
+	$cfgName = htmlspecialchars($_POST["ConfigFileName"]);
 }
 else {
 	$cfgName = "";
 }
 if (isset($_POST["ConfigText"])) {
-	$cfgText = $_POST["ConfigText"];
+	$cfgText = htmlspecialchars($_POST["ConfigText"]);
 }
 else {
 	$cfgText = "";
 }
-$emailAddr = $_POST["EmailAddr"];
-$jobName = $_POST["JobName"];
-$modifyScriptName = $_POST["ModifyScriptName"];
-$submitScriptName = $_POST["SubmitScriptName"];
-$postprocessScriptName = $_POST["PostprocessScriptName"];
-$installDirName = $_POST["InstallDirName"];
-$execCheck = $_POST["ExecCheck"];
-$maxRunTime = $_POST["MaxRunTime"];
-$modifyModel = $_POST["ModifyModel"];
+$emailAddr = htmlspecialchars($_POST["EmailAddr"]);
+$jobName = htmlspecialchars($_POST["JobName"]);
+$modifyScriptName = htmlspecialchars($_POST["ModifyScriptName"]);
+$submitScriptName = htmlspecialchars($_POST["SubmitScriptName"]);
+$postprocessScriptName = htmlspecialchars($_POST["PostprocessScriptName"]);
+$installDirName = htmlspecialchars($_POST["InstallDirName"]);
+$execCheck = htmlspecialchars($_POST["ExecCheck"]);
+$maxRunTime = htmlspecialchars($_POST["MaxRunTime"]);
+$modifyModel = htmlspecialchars($_POST["ModifyModel"]);
 
 // Get license agreement.
 $license = getSimulationLicense($group_id);

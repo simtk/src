@@ -6,7 +6,7 @@
  *
  * Wrapper for app.php
  * 
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -101,8 +101,8 @@ $arrFullNames = array();
 foreach ($arrModerators as $key=>$username) {
 	// Get first and last names of user.
 	$res = db_query_params("SELECT firstname, lastname FROM users " .
-		"WHERE user_name='" . $username . "'",
-		array());
+		"WHERE user_name=$1",
+		array($username));
 	while ($row = db_fetch_array($res)) {
 		$firstName = $row['firstname'];
 		$lastName = $row['lastname'];

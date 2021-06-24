@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright (c) Xerox Corporation, Codendi Team, 2001-2009. All rights reserved
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is a part of Codendi.
  *
@@ -115,8 +116,8 @@ class blocks_Widget_ProjectSummary extends Widget {
 		}
 	}
 	function create(&$request) {
-		$title = getStringFromRequest('title');
-		$content = getStringFromRequest('body');
+		$title = htmlspecialchars(getStringFromRequest('title'));
+		$content = htmlspecialchars(getStringFromRequest('body'));
 		$res = db_query_params('INSERT INTO plugin_blocks (group_id, name, status, title, content)
 			VALUES ($1, $2, 1, $3, $4)',
 			array($this->owner_id, 'summary_block?', $title, $content));

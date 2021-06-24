@@ -6,7 +6,7 @@
  * 
  * UI for simulation administration.
  * 
- * Copyright 2005-2016, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -46,9 +46,9 @@ session_require_perm('project_admin', $group_id);
 
 // Update simulation_job information.
 if (getStringFromRequest('submit')) {
-	$simuDesc = trim(getStringFromRequest('simuDesc'));
-	$simuLic = trim(getStringFromRequest('simuLic'));
-	$membersOnly = trim(getStringFromRequest('membersOnly'));
+	$simuDesc = htmlspecialchars(trim(getStringFromRequest('simuDesc')));
+	$simuLic = htmlspecialchars(trim(getStringFromRequest('simuLic')));
+	$membersOnly = getIntFromRequest('membersOnly');
 
 	if ($membersOnly == 1) {
 		$isPermitAll = 0;

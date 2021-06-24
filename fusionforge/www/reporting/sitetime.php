@@ -5,6 +5,7 @@
  * Copyright 2003-2004 (c) GForge LLC
  * Copyright (C) 2010 Alain Peyrat - Alcatel-Lucent
  * Copyright 2013, Franck Villaume - TrivialDev
+ * Copyright 2005-2021, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -35,8 +36,8 @@ if ($report->isError()) {
 	exit_error($report->getErrorMessage());
 }
 
-$typ = getStringFromRequest('typ');
-$type = getStringFromRequest('type', 'tasks');
+$typ = htmlspecialchars(getStringFromRequest('typ'));
+$type = htmlspecialchars(getStringFromRequest('type', 'tasks'));
 $start = getIntFromRequest('start');
 $end = getIntFromRequest('end');
 

@@ -3,7 +3,7 @@
  * Tracker Facility
  *
  * Copyright 2010 (c) FusionForge Team
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -31,7 +31,7 @@ $ath->adminHeader(array('title'=>$title));
 // Update page title identified by the class "project_submenu".
 echo '<script>$(".project_submenu").html("Tracker: ' . $ath->getName() . '");</script>';
 
-		$id = getStringFromRequest('id');
+		$id = htmlspecialchars(getStringFromRequest('id'));
 		$acr = new ArtifactCanned($ath,$id);
 		if (!$acr || !is_object($acr)) {
 			$feedback .= 'Unable to create ArtifactCanned Object';

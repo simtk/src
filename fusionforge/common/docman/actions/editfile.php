@@ -6,6 +6,7 @@
  * Copyright 2002-2003, Tim Perdue/GForge, LLC
  * Copyright 2010-2011, Franck Villaume - Capgemini
  * Copyright 2012, Franck Villaume - TrivialDev
+ * Copyright 2016-2021, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -64,10 +65,10 @@ $title = getStringFromRequest('title');
 $description = getStringFromRequest('description');
 $citation = getStringFromRequest('citation');
 $details = getStringFromRequest('details');
-$file_url = getStringFromRequest('file_url');
+$file_url = htmlspecialchars(getStringFromRequest('file_url'));
 $uploaded_data = getUploadedFile('uploaded_data');
 $stateid = getIntFromRequest('stateid');
-$filetype = getStringFromRequest('filetype');
+$filetype = htmlspecialchars(getStringFromRequest('filetype'));
 $editor = getStringFromRequest('editor');
 
 if (!$docid)

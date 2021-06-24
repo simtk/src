@@ -7,6 +7,7 @@
  * Copyright (C) 2011-2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2013, French Ministry of National Education
  * Copyright 2013, Franck Villaume - TrivialDev
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -78,10 +79,10 @@ function do_update(&$group, $is_template, $status, $group_type, $unix_box, $http
 
 if (getStringFromRequest('submit')) {
 	$form_template = getStringFromRequest('form_template');
-	$form_status = getStringFromRequest('form_status');
-	$form_box = getStringFromRequest('form_box');
-	$form_domain = getStringFromRequest('form_domain');
-	$form_scm_box = getStringFromRequest('form_scm_box');
+	$form_status = htmlspecialchars(getStringFromRequest('form_status'));
+	$form_box = htmlspecialchars(getStringFromRequest('form_box'));
+	$form_domain = htmlspecialchars(getStringFromRequest('form_domain'));
+	$form_scm_box = htmlspecialchars(getStringFromRequest('form_scm_box'));
 
 	do_update($group, $form_template, $form_status, 1, $form_box, $form_domain, $form_scm_box);
 

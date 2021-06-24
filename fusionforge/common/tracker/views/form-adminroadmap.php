@@ -5,6 +5,7 @@
  * Copyright 2011, Alcatel-Lucent
  * Copyright (C) 2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2014, Franck Villaume - TrivialDev
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -65,7 +66,7 @@ $set_roadmap_failed = false;
 if (getStringFromRequest('set_roadmap')) {
 	$set_roadmap_failed = false;
 	$result = true;
-	$roadmap_name = getStringFromRequest('roadmap_name');
+	$roadmap_name = htmlspecialchars(getStringFromRequest('roadmap_name'));
 	$roadmap_id = getIntFromRequest('roadmap_id', 0);
 	$roadmap_list = getArrayFromRequest('roadmap_list');
 
@@ -299,24 +300,24 @@ if (getIntFromRequest('manage_release') ||
 				$out_after = array();
 				foreach ($order as $field => $new_pos) {
 					if (!is_numeric($new_pos)) {
-						$not_changed[] = $field;
+						$not_changed[] = htmlspecialchars($field);
 						continue;
 					}
 					$new_pos = intval($new_pos);
 					if ($new_pos < 1) {
 						if (!isset($out_before[$new_pos]))
 							$out_before[$new_pos] = array();
-						$out_before[$new_pos][] = $field;
+						$out_before[$new_pos][] = htmlspecialchars($field);
 					}
 					elseif ($new_pos > $list_size) {
 						if (!isset($out_after[$new_pos]))
 							$out_after[$new_pos] = array();
-						$out_after[$new_pos][] = $field;
+						$out_after[$new_pos][] = htmlspecialchars($field);
 					}
 					else {
 						if (!isset($changed[$new_pos - 1]))
 							$changed[$new_pos - 1] = array();
-						$changed[$new_pos - 1][] = $field;
+						$changed[$new_pos - 1][] = htmlspecialchars($field);
 					}
 				}
 				ksort($changed, SORT_NUMERIC);

@@ -4,7 +4,7 @@
  *
  * publications plugin Class which contains methods for adding, deleting and editing pubs.
  * 
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -82,7 +82,7 @@ class Publication extends FFError {
 	 *	@return	boolean	success
 	 */
 	function fetchData($pubId) {
-		$res=db_query_params("SELECT * FROM plugin_publications WHERE pub_id='$pubId' AND group_id='". $this->group->getID() ."'",array());
+		$res=db_query_params("SELECT * FROM plugin_publications WHERE pub_id=$1 AND group_id=$2",array($pubId, $this->group->getID()));
 		if (!$res || db_numrows($res) < 1) {
 			$this->setError(_('publications'.'invalid_pub_id'));
 			return false;
@@ -142,9 +142,9 @@ class Publication extends FFError {
                 }
 
                 $sqlCmd="UPDATE plugin_publications SET is_primary=1
-                         WHERE pub_id=".$pubId;
+                         WHERE pub_id=$1";
                 //echo "$sqlCmd <br/>";
-                $res=db_query_params($sqlCmd,array());
+                $res=db_query_params($sqlCmd,array($pubId));
                 if (!$res || db_affected_rows($res) < 1) {
                     //    $this->setOnUpdateError(db_error());
                         return false;
@@ -160,8 +160,8 @@ class Publication extends FFError {
          *      @return boolean success.
          */
         function setNotPrimary($pubId) {
-		$sqlCmd="UPDATE plugin_publications SET is_primary=0 WHERE pub_id=".$pubId;
-                $res=db_query_params($sqlCmd,array());
+		$sqlCmd="UPDATE plugin_publications SET is_primary=0 WHERE pub_id=$1";
+                $res=db_query_params($sqlCmd,array($pubId));
 		if (!$res || db_affected_rows($res) < 1) {
 			//      $this->setOnUpdateError(db_error());
 			return false;
@@ -313,13 +313,14 @@ class Publication extends FFError {
 
 		db_begin();
 		$res=db_query_params("UPDATE plugin_publications SET
-			publication='". $publication ."',
-			publication_year='".$year."',
-			url='". $url ."',
-			is_primary='$is_primary',
-			abstract='". $abstract ."'
-			WHERE group_id=".$this->group->getID()."
-			AND pub_id=".$this->getID(),array());
+			publication=$1,
+			publication_year=$2,
+			url=$3,
+			is_primary=$4,
+			abstract=$5
+			WHERE group_id=$6
+			AND pub_id=$7",
+			array(htmlspecialchars($publication),$year,htmlspecialchars($url),$is_primary,htmlspecialchars($abstract),$this->group->getID(),$this->getID()));
 		if (!$res || db_affected_rows($res) < 1) {
 			//$this->setOnUpdateError(db_error());
                         echo "</br>rows less 1";
@@ -359,7 +360,7 @@ class Publication extends FFError {
 		}
     	
 */
-		db_query_params("DELETE FROM plugin_publications WHERE pub_id='".$pub_id."' AND group_id='".$this->group->getID()."'",array());
+		db_query_params("DELETE FROM plugin_publications WHERE pub_id=$1 AND group_id=$2",array($pub_id, $this->group->getID()));
 
 		return true;
 	}

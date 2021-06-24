@@ -3,6 +3,7 @@
  * Copyright (c) Xerox Corporation, Codendi Team, 2001-2009. All rights reserved
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2013-2015, Franck Villaume - TrivialDev
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is a part of Fusionforge.
  *
@@ -788,7 +789,7 @@ class WidgetLayoutManager {
 						} else {
 							$_and .= ' AND (';
 						}
-						$_and .= " (name = '".$name[1]."' AND content_id = ". $name[0] .") ";
+						$_and .= " (name = '".htmlspecialchars($name[1])."' AND content_id = ". $name[0] .") ";
 					}
 					$_and .= ')';
 					$sql = "UPDATE layouts_contents
@@ -810,7 +811,7 @@ class WidgetLayoutManager {
 						} else {
 							$_and .= ' AND (';
 						}
-						$_and .= " (name = '".$name[1]."' AND content_id = ". $name[0] .") ";
+						$_and .= " (name = '".htmlspecialchars($name[1])."' AND content_id = ". $name[0] .") ";
 					}
 					$_and .= ')';
 					//old and new column must be part of the same layout

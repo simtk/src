@@ -4,6 +4,7 @@
  *
  * Copyright 2011, Alcatel-Lucent
  * Copyright 2012,2014, Franck Villaume - TrivialDev
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -182,9 +183,9 @@ if ($ajax) {
 	$sysdebug_enable = false;
 }
 
-$roadmap_name = getStringFromRequest('roadmap_name');
+$roadmap_name = htmlspecialchars(getStringFromRequest('roadmap_name'));
 $roadmap_id = getIntFromRequest('roadmap_id', 0);
-$selected_release = getStringFromRequest('release');
+$selected_release = htmlspecialchars(getStringFromRequest('release'));
 $nb_release = getIntFromRequest('nb_release', 2);
 $display_graph = getIntFromRequest('display_graph', 2);
 

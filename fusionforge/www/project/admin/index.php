@@ -9,7 +9,7 @@
  * Copyright 2004 GForge, LLC - Tim Perdue
  * Copyright 2010, Franck Villaume - Capgemini
  * Copyright 2010-2011, Alain Peyrat - Alcatel-Lucent
- * Copyright 2016-2019 Tod Hing, Henry Kwong - SimTK Team
+ * Copyright 2016-2021 Tod Hing, Henry Kwong - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -54,9 +54,9 @@ $group->clearError();
 if (getStringFromRequest('submit')) {
 	$form_group_name = getStringFromRequest('form_group_name');
 	$form_shortdesc = getStringFromRequest('form_shortdesc');
-	$form_summary = getStringFromRequest('form_summary');
+	$form_summary = htmlspecialchars(getStringFromRequest('form_summary'));
 	$logo_tmpfile = getStringFromRequest('logofilename');
-	$logo_type = getStringFromRequest('logofiletype');
+	$logo_type = htmlspecialchars(getStringFromRequest('logofiletype'));
 	$private = getStringFromRequest('private');
         
 	// if private is 0, then booleanparam will be 0, otherwise set booleanparam to 1

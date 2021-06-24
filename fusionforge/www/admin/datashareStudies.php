@@ -6,7 +6,7 @@
  * 
  * Data Share study administration
  * 
- * Copyright 2005-2020, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -55,7 +55,7 @@ if ($arrAction = getStringFromRequest('submit')) {
 	}
 
 	$studyId = getStringFromRequest('study_id');
-	$studyTitle = getStringFromRequest('study_title');
+	$studyTitle = htmlspecialchars(getStringFromRequest('study_title'));
 	$userId = getStringFromRequest('user_id');
 	$userName = getStringFromRequest('user_name');
 	$groupId = getStringFromRequest('group_id');

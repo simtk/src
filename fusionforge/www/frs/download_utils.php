@@ -74,8 +74,8 @@ function checkMailListMembership($groupListId, &$retListName) {
 	}
 
 	$sqlListName = "SELECT list_name FROM mail_group_list " .
-		"WHERE group_list_id=" . $groupListId;
-	$res = db_query_params($sqlListName, array());
+		"WHERE group_list_id=$1";
+	$res = db_query_params($sqlListName, array($groupListId));
 	$retListName = db_result($res, 0, 'list_name');
 	if ($retListName == "") {
 		// Cannot get mail list name.
@@ -118,13 +118,13 @@ function getFileExpectedUse($fileId) {
 	}
 
 	$sqlQuery = "SELECT simtk_expected_use FROM frs_dlstats_file s " .
-		"WHERE user_id = '" . $theUser->getID() .  "' AND " .
+		"WHERE user_id=$1 AND " .
 		"simtk_expected_use != '' AND " .
 		"file_id IN " .
 		"(SELECT file_id FROM frs_file f WHERE release_id=" .
-		"(SELECT release_id FROM frs_file f WHERE file_id=" . $fileId . ")) " .
+		"(SELECT release_id FROM frs_file f WHERE file_id=$2")) " .
 		"ORDER BY month DESC, day DESC";
-	$res = db_query_params($sqlQuery, array());
+	$res = db_query_params($sqlQuery, array($theUser->getID(), $fileId));
 	if ($res && db_numrows( $res ) > 0 ) {
 		$previousExpectedUse = db_result($res, 0, 'simtk_expected_use');
 	}
@@ -148,12 +148,12 @@ function getReleaseExpectedUse($releaseId) {
 	}
 
 	$sqlQuery = "SELECT simtk_expected_use FROM frs_dlstats_file s " .
-		"WHERE user_id = '" . $theUser->getID() .  "' AND " .
+		"WHERE user_id=$1 AND " .
 		"simtk_expected_use != '' AND " .
 		"file_id IN " .
-		"(SELECT file_id FROM frs_file f WHERE release_id=" . $releaseId . ") " .
+		"(SELECT file_id FROM frs_file f WHERE release_id=$2") " .
 		"ORDER BY month DESC, day DESC LIMIT 1";
-	$res = db_query_params($sqlQuery, array());
+	$res = db_query_params($sqlQuery, array($theUser->getID(), $releaseId));
 	if ($res && db_numrows( $res ) > 0 ) {
 		$previousExpectedUse = db_result($res, 0, 'simtk_expected_use');
 	}
@@ -179,9 +179,9 @@ function getReleaseGroupListId($releaseId) {
 	$sqlQuery = "SELECT simtk_group_list_id FROM frs_file f " .
 		"WHERE simtk_group_list_id!=0 AND " .
 		"file_id IN " .
-		"(SELECT file_id FROM frs_file f WHERE release_id=" . $releaseId . ") " .
+		"(SELECT file_id FROM frs_file f WHERE release_id=$1") " .
 		"ORDER BY post_date DESC LIMIT 1";
-	$res = db_query_params($sqlQuery, array());
+	$res = db_query_params($sqlQuery, array($releaseId));
 	if ($res && db_numrows( $res ) > 0 ) {
 		$groupListId = db_result($res, 0, 'simtk_group_list_id');
 	}
@@ -195,9 +195,9 @@ function getReleaseCollectData($releaseId) {
 
 	$count_simtk_collect_data = 0;
 	$strQuery = 'SELECT count(*) as count_simtk_collect_data FROM frs_file ' .
-		'WHERE release_id=' . $releaseId . ' ' .
+		'WHERE release_id=$1 ' .
 		'AND simtk_collect_data=1';
-	$res = db_query_params($strQuery, array());
+	$res = db_query_params($strQuery, array($releaseId));
 	if ($res && db_numrows($res) > 0) {
 		$row = db_fetch_array($res);
 		// Value returned will be 0 if none of the files requires this check.
@@ -215,9 +215,9 @@ function getReleaseShowAgreement($releaseId) {
 
 	$count_simtk_show_agreement = 0;
 	$strQuery = 'SELECT count(*) as count_simtk_show_agreement FROM frs_file ' .
-		'WHERE release_id=' . $releaseId . ' ' .
+		'WHERE release_id=$1 ' .
 		'AND simtk_show_agreement=1';
-	$res = db_query_params($strQuery, array());
+	$res = db_query_params($strQuery, array($releaseId));
 	if ($res && db_numrows($res) > 0) {
 		$row = db_fetch_array($res);
 		// Value returned will be 0 if none of the files requires this check.

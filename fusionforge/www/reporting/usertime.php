@@ -3,6 +3,7 @@
  * Reporting System
  *
  * Copyright 2003-2004 (c) GForge LLC
+ * Copyright 2005-2021, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -35,10 +36,10 @@ if ($report->isError()) {
 
 $start = getIntFromRequest('start');
 $end = getIntFromRequest('end');
-$sw = getStringFromRequest('sw');
-$typ = getStringFromRequest('typ');
+$sw = htmlspecialchars(getStringFromRequest('sw'));
+$typ = htmlspecialchars(getStringFromRequest('typ'));
 $dev_id = getIntFromRequest('dev_id');
-$type = getStringFromRequest('type');
+$type = htmlspecialchars(getStringFromRequest('type'));
 
 if (!$start || !$end) $z =& $report->getMonthStartArr();
 

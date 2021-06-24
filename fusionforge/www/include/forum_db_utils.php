@@ -6,7 +6,7 @@
  * 
  * Utility file to handle forum access.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -284,8 +284,8 @@ function generate_display_post_item($result, $i, &$return, $suppressDetails=fals
 	// Project name.
 	$strUnixGroupName = "";
 	$strQueryGroupName = "SELECT unix_group_name FROM groups " .
-		"WHERE group_id=" . $theForumId;
-	$resGroupName = db_query_params($strQueryGroupName, array());
+		"WHERE group_id=$1";
+	$resGroupName = db_query_params($strQueryGroupName, array($theForumId));
 	while ($rowGroupName = db_fetch_array($resGroupName)) {
 		$strUnixGroupName = $rowGroupName["unix_group_name"];
 	}

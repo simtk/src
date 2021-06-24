@@ -5,7 +5,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2012-2014, Franck Villaume - TrivialDev
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -108,7 +108,7 @@ if (getStringFromRequest('submit')) {
 	$study_user_id = getStringFromRequest('study_user_id');
 	$study_id = getStringFromRequest('study_id');
 
-	$doi_identifier = getStringFromRequest('doi_identifier');
+	$doi_identifier = htmlspecialchars(getStringFromRequest('doi_identifier'));
 	$group_name = getStringFromRequest('group_name');
 	
 	if (!empty($file_user_id) && !empty($file_id)) {
@@ -116,7 +116,7 @@ if (getStringFromRequest('submit')) {
 		$user = user_get_object($file_user_id);
 		$user_email = $user->getEmail();
 
-		$name = getStringFromRequest('filename');
+		$name = htmlspecialchars(getStringFromRequest('filename'));
 
 		$result = db_query_params("UPDATE frs_file " .
 			"SET doi_identifier=$1 " .
@@ -128,7 +128,7 @@ if (getStringFromRequest('submit')) {
 		$user = user_get_object($package_user_id);
 		$user_email = $user->getEmail();
 
-		$name = getStringFromRequest('name');
+		$name = htmlspecialchars(getStringFromRequest('name'));
 
 		$result = db_query_params("UPDATE frs_package " .
 			"SET doi_identifier=$1 " .
@@ -140,7 +140,7 @@ if (getStringFromRequest('submit')) {
 		$user = user_get_object($study_user_id);
 		$user_email = $user->getEmail();
 
-		$name = getStringFromRequest('title');
+		$name = htmlspecialchars(getStringFromRequest('title'));
 
 		$result = db_query_params("UPDATE plugin_datashare " .
 			"SET doi_identifier=$1 " .

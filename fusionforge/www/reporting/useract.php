@@ -4,6 +4,7 @@
  *
  * Copyright 2003-2004 (c) GForge LLC
  * Copyright 2013, Franck Villaume - TrivialDev
+ * Copyright 2005-2021, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -37,7 +38,7 @@ if ($report->isError()) {
 	exit_error($report->getErrorMessage());
 }
 
-$sw = getStringFromRequest('sw');
+$sw = htmlspecialchars(getStringFromRequest('sw'));
 $dev_id = getIntFromRequest('dev_id');
 $area = getFilteredStringFromRequest('area', '/^[a-z]+$/');
 $SPAN = getIntFromRequest('SPAN');

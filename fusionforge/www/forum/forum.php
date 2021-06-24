@@ -8,6 +8,7 @@
  * Copyright (C) 2010-2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2013, French Ministry of National Education
  * Copyright 2014, Franck Villaume - TrivialDev
+ * Copyright 2005-2021, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -38,11 +39,11 @@ require_once $gfcommon.'include/TextSanitizer.class.php'; // to make the HTML in
 
 $group_id = getIntFromRequest('group_id');
 $forum_id = getIntFromRequest('forum_id');
-$style = getStringFromRequest('style');
+$style = htmlspecialchars(getStringFromRequest('style'));
 $thread_id = getIntFromRequest('thread_id');
 $offset = getIntFromRequest('offset');
 $max_rows = getIntFromRequest('max_rows');
-$set = getStringFromRequest('set');
+$set = htmlspecialchars(getStringFromRequest('set'));
 
 if ($forum_id) {
 
@@ -81,7 +82,7 @@ if ($forum_id) {
 			exit_form_double_submit('forums');
 		}
 		$subject = getStringFromRequest('subject');
-		$body = getStringFromRequest('body');
+		$body = htmlspecialchars(getStringFromRequest('body'));
 		$is_followup_to = getStringFromRequest('is_followup_to');
 
 		$fm = new ForumMessage($f);

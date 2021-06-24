@@ -7,6 +7,7 @@
  *	Thorsten Glaser <t.glaser@tarent.de>
  * All rights reserved.
  * Copyright 2014, Franck Villaume - TrivialDev
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -34,7 +35,7 @@ $plugin_id = $plugin->getID();
 
 $systasksq = new SysTasksQ();
 
-$func = getStringFromRequest('func');
+$func = htmlspecialchars(getStringFromRequest('func'));
 
 $matches = array();
 if (preg_match('!^grouppage/([a-z][-a-z0-9_]+)(/.*)$!', $func, $matches)) {

@@ -8,7 +8,7 @@
  * Copyright 2012, Franck Villaume - TrivialDev
  * Copyright © 2012
  *	Thorsten Glaser <t.glaser@tarent.de>
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -375,11 +375,11 @@ function getFollowingProjects($user, &$cntProjects) {
 	$strQuery = "SELECT p.group_id, g.group_name, g.unix_group_name, g.simtk_logo_file, g.status " .
 		"FROM project_follows AS p " .
 		"JOIN groups AS g ON p.group_id=g.group_id " .
-		"WHERE p.user_name='" . 
-		$user->getUnixName() . "' AND " .
+		"WHERE p.user_name=$1 " . 
+		"AND " .
 		"follows=true AND public=true " .
 		"ORDER BY g.group_name";
-	$result = db_query_params($strQuery, array());
+	$result = db_query_params($strQuery, array($user->getUnixName()));
 	if ($result === false) {
 		return $retStr;
 	}

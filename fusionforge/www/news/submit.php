@@ -6,7 +6,7 @@
  * Copyright (C) 2002-2004 GForge Team
  * Copyright (C) 2008-2010 Alcatel-Lucent
  * Copyright 2013, Franck Villaume - TrivialDev
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  *
  * http://fusionforge.org/
  *
@@ -66,7 +66,7 @@ if (!$group || !is_object($group)) {
 	exit_error($group->getErrorMessage(), 'news');
 }
 
-$summary = getStringFromRequest('summary');
+$summary = htmlspecialchars(getStringFromRequest('summary'));
 $details = getHtmlTextFromRequest('details');
 
 if (session_loggedin()) {

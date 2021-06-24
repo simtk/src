@@ -7,6 +7,7 @@
  * Copyright 2010-2011, Franck Villaume - Capgemini
  * Copyright 2011, Franck Villaume - TrivialDev
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
+ * Copyright 2016-2021, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -32,7 +33,7 @@ global $dirid; // id of doc_group
 global $group_id; // id of group
 
 // added 9-12-14 tod hing - for sub folder
-$doc_group = trim(getStringFromRequest('doc_group'));
+$doc_group = htmlspecialchars(trim(getStringFromRequest('doc_group')));
 if (isset($doc_group) && $doc_group > 0) {
   $dirid = $doc_group;
 }
@@ -55,7 +56,7 @@ if (!forge_check_perm('docman', $g->getID(), 'approve')) {
 	session_redirect($urlredirect.'&warning_msg='.urlencode($return_msg));
 }
 
-$groupname = trim(getStringFromRequest('groupname'));
+$groupname = htmlspecialchars(trim(getStringFromRequest('groupname')));
 
 $dg = new DocumentGroup($g);
 

@@ -5,6 +5,7 @@
  * Copyright 2003-2004 (c) GForge LLC, Tim Perdue
  * Copyright 2010 (c), FusionForge Team
  * Copyright 2013, Franck Villaume - TrivialDev
+ * Copyright 2005-2021, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -39,7 +40,7 @@ if ($report->isError()) {
 
 $start = getIntFromRequest('start');
 $end = getIntFromRequest('end');
-$tstat = getStringFromRequest('tstat');
+$tstat = htmlspecialchars(getStringFromRequest('tstat'));
 
 if (!$start || !$end) $z =& $report->getWeekStartArr();
 if (!$start) {

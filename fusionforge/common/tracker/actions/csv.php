@@ -63,7 +63,7 @@ if (session_loggedin()) {
 }
 
 $headers = getIntFromRequest('headers', $default['headers']);
-$sep = getStringFromRequest('sep', $default['sep']);
+$sep = htmlspecialchars(getStringFromRequest('sep', $default['sep']));
 
 if (session_loggedin()) {
 	if ( ($sep !== $default['sep']) || ($headers !== $default['headers']) ) {

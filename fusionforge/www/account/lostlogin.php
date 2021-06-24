@@ -30,10 +30,10 @@ require_once $gfcommon.'include/account.php';
 
 $passwd = getStringFromRequest('passwd');
 $passwd2 = getStringFromRequest('passwd2');
-$confirm_hash = getStringFromRequest('confirm_hash');
+$confirm_hash = htmlspecialchars(getStringFromRequest('confirm_hash'));
 
 if (!$confirm_hash) {
-	$confirm_hash = getStringFromRequest('ch');
+	$confirm_hash = htmlspecialchars(getStringFromRequest('ch'));
 }
 if (!$confirm_hash) {
 	exit_missing_param('',array(_('Confirm Hash')),'my');

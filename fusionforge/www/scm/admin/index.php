@@ -3,6 +3,7 @@
  * SCM Frontend
  *
  * Copyright 2004 (c) Roland Mas, Tim Perdue GForge LLC
+ * Copyright 2005-2021, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -49,9 +50,9 @@ if (getStringFromRequest('form_create_repo')) {
 }
 
 if (getStringFromRequest('create_repository') && getStringFromRequest('submit')) {
-	$repo_name = trim(getStringFromRequest('repo_name'));
-	$description = preg_replace('/[\r\n]/', ' ', getStringFromRequest('description'));
-	$clone = getStringFromRequest('clone');
+	$repo_name = htmlspecialchars(trim(getStringFromRequest('repo_name')));
+	$description = preg_replace('/[\r\n]/', ' ', htmlspecialchars(getStringFromRequest('description')));
+	$clone = htmlspecialchars(getStringFromRequest('clone'));
 	$hook_params = array () ;
 	$hook_params['group_id'] = $group_id;
 	$hook_params['repo_name'] = $repo_name;
@@ -67,7 +68,7 @@ if (getStringFromRequest('create_repository') && getStringFromRequest('submit'))
 		$feedback = sprintf(_('New repository %s registered, will be created shortly.'), $repo_name);
 	}
 } elseif (getStringFromRequest('delete_repository') && getStringFromRequest('submit')) {
-	$repo_name = trim(getStringFromRequest('repo_name'));
+	$repo_name = htmlspecialchars(trim(getStringFromRequest('repo_name')));
 
 	$hook_params = array () ;
 	$hook_params['group_id'] = $group_id;
@@ -108,7 +109,7 @@ if (getStringFromRequest('create_repository') && getStringFromRequest('submit'))
 	
 	$scm_changed = false;
 	if (count($scm_plugins) == 1) {
-	   $scmradio = getStringFromRequest('scmradio');
+	   $scmradio = htmlspecialchars(getStringFromRequest('scmradio'));
 	   $myPlugin = plugin_get_object($scm_plugins[0]);
 	      if ($scmradio == $myPlugin->name) {
 		     if (!$group->usesPlugin($myPlugin->name)) {

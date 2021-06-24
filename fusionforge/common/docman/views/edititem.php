@@ -3,7 +3,7 @@
  * FusionForge Documentation Manager
  *
  * Copyright 2012-2013, Franck Villaume - TrivialDev
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -44,7 +44,7 @@ if (!forge_check_perm('docman', $group_id, 'approve')) {
 $statusResult = $dm->getStatusNameList("","3");
 
 $docid = getIntFromRequest('fileid');
-$fromview = getStringFromRequest('fromview');
+$fromview = htmlspecialchars(getStringFromRequest('fromview'));
 //echo "docid: " . $docid . "<br />";
 $d = new Document($g, $docid);
 

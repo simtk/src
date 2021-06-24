@@ -52,7 +52,7 @@ class Simtk_news extends FFError {
 	 *	@return	boolean	success
 	 */
 	function fetchData($Id) {
-		$res=db_query_params("SELECT * FROM plugin_simtk_news WHERE id='$Id' AND group_id='". $this->group->getID() ."'",array());
+		$res=db_query_params("SELECT * FROM plugin_simtk_news WHERE id=$1 AND group_id=$2",array($Id, $this->group->getID()));
 		if (!$res || db_numrows($res) < 1) {
 			$this->setError(_('simtk_news','invalid_pub_id'));
 			return false;
@@ -68,7 +68,7 @@ class Simtk_news extends FFError {
 	 *	@return	arrray  The array of Publications
 	 */
 	function getSimtkNews() {
-		$res = db_query_params("SELECT * FROM plugin_simtk_news WHERE group_id='". $this->group->getID() ."' DESC",array());
+		$res = db_query_params("SELECT * FROM plugin_simtk_news WHERE group_id=$1 DESC",array($this->group->getID()));
 		if (!$res || db_numrows($res) < 1) {
 			$this->setError(_('simtk news','error_no_rows'));
 			return false;
@@ -88,12 +88,12 @@ class Simtk_news extends FFError {
     /**
      *      @return boolean success.     */
     function updateDisplayFrontpage($id,$simtk_sidebar_display) {
-       $sqlCmd="UPDATE plugin_simtk_news SET simtk_sidebar_display = '$simtk_sidebar_display' WHERE id=$id";
+       $sqlCmd="UPDATE plugin_simtk_news SET simtk_sidebar_display=$1 WHERE id=$2";
        //echo "$sqlCmd <br/>";
-       $res=db_query_params($sqlCmd,array());       if (!$res || db_affected_rows($res) < 1) {          //      $this->setOnUpdateError(db_error());          return false;       }
+       $res=db_query_params($sqlCmd,array($simtk_sidebar_display, $id));       if (!$res || db_affected_rows($res) < 1) {          //      $this->setOnUpdateError(db_error());          return false;       }
        return true;
-    }	function updateDisplayGlobal($id,$simtk_global_display) {       $sqlCmd="UPDATE plugin_simtk_news SET is_approved = '$simtk_global_display' WHERE id=$id";       $res=db_query_params($sqlCmd,array());       if (!$res || db_affected_rows($res) < 1) {          return false;       }				       return true;    }	
-		function updateDisplayGlobalGroupID($group_id,$simtk_global_display) {       $sqlCmd="UPDATE plugin_simtk_news SET is_approved = '$simtk_global_display' WHERE group_id=$group_id";       $res=db_query_params($sqlCmd,array());       if (!$res || db_affected_rows($res) < 1) {          return false;       }				       return true;    }			function globalDisplayExist($group_id) {	   $sqlCmd="SELECT * from plugin_simtk_news where is_approved = 1 and group_id=$group_id";       $res=db_query_params($sqlCmd,array());       if (!$res || db_affected_rows($res) < 1) {          return false;       }				       return true;	}			/**     *      @return boolean success.	 */    function updateRequestGlobal($id,$simtk_request_global) {	   if ($simtk_request_global) {	      $simtkRequestGlobal = "TRUE";	   } else {	      $simtkRequestGlobal = "FALSE";	   }       $sqlCmd="UPDATE plugin_simtk_news SET simtk_request_global = '$simtkRequestGlobal' WHERE id=$id";       $res=db_query_params($sqlCmd,array());       if (!$res || db_affected_rows($res) < 1) {          return false;       }                       return true;    }			/**     *      @return boolean success.	 */    function updateRequestGlobalGroupID($group_id,$simtk_request_global) {	   if ($simtk_request_global) {	      $simtkRequestGlobal = "TRUE";	   } else {	      $simtkRequestGlobal = "FALSE";	   }       $sqlCmd="UPDATE plugin_simtk_news SET simtk_request_global = '$simtkRequestGlobal' WHERE group_id=$group_id";       $res=db_query_params($sqlCmd,array());       if (!$res || db_affected_rows($res) < 1) {          return false;       }                       return true;    }	
+    }	function updateDisplayGlobal($id,$simtk_global_display) {       $sqlCmd="UPDATE plugin_simtk_news SET is_approved=$1 WHERE id=$2";       $res=db_query_params($sqlCmd,array($simtk_global_display, $id));       if (!$res || db_affected_rows($res) < 1) {          return false;       }				       return true;    }	
+		function updateDisplayGlobalGroupID($group_id,$simtk_global_display) {       $sqlCmd="UPDATE plugin_simtk_news SET is_approved=$1 WHERE group_id=$2";       $res=db_query_params($sqlCmd,array($simtk_global_display, $group_id));       if (!$res || db_affected_rows($res) < 1) {          return false;       }				       return true;    }			function globalDisplayExist($group_id) {	   $sqlCmd="SELECT * from plugin_simtk_news where is_approved = 1 and group_id=$group_id";       $res=db_query_params($sqlCmd,array());       if (!$res || db_affected_rows($res) < 1) {          return false;       }				       return true;	}			/**     *      @return boolean success.	 */    function updateRequestGlobal($id,$simtk_request_global) {	   if ($simtk_request_global) {	      $simtkRequestGlobal = "TRUE";	   } else {	      $simtkRequestGlobal = "FALSE";	   }       $sqlCmd="UPDATE plugin_simtk_news SET simtk_request_global = '$simtkRequestGlobal' WHERE id=$id";       $res=db_query_params($sqlCmd,array());       if (!$res || db_affected_rows($res) < 1) {          return false;       }                       return true;    }			/**     *      @return boolean success.	 */    function updateRequestGlobalGroupID($group_id,$simtk_request_global) {	   if ($simtk_request_global) {	      $simtkRequestGlobal = "TRUE";	   } else {	      $simtkRequestGlobal = "FALSE";	   }       $sqlCmd="UPDATE plugin_simtk_news SET simtk_request_global = '$simtkRequestGlobal' WHERE group_id=$group_id";       $res=db_query_params($sqlCmd,array());       if (!$res || db_affected_rows($res) < 1) {          return false;       }                       return true;    }	
 	/**	 * sendDisplayNotificationEmail - Send display global notification email.	 *	 * This function sends out a notification email to the	 * SourceForge admin user when a news project requests to be display globally	 *	 * @return	boolean	success.	 * @access	public	 */	function sendDisplayNotificationEmail() {		$admins = RBACEngine::getInstance()->getUsersByAllowedAction ('approve_projects', -1);				if (count($admins) < 1) {			$this->setError(_("There is no administrator to send the mail to."));			return false;		}		foreach ($admins as $admin) {			$admin_email = $admin->getEmail();			setup_gettext_for_user ($admin);						$message = "\n"					. _('Please visit the following URL to approve or reject the global news request')._(': '). "\n"					. util_make_url('/admin/pending-simtk-news.php');			util_send_message($admin_email, sprintf(_('Global News for %s Project Submitted'), forge_get_config('forge_name')), $message);			setup_gettext_from_context();		}				return true;	}
 	function &getGroup() {
 		return $this->group;

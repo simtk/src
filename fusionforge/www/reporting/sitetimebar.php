@@ -4,6 +4,7 @@
  *
  * Copyright 2003-2004 (c) GForge LLC
  * Copyright 2013, Franck Villaume - TrivialDev
+ * Copyright 2005-2021, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -34,7 +35,7 @@ if ($report->isError()) {
 	exit_error($report->getErrorMessage());
 }
 
-$typ = getStringFromRequest('typ');
+$typ = htmlspecialchars(getStringFromRequest('typ'));
 $start = getIntFromRequest('start');
 $end = getIntFromRequest('end');
 

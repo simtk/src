@@ -193,7 +193,7 @@ class ProjectNewsXml extends ProjectXml {
 		$group_id = $this->groupId;;
 			
 		// get the feedage from DB
-		$rs = db_query("select * from project_feed_settings where group_id='" . $group_id . "'");
+		$rs = db_query_params("select * from project_feed_settings where group_id=$1", array($group_id));
 			
 		// if no record found, set the age to default of 0 days which selects all items.
 		if (pg_num_rows($rs) == 0) {
@@ -259,17 +259,17 @@ class ProjectNewsXml extends ProjectXml {
 
 		if (!$is_fresh) {
 			if ($project->usesNews()) {
-				$resNews = db_query(
+				$resNews = db_query_params(
 				"SELECT u.user_name, u.realname,
 					nb.id, nb.forum_id, nb.summary, nb.post_date, nb.details, 
 					nb.request_global::int, nb.sidebar_display::int 
 				FROM users AS u, news_bytes AS nb, groups 
 				WHERE u.user_id = nb.submitted_by 
-				AND nb.group_id='$groupId'
+				AND nb.group_id=$1
 				AND nb.is_approved <> 4
 				AND nb.group_id=groups.group_id
 				AND groups.status='A'
-				ORDER BY post_date DESC"
+				ORDER BY post_date DESC", array($groupId)
 				);
 
 				if ($resNews) {
@@ -281,7 +281,7 @@ class ProjectNewsXml extends ProjectXml {
 					$xmlData .= "<news_list>";
 				
 					// Get list of RSS Feeds for this project 
-					$resRSS = db_query("SELECT * FROM rss_feeds_project WHERE group_id='$groupId'");
+					$resRSS = db_query_params("SELECT * FROM rss_feeds_project WHERE group_id=$1", array($groupId));
 				
 					$url[] = "http://" . $_SERVER['SERVER_NAME'] . "/project/rss.php?group_id=" . $groupId;
 				

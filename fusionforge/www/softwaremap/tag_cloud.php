@@ -1,6 +1,7 @@
 <?php
 /**
  * Copyright (C) 2008-2009 Alcatel-Lucent
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -52,7 +53,7 @@ if (!forge_get_config('use_project_tags')) {
 $HTML->header(array('title'=>_('Tag Cloud'),'pagename'=>'softwaremap'));
 $HTML->printSoftwareMapLinks();
 
-$selected_tag = getStringFromRequest('tag');
+$selected_tag = htmlspecialchars(getStringFromRequest('tag'));
 $page = getIntFromRequest('page', 1);
 
 echo '<br />' . tag_cloud(array('selected' => $selected_tag, 'nb_max' => 100)) . '<br />';

@@ -6,7 +6,7 @@
  * 
  * Utilities to retrieve GitHub information.
  *
- * Copyright 2005-2020, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -38,8 +38,8 @@ function logGitHubAccess($groupId) {
 	// Update existing count.
 	$sqlUpdate = "UPDATE group_github_access_history " .
 		"SET repository_accesses = repository_accesses + 1 " .
-		"WHERE group_id = $groupId";
-	$resUpdate = db_query_params($sqlUpdate, array());
+		"WHERE group_id = $1";
+	$resUpdate = db_query_params($sqlUpdate, array($groupId));
 	if (!$resUpdate) {
 		// Cannot update count.
 		return "***ERROR***" . "Cannot update group_github_access_history table";
@@ -48,8 +48,8 @@ function logGitHubAccess($groupId) {
 		// Entry does not exist for the gorup yet. Insert first entry.
 		$sqlInsert = "INSERT INTO group_github_access_history " .
 			"(group_id, repository_accesses) VALUES " .
-			"($groupId, 1)";
-		$resInsert = db_query_params($sqlInsert, array());
+			"($1, 1)";
+		$resInsert = db_query_params($sqlInsert, array($groupId));
 		if (!$resInsert) {
 			// Cannot insert first entry.
 			return "***ERROR***" . "Cannot insert to group_github_access_history table";

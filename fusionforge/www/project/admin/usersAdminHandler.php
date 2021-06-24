@@ -6,7 +6,7 @@
  * 
  * File to handle users administration.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -113,7 +113,7 @@ if (getStringFromRequest('submitConfirm')) {
 	if (getStringFromRequest('adduser') || getStringFromRequest('addrole')) {
 
 		$cur_role_id = getIntFromRequest('cur_role_id');
-		$cur_role_name = getStringFromRequest('cur_role_name');
+		$cur_role_name = htmlspecialchars(getStringFromRequest('cur_role_name'));
 
 		// Get all current user objects of this project.
 		$userObjs = $group->getMembers();

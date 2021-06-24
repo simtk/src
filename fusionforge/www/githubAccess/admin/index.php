@@ -6,7 +6,7 @@
  * 
  * File to administor GitHub access.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -55,7 +55,7 @@ $groupObj->clearError();
 session_require_perm('project_admin', $groupId) ;
 
 if ($submit = getStringFromRequest('update')) {
-	$url = getStringFromRequest('urlGitHub');
+	$url = htmlspecialchars(getStringFromRequest('urlGitHub'));
 	if (isset($url) && !empty($url)) {
 		// Trim.
 		$url = trim($url);
