@@ -6,7 +6,7 @@
  * 
  * File to handle feedback.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -40,6 +40,7 @@ $group_id = getIntFromRequest("group_id");
 
 // Display header.
 $HTML->header(array());
+$groupObj = false;
 if ($group_id != 0) {
 	// Has group_id. Look up group object.
 	$groupObj = group_get_object($group_id);
@@ -75,9 +76,10 @@ if ($group_id != 0) {
 				// Has project lead(s).
 				// Note: include group_id in parameter list.
 				echo 'For questions not addressed in the forum, you can contact the ' .
-					'<a href="/sendmessage.php?touser=' .
-					$projectLeads[0]->getID() .
-					'&group_id=' . $group_id . '">project administrators</a>.'; 
+					'<a href="/sendmessage.php?recipient=' .
+					$projectLeads[0]->getUnixName() .
+					'&groupname=' . $groupObj->getUnixName() . 
+					'">project administrators</a>.'; 
 			}
 		}
 		else {
@@ -88,9 +90,10 @@ if ($group_id != 0) {
 				echo 'For questions related to "' .
 					$groupObj->getPublicName() .
 					'", contact the ' .
-					'<a href="/sendmessage.php?touser=' .
-					$projectLeads[0]->getID() .
-					'&group_id=' . $group_id . '">project administrators</a>.'; 
+					'<a href="/sendmessage.php?recipient=' .
+					$projectLeads[0]->getUnixName() .
+					'&groupname=' . $groupObj->getUnixName() . 
+					'">project administrators</a>.'; 
 			}
 		}
 	}
@@ -116,9 +119,9 @@ To report suggestions or bugs on the SimTK website,
 you can file a <a href="/tracker?atid=1960&group_id=11&func=add">new issue</a>.
 <br/><br/>
 
-For any other concerns, contact the <a href="/sendmessage.php?touser=101<?php
-	if ($group_id !== false && trim($group_id) !== "") {
-		echo "&group_id=" . $group_id;
+For any other concerns, contact the <a href="/sendmessage.php?recipient=admin<?php
+	if ($groupObj !== false) {
+		echo "&groupname=" . $groupObj->getUnixName();
 	}
 ?>">SimTK webmaster</a>.
 <br/><br/>

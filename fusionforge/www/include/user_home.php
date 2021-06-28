@@ -323,7 +323,7 @@ function myUserProfile($user) {
 	// Contact by email.
 	$strRet .= '<br/><strong><span property="sioc:email_sha1" content="'. $user_mailsha1 .'">' .
 		util_make_link(
-			'/sendmessage.php?touser=' . $user_id, 
+			'/sendmessage.php?recipient=' . $user->getUnixName(),
 //			'Contact ' . $user->getRealName()) . 
 			'<img src="/images/email103.png"/>&nbsp;Contact') . 
 		'</span></strong><br/><br/>';

@@ -460,7 +460,7 @@ $(function() {
 
 <div style="max-width:645px;">
 <h2 class="underlined">Manage Related Communities</h2>
-<a href="/sendmessage.php?touser=101&subject=<?php
+<a href="/sendmessage.php?recipient=admin&subject=<?php
 	echo urlencode("Adding a related community to " . $fullName . "."); 
 ?>">Contact SimTK Webmaster</a> to add a community.
 </div>
