@@ -43,7 +43,7 @@ $HTML->header(array());
 <span><p>Communities are collections of projects that automatically display the latest news, publications, and discussions happening among those projects.</p></span>
 
 <a style="white-space:nowrap;" class="btn-cta" href="/communities.php">Explore communities</a>&nbsp;
-<a style="white-space:nowrap;" class="btn-cta" href="/sendmessage.php?touser=101&subject=Community%20Request">Request a community</a>
+<a style="white-space:nowrap;" class="btn-cta" href="/sendmessage.php?recipient=admin&subject=Community%20Request">Request a community</a>
 
 <?php
 $HTML->footer(array());

@@ -5,7 +5,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2010-2013, Franck Villaume - TrivialDev
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -27,33 +27,63 @@
 require_once './env.inc.php';
 require_once $gfcommon.'include/pre.php';
 
-if (!session_loggedin()) {
-	exit_permission_denied();
-}
+// Log message sent.
+function logSendMessage($recipientEmail, $senderId) {
+	// 5 minutes.
+	$INTERVAL_FLOOD = 300;
 
-$toaddress = getStringFromRequest('toaddress');
-$touser = getStringFromRequest('touser');
-
-if (!$toaddress && !$touser) {
-	exit_missing_param('', array(_('toaddress'), _('touser')), 'home');
-}
-
-if ($touser) {
-	/*
-		check to see if that user even exists
-		Get their name and email if it does
-	*/
-	$result = db_query_params('SELECT email, user_name, realname ' .
-		'FROM users WHERE user_id=$1',
-		array($touser));
-
-	if (!$result || db_numrows($result) < 1) {
-		exit_error(_('That user does not exist.'), 'home');
+	// Check recent message sent.
+	$res = db_query_params("SELECT * FROM user_sent_message " .
+		"WHERE user_id=$1 " .
+		"AND extract(epoch from (current_timestamp - last_message_time)) < $2",
+		array($senderId, $INTERVAL_FLOOD));
+	if (db_numrows($res) > 0) {
+		return "Message sent recently. Please wait before sending another message.";
+	}
+	else {
+		// OK, no recent message sent.
+		// Update table.
+		$res = db_query_params("INSERT INTO user_sent_message " .
+			"(user_id, last_message_time) VALUES " .
+			"($1, CURRENT_TIMESTAMP) " .
+			"ON CONFLICT (user_id) DO UPDATE SET " .
+			"last_message_time=CURRENT_TIMESTAMP",
+			array($senderId));
+		return "";
 	}
 }
 
-if ($toaddress && !preg_match('/'.forge_get_config('web_host').'/i',$toaddress)) {
-	exit_error(sprintf(_('You can only send to addresses @<em>%s</em>.'),forge_get_config('web_host')),'home');
+if (!session_loggedin()) {
+	exit_permission_denied();
+}
+$thisUser =& session_get_user();
+$thisUserName = $thisUser->getRealName();
+$thisUserEmail = $thisUser->getEmail();
+
+$recipient = htmlspecialchars(getStringFromRequest('recipient'));
+if (!$recipient) {
+	exit_error('Missing parameter', 'home');
+}
+$theRecipient = user_get_object_by_name($recipient);
+if (!$theRecipient || !is_object($theRecipient)){
+	exit_error('User does not exist.', 'home');
+}
+$recipientName = $theRecipient->getRealName();
+$recipientEmail = trim($theRecipient->getEmail());
+
+$subject = htmlspecialchars(getStringFromRequest('subject'));
+$subject = trim(util_remove_CRLF($subject));
+$body = trim(htmlspecialchars(getStringFromRequest('body')));
+
+$groupObj = false;
+$groupId = false;
+$unix_group_name = trim(htmlspecialchars(getStringFromRequest("groupname")));
+if ($unix_group_name) {
+	$groupObj = group_get_object_by_name($unix_group_name);
+	if (!$groupObj || !is_object($groupObj)){
+		exit_error('Group does not exist.', 'home');
+	}
+	$groupId = $groupObj->getID();
 }
 
 if (getStringFromRequest('send_mail')) {
@@ -61,102 +91,37 @@ if (getStringFromRequest('send_mail')) {
 		exit_form_double_submit('home');
 	}
 
-	$valide = 1;
-	if (!session_loggedin()) {
-		$params['valide'] =& $valide;
-		$params['warning_msg'] =& $warning_msg;
-		plugin_hook('captcha_check', $params);
+	if (!$subject || !$body || !$recipientEmail || !$thisUserName || !$thisUserEmail) {
+		form_release_key(getStringFromRequest('form_key'));
+		exit_error('Missing parameters', 'home');
 	}
 
-	$subject = getStringFromRequest('subject');
-	$body = getStringFromRequest('body');
-	$name = getStringFromRequest('name');
-	$email = getStringFromRequest('email');
-
-	if ($valide) {
-		if (!$subject || !$body || !$name || !$email) {
-			/*
-				force them to enter all vars
-			*/
-			form_release_key(getStringFromRequest('form_key'));
-			exit_missing_param('', array(_('Subject'), _('Body'), _('Name'), _('Email')), 'home');
-		}
-
-		// we remove the CRLF in all thoses vars. This is to make sure that there will be no CRLF Injection
-		$name = util_remove_CRLF($name);
-		// Really don't see what wrong could happen with CRLF in message body
-		//$email = util_remove_CRLF($email);
-		$subject = util_remove_CRLF($subject);
-
-		if ($toaddress) {
-			/*
-				send it to the toaddress
-			*/
-			$to = preg_replace('/_maillink_/i', '@', $toaddress);
-			$to = util_remove_CRLF($to);
-			util_send_message($to, $subject, $body, $email, '', $name);
-			$HTML->header(array('title' => forge_get_config('forge_name').' ' ._('Contact')));
-			echo '<p>'._('Message has been sent').'.</p>';
-			$HTML->footer(array());
-			exit;
-		} elseif ($touser) {
-			/*
-				figure out the user's email and send it there
-			*/
-			$to = db_result($result,0,'email');
-			$to = util_remove_CRLF($to);
-			util_send_message($to, $subject, $body, $email, '', $name);
-			$HTML->header(array('title' => forge_get_config('forge_name').' '._('Contact')));
-			echo '<p>'._('Message has been sent').'</p>';
-			$HTML->footer(array());
-			exit;
-		}
+	// Check and log message sent.
+	$resStatus = logSendMessage($recipientEmail, $thisUser->getId());
+	if ($resStatus != "") {
+		exit_error($resStatus, 'home');
 	}
+
+	// Send message.
+	util_send_message($recipientEmail, $subject, $body, $thisUserEmail, '', $thisUserName);
+
+	$HTML->header(array('title' => forge_get_config('forge_name') . ' Contact'));
+	echo '<p>Message has been sent</p>';
+	$HTML->footer(array());
+
+	exit;
 }
-
-if ($toaddress) {
-	$titleaddress = $toaddress;
-} else {
-	$titleaddress = db_result($result,0,'user_name');
-}
-
-if (session_loggedin()) {
-	$user  =& session_get_user();
-	$name  = $user->getRealName();
-	$email = $user->getEmail();
-	$is_logged = true;
-} else {
-	$is_logged = false;
-	if (!isset($valide)) {
-		$name  = '';
-		$email = '';
-	}
-}
-
-$realname = db_result($result,0,'realname');
-if ($realname == "Local GForge Admin") {
-	// Update display name.
-	$realname = "SimTK WebMaster";
-}
-
-$subject = getStringFromRequest('subject');
-
-// Get group_id if present.
-$group_id = getIntFromRequest("group_id");
 
 // Display header.
-$HTML->header(array('title' => forge_get_config('forge_name').' '._('Contact')));
+$HTML->header(array('title' => forge_get_config('forge_name') . ' Contact'));
 
-if ($touser == 101 && $group_id != 0) {
-	// Display when sending to SimTK WebMaster when group_id is present.
+if ($recipient == "admin" && $groupId !== false) {
+	// Display when sending to SimTK WebMaster and group id is present.
 	echo "<h2>Feedback on SimTK</h2>";
-	echo "<span><b>For general questions about the SimTK website:</b> Send message to $realname using the form below. All fields are required.</span>";
+	echo "<span><b>For general questions about the SimTK website:</b> Send message to $recipientName using the form below. All fields are required.</span>";
 
 	// Check permission first.
-	if (forge_check_perm('project_read', $group_id)) {
-
-		// Has group_id. Look up group object.
-		$groupObj = group_get_object($group_id);
+	if ($groupObj !== false && forge_check_perm('project_read', $groupId)) {
 
 		echo "<h2>Feedback on " . $groupObj->getPublicName() . "</h2>";
 
@@ -166,7 +131,7 @@ if ($touser == 101 && $group_id != 0) {
 		// Check if forum is used in project.
 		$useForum = false;
 		$navigation = new Navigation();
-		$menu = $navigation->getSimtkProjectMenu($group_id);
+		$menu = $navigation->getSimtkProjectMenu($groupId);
 		$menu_max = count($menu['titles'], 0);
 		for ($i=0; $i < $menu_max; $i++) {
 			$menuTitle = $menu['titles'][$i];
@@ -182,15 +147,15 @@ if ($touser == 101 && $group_id != 0) {
 			echo 'For questions related to <b>this project ("' . 
 				$groupObj->getPublicName() . 
 				'")</b>: We recommend posting to their ' .
-				'<a href="/plugins/phpBB/indexPhpbb.php?group_id=' . $group_id .
+				'<a href="/plugins/phpBB/indexPhpbb.php?groupname=' . $unix_group_name .
 				'&pluginname=phpBB">discussion forum</a>. ';
 
 			if (count($projectLeads) > 0) {
 				// Has project lead(s).
 				echo 'For questions not addressed in the forum, you can contact the ' .
-					'<a href="/sendmessage.php?touser=' .
-					$projectLeads[0]->getID() .
-					'&group_id=' . $group_id . '">project administrators</a>.'; 
+					'<a href="/sendmessage.php?recipient=' .
+					$projectLeads[0]->getUnixName() .
+					'&groupname=' . $unix_group_name . '">project administrators</a>.'; 
 			}
 		}
 		else {
@@ -200,15 +165,15 @@ if ($touser == 101 && $group_id != 0) {
 				echo 'For questions related to <b>this project ("' .
 					$groupObj->getPublicName() .
 					'")</b>:" Contact the ' .
-					'<a href="/sendmessage.php?touser=' .
-					$projectLeads[0]->getID() .
-					'&group_id=' . $group_id . '">project administrators</a>.'; 
+					'<a href="/sendmessage.php?recipient=' .
+					$projectLeads[0]->getUnixName() .
+					'&groupname=' . $unix_group_name . '">project administrators</a>.'; 
 			}
 		}
 	}
 }
 else {
-	echo "<br/><span>Send message to $realname using the form below. All fields are required.</span>";
+	echo "<br/><span>Send message to $recipientName using the form below. All fields are required.</span>";
 }
 ?>
 
@@ -217,14 +182,11 @@ else {
 <form action="<?php echo getStringFromServer('PHP_SELF'); ?>" method="post">
 
 <input type="hidden" name="form_key" value="<?php echo form_generate_key(); ?>" />
-<input type="hidden" name="toaddress" value="<?php echo $toaddress; ?>" />
-<input type="hidden" name="touser" value="<?php echo $touser; ?>" />
-<input type="hidden" name="name" value="<?php echo $name; ?>" />
-<input type="hidden" name="email" value="<?php echo $email; ?>" />
+<input type="hidden" name="recipient" value="<?php echo $recipient; ?>" />
 <?php
-if ($group_id != 0) {
-	// Pass along group_id if present.
-	echo '<input type="hidden" name="group_id" value="' . $group_id . '" />';
+if ($unix_group_name) {
+	// Pass along group id if present.
+	echo '<input type="hidden" name="groupname" value="' . $unix_group_name . '" />';
 }
 ?>
 
@@ -242,11 +204,6 @@ if (isset($body)) {
 ?>
 </textarea>
 </p>
-<?php
-if (!$is_logged) {
-	plugin_hook('captcha_form');
-}
-?>
 <br/>
 <input type="submit" name="send_mail" value="Send Message" class="btn-cta" />
 </form>

@@ -287,7 +287,7 @@ function HidePopup()
 </p>
 
 <h2>Social Media (Beta)</h2>
-<p>To add social media links to your SimTK project, <a href="/sendmessage.php?touser=101&subject=<?php
+<p>To add social media links to your SimTK project, <a href="/sendmessage.php?recipient=admin&subject=<?php
         echo urlencode("Add project's social media pages to " . $group->getPublicName() . ".");
 ?>">contact the SimTK Webmaster</a>.</p>
 

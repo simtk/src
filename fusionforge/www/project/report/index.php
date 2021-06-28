@@ -5,6 +5,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2014-2015, Franck Villaume - TrivialDev
+ * Copyright 2005-2021, SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -148,7 +149,7 @@ foreach ($group->getUsers() as $member) {
 	} else {
 		$cells[][] = $link;
 	}
-	$cells[][] = util_make_link('/sendmessage.php?touser='.$member->getId(), sprintf(_('Contact %s'), $member->getRealName()));
+	$cells[][] = util_make_link('/sendmessage.php?recipient='.$member->getUnixName(), sprintf(_('Contact %s'), $member->getRealName()));
 	$roles = RBACEngine::getInstance()->getAvailableRolesForUser ($member) ;
 	sortRoleList ($roles) ;
 	$role_names = array () ;

@@ -6,7 +6,7 @@
  * 
  * File to handle header.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -172,7 +172,7 @@
 		<li class="intend"><a href="/whatIsSimtk.php">What is SimTK?</a></li>
 		<li class="intend"><a href='/features.php'>Features</a></li>
 		<li class="intend"><a href='/faq.php'>FAQ</a></li>
-		<li class="intend"><a href='/sendmessage.php?touser=101'>Contact</a></li>
+		<li class="intend"><a href='/sendmessage.php?recipient=admin'>Contact</a></li>
 	</ul>
 </li>
 

@@ -210,16 +210,16 @@ $(window).load(function() {
 		});
 		if (theGroupId != -1) {
 			// Has group_id.
-			location.href="/feedback.php?touser=101&group_id=" + theGroupId;
+			location.href="/feedback.php?group_id=" + theGroupId;
 		}
 		else {
 			// No group_id from class "divGroupId".
 			// Try extracting from URL.
-			location.href="/feedback.php?touser=101<?php
+			location.href="/feedback.php<?php
 				$groupIdFromURL = $this->extractGroupIdFromURL();
 				if ($groupIdFromURL !== false) {
 					// Has group_id in URL.
-					echo "&group_id=" . $groupIdFromURL;
+					echo "?group_id=" . $groupIdFromURL;
 				}
 			?>";
 		}
@@ -912,7 +912,7 @@ else {
 	echo '<li class="divider"></li>';
 	echo '<li class="intend"><a href="/communities.php" tabindex="-1">All Communities</a></li>';
 	echo '<li class="intend"><a href="/aboutCommunities.php" tabindex="-1">About Communities</a></li>';
-	echo '<li class="intend"><a href="/sendmessage.php?touser=101&subject=Community%20Request" tabindex="-1">Request Community</a></li>';
+	echo '<li class="intend"><a href="/sendmessage.php?recipient=admin&subject=Community%20Request" tabindex="-1">Request Community</a></li>';
 	if ($cntCommunityNames > 0) {
 ?>
 			</ul>
@@ -963,12 +963,12 @@ else {
 
 		<li role="presentation" class="dropdown-header">Support</li>
 		<li class="intend"><a href='/how_to_use_simtk.html'>How to use SimTK</a></li>
-		<li class="intend"><a href='/sendmessage.php?touser=101'>Contact</a></li>
+		<li class="intend"><a href='/sendmessage.php?recipient=admin'>Contact</a></li>
 -->
 		<li class="intend"><a href="/whatIsSimtk.php">What is SimTK?</a></li>
 		<li class="intend"><a href='/features.php'>Features</a></li>
 		<li class="intend"><a href='/faq.php'>FAQ</a></li>
-		<li class="intend"><a class="contact_href" href='/feedback.php?touser=101'>Contact</a></li>
+		<li class="intend"><a class="contact_href" href='/feedback.php'>Contact</a></li>
 	</ul>
 </li>
 
