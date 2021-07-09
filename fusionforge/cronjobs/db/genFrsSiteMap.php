@@ -6,7 +6,7 @@
  * 
  * Generate FRS sitemap.
  * 
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -35,8 +35,8 @@
 require dirname(__FILE__).'/../../common/include/env.inc.php';
 require_once $gfcommon.'include/pre.php';
 
-// Get latest release dates of active projects with public releases.
-$query = "SELECT fp.group_id AS group_id, " .
+// Get latest download release dates of active projects with public releases.
+$query_frs = "SELECT fp.group_id AS group_id, " .
 	"max(fr.release_date) AS release_date " .
 	"FROM frs_package fp " .
 	"JOIN frs_release fr " .
@@ -45,14 +45,51 @@ $query = "SELECT fp.group_id AS group_id, " .
 	"ON g.group_id=fp.group_id " .
 	"WHERE g.status='A' " .
 	"AND fr.status_id=1 " .
-	"GROUP BY fp.group_id " .
-	"ORDER BY fp.group_id";
-
-$result = db_query_params($query, array());
-if (!$result) {
+	"GROUP BY fp.group_id";
+$result_frs = db_query_params($query_frs, array());
+if (!$result_frs) {
 	// Problem with query.
 	exit;
 }
+
+// Get creation date of public, active DataShare studies.
+$query_datashare = "SELECT group_id, date_created AS release_date FROM plugin_datashare " .
+	"WHERE is_private = 0 " .
+	"AND active=1";
+$result_datashare = db_query_params($query_datashare, array());
+if (!$result_datashare) {
+	// Problem with query.
+	exit;
+}
+
+$arrRes = array();
+
+// Get groups from downloads.
+while ($row = db_fetch_array($result_frs)) {
+	$groupId = $row["group_id"];
+	$relDate = $row["release_date"];
+	$arrRes[$groupId] = $relDate;
+}
+
+// Get groups from DataShare.
+while ($row = db_fetch_array($result_datashare)) {
+	$groupId = $row["group_id"];
+	$relDate = $row["release_date"];
+
+	if (!isset($arrRes[$groupId])) {
+		// Insert DataShare entry.
+		$arrRes[$groupId] = $relDate;
+	}
+	else {
+		if ($arrRes[$groupId] < $relDate) {
+			// Use newer date from DataShare.
+			$arrRes[$groupId] = $relDate;
+		}
+	}
+}
+
+// Sort result by group id.
+ksort($arrRes);
 
 // Get server name.
 $serverName = forge_get_config('web_host');
@@ -61,9 +98,7 @@ $serverName = forge_get_config('web_host');
 echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 echo "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n";
 
-while ($row = db_fetch_array($result)) {
-	$groupId = $row["group_id"];
-	$relDate = $row["release_date"];
+foreach ($arrRes as $groupId=>$relDate) {
 	$strRelDate = date('Y-m-d', $relDate);
 
 	echo "<url>\n";
@@ -72,7 +107,8 @@ while ($row = db_fetch_array($result)) {
 	echo "</url>\n";
 }
 
-db_free_result($result);
+db_free_result($result_frs);
+db_free_result($result_datashare);
 
 // Footer.
 echo "</urlset>\n";

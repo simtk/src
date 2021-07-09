@@ -6,7 +6,7 @@
  * 
  * Generate the script that describes dataset in download packages.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -309,8 +309,7 @@ function genDatasetHeader($groupObj, $lastRelDate, $lastRelIds, $thePackages) {
 							$studyDescription = $result->description;
 							$theDesc .= "<li>" . 
 								'<a href="' . $studyURL . '">' . 
-								$studyTitle . '</a>' . 
-								": " . $studyDescription . "</li>";
+								$studyTitle . '</a>' . "</li>";
 						}
 					}
 				}
