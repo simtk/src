@@ -130,23 +130,25 @@ function genDatasetDesc($groupObj, $thePackages, &$lastRelDate, &$lastRelIds) {
 		}
 	}
 
-	if (count($thePackages) >= 1 && $hasFiles !== false) {
-		// There are package(s) with file(s) available.
 
-		// Generate dataset header.
-		$strHeader = genDatasetHeader($groupObj, $lastRelDate, $lastRelIds, $thePackages);
+	// Generate dataset header.
+	$strHeader = genDatasetHeader($groupObj, $lastRelDate, $lastRelIds, $thePackages);
 
-		// Generate dataset trailer.
-		$strTrailer = genDatasetTrailer($groupObj);
+	// Generate dataset trailer.
+	$strTrailer = genDatasetTrailer($groupObj);
 
-		// Generate dataset packages description.
-		$strDistribution = genDatasetDistribution($arrStrPackage);
+	// Generate dataset packages description.
+	$strDistribution = genDatasetDistribution($arrStrPackage);
 
-		// Return dataset description.
+	if ($strHeader !== false) {
+		// There is at least one pacakge with file available, or 
+		// there is at least one public, active DataShare study available.
+		// Return result for Google Dataset search.
 		return $strHeader . $strDistribution . $strTrailer;
 	}
 	else {
-		// No dataset description.
+		// Download package or dataset not available.
+		// Do not include header for Google Dataset search.
 		return "";
 	}
 }
@@ -154,6 +156,41 @@ function genDatasetDesc($groupObj, $thePackages, &$lastRelDate, &$lastRelIds) {
 
 // Generate the dataset header.
 function genDatasetHeader($groupObj, $lastRelDate, $lastRelIds, $thePackages) {
+
+	// Get creation date of public, active DataShare studies.
+	$query_datashare = "SELECT date_created AS release_date FROM plugin_datashare " .
+		"WHERE is_private = 0 " .
+		"AND active=1 " .
+		"AND group_id=$1";
+	$result_datashare = db_query_params($query_datashare, array($groupObj->getID()));
+	if ($result_datashare) {
+		while ($row = db_fetch_array($result_datashare)) {
+			$relDate = $row["release_date"];
+
+			if ($lastRelDate == -1) {
+				// No release date encountered yet.
+				// Use this date from DataShare study.
+				$lastRelDate = $relDate;
+			}
+			else {
+				if ($lastRelDate < $relDate) {
+					// Use the newer DataShare date.
+					$lastRelDate = $relDate;
+				}
+			}
+		}
+	}
+
+	if ($lastRelDate == -1) {
+		// No release date found.
+		// Package or DataShare study is not available.
+		// Done. Do not include header for Google Dataset search.
+		return false;
+	}
+
+
+	// There is at least one pacakge with file available, or 
+	// there is at least one public, active DataShare study available.
 
 	$serverName = getServerName();
 
