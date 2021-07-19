@@ -320,11 +320,19 @@ function myUserProfile($user) {
 			'</span><br/>';
 	}
 
+	// ORCID ID.
+	$orcid = trim($user->getORCIDiD());
+	if ($orcid != "") {
+		$strRet .= '<br/><a href="' . 
+			'http://orcid.org/' . $orcid .
+			'">http://orcid.org/' . $orcid . '</a>' .
+			'<br/><br/>';
+	}
+
 	// Contact by email.
 	$strRet .= '<br/><strong><span property="sioc:email_sha1" content="'. $user_mailsha1 .'">' .
 		util_make_link(
-			'/sendmessage.php?recipient=' . $user->getUnixName(),
-//			'Contact ' . $user->getRealName()) . 
+			'/sendmessage.php?recipient=' . $user->getUnixName(), 
 			'<img src="/images/email103.png"/>&nbsp;Contact') . 
 		'</span></strong><br/><br/>';
 
