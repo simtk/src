@@ -323,14 +323,14 @@ function myUserProfile($user) {
 	// ORCID ID.
 	$orcid = trim($user->getORCIDiD());
 	if ($orcid != "") {
-		$strRet .= '<br/><a href="' . 
+		$strRet .= 'ORCID:&nbsp;<a href="' . 
 			'http://orcid.org/' . $orcid .
-			'">http://orcid.org/' . $orcid . '</a>' .
-			'<br/><br/>';
+			'">' . $orcid . '</a>' .
+			'<br/>';
 	}
 
 	// Contact by email.
-	$strRet .= '<br/><strong><span property="sioc:email_sha1" content="'. $user_mailsha1 .'">' .
+	$strRet .= '<strong><span property="sioc:email_sha1" content="'. $user_mailsha1 .'">' .
 		util_make_link(
 			'/sendmessage.php?recipient=' . $user->getUnixName(), 
 			'<img src="/images/email103.png"/>&nbsp;Contact') . 
