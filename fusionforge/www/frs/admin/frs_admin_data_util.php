@@ -127,6 +127,7 @@ function getFrsPackagesInfo($groupId, $pubSql) {
 				"ff.file_size AS file_size, " .
 				"ff.file_id AS file_id, " .
 				"ff.release_time AS release_time, " .
+				"ff.post_date AS post_date, " .
 				"ffv.filetype AS filetype, " .
 				"ff.simtk_rank AS rank, " .
 				"ff.simtk_filename_header AS filename_header, " .
@@ -159,6 +160,7 @@ function getFrsPackagesInfo($groupId, $pubSql) {
 				$fileInfo['file_id'] = $theFile['file_id'];
 				$fileInfo['filename'] = $theFile['filename'];
 				$fileInfo['release_time'] = $theFile['release_time'];
+				$fileInfo['post_date'] = $theFile['post_date'];
 				$fileInfo['file_size'] = $theFile['file_size'];
 				$fileInfo['downloads'] = $theFile['downloads'];
 				$fileInfo['processor'] = $theFile['processor'];

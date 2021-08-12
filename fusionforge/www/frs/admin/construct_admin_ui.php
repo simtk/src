@@ -6,7 +6,7 @@
  * 
  * Construct UI for downloads administration.
  *
- * Copyright 2005-2020, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -663,7 +663,7 @@ function constructFileUI($groupId,
 
 	$fileId = $fileInfo["file_id"];
 	$fileName = $fileInfo["filename"];
-	$fileTime = $fileInfo["release_time"];
+	$fileTime = $fileInfo["post_date"];
 	$fileSize = $fileInfo["file_size"];
 	$fileDownloads = $fileInfo["downloads"];
 	$fileProcessor = $fileInfo["processor"];
