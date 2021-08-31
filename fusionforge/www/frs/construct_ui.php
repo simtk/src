@@ -634,7 +634,7 @@ function constructFileUI($groupId, $release_id,
 
 	$fileId = $fileInfo["file_id"];
 	$fileName = $fileInfo["filename"];
-	$fileTime = $fileInfo["post_date"];
+	$fileTime = $fileInfo["release_time"];
 	$fileSize = $fileInfo["file_size"];
 	$fileDownloads = $fileInfo["downloads"];
 	$fileProcessor = $fileInfo["processor"];
