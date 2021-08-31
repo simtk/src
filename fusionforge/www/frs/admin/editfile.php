@@ -793,7 +793,8 @@ if ($strMailingListPopup != false && trim($strMailingListPopup) != "") {
 </tr>
 <tr>
 	<td><strong>Release Date:</strong></td>
-	<td><input type="text" name="release_date" value="<?php echo date('Y-m-d', $frsf->getReleaseTime()); ?>" size="10" maxlength="10" /></td>
+	<td><input type="text" name="release_date" value="<?php echo date('Y-m-d'); ?>" size="10" maxlength="10" /> (Last Release Date: <?php echo date('Y-m-d', $frsf->getReleaseTime()); ?>)
+	</td>
 </tr>
 <tr>
 	<td><span class="cellDoi"><strong>DOI:</strong></span></td>

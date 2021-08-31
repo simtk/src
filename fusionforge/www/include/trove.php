@@ -5,6 +5,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2010-2011, Franck Villaume - Capgemini
  * Copyright 2014, Franck Villaume - TrivialDev
+ * Copyright 2005-2021, SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -300,9 +301,14 @@ function trove_getcatlisting($group_id, $a_filter, $a_cats, $a_complete=0) {
 		// filter links, to add discriminators
 		// first check to see if filter is already applied
 		$filterisalreadyapplied = 0;
-		for ($i=0;$i<sizeof($expl_discrim);$i++) {
-			if ($folders_ids[$folders_len-1] == $expl_discrim[$i]) {
-				$filterisalreadyapplied = 1;
+		if (is_array($expl_discrim)) { // in Widget_ProjectInfo class, $expl_discrim is null.
+			for ($i=0;$i<count($expl_discrim);$i++) {
+				if (isset($folders_ids[$folders_len-1]) &&
+					isset($expl_discrim[$i])) {
+					if ($folders_ids[$folders_len-1] == $expl_discrim[$i]) {
+						$filterisalreadyapplied = 1;
+					}
+				}
 			}
 		}
 		// then print the stuff
@@ -337,17 +343,21 @@ function trove_getcatlisting($group_id, $a_filter, $a_cats, $a_complete=0) {
 			if ($filterisalreadyapplied) {
 				$return .= ' <strong>'._('(Now Filtering)').'</strong> ';
 			} else {
-				if ($discrim_url) {
-					$extraurlparam = $discrim_url.','.$folders_ids[$folders_len-1];
-				} else {
-					$extraurlparam = '&discrim='.$folders_ids[$folders_len-1];
+				if (isset($folders_ids[$folders_len-1])) {
+					if ($discrim_url) {
+						$extraurlparam = $discrim_url.','.$folders_ids[$folders_len-1];
+					} else {
+						$extraurlparam = '&discrim='.$folders_ids[$folders_len-1];
+					}
+					$return .= util_make_link('/softwaremap/trove_list.php?cat=c&form_cat='.$form_cat.$extraurlparam, _('[Filter]'));
 				}
-				$return .= util_make_link('/softwaremap/trove_list.php?cat=c&form_cat='.$form_cat.$extraurlparam, _('[Filter]'));
 			}
 		}
 		$proj_discrim_used[$folders_ids[0]] = 1;
 		$isfirstdiscrim = 0;
 	}
+	// Free result.
+	db_free_result($res_trovecat);
 	if ($need_close_ul_tag) {
 		$return .= '</li></ul>';
 	}
