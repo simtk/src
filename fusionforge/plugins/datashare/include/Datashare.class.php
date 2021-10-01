@@ -5,7 +5,7 @@
  * 
  * The class which contains all methods for the datashare plugin.
  *
- * Copyright 2005-2020, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -166,40 +166,239 @@ class Datashare extends FFError {
 	/**
 	 *  getStudy() - get all rows for this study from the database.
 	 *
-	 *	@return	arrray  The array of Followings 
+	 *	@return	arrray  The data array of this study.
 	 */
 	function getStudy($study_id) {
 
 		$study_id = (int) $study_id;
-		$res = db_query_params("SELECT * FROM plugin_datashare WHERE study_id = $1",array($study_id));
+		$res = db_query_params("SELECT * FROM plugin_datashare " .
+			"WHERE study_id = $1",
+			array($study_id));
 
 		if (!$res || db_numrows($res) < 1) {
 			return false;
 		}
 
-                $results = array();
+		$results = array();
 
-                while ($row = db_fetch_array($res)) {
-                   $result = new DALQueryResultDS();
+		while ($row = db_fetch_array($res)) {
+			$result = new DALQueryResultDS();
 
-                   foreach ($row as $k=>$v){
-                      $result->$k = $v;
-                   }
+			foreach ($row as $k=>$v){
+				$result->$k = $v;
+			}
 
-                   $results[] = $result;
-
-                }
+			$results[] = $result;
+		}
 
 		db_free_result($res);
 
 		return $results;
-
 	}
 
 	/**
-	 *  getStudy() - get all rows for this study from the database.
+	 *  getCitations() - get citations of this study.
 	 *
-	 *	@return	arrray  The array of Followings 
+	 */
+	function getCitations($study_id) {
+
+		$study_id = (int) $study_id;
+		$res = db_query_params("SELECT * FROM plugin_datashare_citation " .
+			"WHERE study_id = $1",
+			array($study_id));
+
+		if (!$res || db_numrows($res) < 1) {
+			return false;
+		}
+
+		$results = array();
+
+		while ($row = db_fetch_array($res)) {
+			$result = new DALQueryResultDS();
+
+			foreach ($row as $k=>$v){
+				$result->$k = $v;
+			}
+
+			$results[] = $result;
+		}
+
+		db_free_result($res);
+
+		return $results;
+	}
+
+
+	// Display citations, if any.
+	function displayCitations($group_id, $study_id, $isAdmin=false) {
+
+		if ($isAdmin) {
+			// Check permissions.
+			if (!session_loggedin() || !($user = &session_get_user())) {
+				exit_not_logged_in();
+			}
+			if (!forge_check_perm("datashare", $group_id, 'write')) {
+				exit_permission_denied("You cannot manage citations unless you are an admin on that project.");
+			}
+
+			echo '<a class="btn-blue" ' .
+				'href="/plugins/datashare/admin/addCitation.php?' .
+				'group_id=' . $group_id .
+				'&study_id=' . $study_id .
+				'">Add Citation</a><br/>';
+		}
+
+		$citations = $this->getCitations($study_id);
+		if ($citations == false) {
+			// No citations found.
+			if ($isAdmin) {
+				echo "<br/>This study has no citations.";
+			}
+
+			return;
+		}
+
+		$arrCite = array();
+		$arrNonCite = array();
+		$numCitations = count($citations);
+		for ($cnt = 0; $cnt < $numCitations; $cnt++) {
+			if ($citations[$cnt]->cite) {
+				$arrCite[] = $citations[$cnt];
+			}
+			else {
+				$arrNonCite[] = $citations[$cnt];
+			}
+		}
+
+		$numCites = count($arrCite);
+		if ($numCites > 0) {
+			echo '<div style="width:95%">';
+
+			echo '<div class="download_citation">';
+			if ($isAdmin) {
+				echo '<div class="download_subtitle">CATEGORY: "PLEASE CITE THESE PAPERS"</div>';
+			}
+			else {
+				echo '<div class="download_subtitle">PLEASE CITE THESE PAPERS</div>';
+			}
+			echo '<div style="clear:both"></div>';
+
+			for ($cnt = 0; $cnt < $numCites; $cnt++) {
+				echo htmlspecialchars($arrCite[$cnt]->authors) . " " . 
+					htmlspecialchars($arrCite[$cnt]->title) . " " .
+					htmlspecialchars($arrCite[$cnt]->publisher_information) . " ";
+				if (trim($arrCite[$cnt]->doi) != "") {
+					echo '<span class="download_extra">';
+					echo '<a target="_blank" href="' . 
+						'http://doi.org/' . 
+						htmlspecialchars($arrCite[$cnt]->doi) . 
+						'">doi: ' . 
+						htmlspecialchars($arrCite[$cnt]->doi) .
+						'</a> ';
+					echo '</span>';
+				}
+				echo "(" . $arrCite[$cnt]->citation_year . ") ";
+				if (trim($arrCite[$cnt]->url) != "") {
+					echo '<span class="download_extra">';
+					echo '<a target="_blank" href="' . 
+						htmlspecialchars($arrCite[$cnt]->url) . 
+						'">View</a>';
+					echo '</span>';
+				}
+				
+				if ($isAdmin) {
+					echo '<div style="display:inline;">';
+					echo '&nbsp;';
+					echo '<a class="btn-blue" ' .
+						'href="/plugins/datashare/admin/updateCitation.php?' .
+						'group_id=' . $group_id .
+						'&study_id=' . $study_id .
+						'&citation_id=' . $arrCite[$cnt]->citation_id .
+						'">Update</a>';
+					echo '&nbsp;';
+					echo '<a class="btn-blue" ' .
+						'href="/plugins/datashare/admin/deleteCitation.php?' .
+						'group_id=' . $group_id .
+						'&study_id=' . $study_id .
+						'&citation_id=' . $arrCite[$cnt]->citation_id .
+						'">Delete</a>';
+					echo '</div>';
+				}
+				echo '<br/>';
+				echo '<br/>';
+			}
+
+			echo "</div>";
+			echo "</div>";
+		}
+
+		$numNonCite = count($arrNonCite);
+		if ($numNonCite > 0) {
+			echo '<div style="width:95%">';
+
+			echo '<div class="download_citation">';
+			if ($isAdmin) {
+				echo '<div class="download_subtitle">CATEGORY: "ADDITIONAL PAPERS"</div>';
+			}
+			else {
+				echo '<div class="download_subtitle">ADDITIONAL PAPERS</div>';
+			}
+			echo '<div style="clear:both"></div>';
+
+			for ($cnt = 0; $cnt < $numNonCite; $cnt++) {
+				echo htmlspecialchars($arrNonCite[$cnt]->authors) . " " . 
+					htmlspecialchars($arrNonCite[$cnt]->title) . " " .
+					htmlspecialchars($arrNonCite[$cnt]->publisher_information) . " ";
+				if (trim($arrNonCite[$cnt]->doi) != "") {
+					echo '<span class="download_extra">';
+					echo '<a target="_blank" href="' . 
+						'http://doi.org/' . 
+						htmlspecialchars($arrNonCite[$cnt]->doi) . 
+						'">doi: ' . 
+						htmlspecialchars($arrNonCite[$cnt]->doi) .
+						'</a> ';
+					echo '</span>';
+				}
+				echo "(" . $arrNonCite[$cnt]->citation_year . ") ";
+				if (trim($arrNonCite[$cnt]->url) != "") {
+					echo '<span class="download_extra">';
+					echo '<a target="_blank" href="' . 
+						htmlspecialchars($arrNonCite[$cnt]->url) . 
+						'">View</a>';
+					echo '</span>';
+				}
+
+				if ($isAdmin) {
+					echo '<div style="display:inline;">';
+					echo '&nbsp;';
+					echo '<a class="btn-blue" ' .
+						'href="/plugins/datashare/admin/updateCitation.php?' .
+						'group_id=' . $group_id .
+						'&study_id=' . $study_id .
+						'&citation_id=' . $arrNonCite[$cnt]->citation_id .
+						'">Update</a>';
+					echo '&nbsp;';
+					echo '<a class="btn-blue" ' .
+						'href="/plugins/datashare/admin/deleteCitation.php?' .
+						'group_id=' . $group_id .
+						'&study_id=' . $study_id .
+						'&citation_id=' . $arrNonCite[$cnt]->citation_id .
+						'">Delete</a>';
+					echo '</div>';
+				}
+				echo '<br/>';
+				echo '<br/>';
+			}
+
+			echo "</div>";
+			echo "</div>";
+		}
+	}
+
+	/**
+	 *  getStudyByGroup() - get all rows for this study from the database.
+	 *
+	 *	@return	arrray  The data array of this study.
 	 */
 	function getStudyByGroup($group_id) {
 
