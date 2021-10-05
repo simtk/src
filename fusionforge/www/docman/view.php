@@ -47,10 +47,16 @@ $g = group_get_object($group_id);
 if (!$g || !is_object($g)) {
 	exit_no_group();
 } elseif ($g->isError()) {
+	/*
 	if ($g->isPermissionDeniedError()) {
 		exit_permission_denied();
 	}
+	*/
 	exit_error($g->getErrorMessage(), 'docman');
+}
+// Check project read privilege.
+if (!forge_check_perm('project_read', $group_id)) {
+	exit_permission_denied();
 }
 
 if (is_numeric($docid)) {
@@ -225,6 +231,7 @@ if (is_numeric($docid)) {
 							error_log("PHP Warning:  " .
 								"docman: File does not exist (" .
 								$g->getUnixName() . ":" . 
+								$doc->getFilePath() . ":" . 
 								$doc->getFileName() . ")");
 							continue;
 						}
