@@ -224,8 +224,8 @@ function genDatasetHeader($groupObj, $lastRelDate, $lastRelIds, $thePackages) {
 	}
 
 	$numPackages = count($thePackages);
-	$theDesc .= "<br/><br/>" . "This project includes the following software/data packages: <br/>";
-	$theDesc .= "<ul>";
+	$theDesc .= "\n\n<br/><br/>" . "This project includes the following software/data packages: \n<br/>";
+	$theDesc .= "\n<ul>";
 	foreach ($thePackages as $idxPack=>$packageInfo) {
 
 		if (!isset($lastRelIds[$idxPack])) {
@@ -249,7 +249,7 @@ function genDatasetHeader($groupObj, $lastRelDate, $lastRelIds, $thePackages) {
 			$strPackage = '<a href="' . $packageURL . '">' . $packageName . '</a>';
 		}
 
-		$theDesc .= "<li>" . $strPackage . "</li>";
+		$theDesc .= "<li>" . $strPackage . "</li>\n";
 	}
 
 	// Get Data Share studies.
@@ -272,13 +272,13 @@ function genDatasetHeader($groupObj, $lastRelDate, $lastRelIds, $thePackages) {
 						$theDesc .= "<li>" . 
 							'<a href="' . $studyURL . '">' . 
 							$studyTitle . '</a>' . 
-							": " . $studyDescription . "</li>";
+							": " . $studyDescription . "</li>\n";
 					}
 				}
 			}
 		}
 	}
-	$theDesc .= "</ul>";
+	$theDesc .= "\n</ul>";
 
 	$strDesc = htmlspecialchars($theDesc, ENT_QUOTES);
 	if (strlen($strDesc) >= 5000) {
@@ -303,8 +303,8 @@ function genDatasetHeader($groupObj, $lastRelDate, $lastRelIds, $thePackages) {
 		}
 
 		$numPackages = count($thePackages);
-		$theDesc .= "<br/><br/>" . "This project includes the following software/data packages: <br/>";
-		$theDesc .= "<ul>";
+		$theDesc .= "\n\n<br/><br/>" . "This project includes the following software/data packages: \n<br/>";
+		$theDesc .= "\n<ul>";
 		foreach ($thePackages as $idxPack=>$packageInfo) {
 
 			if (!isset($lastRelIds[$idxPack])) {
@@ -324,7 +324,7 @@ function genDatasetHeader($groupObj, $lastRelDate, $lastRelIds, $thePackages) {
 			// Do not include description.
 			$strPackage = '<a href="' . $packageURL . '">' . $packageName . '</a>';
 	
-			$theDesc .= "<li>" . $strPackage . "</li>";
+			$theDesc .= "<li>" . $strPackage . "</li>\n";
 		}
 
 		// Get Data Share studies.
@@ -346,13 +346,13 @@ function genDatasetHeader($groupObj, $lastRelDate, $lastRelIds, $thePackages) {
 							$studyDescription = $result->description;
 							$theDesc .= "<li>" . 
 								'<a href="' . $studyURL . '">' . 
-								$studyTitle . '</a>' . "</li>";
+								$studyTitle . '</a>' . "</li>\n";
 						}
 					}
 				}
 			}
 		}
-		$theDesc .= "</ul>";
+		$theDesc .= "\n</ul>";
 
 		$strDesc = htmlspecialchars($theDesc, ENT_QUOTES);
 	}
@@ -619,7 +619,7 @@ function genPackageDatasetDesc($groupObj, $packageInfo, $releaseInfo) {
 					if (!empty($packDoiIdentifier)) {
 						// Package has requested DOI and has package DOI.
 						// Show the package DOI.
-						$strPackage .= '"identifier": "https://doi.org/' . $packDoiIdentifier . '",';
+						$strPackage .= ', "identifier": "https://doi.org/' . $packDoiIdentifier . '"';
 					}
 				}
 				else {
@@ -629,7 +629,7 @@ function genPackageDatasetDesc($groupObj, $packageInfo, $releaseInfo) {
 					$numFileDoi = count($arrFileDoi);
 					for ($cnt = 0; $cnt < $numFileDoi; $cnt++) {
 						if ($cnt == 0) {
-							$strPackage .= '"identifier": ' . $arrFileDoi[$cnt] . ',';
+							$strPackage .= ', "identifier": ' . $arrFileDoi[$cnt];
 						}
 					}
 				}

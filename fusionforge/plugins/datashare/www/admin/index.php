@@ -206,6 +206,12 @@ if (session_loggedin()) {
 							"group_id=$group_id&" .
 							"study_id=$result->study_id'>" .
 							"Edit</a>";
+						echo "<br/><a class='btn-blue' " .
+							"style='margin-top:2px;' " .
+							"href='managePubs.php?" .
+							"group_id=$group_id&" .
+							"study_id=$result->study_id'>" .
+							"Manage Citations</a>";
 					}
 					else {
 						// DOI assigned already.
@@ -220,6 +226,12 @@ if (session_loggedin()) {
 						"group_id=$group_id&" .
 						"study_id=$result->study_id'>" .
 						"Edit</a>";
+					echo "<br/><a class='btn-blue' " .
+						"style='margin-top:2px;' " .
+						"href='managePubs.php?" .
+						"group_id=$group_id&" .
+						"study_id=$result->study_id'>" .
+						"Manage Citations</a>";
 				}
 
 				if ($study->isDOI($result->study_id)) {

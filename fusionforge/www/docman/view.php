@@ -9,7 +9,7 @@
  * Copyright 2010-2011, Franck Villaume - Capgemini
  * Copyright (C) 2010-2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012,2014, Franck Villaume - TrivialDev
- * Copyright 2016-2019, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -47,10 +47,16 @@ $g = group_get_object($group_id);
 if (!$g || !is_object($g)) {
 	exit_no_group();
 } elseif ($g->isError()) {
+	/*
 	if ($g->isPermissionDeniedError()) {
 		exit_permission_denied();
 	}
+	*/
 	exit_error($g->getErrorMessage(), 'docman');
+}
+// Check project read privilege.
+if (!forge_check_perm('project_read', $group_id)) {
+	exit_permission_denied();
 }
 
 if (is_numeric($docid)) {
@@ -94,7 +100,10 @@ if (is_numeric($docid)) {
 	ob_end_clean();
 
 	$file_path = $d->getFilePath();
-	$length = filesize($file_path);
+	$length = 0;
+	if (file_exists($file_path)) {
+		$length = filesize($file_path);
+	}
 	header("Content-length: $length");
 
 	readfile_chunked($file_path);
@@ -124,13 +133,19 @@ if (is_numeric($docid)) {
 			}
 
 			if ( !docman_fill_zip($zip, $nested_groups, $df)) {
+				if ($zip->numFiles > 0) {
+					// Close zip to unlock previously added files.
+					$zip->close();
+				}
 				@unlink($file);
 				exit_error(_('Unable to fill ZIP archive for backup'), 'docman');
 			}
 
-			if ( !$zip->close()) {
-				@unlink($file);
-				exit_error(_('Unable to close ZIP archive for backup'), 'docman');
+			if ($zip->numFiles > 0) {
+				if (!$zip->close()) {
+					@unlink($file);
+					exit_error(_('Unable to close ZIP archive for backup'), 'docman');
+				}
 			}
 
 			header('Content-disposition: attachment; filename="'.$filename.'"');
@@ -211,18 +226,56 @@ if (is_numeric($docid)) {
 						if ($doc->isURL()) {
 							continue;
 						}
-						if (!$zip->addFromString(iconv("UTF-8", "ASCII//TRANSLIT", $doc->getFileName()), $doc->getFileData()))
-							exit_error(_('Unable to fill ZIP file.'), 'docman');
+						if (!file_exists($doc->getFilePath())) {
+							// Skip; file does not exist.
+							error_log("PHP Warning:  " .
+								"docman: File does not exist (" .
+								$g->getUnixName() . ":" . 
+								$doc->getFilePath() . ":" . 
+								$doc->getFileName() . ")");
+							continue;
+						}
+						// Use addFile() to avoid memory exhaustion problem.
+						//if (!$zip->addFromString(iconv("UTF-8", "ASCII//TRANSLIT", $doc->getFileName()), $doc->getFileData()))
+
+						if (!$zip->addFile($doc->getFilePath(), $doc->getFileName())) {
+							if ($zip->numFiles > 0) {
+								// Close zip to unlock previously added files.
+								$zip->close();
+							}
+							@unlink($file);
+							error_log("PHP Warning:  " .
+								"docman: Unable to add file (" .
+								$g->getUnixName() . ":" . 
+								$doc->getFileName() . ")");
+							exit_error("Unable to add file (" .
+								$g->getUnixName() . ":" . 
+								$doc->getFileName() . ")", 
+								'docman');
+						}
+						$zip->setCompressionName($doc->getFilePath(), ZipArchive::CM_STORE);
 					}
 				}
-				if ( !docman_fill_zip($zip, $nested_groups, $df, $dg->getID())) {
+				if (!docman_fill_zip($zip, $nested_groups, $df, $dg->getID())) {
+					if ($zip->numFiles > 0) {
+						// Close zip to unlock previously added files.
+						$zip->close();
+					}
 					@unlink($file);
+					error_log("PHP Warning:  " .
+						"docman: Unable to fill ZIP file (" .
+						$g->getUnixName() . ")");
 					exit_error(_('Unable to fill ZIP archive for download as ZIP'), 'docman');
 				}
 
-				if ( !$zip->close()) {
-					@unlink($file);
-					exit_error(_('Unable to close ZIP archive for download as ZIP'), 'docman');
+				if ($zip->numFiles > 0) {
+					if (!$zip->close()) {
+						@unlink($file);
+						error_log("PHP Warning:  " .
+							"docman: Unable to close ZIP archive file (" .
+							$file . ")");
+						exit_error("Unable to close ZIP archive for download as ZIP", 'docman');
+					}
 				}
 
 				header('Content-disposition: attachment; filename="'.$filename.'"');
@@ -234,11 +287,11 @@ if (is_numeric($docid)) {
 				ob_end_clean();
 
 				if(!readfile_chunked($file)) {
-					unlink($file);
+					@unlink($file);
 					$error_msg = _('Unable to download ZIP archive');
 					session_redirect('/docman/?group_id='.$group_id.'&view=admin&error_msg='.urlencode($error_msg));
 				}
-				unlink($file);
+				@unlink($file);
 			} else {
 				$warning_msg = _('This documents folder is empty.');
 				session_redirect('/docman/?group_id='.$group_id.'&view=listfile&dirid='.$dirid.'&warning_msg='.urlencode($warning_msg));
@@ -259,29 +312,59 @@ if (is_numeric($docid)) {
 				if (!empty($docid)) {
 					$d = new Document($g, $docid);
 					if (!$d || !is_object($d)) {
-						@unlink($file);
-						exit_error(_('Document is not available.'), 'docman');
-					} elseif ($d->isError()) {
-						@unlink($file);
-						exit_error($d->getErrorMessage(), 'docman');
+						//@unlink($file);
+						//exit_error(_('Document is not available.'), 'docman');
+						continue;
+					}
+					elseif ($d->isError()) {
+						//@unlink($file);
+						//exit_error($d->getErrorMessage(), 'docman');
+						continue;
 					}
 					if ($d->isURL()) {
 						continue;
 					}
-					if (!$zip->addFromString(iconv("UTF-8", "ASCII//TRANSLIT", $d->getFileName()), $d->getFileData())) {
-						@unlink($file);
-						exit_error(_('Unable to fill ZIP file.'), 'docman');
+					if (!file_exists($d->getFilePath())) {
+						// Skip; file does not exist.
+						error_log("PHP Warning:  " .
+							"docman: File does not exist (" .
+							$g->getUnixName() . ":" . 
+							$d->getFileName() . ")");
+						continue;
 					}
-				} else {
-					$zip->close();
-					unlink($file);
+					// Use addFile() to avoid memory exhaustion problem.
+					//if (!$zip->addFromString(iconv("UTF-8", "ASCII//TRANSLIT", $d->getFileName()), $d->getFileData())) {
+					if (!$zip->addFile($d->getFilePath(), $d->getFileName())) {
+						if ($zip->numFiles > 0) {
+							// Close zip to unlock previously added files.
+							$zip->close();
+						}
+						@unlink($file);
+						error_log("PHP Warning:  " .
+							"DocMan: Unable to add file (" .
+							$g->getUnixName() . ":" . 
+							$d->getFileName() . ")");
+						exit_error("Unable to add file (" .
+							$g->getUnixName() . ":" . 
+							$d->getFileName() . ")", 
+							'docman');
+					}
+					$zip->setCompressionName($d->getFilePath(), ZipArchive::CM_STORE);
+				}
+				else {
+					if ($zip->numFiles > 0) {
+						$zip->close();
+					}
+					@unlink($file);
 					$warning_msg = _('No action to perform');
 					session_redirect('/docman/?group_id='.$group_id.'&view=listfile&dirid='.$dirid.'&warning_msg='.urlencode($warning_msg));
 				}
 			}
-			if ( !$zip->close()) {
-				@unlink($file);
-				exit_error(_('Unable to close ZIP archive for download as ZIP'), 'docman');
+			if ($zip->numFiles > 0) {
+				if (!$zip->close()) {
+					@unlink($file);
+					exit_error(_('Unable to close ZIP archive for download as ZIP'), 'docman');
+				}
 			}
 
 			header('Content-disposition: attachment; filename="'.$filename.'"');
@@ -293,11 +376,11 @@ if (is_numeric($docid)) {
 			ob_end_clean();
 
 			if(!readfile_chunked($file)) {
-				unlink($file);
+				@unlink($file);
 				$error_msg = _('Unable to download ZIP archive');
 				session_redirect('/docman/?group_id='.$group_id.'&view=admin&error_msg='.urlencode($error_msg));
 			}
-			unlink($file);
+			@unlink($file);
 		} else {
 			exit_error(_('No document to display - invalid or inactive document number.'), 'docman');
 		}
