@@ -2,10 +2,10 @@
 
 /**
  *
- * aboutCommunities.php
+ * uploadProgress.php
  * 
- * About Communities page.
- * 
+ * Send upload progress.
+ *
  * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
@@ -31,21 +31,47 @@
  * License along with SimTK. If not, see  
  * <http://www.gnu.org/licenses/>.
  */ 
- 
-require_once 'env.inc.php';
-require_once $gfcommon.'include/pre.php';
-$HTML->header(array());
 
-?>
+// Get session status.
+$statusSession = session_status();
+if ($statusSession !== PHP_SESSION_DISABLED) {
+	// Session enabled.
+	if ($statusSession !== PHP_SESSION_ACTIVE) {
+		// Start session to get the $_SESSION variable.
+		session_start();
+	}
+}
 
-<h2>Communities</h2>
-<br/>
-<span><p>Communities are collections of projects that automatically display the latest news, publications, and discussions happening among those projects.</p></span>
+$theToken = false;
 
-<a style="white-space:nowrap;" class="btn-cta" href="/communities.php">Explore communities</a>&nbsp;
-<a style="white-space:nowrap;" class="btn-cta" href="/sendmessage.php?recipient=admin&subject=Community%20Request">Request a community</a>
+// Examine each POST parameter.
+foreach ($_POST as $key=>$val) {
+	// Get JSON-decoded data from the key.
+	$theData = json_decode($key, true);
+	if ($theData !== null && is_array($theData)) {
+		// Has JSON data and data is array.
+		if (isset($theData["token"])) {
+			// Found the token.
+			$theToken = $theData["token"];
+			$theToken = intval($theToken);
+		}
+	}
+}
+if ($theToken === false) {
+	// Token does not exist.
+	echo -1;
+	return;
+}
 
-<?php
-$HTML->footer(array());
+$key = ini_get("session.upload_progress.prefix") . $theToken;
+if (isset($_SESSION[$key])) {
+	// Found upload_progress.
+	echo json_encode($_SESSION[$key]);
+}
+else {
+	// Upload progress info does not exist; it has been cleared already.
+	echo -1;
+}
+
 ?>
 

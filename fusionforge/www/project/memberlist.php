@@ -5,7 +5,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2014, Franck Villaume - TrivialDev
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -136,13 +136,15 @@ foreach ($arrInfo as $idx=>$val) {
 	$arrSort['Name'][$idx] = $val['Name'];
 }
 
-if ($mySelect == 'sortRole') {
-	// Sort by role first, then by name.
-	array_multisort($arrSort['Role'], SORT_ASC, $arrSort['Name'], SORT_ASC, $arrInfo);
-}
-else {
-	// Sort by name first, then by role.
-	array_multisort($arrSort['Name'], SORT_ASC, $arrSort['Role'], SORT_ASC, $arrInfo);
+if (isset($arrSort['Role']) && isset($arrSort['Name'])) {
+	if ($mySelect == 'sortRole') {
+		// Sort by role first, then by name.
+		array_multisort($arrSort['Role'], SORT_ASC, $arrSort['Name'], SORT_ASC, $arrInfo);
+	}
+	else {
+		// Sort by name first, then by role.
+		array_multisort($arrSort['Name'], SORT_ASC, $arrSort['Role'], SORT_ASC, $arrInfo);
+	}
 }
 
 foreach ($arrInfo as $idx=>$val) {

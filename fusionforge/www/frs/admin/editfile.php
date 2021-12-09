@@ -124,7 +124,9 @@ if (($submitAndNotify || $submitNoNotify) &&
 	// get user
 	$user = session_get_user(); // get the session user
 	$user_id = $user->getID();
-	
+
+	$ret = false;
+	$error_msg = "";
 	$isDocTypeGitHubArchive = false;
 	if ($docType == 2) {
 		// URL
@@ -245,7 +247,9 @@ if (($submitAndNotify || $submitNoNotify) &&
 		}
 	}
 	else {
-		$error_msg .= $ret ;
+		if ($ret !== false) {
+			$error_msg .= $ret ;
+		}
 	}
 }
 
@@ -254,6 +258,9 @@ frs_admin_header(array('title'=>'Update File','group'=>$group_id));
 
 <script>
 	$(document).ready(function() {
+		// Add div for display of percent completion.
+		$(".project_menu_row").after('<div id="percentCompleted"></div>');
+
 		// Handle popover show and hide.
 		$(".myPopOver").hover(function() {
 			$(this).find(".popoverLic").popover("show");
@@ -410,6 +417,21 @@ if ($frsf->getShowNotes() === "1") {
 				}
 			}
 			$(this).prop("value", "Updating File...");
+
+			// Query for upload progress.
+			$(".warning_msg").hide();
+			if ($('#docFile').is(":checked")) {
+				$("#percentCompleted").html('<div class="warning_msg" style="padding:8px;border:1px dotted;margin-top:12px;margin-bottom:12px;line-height:18px;"><div style="float:left;">' + '<b>Uploading file. Please wait: Do not navigate away from this page until the upload is complete.</b>' + '</div><div style="float:right;" onclick="$(\'.warning_msg\').hide(\'slow\');">&nbsp;&nbsp;&nbsp;&nbsp;X&nbsp;&nbsp;&nbsp;&nbsp;</div><div style="clear: both;"></div></div>');
+				$("#percentCompleted")[0].scrollIntoView(false);
+
+				// Monitor upload progress.
+				// Use timestamp as token.
+				getUploadProgress($("#uploadProgress").val());
+			}
+			else if ($('#githubLink').is(":checked")) {
+				$("#percentCompleted").html('<div class="warning_msg" style="padding:8px;border:1px dotted;margin-top:12px;margin-bottom:12px;line-height:18px;"><div style="float:left;">' + '<b>Retrieving from GitHub. Please wait: Do not navigate away from this page until the upload is complete.</b>' + '</div><div style="float:right;" onclick="$(\'.warning_msg\').hide(\'slow\');">&nbsp;&nbsp;&nbsp;&nbsp;X&nbsp;&nbsp;&nbsp;&nbsp;</div><div style="clear: both;"></div></div>');
+				$("#percentCompleted")[0].scrollIntoView(false);
+			}
 		});
 
 		$("#submitNoNotify").click(function() {
@@ -419,14 +441,69 @@ if ($frsf->getShowNotes() === "1") {
 				}
 			}
 			$(this).prop("value", "Updating File...");
+
+			// Query for upload progress.
+			$(".warning_msg").hide();
+			if ($('#docFile').is(":checked")) {
+				$("#percentCompleted").html('<div class="warning_msg" style="padding:8px;border:1px dotted;margin-top:12px;margin-bottom:12px;line-height:18px;"><div style="float:left;">' + '<b>Uploading file. Please wait: Do not navigate away from this page until the upload is complete.</b>' + '</div><div style="float:right;" onclick="$(\'.warning_msg\').hide(\'slow\');">&nbsp;&nbsp;&nbsp;&nbsp;X&nbsp;&nbsp;&nbsp;&nbsp;</div><div style="clear: both;"></div></div>');
+				$("#percentCompleted")[0].scrollIntoView(false);
+
+				// Monitor upload progress.
+				// Use timestamp as token.
+				getUploadProgress($("#uploadProgress").val());
+			}
+			else if ($('#githubLink').is(":checked")) {
+				$("#percentCompleted").html('<div class="warning_msg" style="padding:8px;border:1px dotted;margin-top:12px;margin-bottom:12px;line-height:18px;"><div style="float:left;">' + '<b>Retrieving files from GitHub. Please wait: Do not navigate away from this page until the retrieval is complete.</b>' + '</div><div style="float:right;" onclick="$(\'.warning_msg\').hide(\'slow\');">&nbsp;&nbsp;&nbsp;&nbsp;X&nbsp;&nbsp;&nbsp;&nbsp;</div><div style="clear: both;"></div></div>');
+				$("#percentCompleted")[0].scrollIntoView(false);
+			}
 		});
 	});
 
-</script>
-<script type="text/javascript">    
-    $(document).ready(function() {
-     window.history.forward(1);
-	});
+	// Get upload progress value.
+	function getUploadProgress(theToken) {
+
+		// Send token.
+		var params = {"token": theToken};
+
+		// Query every 2 second.
+		var timer = setInterval(function() {
+			$.ajax({
+				type: 'POST',
+				data: JSON.stringify(params),
+				url: 'uploadProgress.php',
+				success: function(msg) {
+					if (msg === 'null' || msg == -1) {
+						// Cannot get upload progress value; done.
+						clearInterval(timer);
+					}
+					else {
+						// Received upload progress value; get percentage.
+						var progress = JSON.parse(msg);
+						var procBytes = progress['bytes_processed'];
+						var totBytes = progress['content_length'];
+						if ($.isNumeric(procBytes) && $.isNumeric(totBytes)) {
+							// Valid values.
+							var percent = Math.floor(procBytes * 100 / totBytes);
+							if (percent >= 100) {
+								// Done.
+								clearInterval(timer);
+							}
+							$("#percentCompleted").html('<div class="warning_msg" style="padding:8px;border:1px dotted;margin-top:12px;margin-bottom:12px;line-height:18px;"><div style="float:left;">' + '<b>Uploading file (' + percent + '%' + '). Please wait: Do not navigate away from this page until the upload is complete.</b>' + '</div><div style="float:right;" onclick="$(\'.warning_msg\').hide(\'slow\');">&nbsp;&nbsp;&nbsp;&nbsp;X&nbsp;&nbsp;&nbsp;&nbsp;</div><div style="clear: both;"></div></div>');
+						}
+						else {
+							// Error.
+							console.log("Error parsing progress");
+							clearInterval(timer);
+						}
+					}
+				},
+				error: function(err) {
+					console.log("Error retrieving progress");
+				}
+			});
+		}, 2000);
+	}
+
 </script>
   
 <style>
@@ -444,18 +521,14 @@ td {
   <?php echo "File: " . $disp_name . "<br />"; ?>
   <?php echo "(Release: " . $frsr->getName() . ")<br /><br />"; ?>
   <p>This file is being assigned a DOI and can no longer be edited or deleted.</p>
-  <script type="text/javascript">    
-    $(document).ready(function() {
-     window.history.forward(1);
-	});
-  </script>
-		
+
 <?php } else { ?>
 
 <div><h4>Update: <?php echo $frsf->getName(); ?><p/>(RELEASE: <?php echo $frsr->getName(); ?>)</h4></div>
 
 <form id="addfile" enctype="multipart/form-data" action="editfile.php" method="post">
 
+<input type="hidden" id="uploadProgress" name="<?php echo ini_get("session.upload_progress.name"); ?>" value="<?php echo time(); ?>"/>
 <input type="hidden" name="func" value="edit_file" />
 <input type="hidden" name="package_id" value="<?php echo $package_id; ?>" />
 <input type="hidden" name="release_id" value="<?php echo $release_id; ?>" />
@@ -720,7 +793,8 @@ if ($strMailingListPopup != false && trim($strMailingListPopup) != "") {
 </tr>
 <tr>
 	<td><strong>Release Date:</strong></td>
-	<td><input type="text" name="release_date" value="<?php echo date('Y-m-d', $frsf->getReleaseTime()); ?>" size="10" maxlength="10" /></td>
+	<td><input type="text" name="release_date" value="<?php echo date('Y-m-d'); ?>" size="10" maxlength="10" /> (Last Release Date: <?php echo date('Y-m-d', $frsf->getReleaseTime()); ?>)
+	</td>
 </tr>
 <tr>
 	<td><span class="cellDoi"><strong>DOI:</strong></span></td>

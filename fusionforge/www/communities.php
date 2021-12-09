@@ -45,7 +45,7 @@ $resCommunities = db_query_params('SELECT trove_cat_id, fullname, simtk_intro_te
 
 <h2>Communities</h2>
 <br/>
-<div class="btn-ctabox"><a class="btn-cta" href="/sendmessage.php?touser=101&subject=Community%20Request">Request a community</a></div>
+<div class="btn-ctabox"><a class="btn-cta" href="/sendmessage.php?recipient=admin&subject=Community%20Request">Request a community</a></div>
 
 <br/>
 

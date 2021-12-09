@@ -71,10 +71,16 @@ function docman_fill_zip($zip, $nested_groups, $document_factory, $docgroup = 0,
 			$docs = $document_factory->getDocuments(1); // no caching
 			if (is_array($docs) && count($docs)) {
 				foreach ($docs as $doc) {
+					/*
 					if (!$doc->isURL()) {
 						if (!$zip->addFromString($path.'/'.iconv("UTF-8", "ASCII//TRANSLIT", $doc->getFileName()), $doc->getFileData())) {
+					*/
+					// Use addFile() to avoid memory exhaustion problem.
+					if (!$doc->isURL() && file_exists($doc->getFilePath())) {
+						if (!$zip->addFile($doc->getFilePath(), $doc->getFileName())) {
 							return false;
 						}
+						$zip->setCompressionName($doc->getFilePath(), ZipArchive::CM_STORE);
 					}
 				}
 			}

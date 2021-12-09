@@ -6,7 +6,7 @@
  *
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2014, Franck Villaume - TrivialDev
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -40,7 +40,7 @@ print '<li><a href="/register/">Create</a> your own projects</li>';
 print '<li><a href="/search/search.php?srch=&search=search&type_of_search=soft&sort=date&page=0">Explore</a> and contribute to other projects</li>';
 print '<li><a href="/search/searchPeople.php?type_of_search=people&srch=scott">Connect</a> with other SimTK members</li>';
 print '</ul><br/>';
-print '<p>We hope you find the site valuable and would love to hear how you' . "'" . 're using SimTK.  Send your stories to us at <a href="/sendmessage.php?touser=101">feedback@simtk.org</a>.  If you have feature requests or bug reports, we want to know about those, too.  Please file an issue <a href="/tracker/?group_id=11">here</a>.<br/><br/>Enjoy the site!</p>';
+print '<p>We hope you find the site valuable and would love to hear how you' . "'" . 're using SimTK.  Send your stories to us at <a href="/sendmessage.php?recipient=admin">feedback@simtk.org</a>.  If you have feature requests or bug reports, we want to know about those, too.  Please file an issue <a href="/tracker/?group_id=11">here</a>.<br/><br/>Enjoy the site!</p>';
 
 print '<p>';
 printf('-- the %s staff', forge_get_config('forge_name'));

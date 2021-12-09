@@ -120,6 +120,7 @@ if ($submitAndNotify || $submitNoNotify) {
 	$user = session_get_user(); // get the session user
 	$user_id = $user->getID();
 		
+	$error_msg = "";
 	$msgReleased = "You can now " .
 		"<a href='javascript:sendnews();'>create a project news item</a>" .
 		" to announce its release.";
@@ -314,6 +315,9 @@ if (isset($disp_name)) {
 }
 
 $(document).ready(function() {
+	// Add div for display of percent completion.
+	$(".project_menu_row").after('<div id="percentCompleted"></div>');
+
 	// Handle popover show and hide.
 	$(".myPopOver").hover(function() {
 		$(this).find(".popoverLic").popover("show");
@@ -432,6 +436,21 @@ $(document).ready(function() {
 			}
 		}
 		$(this).prop("value", "Adding File...");
+
+		// Query for upload progress.
+		$(".warning_msg").hide();
+		if ($('#docFile').is(":checked")) {
+			$("#percentCompleted").html('<div class="warning_msg" style="padding:8px;border:1px dotted;margin-top:12px;margin-bottom:12px;line-height:18px;"><div style="float:left;">' + '<b>Uploading file. Please wait: Do not navigate away from this page until the upload is complete.</b>' + '</div><div style="float:right;" onclick="$(\'.warning_msg\').hide(\'slow\');">&nbsp;&nbsp;&nbsp;&nbsp;X&nbsp;&nbsp;&nbsp;&nbsp;</div><div style="clear: both;"></div></div>');
+			$("#percentCompleted")[0].scrollIntoView(false);
+
+			// Monitor upload progress.
+			// Use timestamp as token.
+			getUploadProgress($("#uploadProgress").val());
+		}
+		else if ($('#githubLink').is(":checked")) {
+			$("#percentCompleted").html('<div class="warning_msg" style="padding:8px;border:1px dotted;margin-top:12px;margin-bottom:12px;line-height:18px;"><div style="float:left;">' + '<b>Retrieving from GitHub. Please wait: Do not navigate away from this page until the upload is complete.</b>' + '</div><div style="float:right;" onclick="$(\'.warning_msg\').hide(\'slow\');">&nbsp;&nbsp;&nbsp;&nbsp;X&nbsp;&nbsp;&nbsp;&nbsp;</div><div style="clear: both;"></div></div>');
+			$("#percentCompleted")[0].scrollIntoView(false);
+		}
 	});
 
 	$("#submitNoNotify").click(function() {
@@ -441,8 +460,68 @@ $(document).ready(function() {
 			}
 		}
 		$(this).prop("value", "Adding File...");
+
+		// Query for upload progress.
+		$(".warning_msg").hide();
+		if ($('#docFile').is(":checked")) {
+			$("#percentCompleted").html('<div class="warning_msg" style="padding:8px;border:1px dotted;margin-top:12px;margin-bottom:12px;line-height:18px;"><div style="float:left;">' + '<b>Uploading file. Please wait: Do not navigate away from this page until the upload is complete.</b>' + '</div><div style="float:right;" onclick="$(\'.warning_msg\').hide(\'slow\');">&nbsp;&nbsp;&nbsp;&nbsp;X&nbsp;&nbsp;&nbsp;&nbsp;</div><div style="clear: both;"></div></div>');
+			$("#percentCompleted")[0].scrollIntoView(false);
+
+			// Monitor upload progress.
+			// Use timestamp as token.
+			getUploadProgress($("#uploadProgress").val());
+		}
+		else if ($('#githubLink').is(":checked")) {
+			$("#percentCompleted").html('<div class="warning_msg" style="padding:8px;border:1px dotted;margin-top:12px;margin-bottom:12px;line-height:18px;"><div style="float:left;">' + '<b>Retrieving files from GitHub. Please wait: Do not navigate away from this page until the retrieval is complete.</b>' + '</div><div style="float:right;" onclick="$(\'.warning_msg\').hide(\'slow\');">&nbsp;&nbsp;&nbsp;&nbsp;X&nbsp;&nbsp;&nbsp;&nbsp;</div><div style="clear: both;"></div></div>');
+			$("#percentCompleted")[0].scrollIntoView(false);
+		}
 	});
 });
+
+// Get upload progress value.
+function getUploadProgress(theToken) {
+
+	// Send token.
+	var params = {"token": theToken};
+
+	// Query every 2 second.
+	var timer = setInterval(function() {
+		$.ajax({
+			type: 'POST',
+			data: JSON.stringify(params),
+			url: 'uploadProgress.php',
+			success: function(msg) {
+				if (msg === 'null' || msg == -1) {
+					// Cannot get upload progress value; done.
+					clearInterval(timer);
+				}
+				else {
+					// Received upload progress value; get percentage.
+					var progress = JSON.parse(msg);
+					var procBytes = progress['bytes_processed'];
+					var totBytes = progress['content_length'];
+					if ($.isNumeric(procBytes) && $.isNumeric(totBytes)) {
+						// Valid values.
+						var percent = Math.floor(procBytes * 100 / totBytes);
+						if (percent >= 100) {
+							// Done.
+							clearInterval(timer);
+						}
+						$("#percentCompleted").html('<div class="warning_msg" style="padding:8px;border:1px dotted;margin-top:12px;margin-bottom:12px;line-height:18px;"><div style="float:left;">' + '<b>Uploading file (' + percent + '%' + '). Please wait: Do not navigate away from this page until the upload is complete.</b>' + '</div><div style="float:right;" onclick="$(\'.warning_msg\').hide(\'slow\');">&nbsp;&nbsp;&nbsp;&nbsp;X&nbsp;&nbsp;&nbsp;&nbsp;</div><div style="clear: both;"></div></div>');
+					}
+					else {
+						// Error.
+						console.log("Error parsing progress");
+						clearInterval(timer);
+					}
+				}
+			},
+			error: function(err) {
+				console.log("Error retrieving progress");
+			}
+		});
+	}, 2000);
+}
 
 </script>
 
@@ -461,6 +540,7 @@ td {
 
 <form id="addfile" enctype="multipart/form-data" method="post" action="<?php echo getStringFromServer('PHP_SELF')."?group_id=$group_id&amp;release_id=$release_id&amp;package_id=$package_id"; ?>">
 <input type="hidden" name="release_name" value="<?php echo $frsr->getName(); ?>" />
+<input type="hidden" id="uploadProgress" name="<?php echo ini_get("session.upload_progress.name"); ?>" value="<?php echo time(); ?>"/>
 
 <table>
 

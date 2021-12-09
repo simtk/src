@@ -81,7 +81,7 @@ $res_user = db_query_params("SELECT * FROM user_delete_pending " .
 	array($username));
 if (db_numrows($res_user) > 0) {
 	// User deletion requested already.
-	echo '<li><span style="color:gray;">Close account:</span>&nbsp;&nbsp;Your account is being reviewed for closure. If you have questions, you can <a href="/sendmessage.php?touser=101&group_id=0">contact the SimTK webmaster</a>.</li>';
+	echo '<li><span style="color:gray;">Close account:</span>&nbsp;&nbsp;Your account is being reviewed for closure. If you have questions, you can <a href="/sendmessage.php?recipient=admin">contact the SimTK webmaster</a>.</li>';
 }
 else {
 	echo '<li><a href="close_acct.php">Close account</a></li>';

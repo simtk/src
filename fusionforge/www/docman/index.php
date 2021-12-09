@@ -9,7 +9,7 @@
  * Copyright 2010-2011, Franck Villaume - Capgemini
  * Copyright (C) 2010-2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012-2014, Franck Villaume - TrivialDev
- * Copyright 2016-2019, Tod Hing - SimTK Team
+ * Copyright 2016-2021, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -98,7 +98,10 @@ switch ($action) {
 	case "updateenginesearch":
 	case "updatewebdavinterface":
 	case "validatefile": {
-		include ($gfcommon."docman/actions/$action.php");
+		// Check project read privilege.
+		if (forge_check_perm('project_read', $group_id)) {
+			include ($gfcommon."docman/actions/$action.php");
+		}
 		break;
 	}
 }
@@ -123,6 +126,9 @@ $title = _('Documents');
 
 site_project_header(array('title'=>$title, 'group'=>$group_id, 'toptab'=>'docman', 'titleurl'=>'/docman/?group_id='.$group_id));
 
+// Check project read privilege.
+if (forge_check_perm('project_read', $group_id)) {
+
 echo "\n";
 echo "<div class=\"project_overview_main\">\n";
 echo "<div style=\"display: table; width: 100%;\">\n"; 
@@ -144,6 +150,8 @@ $group = group_get_object($group_id);
 constructSideBar($g);
 
 echo "</div><!--display table-->\n</div><!--project_overview_main-->\n";
+
+}
 
 site_project_footer(array());
 

@@ -6,7 +6,7 @@
  * 
  * Generate the script that describes dataset in download packages.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -130,23 +130,25 @@ function genDatasetDesc($groupObj, $thePackages, &$lastRelDate, &$lastRelIds) {
 		}
 	}
 
-	if (count($thePackages) >= 1 && $hasFiles !== false) {
-		// There are package(s) with file(s) available.
 
-		// Generate dataset header.
-		$strHeader = genDatasetHeader($groupObj, $lastRelDate, $lastRelIds, $thePackages);
+	// Generate dataset header.
+	$strHeader = genDatasetHeader($groupObj, $lastRelDate, $lastRelIds, $thePackages);
 
-		// Generate dataset trailer.
-		$strTrailer = genDatasetTrailer($groupObj);
+	// Generate dataset trailer.
+	$strTrailer = genDatasetTrailer($groupObj);
 
-		// Generate dataset packages description.
-		$strDistribution = genDatasetDistribution($arrStrPackage);
+	// Generate dataset packages description.
+	$strDistribution = genDatasetDistribution($arrStrPackage);
 
-		// Return dataset description.
+	if ($strHeader !== false) {
+		// There is at least one pacakge with file available, or 
+		// there is at least one public, active DataShare study available.
+		// Return result for Google Dataset search.
 		return $strHeader . $strDistribution . $strTrailer;
 	}
 	else {
-		// No dataset description.
+		// Download package or dataset not available.
+		// Do not include header for Google Dataset search.
 		return "";
 	}
 }
@@ -154,6 +156,41 @@ function genDatasetDesc($groupObj, $thePackages, &$lastRelDate, &$lastRelIds) {
 
 // Generate the dataset header.
 function genDatasetHeader($groupObj, $lastRelDate, $lastRelIds, $thePackages) {
+
+	// Get creation date of public, active DataShare studies.
+	$query_datashare = "SELECT date_created AS release_date FROM plugin_datashare " .
+		"WHERE is_private = 0 " .
+		"AND active=1 " .
+		"AND group_id=$1";
+	$result_datashare = db_query_params($query_datashare, array($groupObj->getID()));
+	if ($result_datashare) {
+		while ($row = db_fetch_array($result_datashare)) {
+			$relDate = $row["release_date"];
+
+			if ($lastRelDate == -1) {
+				// No release date encountered yet.
+				// Use this date from DataShare study.
+				$lastRelDate = $relDate;
+			}
+			else {
+				if ($lastRelDate < $relDate) {
+					// Use the newer DataShare date.
+					$lastRelDate = $relDate;
+				}
+			}
+		}
+	}
+
+	if ($lastRelDate == -1) {
+		// No release date found.
+		// Package or DataShare study is not available.
+		// Done. Do not include header for Google Dataset search.
+		return false;
+	}
+
+
+	// There is at least one pacakge with file available, or 
+	// there is at least one public, active DataShare study available.
 
 	$serverName = getServerName();
 
@@ -187,8 +224,8 @@ function genDatasetHeader($groupObj, $lastRelDate, $lastRelIds, $thePackages) {
 	}
 
 	$numPackages = count($thePackages);
-	$theDesc .= "<br/><br/>" . "This project includes the following software/data packages: <br/>";
-	$theDesc .= "<ul>";
+	$theDesc .= "\n\n<br/><br/>" . "This project includes the following software/data packages: \n<br/>";
+	$theDesc .= "\n<ul>";
 	foreach ($thePackages as $idxPack=>$packageInfo) {
 
 		if (!isset($lastRelIds[$idxPack])) {
@@ -212,7 +249,7 @@ function genDatasetHeader($groupObj, $lastRelDate, $lastRelIds, $thePackages) {
 			$strPackage = '<a href="' . $packageURL . '">' . $packageName . '</a>';
 		}
 
-		$theDesc .= "<li>" . $strPackage . "</li>";
+		$theDesc .= "<li>" . $strPackage . "</li>\n";
 	}
 
 	// Get Data Share studies.
@@ -235,13 +272,13 @@ function genDatasetHeader($groupObj, $lastRelDate, $lastRelIds, $thePackages) {
 						$theDesc .= "<li>" . 
 							'<a href="' . $studyURL . '">' . 
 							$studyTitle . '</a>' . 
-							": " . $studyDescription . "</li>";
+							": " . $studyDescription . "</li>\n";
 					}
 				}
 			}
 		}
 	}
-	$theDesc .= "</ul>";
+	$theDesc .= "\n</ul>";
 
 	$strDesc = htmlspecialchars($theDesc, ENT_QUOTES);
 	if (strlen($strDesc) >= 5000) {
@@ -266,8 +303,8 @@ function genDatasetHeader($groupObj, $lastRelDate, $lastRelIds, $thePackages) {
 		}
 
 		$numPackages = count($thePackages);
-		$theDesc .= "<br/><br/>" . "This project includes the following software/data packages: <br/>";
-		$theDesc .= "<ul>";
+		$theDesc .= "\n\n<br/><br/>" . "This project includes the following software/data packages: \n<br/>";
+		$theDesc .= "\n<ul>";
 		foreach ($thePackages as $idxPack=>$packageInfo) {
 
 			if (!isset($lastRelIds[$idxPack])) {
@@ -287,7 +324,7 @@ function genDatasetHeader($groupObj, $lastRelDate, $lastRelIds, $thePackages) {
 			// Do not include description.
 			$strPackage = '<a href="' . $packageURL . '">' . $packageName . '</a>';
 	
-			$theDesc .= "<li>" . $strPackage . "</li>";
+			$theDesc .= "<li>" . $strPackage . "</li>\n";
 		}
 
 		// Get Data Share studies.
@@ -309,14 +346,13 @@ function genDatasetHeader($groupObj, $lastRelDate, $lastRelIds, $thePackages) {
 							$studyDescription = $result->description;
 							$theDesc .= "<li>" . 
 								'<a href="' . $studyURL . '">' . 
-								$studyTitle . '</a>' . 
-								": " . $studyDescription . "</li>";
+								$studyTitle . '</a>' . "</li>\n";
 						}
 					}
 				}
 			}
 		}
-		$theDesc .= "</ul>";
+		$theDesc .= "\n</ul>";
 
 		$strDesc = htmlspecialchars($theDesc, ENT_QUOTES);
 	}
@@ -583,7 +619,7 @@ function genPackageDatasetDesc($groupObj, $packageInfo, $releaseInfo) {
 					if (!empty($packDoiIdentifier)) {
 						// Package has requested DOI and has package DOI.
 						// Show the package DOI.
-						$strPackage .= '"identifier": "https://doi.org/' . $packDoiIdentifier . '",';
+						$strPackage .= ', "identifier": "https://doi.org/' . $packDoiIdentifier . '"';
 					}
 				}
 				else {
@@ -593,7 +629,7 @@ function genPackageDatasetDesc($groupObj, $packageInfo, $releaseInfo) {
 					$numFileDoi = count($arrFileDoi);
 					for ($cnt = 0; $cnt < $numFileDoi; $cnt++) {
 						if ($cnt == 0) {
-							$strPackage .= '"identifier": ' . $arrFileDoi[$cnt] . ',';
+							$strPackage .= ', "identifier": ' . $arrFileDoi[$cnt];
 						}
 					}
 				}

@@ -5,6 +5,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2010, FusionForge Team
  * Copyright (C) 2011-2012 Alain Peyrat - Alcatel-Lucent
+ * Copyright 2005-2021, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -110,7 +111,7 @@ function user_personal_information($user, $compact = false, $title = false) {
 		// Removed for privacy reasons
 		//print '<span property="sioc:email" content="'. $user_mail .'">';
 				'<span property="sioc:email_sha1" content="'. $user_mailsha1 .'">' .
-		util_make_link ('/sendmessage.php?touser='.$user_id, str_replace('@',' @nospam@ ',$user_mail)) .
+		util_make_link ('/sendmessage.php?recipient='.$user->getUnixName(), str_replace('@',' @nospam@ ',$user_mail)) .
 				'</span>
 				</strong>
 			</td>

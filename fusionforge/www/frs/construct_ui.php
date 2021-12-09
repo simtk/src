@@ -6,7 +6,7 @@
  * 
  * Construct UI for downloads display.
  *
- * Copyright 2005-2020, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               

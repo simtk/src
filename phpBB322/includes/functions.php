@@ -4,7 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
-* @copyright 2016-2018, Henry Kwong, Tod Hing - SimTK Team
+* @copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -4586,6 +4586,28 @@ function page_header($page_title = '', $display_online_list = false, $item_id = 
 	}
 
 	$forum_id = $request->variable('f', 0);
+	if ($forum_id == 0) {
+		// Try retrieving forum_id from $user->data.
+		$arrSession = array();
+		// Decode URL first; even if URL is not encoded, decoding is OK.
+		$sessionPage = urldecode($user->data[session_page]);
+		// Get parameters from URL.
+		parse_str(parse_url($sessionPage, PHP_URL_QUERY), $arrSession);
+		// Get fid.
+		if (isset($arrSession["fid"])) {
+			if (is_array($arrSession["fid"])) {
+				// fid is an array. Get first element if present.
+				if (isset($arrSession["fid"][0])) {
+					$forum_id = (int) ($arrSession["fid"][0]);
+				}
+			}
+			else {
+				// fid is not an array.
+				$forum_id = (int) $arrSession["fid"];
+			}
+		}
+	}
+
 	$topic_id = $request->variable('t', 0);
 
 	$s_feed_news = false;
@@ -4748,7 +4770,8 @@ function page_header($page_title = '', $display_online_list = false, $item_id = 
 		'S_NEW_PM'				=> ($s_privmsg_new) ? 1 : 0,
 		'S_REGISTER_ENABLED'	=> ($config['require_activation'] != USER_ACTIVATION_DISABLE) ? true : false,
 		'S_FORUM_ID'			=> $forum_id,
-		'THE_FORUM_ID'                  => $request->variable('f_curr', 0, false), // Get value stored in cookie: $_COOKIE['f_curr']
+		//'THE_FORUM_ID'                  => $request->variable('f_curr', 0, false), // Get value stored in cookie: $_COOKIE['f_curr']
+		'THE_FORUM_ID'                  => $forum_id,
 		'S_TOPIC_ID'			=> $topic_id,
 
 		'S_LOGIN_ACTION'		=> ((!defined('ADMIN_START')) ? append_sid("{$phpbb_root_path}ucp.$phpEx", 'mode=login') : append_sid("{$phpbb_admin_path}index.$phpEx", false, true, $user->session_id)),

@@ -50,7 +50,7 @@ session_require_perm ('frs', $group_id, 'write') ;
 // Update release info
 if (getStringFromRequest('submit')) {
 	$notes = getStringFromRequest('notes');
-	$uploaded_notes = htmlspecialchars(getUploadedFile('uploaded_notes'));
+	$uploaded_notes = getUploadedFile('uploaded_notes');
 	$preformatted = htmlspecialchars(getStringFromRequest('preformatted'));
 	$overview = htmlspecialchars(getStringFromRequest('overview'));
 	$exec_changes = true;
