@@ -62,7 +62,7 @@ $group->clearError();
 // If this was a submission, make updates.
 if ($submit = getStringFromRequest('submit')) {
 
-	$categories = htmlspecialchars(getStringFromRequest('categories'));
+	$categories = getStringFromRequest('categories');
 	$resTroveGroupLink = $group->updateTroveGroupLink($categories, true);
 	if (!$resTroveGroupLink) {
 		$error_msg .= $group->getErrorMessage();
