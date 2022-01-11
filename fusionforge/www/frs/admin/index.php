@@ -9,7 +9,7 @@
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * http://fusionforge.org/
- * Copyright 2016-2020, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2022, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -328,11 +328,17 @@ $strQueryPackages = 'SELECT status_id, package_id, name AS package_name, is_publ
 $res = db_query_params($strQueryPackages, array($group_id));
 $rows = db_numrows($res);
 
+?>
+
+<div class="du_warning_msg"></div>
+
+<?php
 require_once 'frs_admin_front.php';
 
 ?>
 
 <script src='/frs/showNotReadyDivs.js'></script>
+<script src='/frs/admin/handlerDiskUsage.js'></script>
 
 <?php
 

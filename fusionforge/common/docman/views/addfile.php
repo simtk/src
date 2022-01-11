@@ -1,5 +1,7 @@
 <?php
-/**
+/** 
+ * addfile.php
+ *
  * FusionForge Documentation Manager
  *
  * Copyright 2000, Quentin Cregan/Sourceforge
@@ -8,6 +10,7 @@
  * Copyright 2011, Roland Mas
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012-2013, Franck Villaume - TrivialDev
+ * Copyright 2016-2022, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -57,6 +60,18 @@ if (!forge_check_perm('docman', $group_id, 'submit')) {
 	session_redirect($redirecturl.'&warning_msg='.urlencode($return_msg));
 }
 ?>
+
+<script>
+// Handle Update button click.
+function handlerAddFile(groupId) {
+	// Check disk usage.
+	if (!handlerDiskUsage(groupId)) {
+		// Disk usage exceeded quota. Do not proceed.
+		event.preventDefault();
+		return;
+	}
+}
+</script>
 
 <script type="text/javascript">//<![CDATA[
 var controllerAddFile;
@@ -225,10 +240,13 @@ if ($dgf->getNested() == NULL) {
 	}
 	echo '	</table>';
 	echo '<span>'.utils_requiredField() .' '. _('Mandatory fields').'</span>';
-	echo '	<div class="docmanSubmitDiv">
-			<input type="submit" name="submit" value="'. _('Submit Information'). '" />
-		</div></div>
-		</form>';
+	echo '	<div class="docmanSubmitDiv">';
+	echo '<input type="submit" ' .
+		'name="submit" ' .
+		'onclick="handlerAddFile(' .$group_id . ')" ' .
+		'value="Submit Information" ' .
+		'/>';
+	echo '</div></div></form>';
 }
 
 echo '</div>';

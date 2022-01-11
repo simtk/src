@@ -1,10 +1,12 @@
 <?php
 /**
+ * additem.php
+ *
  * FusionForge Documentation Manager
  *
  * Copyright 2010-2011, Franck Villaume - Capgemini
  * Copyright 2012-2014, Franck Villaume - TrivialDev
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2022, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -30,14 +32,24 @@ global $dirid; // id of the doc_group
 
 if (!forge_check_perm('docman', $group_id, 'submit')) {
 	$return_msg= _('Document Manager Access Denied');
-	//session_redirect('/docman/?group_id='.$group_id.'&warning_msg='.urlencode($return_msg));
-	echo "<script type='text/javascript'>window.top.location='" .
-		"/account/login.php?triggered=1&return_to=" .
-		urlencode('/docman/?group_id=' . $group_id . '&view=additem') .
-		"';</script>";
-	exit;
+	session_redirect('/docman/?group_id='.$group_id.'&warning_msg='.urlencode($return_msg));
 }
 ?>
+
+<div class="du_warning_msg"></div>
+<script src='/frs/admin/handlerDiskUsage.js'></script>
+
+<script>
+// Handle Update button click.
+function handlerUploadArchive(groupId) {
+	// Check disk usage.
+	if (!handlerDiskUsage(groupId)) {
+		// Disk usage exceeded quota. Do not proceed.
+		event.preventDefault();
+		return;
+	}
+}
+</script>
 
 <script type="text/javascript">//<![CDATA[
 var controllerAddItem;
@@ -85,7 +97,10 @@ if (forge_check_perm('docman', $group_id, 'approve')) {
 	echo '<p>';
 	echo '<label>' . _('Upload archive:') . ' </label><input type="file" name="uploaded_zip" required="required" />'.sprintf(_('(max upload size: %s)'),human_readable_bytes(util_get_maxuploadfilesize()));
 	include ($gfcommon.'docman/views/addsubdocgrouparchive.php');
-	echo '<input id="submitinjectzip" type="button" value="'. _('Upload') .'" />';
+	echo '<input id="submitinjectzip" ' .
+		'type="button" ' .
+		'onclick="handlerUploadArchive(' . $group_id . ')" ' .
+		'value="Upload" />';
 	echo '</p>';
 	echo '</form>';
 	echo '</div>';
