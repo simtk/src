@@ -6,7 +6,7 @@
  *
  * admin page for creating new study.
  *
- * Copyright 2005-2020, SimTK Team
+ * Copyright 2005-2022, SimTK Team
  *
  * This file is part of the SimTK web portal originating from
  * Simbios, the NIH National Center for Physics-Based
@@ -292,7 +292,10 @@ These licenses differ in the additional obligations they place on the users.
 <span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content='Many other licenses can be used. See <a href="http://en.wikipedia.org/wiki/Comparison_of_free_software_licenses" target="_blank">Wikipedia</a> and <a href="http://creativecommons.org/licenses" target="_blank">Creative Commons</a>. For complex licenses, we recommend that you enter a URL for the license, e.g., "The [project name] license agreement can be read here: http://XXX."'>?</a></span>
 
 <p>
-<input type="radio" name="use_agreement" class="use_agreement" value="5"> Creative Commons Attribution-Non-Commercial </input><span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Similar to open-source licenses except your work can only be used for non-commercial purposes.">?</a></span>
+<input type="radio" name="use_agreement" class="use_agreement" value="8"> Creative Commons Attribution-Non-Commercial 4.0</input><span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Similar to open-source licenses except your work can only be used for non-commercial purposes.">?</a></span>
+</p>
+<p>
+<input type="radio" name="use_agreement" class="use_agreement" value="5"> Creative Commons Attribution-Non-Commercial 3.0</input><span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Similar to open-source licenses except your work can only be used for non-commercial purposes.">?</a></span>
 </p>
 <p>
 <input type="radio" name="use_agreement" class="use_agreement" value="1"> Custom </input><span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Specify a custom license.">?</a></span>

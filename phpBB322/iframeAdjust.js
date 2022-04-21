@@ -1,5 +1,4 @@
 
-$(window).ready(function() {
 	// Default scroll height;
 	var theScrollHeight = 700;
 
@@ -25,5 +24,4 @@ $(window).ready(function() {
 		// Set iframe height with content height.
 		$('iframe').css("height", frameHeight + 'px');
 	}, false);
-});
 

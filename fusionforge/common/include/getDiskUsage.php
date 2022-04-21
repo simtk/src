@@ -270,7 +270,7 @@ function getDiskQuotaByGroup($theGroupId) {
 
 	$defaultDiskQuota = MAX_TOTAL_BYTES * 1024 * 1024;
 
-	$strQuery = "SELECT max_bytes FROM plugin_datashare_diskquota " .
+	$strQuery = "SELECT max_bytes FROM project_diskquota " .
 		"WHERE group_id=$1";
 	$resDiskQuota = db_query_params($strQuery, array($theGroupId));
 	$numrows = db_numrows($resDiskQuota);
