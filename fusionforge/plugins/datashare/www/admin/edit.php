@@ -322,14 +322,14 @@ These licenses differ in the additional obligations they place on the users.
 <?php
 	if ($study_results[0]->simtk_use_agreement === "8") echo "checked='checked'"; 
 ?>
-> Creative Commons Attribution-Non-Commercial 4.0</input><span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Similar to open-source licenses except your work can only be used for non-commercial purposes.">?</a></span>
+> Creative Commons Attribution-Non-Commercial 4.0 </input><span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Similar to open-source licenses except your work can only be used for non-commercial purposes.">?</a></span>
 </p>
 <p>
 <input type="radio" name="use_agreement" class="use_agreement" value="5" 
 <?php
 	if ($study_results[0]->simtk_use_agreement === "5") echo "checked='checked'"; 
 ?>
-> Creative Commons Attribution-Non-Commercial 3.0</input><span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Similar to open-source licenses except your work can only be used for non-commercial purposes.">?</a></span>
+> Creative Commons Attribution-Non-Commercial 3.0 </input><span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Similar to open-source licenses except your work can only be used for non-commercial purposes.">?</a></span>
 </p>
 <p>
 <input type="radio" name="use_agreement" class="use_agreement" value="1" 

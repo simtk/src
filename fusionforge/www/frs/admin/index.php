@@ -157,7 +157,7 @@ if (getStringFromRequest('submit') || $submitAndNotify || $submitNoNotify) {
 			}
 		}
 		else {
-			$error_msg .= 'Citation not deleted: you did not check “I am Sure”';
+			$error_msg .= 'Citation not deleted: you did not check "I am Sure" and "I am Really Sure"';
 		}
 
 	}
@@ -246,7 +246,7 @@ if (getStringFromRequest('submit') || $submitAndNotify || $submitNoNotify) {
 			}
 		}
 		else {
-			$error_msg .= _('File not deleted: you did not check “I am Sure”');
+			$error_msg .= 'File not deleted: you did not check "I am Sure" and "I am Really Sure"';
 		}
 	}
 	elseif ($func=='cancel_doi' && $file_id) {
@@ -289,7 +289,7 @@ if (getStringFromRequest('submit') || $submitAndNotify || $submitNoNotify) {
 			}
 		}
 		else {
-			$error_msg .= 'DOI request not canceled: you did not check “I am Sure”';
+			$error_msg .= 'DOI request not canceled: you did not check "I am Sure" and "I am Really Sure"';
 		}
 	}
 	elseif ($func=='cancel_package_doi' && $package_id) {
@@ -314,7 +314,7 @@ if (getStringFromRequest('submit') || $submitAndNotify || $submitNoNotify) {
 			}
 		}
 		else {
-			$error_msg .= 'DOI request not canceled: you did not check “I am Sure”';
+			$error_msg .= 'DOI request not canceled: you did not check "I am Sure" and "I am Really Sure"';
 		}
 	}
 }
