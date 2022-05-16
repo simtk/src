@@ -9,7 +9,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2011, Roland Mas
  * Copyright 2011, Franck Villaume - Capgemini
- * Copyright 2016-2021, SimTK Team
+ * Copyright 2016-2022, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -42,7 +42,20 @@ $group_id = getIntFromRequest('groupid');
 $study_id = getIntFromRequest('studyid');
 $nameDownload = trim(getStringFromRequest('nameDownload'));
 $pathSelected = trim(getStringFromRequest('pathSelected'));
-$strFilesHash = htmlspecialchars(trim(getStringFromRequest('filesHash')));
+$strFilesHash = trim(getStringFromRequest('filesHash'));
+$tmpArr = json_decode($strFilesHash);
+if (is_array($tmpArr) && count($tmpArr) > 0) {
+	$filesHash = $tmpArr[0];
+	if (is_array($filesHash) && count($filesHash) > 0) {
+		// OK.
+	}
+	else {
+		$strFilesHash = "";
+	}
+}
+else {
+	$strFilesHash = "";
+}
 
 $isPrivate = true;
 $study = new Datashare($group_id);
