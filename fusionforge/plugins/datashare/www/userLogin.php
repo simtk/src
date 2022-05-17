@@ -43,19 +43,6 @@ $study_id = getIntFromRequest('studyid');
 $nameDownload = trim(getStringFromRequest('nameDownload'));
 $pathSelected = trim(getStringFromRequest('pathSelected'));
 $strFilesHash = trim(getStringFromRequest('filesHash'));
-$tmpArr = json_decode($strFilesHash);
-if (is_array($tmpArr) && count($tmpArr) > 0) {
-	$filesHash = $tmpArr[0];
-	if (is_array($filesHash) && count($filesHash) > 0) {
-		// OK.
-	}
-	else {
-		$strFilesHash = "";
-	}
-}
-else {
-	$strFilesHash = "";
-}
 
 $isPrivate = true;
 $study = new Datashare($group_id);
