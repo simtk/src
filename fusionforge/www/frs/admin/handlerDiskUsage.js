@@ -35,6 +35,8 @@ function handlerDiskUsage(groupId) {
 	var ok_diskusage = false;
 	var total_bytes = false;
 	var allowed_bytes = false;
+	var str_total_bytes = "";
+	var str_allowed_bytes = "";
 	groupId = Number(groupId);
 
 	var theData = new Array();
@@ -50,6 +52,22 @@ function handlerDiskUsage(groupId) {
 		ok_diskusage = res.ok_diskusage;
 		total_bytes = Number(res.total_bytes);
 		allowed_bytes = Number(res.allowed_bytes);
+
+		// Format the bytes usage.
+		if (Math.floor(total_bytes/1024) > 0) {
+			str_total_bytes = (total_bytes/1024).toFixed(2) + " KB";
+			str_allowed_bytes = (allowed_bytes/1024).toFixed(2) + " KB";
+
+			if (Math.floor(total_bytes/1024/1024) > 0) {
+				str_total_bytes = (total_bytes/1024/1024).toFixed(2) + " MB";
+				str_allowed_bytes = (allowed_bytes/1024/1024).toFixed(2) + " MB";
+
+				if (Math.floor(total_bytes/1024/1024/1024) > 0) {
+					str_total_bytes = (total_bytes/1024/1024/1024).toFixed(2) + " GB";
+					str_allowed_bytes = (allowed_bytes/1024/1024/1024).toFixed(2) + " GB";
+				}
+			}
+		}
 	}).fail(function(res) {
 	});
 
@@ -58,7 +76,7 @@ function handlerDiskUsage(groupId) {
 
 	if (!ok_diskusage) {
 		if (total_bytes != false && allowed_bytes != false) {
-			$(".du_warning_msg").html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><b>Total disk space used (' + total_bytes + ' GB) exceeded project quota (' + allowed_bytes + ' GB). Please contact SimTK WebMaster.</b></div>');
+			$(".du_warning_msg").html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><b>Total disk space used (' + str_total_bytes + ') exceeded project quota (' + str_allowed_bytes + '). Please contact SimTK WebMaster.</b></div>');
 			$(".du_warning_msg")[0].scrollIntoView(false);
 
 			if (typeof event != "undefined") {

@@ -66,6 +66,9 @@ if (!forge_check_perm('docman', $group_id, 'submit')) {
 function handlerAddFile(groupId) {
 	// Check disk usage.
 	if (!handlerDiskUsage(groupId)) {
+		// Disable input fields.
+		$(".theFieldSet").attr("disabled", "disabled");
+
 		// Disk usage exceeded quota. Do not proceed.
 		event.preventDefault();
 		return;
@@ -112,6 +115,7 @@ if ($dgf->getNested() == NULL) {
 		echo '<p>'._('Both fields are used by the document search engine.').'</p>';
 
 	echo '<form name="adddata" action="'.$actionurl.'" method="post" enctype="multipart/form-data">';
+	echo '<fieldset class="theFieldSet">';
 	echo '<div class="form_simtk">';
 	echo '<table class="infotable">
 				<tr>
@@ -246,7 +250,9 @@ if ($dgf->getNested() == NULL) {
 		'onclick="handlerAddFile(' .$group_id . ')" ' .
 		'value="Submit Information" ' .
 		'/>';
-	echo '</div></div></form>';
+	echo '</div></div>';
+	echo '</fieldset>';
+	echo '</form>';
 }
 
 echo '</div>';

@@ -1,8 +1,11 @@
 <?php
 /**
+ * editfile.php
+ *
  * FusionForge Documentation Manager
  *
  * Copyright 2012-2013, Franck Villaume - TrivialDev
+ * Copyright 2016-2022, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -33,6 +36,7 @@ if (!forge_check_perm('docman', $group_id, 'approve')) {
 
 echo '<div id="editFile" >';
 echo '<form id="editdocdata" name="editdocdata" method="post" enctype="multipart/form-data">';
+echo '<fieldset class="theFieldSet">';
 echo '<table>';
 echo '	<tr>';
 echo '		<td><strong>'. _('Document Title')._(': ').'</strong>'. utils_requiredField() .'<br />';
@@ -87,5 +91,6 @@ echo '		</td>';
 echo '	</tr>';
 echo '</table>';
 echo '<input type="hidden" id="docid" name="docid" />';
+echo '</fieldset>';
 echo '</form>';
 echo '</div>';

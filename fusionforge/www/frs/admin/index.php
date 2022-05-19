@@ -340,6 +340,16 @@ require_once 'frs_admin_front.php';
 <script src='/frs/showNotReadyDivs.js'></script>
 <script src='/frs/admin/handlerDiskUsage.js'></script>
 
+<script>
+$(document).ready(function() {
+	// Display diskage usage warning message, if any.
+	if (!handlerDiskUsage(<?php echo ((int)$group_id); ?>)) {
+		// Disable input fields.
+		$(".theFieldSet").attr("disabled", "disabled");
+	}
+});
+</script>
+
 <?php
 
 frs_admin_footer();

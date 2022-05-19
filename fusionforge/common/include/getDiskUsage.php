@@ -195,8 +195,7 @@ function checkTotalDiskUsageByGroup($groupId, &$totalBytes, &$allowedBytes) {
 
 	// Total usage in bytes converted to MB.
 	$totalBytes = $svnTotalBytes + $frsTotalBytes + $docTotalBytes + $dsTotalBytes;
-	$totalBytes = ceil($totalBytes/1024/1024/1024);
-	$allowedBytes = getDiskQuotaByGroup($groupId)/1024;
+	$allowedBytes = getDiskQuotaByGroup($groupId) * 1024 * 1024;
 
 	if ($totalBytes > $allowedBytes) {
 		// Disk usage exceeded.
@@ -268,7 +267,7 @@ function statsTotalDiskUSageByGroup($groupId) {
 function getDiskQuotaByGroup($theGroupId) {
 	$maxBytes = false;
 
-	$defaultDiskQuota = MAX_TOTAL_BYTES * 1024 * 1024;
+	$defaultDiskQuota = MAX_TOTAL_BYTES;
 
 	$strQuery = "SELECT max_bytes FROM project_diskquota " .
 		"WHERE group_id=$1";

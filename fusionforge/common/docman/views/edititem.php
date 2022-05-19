@@ -61,17 +61,29 @@ if (!forge_check_perm('docman', $group_id, 'approve')) {
 function handlerSubmit(groupId) {
 	// Check disk usage.
 	if (!handlerDiskUsage(groupId)) {
+		// Disable input fields.
+		$(".theFieldSet").attr("disabled", "disabled");
+
 		// Disk usage exceeded quota. Do not proceed.
 		event.preventDefault();
 		return;
 	}
 }
+
+jQuery(document).ready(function() {
+	// Display diskage usage warning message, if any.
+	if (!handlerDiskUsage(<?php echo ((int)$group_id); ?>)) {
+		// Disable input fields.
+		$(".theFieldSet").attr("disabled", "disabled");
+	}
+});
 </script>
 
 <?php
 
 echo '<div id="editFile" >';
 echo '<form id="editdocdata" name="editdocdata" action="?group_id='.$group_id.'&amp;action=editfile&amp;fromview=listfile"  method="post" enctype="multipart/form-data">';
+echo '<fieldset class="theFieldSet">';
 echo '<table>';
 echo '	<tr>';
 echo '		<td><strong>'. _('Document Title')._(': ').'</strong>'. utils_requiredField() .'<br />';
@@ -147,5 +159,6 @@ echo '<input type="hidden" id="fromview" name="fromview" value="'.$fromview.'"/>
 echo '<input type="submit" name="submit" class="btn-cta" ' .
 	'onclick="handlerSubmit(' . $group_id . ')" ' .
 	'value="'._('Update').'" />';
+echo '</fieldset>';
 echo '</form>';
 echo '</div>';

@@ -6,7 +6,7 @@
  * 
  * Construct UI for downloads administration.
  *
- * Copyright 2005-2022, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -231,7 +231,7 @@ function constructPackageUI($HTML, $groupId, $groupObj, $packageInfo,
 		"group_id=" . $groupId . 
 		"&package_id=" . $packId;
 	echo '<span class="download_btn">' .
-		'<a class="btn-blue" href="' . $strAddReleaseLink . ' "' .
+		'<a class="btn-blue theFieldSet" href="' . $strAddReleaseLink . ' "' .
 		'onclick="handlerDiskUsage(' . $groupId . ')" ' .
 		'>' .
 		'Add Release & Files</a></span>&nbsp';
@@ -488,7 +488,7 @@ function constructReleaseUI($HTML, $groupId, $groupObj,
 			'Delete Release</a></span>&nbsp;';
 	}
 	echo '<span class="download_btn">' .
-		'<a class="btn-blue" href="' . $strAddFileLink . '" ' .
+		'<a class="btn-blue theFieldSet" href="' . $strAddFileLink . '" ' .
 		'onclick="handlerDiskUsage(' . $groupId . ')" ' .
 		'>' .
 		'Add File</a></span>&nbsp';
@@ -779,7 +779,7 @@ function constructFileUI($groupId,
 		// DOI has not been requested for package.
 		if (!$fileDoi) {
 			echo '<td><span class="download_btn">' .
-				'<a class="btn-blue" href="' . $strUpdateFileLink . '" ' .
+				'<a class="btn-blue theFieldSet" href="' . $strUpdateFileLink . '" ' .
 				'onclick="handlerDiskUsage(' . $groupId . ')" ' .
 				'>' .
 				'Update</a></span></td>';

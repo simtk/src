@@ -32,7 +32,7 @@ global $dirid; // id of the doc_group
 
 if (!forge_check_perm('docman', $group_id, 'submit')) {
 	$return_msg= _('Document Manager Access Denied');
-	session_redirect('/docman/?group_id='.$group_id.'&warning_msg='.urlencode($return_msg));
+	session_redirect('/docman/?group_id='.((int)$group_id).'&warning_msg='.urlencode($return_msg));
 }
 ?>
 
@@ -44,7 +44,12 @@ if (!forge_check_perm('docman', $group_id, 'submit')) {
 function handlerUploadArchive(groupId) {
 	// Check disk usage.
 	if (!handlerDiskUsage(groupId)) {
+		// Disable input fields.
+		$(".theFieldSet").attr("disabled", "disabled");
+
 		// Disk usage exceeded quota. Do not proceed.
+		// Remove action.
+		$("#injectzip").attr("action", "");
 		event.preventDefault();
 		return;
 	}
@@ -55,6 +60,12 @@ function handlerUploadArchive(groupId) {
 var controllerAddItem;
 
 jQuery(document).ready(function() {
+	// Display diskage usage warning message, if any.
+	if (!handlerDiskUsage(<?php echo ((int)$group_id); ?>)) {
+		// Disable input fields.
+		$(".theFieldSet").attr("disabled", "disabled");
+	}
+
 	controllerAddItem = new DocManAddItemController({
 		injectZip:	jQuery('#injectzip'),
 		submitZip:	jQuery('#submitinjectzip')
@@ -93,15 +104,17 @@ if (forge_check_perm('docman', $group_id, 'approve')) {
 	echo '</div>';
 	echo '<div id="tabs-inject-tree">';
 	echo '<div class="docman_div_include" id="zipinject">';
-	echo '<form id="injectzip" name="injectzip" method="post" action="?group_id='.$group_id.'&amp;action=injectzip&amp;dirid='.$dirid.'" enctype="multipart/form-data">';
+	echo '<form id="injectzip" name="injectzip" method="post" action="?group_id='.((int)$group_id).'&amp;action=injectzip&amp;dirid='.((int)$dirid).'" enctype="multipart/form-data">';
+	echo '<fieldset class="theFieldSet">';
 	echo '<p>';
 	echo '<label>' . _('Upload archive:') . ' </label><input type="file" name="uploaded_zip" required="required" />'.sprintf(_('(max upload size: %s)'),human_readable_bytes(util_get_maxuploadfilesize()));
 	include ($gfcommon.'docman/views/addsubdocgrouparchive.php');
 	echo '<input id="submitinjectzip" ' .
 		'type="button" ' .
-		'onclick="handlerUploadArchive(' . $group_id . ')" ' .
+		'onclick="handlerUploadArchive(' . ((int)$group_id) . ')" ' .
 		'value="Upload" />';
 	echo '</p>';
+	echo '</fieldset>';
 	echo '</form>';
 	echo '</div>';
 	echo '</div>';
