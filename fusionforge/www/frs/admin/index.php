@@ -345,7 +345,9 @@ $(document).ready(function() {
 	// Display diskage usage warning message, if any.
 	if (!handlerDiskUsage(<?php echo ((int)$group_id); ?>)) {
 		// Disable input fields.
-		$(".theFieldSet").attr("disabled", "disabled");
+		$(".theFieldSet").prop("disabled", true);
+		$(".theFieldSet").css("background-color", "#a7c0e1");
+		$(".theFieldSet").removeAttr("href");
 	}
 });
 </script>
