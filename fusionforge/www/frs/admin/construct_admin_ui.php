@@ -6,7 +6,7 @@
  * 
  * Construct UI for downloads administration.
  *
- * Copyright 2005-2021, SimTK Team
+ * Copyright 2005-2022, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -212,7 +212,7 @@ function constructPackageUI($HTML, $groupId, $groupObj, $packageInfo,
 		"group_id=" . $groupId . 
 		"&package_id=" . $packId;
 	echo '<span class="download_btn">' .
-		'<a class="btn-blue" href="' . $strEditPackageLink . '">' .
+		'<a class="btn-blue theFieldSet" href="' . $strEditPackageLink . '">' .
 		'Update Package</a></span>&nbsp';
 
 	// Check if the package (itself, its releases, or files) has any DOI assigned.
@@ -479,7 +479,7 @@ function constructReleaseUI($HTML, $groupId, $groupObj,
 		"&release_id=" . $relId;
 
 	echo '<span class="download_btn">' .
-		'<a class="btn-blue" href="' . $strEditReleaseLink . '">' .
+		'<a class="btn-blue theFieldSet" href="' . $strEditReleaseLink . '">' .
 		'Update Release</a></span>&nbsp;';
 	// Remove delete releases button if this release has DOI assigned.
 	if (!$frsRelease->hasDOIIdentifier()) {
