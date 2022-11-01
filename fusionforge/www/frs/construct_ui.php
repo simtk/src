@@ -6,7 +6,7 @@
  * 
  * Construct UI for downloads display.
  *
- * Copyright 2005-2021, SimTK Team
+ * Copyright 2005-2022, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -125,7 +125,7 @@ function constructDownloadOverviewAndNotes($theGroupInfo, $groupId) {
 	if (trim($theGroupInfo["download_overview"]) != "") {
 		// Show download overview.
 		echo '<div class="download_package" style="background-image:none;margin-bottom:20px;">';
-		echo $theGroupInfo["download_overview"];
+		echo html_entity_decode($theGroupInfo["download_overview"]);
 		if (trim($theGroupInfo["download_notes"]) != "") {
 /*
 			// Show download notes.
@@ -254,7 +254,7 @@ function constructPackageUI($HTML, $groupId, $groupObj, $packageInfo,
 		echo '<div class="download_details" style="margin-left:0px;">doi:' . $packDoiIdentifier . '</div><br/>';
 	}
 
-	echo "<div class='download_description'>" . $packDesc . "</div>";
+	echo "<div class='download_description'>" . html_entity_decode($packDesc) . "</div>";
 	echo "</div>"; // wrapper_text
 	echo "</div>"; // project_representation
 
@@ -420,7 +420,7 @@ function constructReleaseUI($HTML, $groupId, $groupObj,
 		date('M d, Y', $relDate) . '</div>';
 
 	echo '<div style="clear:both"></div>';
-	echo '<p>' . $relDesc;
+	echo '<p>' . html_entity_decode($relDesc);
 	// Show notes hyperlink if notes or changelog is present.
 	if (trim($relNotes) != "" || trim($relChanges) != "") {
 		echo '<span class="download_extra">' .
@@ -702,7 +702,7 @@ function constructFileUI($groupId, $release_id,
 			}
 			echo '<div class="download_details">doi:' . $fileDoiIdentifier . '</div><br/>';
 		}
-		echo '<div class="download_text">' . $fileDescription . '</div>';
+		echo '<div class="download_text">' . html_entity_decode($fileDescription) . '</div>';
 
 		if ($simtkFileType == "GitHubArchive" && $fileSize == 0) {
 			// File downloading. Not ready yet.
@@ -747,7 +747,7 @@ function constructFileUI($groupId, $release_id,
 			}
 			echo '<div class="download_size">doi:' . $fileDoiIdentifier . '</div><br/>';
 		}
-		echo '<div class="download_text">' . $fileDescription . '</div>';
+		echo '<div class="download_text">' . html_entity_decode($fileDescription) . '</div>';
 		if ($simtkFileType == "GitHubArchive" && $fileSize == 0) {
 			// File downloading. Not ready yet.
 			echo '<div class="download_size not_ready" ' .

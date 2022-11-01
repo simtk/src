@@ -198,7 +198,7 @@ function constructPackageUI($HTML, $groupId, $groupObj, $packageInfo,
 		}
 	}
 
-	echo "<div class='download_description'>" . $packDesc . "</div>";
+	echo "<div class='download_description'>" . html_entity_decode($packDesc) . "</div>";
 	echo "</div>"; // wrapper_text
 	echo "</div>"; // project_representation
 
