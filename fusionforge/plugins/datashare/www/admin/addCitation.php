@@ -2,7 +2,7 @@
 /**
  * Add citation to a DataShare study.
  *
- * Copyright 2005-2021, SimTK Team
+ * Copyright 2005-2022, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -82,6 +82,91 @@ elseif ($study->isError()) {
 }
 $study_results = $study->getStudy($study_id);
 
+$func = htmlspecialchars(getStringFromRequest('func'));
+if ($func == "add_citation") {
+	$authors = htmlspecialchars(trim(getStringFromRequest('authors')));
+	$title = htmlspecialchars(trim(getStringFromRequest('title')));
+	$publisher = htmlspecialchars(trim(getStringFromRequest('publisher')));
+	$citation_year = getIntFromRequest('citation_year');
+	$url = htmlspecialchars(trim(getStringFromRequest('url')));
+	$url = strtolower($url);
+	$doi = htmlspecialchars(trim(getStringFromRequest('doi')));
+	$cite = getIntFromRequest('cite');
+
+	if ($authors == "" ||
+		$title == "" ||
+		$publisher == "" ||
+		$citation_year < 1900 ||
+		$citation_year > 2099) {
+		$error_msg = 'Citation not added: please complete required field';
+	}
+	else if ($url != "" && 
+		(!filter_var($url, FILTER_VALIDATE_URL) ||
+		(strpos($url, "http://") !== 0 && strpos($url, "https://") !== 0))) {
+		// Check for valid format of URL and http/https prefix.
+		$error_msg = 'Citation not added: invalid URL';
+	}
+	else {
+		// Check for presence of data already due to page refresh.
+		$res = db_query_params("SELECT citation_id FROM plugin_datashare_citation WHERE " .
+			"study_id=$1 AND " .
+			"authors=$2 AND " .
+			"title=$3 AND " .
+			"publisher_information=$4 AND " .
+			"doi=$5 AND " .
+			"citation_year=$6 AND " .
+			"url=$7 AND " .
+			"cite=$8",
+			array(
+				$study_id,
+				$authors,
+				$title,
+				$publisher,
+				$doi,
+				$citation_year,
+				$url,
+				$cite
+			)
+		);
+		if (!$res) {
+			$error_msg = "Citation not added: cannot read table";
+		}
+		else if (db_numrows($res) >= 1) {
+			$error_msg = "Citation not added: the citation exists already";
+			session_redirect('/plugins/datashare/admin/managePubs.php' .
+				'?group_id=' . $group_id .
+				'&study_id=' . $study_id);
+		}
+		else {
+			db_begin();
+			$res = db_query_params("INSERT INTO plugin_datashare_citation " .
+				"(study_id, authors, title, publisher_information, doi, citation_year, url, cite) " .
+				"VALUES ($1,$2,$3,$4,$5,$6,$7,$8)",
+				array(
+					$study_id,
+					$authors,
+					$title,
+					$publisher,
+					$doi,
+					$citation_year,
+					$url,
+					$cite
+				)
+			);
+			if (!$res || db_affected_rows($res) < 1) {
+				db_rollback();
+				$error_msg = "Error adding citation";
+			}
+			else {
+				db_commit();
+				$feedback = "Added Citation";
+				session_redirect('/plugins/datashare/admin/managePubs.php' .
+					'?group_id=' . $group_id .
+					'&study_id=' . $study_id);
+			}
+		}
+	}
+}
 
 datashare_header(array('title'=>'Datashare'), $group_id);
 
@@ -93,7 +178,7 @@ echo "<div class=\"main_col\">";
 
 <div><h3><?php echo $study_results[0]->title; ?></h3></div>
 
-<form enctype="multipart/form-data" action="/plugins/datashare/admin/managePubs.php" method="POST">
+<form enctype="multipart/form-data" action="/plugins/datashare/admin/addCitation.php" method="POST">
 
 <input type="hidden" name="func" value="add_citation" />
 <input type="hidden" name="group_id" value="<?php echo $group_id; ?>" />

@@ -73,8 +73,7 @@ class Datashare extends FFError {
 		}
 
 		$this->group =& $group;
-
-
+	
 		if ($study_id) {
 			if (!$this->getStudy($study_id)) {
 				return false;
@@ -274,16 +273,22 @@ class Datashare extends FFError {
 		if ($numCites > 0) {
 			echo '<div style="width:95%">';
 
-			echo '<div class="download_citation">';
 			if ($isAdmin) {
+				echo '<div class="download_citation">';
 				echo '<div class="download_subtitle">CATEGORY: "PLEASE CITE THESE PAPERS"</div>';
 			}
 			else {
+				// Indent display.
+				echo '<div style="margin-left:30px;" class="download_citation">';
 				echo '<div class="download_subtitle">PLEASE CITE THESE PAPERS</div>';
 			}
 			echo '<div style="clear:both"></div>';
 
 			for ($cnt = 0; $cnt < $numCites; $cnt++) {
+				if (!$isAdmin) {
+					// Indent display.
+					echo '<p>';
+				}
 				echo htmlspecialchars($arrCite[$cnt]->authors) . " " . 
 					htmlspecialchars($arrCite[$cnt]->title) . " " .
 					htmlspecialchars($arrCite[$cnt]->publisher_information) . " ";
@@ -305,6 +310,9 @@ class Datashare extends FFError {
 						'">View</a>';
 					echo '</span>';
 				}
+				if (!$isAdmin) {
+					echo '</p>';
+				}
 				
 				if ($isAdmin) {
 					echo '<div style="display:inline;">';
@@ -323,9 +331,9 @@ class Datashare extends FFError {
 						'&citation_id=' . $arrCite[$cnt]->citation_id .
 						'">Delete</a>';
 					echo '</div>';
+					echo '<br/>';
+					echo '<br/>';
 				}
-				echo '<br/>';
-				echo '<br/>';
 			}
 
 			echo "</div>";
@@ -336,16 +344,22 @@ class Datashare extends FFError {
 		if ($numNonCite > 0) {
 			echo '<div style="width:95%">';
 
-			echo '<div class="download_citation">';
 			if ($isAdmin) {
+				echo '<div class="download_citation">';
 				echo '<div class="download_subtitle">CATEGORY: "ADDITIONAL PAPERS"</div>';
 			}
 			else {
+				// Indent display.
+				echo '<div style="margin-left:30px;" class="download_citation">';
 				echo '<div class="download_subtitle">ADDITIONAL PAPERS</div>';
 			}
 			echo '<div style="clear:both"></div>';
 
 			for ($cnt = 0; $cnt < $numNonCite; $cnt++) {
+				if (!$isAdmin) {
+					// Indent display.
+					echo '<p>';
+				}
 				echo htmlspecialchars($arrNonCite[$cnt]->authors) . " " . 
 					htmlspecialchars($arrNonCite[$cnt]->title) . " " .
 					htmlspecialchars($arrNonCite[$cnt]->publisher_information) . " ";
@@ -367,6 +381,9 @@ class Datashare extends FFError {
 						'">View</a>';
 					echo '</span>';
 				}
+				if (!$isAdmin) {
+					echo '</p>';
+				}
 
 				if ($isAdmin) {
 					echo '<div style="display:inline;">';
@@ -385,9 +402,9 @@ class Datashare extends FFError {
 						'&citation_id=' . $arrNonCite[$cnt]->citation_id .
 						'">Delete</a>';
 					echo '</div>';
+					echo '<br/>';
+					echo '<br/>';
 				}
-				echo '<br/>';
-				echo '<br/>';
 			}
 
 			echo "</div>";
