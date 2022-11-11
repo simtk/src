@@ -304,7 +304,7 @@ These licenses differ in the additional obligations they place on the users.
 <?php
 	if ($study_results[0]->simtk_use_agreement === "6") echo "checked='checked'"; 
 ?>
-> CC BY 4.0 </input><span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Others can share and adapt the file(s) for any purpose, even commercially, but they must give proper attribution.  Similar to MIT license but applies to works beyond just software and related documentation.  Also, it provides more terms and conditions.">?</a></span>
+> Creative Commons Attribution 4.0 </input><span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Others can share and adapt the file(s) for any purpose, even commercially, but they must give proper attribution.  Similar to MIT license but applies to works beyond just software and related documentation.  Also, it provides more terms and conditions.">?</a></span>
 </p>
 <p>
 <input type="radio" name="use_agreement" class="use_agreement" value="7" 

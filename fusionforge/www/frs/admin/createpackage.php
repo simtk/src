@@ -289,7 +289,7 @@ These licenses differ in the additional obligations they place on the users.
 	</p>
 
 	<p>
-		<input type="radio" name="use_agreement" class="use_agreement" value="6" ><label>&nbsp;CC BY 4.0 </label>
+		<input type="radio" name="use_agreement" class="use_agreement" value="6" ><label>&nbsp;Creative Commons Attribution 4.0 </label>
 		</input>
 		<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Others can share and adapt the file(s) for any purpose, even commercially, but they must give proper attribution.  Similar to MIT license but applies to works beyond just software and related documentation.  Also, it provides more terms and conditions.">?</a></span>
 	</p>
