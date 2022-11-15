@@ -111,7 +111,7 @@ echo 'You are about to permanently and irretrievably delete this citation!';
 echo '<p>';
 echo '<input type="checkbox" name="sure" value="1" />&nbsp;I am Sure<br/>';
 echo '<input type="checkbox" name="really_sure" value="1" />&nbsp;I am Really Sure<br/>';
-echo '<input type="submit" name="submit" value="Delete Citation" class="btn-cta" />';
+echo '<br/><input type="submit" name="submit" value="Delete Citation" class="btn-cta" />';
 echo '</p>';
 echo '</form>';
 
