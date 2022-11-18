@@ -346,7 +346,7 @@ $(document).ready(function() {
 	if (!handlerDiskUsage(<?php echo ((int)$group_id); ?>)) {
 		// Disable input fields.
 		$(".theFieldSet").prop("disabled", true);
-		$(".theFieldSet").css("background-color", "#a7c0e1");
+		$(".theFieldSet").css("background-color", "#d3d3d3");
 		$(".theFieldSet").removeAttr("href");
 	}
 });

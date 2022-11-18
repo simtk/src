@@ -64,6 +64,8 @@ function doItAddSubGroup() {
 	if (!handlerDiskUsage(<?php echo $group_id; ?>)) {
 		// Disable input fields.
 		$(".theFieldSet").attr("disabled", "disabled");
+		$(".theSubmit").css("color", "#ffffff");
+		$(".theSubmit").css("background-color", "#d3d3d3");
 	}
 
 	document.getElementById('addsubgroup').submit();
@@ -93,7 +95,7 @@ if ($dirid) {
         $dgh->showSelectNestedGroups($dgf->getNested(), 'doc_group', true, $dirid);
 }
 
-echo '<input id="submitaddsubgroup" type="button" value="'. _('Create') .'" onclick="javascript:doItAddSubGroup()" />';
+echo '<input class="theSubmit" id="submitaddsubgroup" type="button" value="'. _('Create') .'" onclick="javascript:doItAddSubGroup()" />';
 echo '</fieldset>';
 echo '</form>';
 echo '</div>';

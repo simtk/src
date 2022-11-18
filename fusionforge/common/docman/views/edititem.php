@@ -63,6 +63,8 @@ function handlerSubmit(groupId) {
 	if (!handlerDiskUsage(groupId)) {
 		// Disable input fields.
 		$(".theFieldSet").attr("disabled", "disabled");
+		$(".theSubmit").css("color", "#ffffff");
+		$(".theSubmit").css("background-color", "#d3d3d3");
 
 		// Disk usage exceeded quota. Do not proceed.
 		event.preventDefault();

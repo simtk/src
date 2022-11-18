@@ -64,6 +64,8 @@ jQuery(document).ready(function() {
 	if (!handlerDiskUsage(<?php echo ((int)$group_id); ?>)) {
 		// Disable input fields.
 		$(".theFieldSet").attr("disabled", "disabled");
+		$(".theSubmit").css("color", "#ffffff");
+		$(".theSubmit").css("background-color", "#d3d3d3");
 	}
 
 	controllerAddItem = new DocManAddItemController({
@@ -109,7 +111,7 @@ if (forge_check_perm('docman', $group_id, 'approve')) {
 	echo '<p>';
 	echo '<label>' . _('Upload archive:') . ' </label><input type="file" name="uploaded_zip" required="required" />'.sprintf(_('(max upload size: %s)'),human_readable_bytes(util_get_maxuploadfilesize()));
 	include ($gfcommon.'docman/views/addsubdocgrouparchive.php');
-	echo '<input id="submitinjectzip" ' .
+	echo '<input class="theSubmit" id="submitinjectzip" ' .
 		'type="button" ' .
 		'onclick="handlerUploadArchive(' . ((int)$group_id) . ')" ' .
 		'value="Upload" />';
