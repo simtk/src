@@ -6,7 +6,7 @@
  *
  * admin page for managing publications.
  *
- * Copyright 2005-2021, SimTK Team
+ * Copyright 2005-2022, SimTK Team
  *
  * This file is part of the SimTK web portal originating from
  * Simbios, the NIH National Center for Physics-Based
@@ -96,112 +96,31 @@ if ($func == "delete_citation") {
 	$really_sure = getIntFromRequest('really_sure');
 
 	if (!$sure || !$really_sure) {
-		$error_msg = 'Citation not deleted: you did not check “I am Sure”';
+		$error_msg = 'Citation not deleted: you did not check "I am Sure" and "I am Really Sure"';
 	}
 	else {
-		db_begin();
-		$res = db_query_params("DELETE FROM plugin_datashare_citation " .
-			"WHERE citation_id=$1", array($citation_id));
-		if (!$res || db_affected_rows($res) < 1) {
-			$error_msg = "Error deleting citation";
-			db_rollback();
-		}
-		else {
-			$feedback = "Citation Deleted";
-			db_commit();
-		}
-	}
-}
-else if ($func == "add_citation") {
-	$authors = htmlspecialchars(getStringFromRequest('authors'));
-	$title = htmlspecialchars(getStringFromRequest('title'));
-	$publisher = htmlspecialchars(getStringFromRequest('publisher'));
-	$citation_year = getIntFromRequest('citation_year');
-	$url = htmlspecialchars(getStringFromRequest('url'));
-	$doi = htmlspecialchars(getStringFromRequest('doi'));
-	$cite = getIntFromRequest('cite');
-
-	if (trim($authors) == "" ||
-		trim($title) == "" ||
-		trim($publisher) == "" ||
-		$citation_year < 1900 ||
-		$citation_year > 2099) {
-		$error_msg = 'Citation not added: please complete required field';
-	}
-	else {
-		db_begin();
-		$res = db_query_params("INSERT INTO plugin_datashare_citation " .
-			"(study_id, authors, title, publisher_information, doi, citation_year, url, cite) " .
-			"VALUES ($1,$2,$3,$4,$5,$6,$7,$8)",
-			array(
-				$study_id,
-				$authors,
-				$title,
-				$publisher,
-				$doi,
-				$citation_year,
-				$url,
-				$cite
-			)
+		$res = db_query_params("SELECT citation_id FROM plugin_datashare_citation WHERE " .
+			"citation_id=$1",
+			array($citation_id)
 		);
-		if (!$res || db_affected_rows($res) < 1) {
-			db_rollback();
-			$error_msg = "Error adding citation";
+		if (!$res) {
+			$error_msg = "Citation not deleted: cannot read table";
+		}
+		else if (db_numrows($res) < 1) {
+			$error_msg = "Citation not deleted: the citation does not exist";
 		}
 		else {
-			db_commit();
-			$feedback = "Added Citation";
-		}
-	}
-}
-else if ($func == "update_citation") {
-	$authors = htmlspecialchars(getStringFromRequest('authors'));
-	$title = htmlspecialchars(getStringFromRequest('title'));
-	$publisher = htmlspecialchars(getStringFromRequest('publisher'));
-	$citation_year = getIntFromRequest('citation_year');
-	$url = htmlspecialchars(getStringFromRequest('url'));
-	$doi = htmlspecialchars(getStringFromRequest('doi'));
-	$cite = getIntFromRequest('cite');
-	$citation_id = getIntFromRequest('citation_id');
-
-	if (trim($authors) == "" ||
-		trim($title) == "" ||
-		trim($publisher) == "" ||
-		$citation_year < 1900 ||
-		$citation_year > 2099) {
-		$error_msg = 'Citation not updated: please complete required field';
-	}
-	else {
-		db_begin();
-		$res = db_query_params("UPDATE plugin_datashare_citation SET " .
-			"study_id=$1," .
-			"authors=$2," .
-			"title=$3," .
-			"publisher_information=$4," .
-			"doi=$5," .
-			"citation_year=$6," .
-			"url=$7," .
-			"cite=$8 " .
-			"WHERE citation_id=$9",
-			array(
-				$study_id,
-				$authors,
-				$title,
-				$publisher,
-				$doi,
-				$citation_year,
-				$url,
-				$cite,
-				$citation_id
-			)
-		);
-		if (!$res || db_affected_rows($res) < 1) {
-			db_rollback();
-			$error_msg = "Error updating citation";
-		}
-		else {
-			db_commit();
-			$feedback = "Updated Citation";
+			db_begin();
+			$res = db_query_params("DELETE FROM plugin_datashare_citation " .
+				"WHERE citation_id=$1", array($citation_id));
+			if (!$res || db_affected_rows($res) < 1) {
+				$error_msg = "Error deleting citation";
+				db_rollback();
+			}
+			else {
+				$feedback = "Citation Deleted";
+				db_commit();
+			}
 		}
 	}
 }

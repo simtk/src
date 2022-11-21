@@ -6,7 +6,7 @@
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * http://fusionforge.org/
- * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2022, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -253,6 +253,9 @@ frs_admin_header(array('title'=>'Add File','group'=>$group_id));
 
 ?>
 
+<div class="du_warning_msg"></div>
+<script src='/frs/admin/handlerDiskUsage.js'></script>
+
 <script>
 function sendnews() {
 	// News creation.
@@ -430,6 +433,14 @@ $(document).ready(function() {
 	});
 
 	$("#submitAndNotify").click(function() {
+
+		// Check disk usage.
+		if (!handlerDiskUsage(<?php echo $group_id; ?>)) {
+			// Disk usage exceeded quota. Do not proceed.
+			event.preventDefault();
+			return;
+		}
+
 		if ($('#doi').is(":checked")) {
 			if (!confirm("I confirm that I would like to have this file, its release, and the package it belongs to made permanent. Please issue a DOI.")) {
 				event.preventDefault();
@@ -454,6 +465,14 @@ $(document).ready(function() {
 	});
 
 	$("#submitNoNotify").click(function() {
+
+		// Check disk usage.
+		if (!handlerDiskUsage(<?php echo $group_id; ?>)) {
+			// Disk usage exceeded quota. Do not proceed.
+			event.preventDefault();
+			return;
+		}
+
 		if ($('#doi').is(":checked")) {
 			if (!confirm("I confirm that I would like to have this file, its release, and the package it belongs to made permanent. Please issue a DOI.")) {
 				event.preventDefault();
@@ -750,7 +769,17 @@ if ($strMailingListPopup != false && trim($strMailingListPopup) != "") {
 </tr>
 <tr>
 	<td colspan="2" style="padding-top:15px;">
-		<input type="submit" name="submitAndNotify" id="submitAndNotify" value="Add & Notify Followers" class="btn-cta" /> &nbsp;<input type="submit" name="submitNoNotify" id="submitNoNotify" value="Add & Do Not Notify Followers" class="btn-cta" />
+		<input type="submit" 
+			name="submitAndNotify" 
+			id="submitAndNotify" 
+			value="Add & Notify Followers" 
+			onclick="$('.warning_msg').hide('slow')"
+			class="btn-cta" /> &nbsp;<input type="submit" 
+			name="submitNoNotify" 
+			id="submitNoNotify" 
+			value="Add & Do Not Notify Followers" 
+			onclick="$('.warning_msg').hide('slow')"
+			class="btn-cta" />
 	</td>
 </tr>
 </table>

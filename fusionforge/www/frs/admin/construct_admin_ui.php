@@ -6,7 +6,7 @@
  * 
  * Construct UI for downloads administration.
  *
- * Copyright 2005-2021, SimTK Team
+ * Copyright 2005-2022, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -198,7 +198,7 @@ function constructPackageUI($HTML, $groupId, $groupObj, $packageInfo,
 		}
 	}
 
-	echo "<div class='download_description'>" . $packDesc . "</div>";
+	echo "<div class='download_description'>" . html_entity_decode($packDesc) . "</div>";
 	echo "</div>"; // wrapper_text
 	echo "</div>"; // project_representation
 
@@ -212,7 +212,7 @@ function constructPackageUI($HTML, $groupId, $groupObj, $packageInfo,
 		"group_id=" . $groupId . 
 		"&package_id=" . $packId;
 	echo '<span class="download_btn">' .
-		'<a class="btn-blue" href="' . $strEditPackageLink . '">' .
+		'<a class="btn-blue theFieldSet" href="' . $strEditPackageLink . '">' .
 		'Update Package</a></span>&nbsp';
 
 	// Check if the package (itself, its releases, or files) has any DOI assigned.
@@ -231,7 +231,9 @@ function constructPackageUI($HTML, $groupId, $groupObj, $packageInfo,
 		"group_id=" . $groupId . 
 		"&package_id=" . $packId;
 	echo '<span class="download_btn">' .
-		'<a class="btn-blue" href="' . $strAddReleaseLink . '">' .
+		'<a class="btn-blue theFieldSet" href="' . $strAddReleaseLink . ' "' .
+		'onclick="handlerDiskUsage(' . $groupId . ')" ' .
+		'>' .
 		'Add Release & Files</a></span>&nbsp';
 
 	// Add citation.
@@ -477,7 +479,7 @@ function constructReleaseUI($HTML, $groupId, $groupObj,
 		"&release_id=" . $relId;
 
 	echo '<span class="download_btn">' .
-		'<a class="btn-blue" href="' . $strEditReleaseLink . '">' .
+		'<a class="btn-blue theFieldSet" href="' . $strEditReleaseLink . '">' .
 		'Update Release</a></span>&nbsp;';
 	// Remove delete releases button if this release has DOI assigned.
 	if (!$frsRelease->hasDOIIdentifier()) {
@@ -486,7 +488,9 @@ function constructReleaseUI($HTML, $groupId, $groupObj,
 			'Delete Release</a></span>&nbsp;';
 	}
 	echo '<span class="download_btn">' .
-		'<a class="btn-blue" href="' . $strAddFileLink . '">' .
+		'<a class="btn-blue theFieldSet" href="' . $strAddFileLink . '" ' .
+		'onclick="handlerDiskUsage(' . $groupId . ')" ' .
+		'>' .
 		'Add File</a></span>&nbsp';
 	echo '<span class="download_btn">' .
 		'<a class="btn-blue" href="' . $strArrangeReleaseLink . '">' .
@@ -775,7 +779,9 @@ function constructFileUI($groupId,
 		// DOI has not been requested for package.
 		if (!$fileDoi) {
 			echo '<td><span class="download_btn">' .
-				'<a class="btn-blue" href="' . $strUpdateFileLink . '">' .
+				'<a class="btn-blue theFieldSet" href="' . $strUpdateFileLink . '" ' .
+				'onclick="handlerDiskUsage(' . $groupId . ')" ' .
+				'>' .
 				'Update</a></span></td>';
 
 			echo '<td><span class="download_btn">' .

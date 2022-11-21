@@ -1,9 +1,11 @@
 <?php
-/**
+/** 
+ * edititem.php
+ *
  * FusionForge Documentation Manager
  *
  * Copyright 2012-2013, Franck Villaume - TrivialDev
- * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2022, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -31,15 +33,6 @@ global $dm;
 
 //echo "groupid: " . $group_id . "<br />";
 
-if (!forge_check_perm('docman', $group_id, 'approve')) {
-	$return_msg= _('Document Manager Access Denied');
-	//session_redirect('/docman/?group_id='.$group_id.'&warning_msg='.urlencode($return_msg));
-	echo "<script type='text/javascript'>window.top.location='" .
-		"/account/login.php?triggered=1&return_to=" .
-		urlencode('/docman/?group_id=' . $group_id . '&view=listfile') .
-		"';</script>";
-	exit;
-}
 
 $statusResult = $dm->getStatusNameList("","3");
 
@@ -53,8 +46,46 @@ $d = new Document($g, $docid);
 $dgf = new DocumentGroupFactory($g);
 $dgf_groups = $dgf->getDocGroups();
 
+if (!forge_check_perm('docman', $group_id, 'approve')) {
+	$return_msg= _('Document Manager Access Denied');
+	session_redirect('/docman/?group_id='.$group_id.'&warning_msg='.urlencode($return_msg));
+}
+
+?>
+
+<div class="du_warning_msg"></div>
+<script src='/frs/admin/handlerDiskUsage.js'></script>
+
+<script>
+// Handle Update button click.
+function handlerSubmit(groupId) {
+	// Check disk usage.
+	if (!handlerDiskUsage(groupId)) {
+		// Disable input fields.
+		$(".theFieldSet").attr("disabled", "disabled");
+		$(".theSubmit").css("color", "#ffffff");
+		$(".theSubmit").css("background-color", "#d3d3d3");
+
+		// Disk usage exceeded quota. Do not proceed.
+		event.preventDefault();
+		return;
+	}
+}
+
+jQuery(document).ready(function() {
+	// Display diskage usage warning message, if any.
+	if (!handlerDiskUsage(<?php echo ((int)$group_id); ?>)) {
+		// Disable input fields.
+		$(".theFieldSet").attr("disabled", "disabled");
+	}
+});
+</script>
+
+<?php
+
 echo '<div id="editFile" >';
 echo '<form id="editdocdata" name="editdocdata" action="?group_id='.$group_id.'&amp;action=editfile&amp;fromview=listfile"  method="post" enctype="multipart/form-data">';
+echo '<fieldset class="theFieldSet">';
 echo '<table>';
 echo '	<tr>';
 echo '		<td><strong>'. _('Document Title')._(': ').'</strong>'. utils_requiredField() .'<br />';
@@ -127,6 +158,9 @@ echo '</table>';
 echo '<br />';
 echo '<input type="hidden" id="docid" name="docid" value="'.$docid.'"/>';
 echo '<input type="hidden" id="fromview" name="fromview" value="'.$fromview.'"/>';
-echo '<input type="submit" name="submit" class="btn-cta" value="'._('Update').'" />';
+echo '<input type="submit" name="submit" class="btn-cta" ' .
+	'onclick="handlerSubmit(' . $group_id . ')" ' .
+	'value="'._('Update').'" />';
+echo '</fieldset>';
 echo '</form>';
 echo '</div>';

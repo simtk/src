@@ -1,5 +1,7 @@
 <?php
 /**
+ * addsubdocgroup.php
+ *
  * FusionForge Documentation Manager
  *
  * Copyright 2000, Quentin Cregan/Sourceforge
@@ -7,6 +9,7 @@
  * Copyright 2010-2011, Franck Villaume - Capgemini
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2013, Franck Villaume - TrivialDev
+ * Copyright 2016-2022, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -57,6 +60,14 @@ if ($dgh->isError()) {
 ?>
 <script type="text/javascript">//<![CDATA[
 function doItAddSubGroup() {
+	// Check disk usage.
+	if (!handlerDiskUsage(<?php echo $group_id; ?>)) {
+		// Disable input fields.
+		$(".theFieldSet").attr("disabled", "disabled");
+		$(".theSubmit").css("color", "#ffffff");
+		$(".theSubmit").css("background-color", "#d3d3d3");
+	}
+
 	document.getElementById('addsubgroup').submit();
 	document.getElementById('submitaddsubgroup').disabled = true;
 }
@@ -64,6 +75,7 @@ function doItAddSubGroup() {
 <?php
 echo '<div class="docmanDivIncluded">';
 echo '<form id="addsubgroup" name="addsubgroup" method="post" action="'.$actionurl.'">';
+echo '<fieldset class="theFieldSet">';
 if ($dirid) {
 	$folderMessage = _('Name of the document subfolder to create');
 	echo $folderMessage._(': ');
@@ -83,6 +95,7 @@ if ($dirid) {
         $dgh->showSelectNestedGroups($dgf->getNested(), 'doc_group', true, $dirid);
 }
 
-echo '<input id="submitaddsubgroup" type="button" value="'. _('Create') .'" onclick="javascript:doItAddSubGroup()" />';
+echo '<input class="theSubmit" id="submitaddsubgroup" type="button" value="'. _('Create') .'" onclick="javascript:doItAddSubGroup()" />';
+echo '</fieldset>';
 echo '</form>';
 echo '</div>';

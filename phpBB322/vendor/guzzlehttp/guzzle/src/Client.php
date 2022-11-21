@@ -200,7 +200,7 @@ class Client implements ClientInterface
     protected function getDefaultOptions()
     {
         $settings = [
-            'allow_redirects' => true,
+            'allow_redirects' => false,
             'exceptions'      => true,
             'decode_content'  => true,
             'verify'          => true

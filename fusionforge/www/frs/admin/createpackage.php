@@ -9,7 +9,7 @@
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * http://fusionforge.org/
- * Copyright 2016-2020, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2022, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -289,7 +289,7 @@ These licenses differ in the additional obligations they place on the users.
 	</p>
 
 	<p>
-		<input type="radio" name="use_agreement" class="use_agreement" value="6" ><label>&nbsp;CC BY 4.0 </label>
+		<input type="radio" name="use_agreement" class="use_agreement" value="6" ><label>&nbsp;Creative Commons Attribution 4.0 </label>
 		</input>
 		<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Others can share and adapt the file(s) for any purpose, even commercially, but they must give proper attribution.  Similar to MIT license but applies to works beyond just software and related documentation.  Also, it provides more terms and conditions.">?</a></span>
 	</p>
@@ -304,7 +304,13 @@ These licenses differ in the additional obligations they place on the users.
 		<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content='Many other licenses can be used. See <a href="http://en.wikipedia.org/wiki/Comparison_of_free_software_licenses" target="_blank">Wikipedia</a> and <a href="http://creativecommons.org/licenses" target="_blank">Creative Commons</a>. For complex licenses, we recommend that you enter a URL for the license, e.g., "The [project name] license agreement can be read here: http://XXX."'>?</a></span>
 
 	<p>
-		<input type="radio" name="use_agreement" class="use_agreement" value="5" ><label>&nbsp;Creative Commons Attribution-Non-Commercial </label>
+		<input type="radio" name="use_agreement" class="use_agreement" value="8" ><label>&nbsp;Creative Commons Attribution-Non-Commercial 4.0</label>
+		</input>
+		<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Similar to open-source licenses except your work can only be used for non-commercial purposes.">?</a></span>
+	</p>
+
+	<p>
+		<input type="radio" name="use_agreement" class="use_agreement" value="5" ><label>&nbsp;Creative Commons Attribution-Non-Commercial 3.0</label>
 		</input>
 		<span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right" data-content="Similar to open-source licenses except your work can only be used for non-commercial purposes.">?</a></span>
 	</p>

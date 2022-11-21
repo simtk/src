@@ -9,7 +9,7 @@
  * Copyright (C) 2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2014, Franck Villaume - TrivialDev
  * http://fusionforge.org/
- * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2022, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -216,6 +216,9 @@ frs_admin_header(array('title'=>'Create Release','group'=>$group_id));
 
 ?>
 
+<div class="du_warning_msg"></div>
+<script src='/frs/admin/handlerDiskUsage.js'></script>
+
 <style>
 td {
 	padding-top:5px;
@@ -325,7 +328,17 @@ Edit the Release Notes or Change Log for this release of this package. These cha
 
 <tr>
 	<td colspan="2" style="padding-top:15px;">
-		<input type="submit" name="submitAndNotify" id="submitAndNotify" value="Add & Notify Followers" class="btn-cta" /> &nbsp;<input type="submit" name="submitNoNotify" id="submitNoNotify" value="Add & Do Not Notify Followers" class="btn-cta" />
+		<input type="submit" 
+			name="submitAndNotify" 
+			id="submitAndNotify" 
+			value="Add & Notify Followers" 
+			onclick="handlerDiskUsage(<?php echo $group_id; ?>)"
+			class="btn-cta" /> &nbsp;<input type="submit" 
+			name="submitNoNotify" 
+			id="submitNoNotify" 
+			value="Add & Do Not Notify Followers" 
+			onclick="handlerDiskUsage(<?php echo $group_id; ?>)"
+			class="btn-cta" />
 	</td>
 </tr>
 

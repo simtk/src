@@ -3,7 +3,7 @@
 /**
  * Datashare Admin: Cancel a DOI request on study.
  *
- * Copyright 2016-2020, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2022, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -75,7 +75,7 @@ if (session_loggedin()) {
 				}
 			}
 			else {
-				$error_msg = 'DOI request not canceled: you did not check “I am Sure”';
+				$error_msg = 'DOI request not canceled: you did not check "I am Sure" and "I am Really Sure"';
 			}
 		}
 	}
