@@ -5,7 +5,7 @@
  *
  * Admin file to manage keywords, ontology and categories for projects.
  * 
- * Copyright 2005-2021, SimTK Team
+ * Copyright 2005-2022, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -95,7 +95,7 @@ if (!empty($ontology) || !empty($keywords)) {
 // If this was a submission, make updates
 if ($submit = getStringFromRequest('submit')) {
 
-	$categories = htmlspecialchars(getStringFromRequest('categories'));
+	$categories = getStringFromRequest('categories');
 	$resTroveGroupLink = $group->updateTroveGroupLink($categories);
 	if (!$resTroveGroupLink) {
 		$theMsg = $group->getErrorMessage();

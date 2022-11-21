@@ -6,7 +6,7 @@
  *
  * Wrapper for app.php
  * 
- * Copyright 2005-2021, SimTK Team
+ * Copyright 2005-2022, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -149,7 +149,7 @@ $strPhpbbURL = implode(
 // Otherwise, even after the user has logged out, back button will
 // load information of previous user.
 echo '<iframe name="' . rand() . '" src="' . util_make_url($strPhpbbURL) . '" ' .
-	'frameborder="0" scrolling="no" width="100%" height="700px">' .
+	'frameborder="0" scrolling="no" width="100%" height="2000px">' .
 	'</iframe>';
 
 ?>

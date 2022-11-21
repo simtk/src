@@ -6,7 +6,7 @@
  * 
  * File to handle community administration.
  * 
- * Copyright 2005-2021, SimTK Team
+ * Copyright 2005-2022, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -172,7 +172,7 @@ db_free_result($resInfo);
 $sqlGNames = "SELECT DISTINCT group_name gn, unix_group_name FROM groups g " .
 	"JOIN featured_projects fp " .
 	"ON g.group_id=fp.group_id " .
-	"WHERE fp.trove_cat_id=$1" .
+	"WHERE fp.trove_cat_id=$1";
 $sqlFeaturedProjs = "SELECT * FROM (" .
         $sqlGNames . ") gNames " .
         "ORDER BY gNames.gn";
@@ -183,7 +183,7 @@ $resFeaturedProjs = db_query_params($sqlFeaturedProjs, array($cat_id));
 $sqlUNames = "SELECT realname, user_name, u.user_id as uid FROM users u " .
 	"JOIN trove_admin ta " .
 	"ON u.user_id=ta.user_id " .
-	"WHERE ta.trove_cat_id=$1" .
+	"WHERE ta.trove_cat_id=$1";
 $sqlAdmins = "SELECT * FROM (" .
         $sqlUNames . ") uNames " .
         "ORDER BY uNames.realname";

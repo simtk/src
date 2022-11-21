@@ -5,7 +5,7 @@
  * 
  * The class which contains all methods for the datashare plugin.
  *
- * Copyright 2005-2021, SimTK Team
+ * Copyright 2005-2022, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -73,8 +73,7 @@ class Datashare extends FFError {
 		}
 
 		$this->group =& $group;
-
-
+	
 		if ($study_id) {
 			if (!$this->getStudy($study_id)) {
 				return false;
@@ -274,16 +273,22 @@ class Datashare extends FFError {
 		if ($numCites > 0) {
 			echo '<div style="width:95%">';
 
-			echo '<div class="download_citation">';
 			if ($isAdmin) {
+				echo '<div class="download_citation">';
 				echo '<div class="download_subtitle">CATEGORY: "PLEASE CITE THESE PAPERS"</div>';
 			}
 			else {
+				// Indent display.
+				echo '<div style="margin-left:30px;" class="download_citation">';
 				echo '<div class="download_subtitle">PLEASE CITE THESE PAPERS</div>';
 			}
 			echo '<div style="clear:both"></div>';
 
 			for ($cnt = 0; $cnt < $numCites; $cnt++) {
+				if (!$isAdmin) {
+					// Indent display.
+					echo '<p>';
+				}
 				echo htmlspecialchars($arrCite[$cnt]->authors) . " " . 
 					htmlspecialchars($arrCite[$cnt]->title) . " " .
 					htmlspecialchars($arrCite[$cnt]->publisher_information) . " ";
@@ -305,6 +310,9 @@ class Datashare extends FFError {
 						'">View</a>';
 					echo '</span>';
 				}
+				if (!$isAdmin) {
+					echo '</p>';
+				}
 				
 				if ($isAdmin) {
 					echo '<div style="display:inline;">';
@@ -323,9 +331,9 @@ class Datashare extends FFError {
 						'&citation_id=' . $arrCite[$cnt]->citation_id .
 						'">Delete</a>';
 					echo '</div>';
+					echo '<br/>';
+					echo '<br/>';
 				}
-				echo '<br/>';
-				echo '<br/>';
 			}
 
 			echo "</div>";
@@ -336,16 +344,22 @@ class Datashare extends FFError {
 		if ($numNonCite > 0) {
 			echo '<div style="width:95%">';
 
-			echo '<div class="download_citation">';
 			if ($isAdmin) {
+				echo '<div class="download_citation">';
 				echo '<div class="download_subtitle">CATEGORY: "ADDITIONAL PAPERS"</div>';
 			}
 			else {
+				// Indent display.
+				echo '<div style="margin-left:30px;" class="download_citation">';
 				echo '<div class="download_subtitle">ADDITIONAL PAPERS</div>';
 			}
 			echo '<div style="clear:both"></div>';
 
 			for ($cnt = 0; $cnt < $numNonCite; $cnt++) {
+				if (!$isAdmin) {
+					// Indent display.
+					echo '<p>';
+				}
 				echo htmlspecialchars($arrNonCite[$cnt]->authors) . " " . 
 					htmlspecialchars($arrNonCite[$cnt]->title) . " " .
 					htmlspecialchars($arrNonCite[$cnt]->publisher_information) . " ";
@@ -367,6 +381,9 @@ class Datashare extends FFError {
 						'">View</a>';
 					echo '</span>';
 				}
+				if (!$isAdmin) {
+					echo '</p>';
+				}
 
 				if ($isAdmin) {
 					echo '<div style="display:inline;">';
@@ -385,9 +402,9 @@ class Datashare extends FFError {
 						'&citation_id=' . $arrNonCite[$cnt]->citation_id .
 						'">Delete</a>';
 					echo '</div>';
+					echo '<br/>';
+					echo '<br/>';
 				}
-				echo '<br/>';
-				echo '<br/>';
 			}
 
 			echo "</div>";
@@ -396,7 +413,7 @@ class Datashare extends FFError {
 	}
 
 	/**
-	 *  getStudyByGroup() - get all rows for this study from the database.
+	 *  getStudyByGroup() - get all rows associated with stuides of this group from the database.
 	 *
 	 *	@return	arrray  The data array of this study.
 	 */
@@ -431,8 +448,128 @@ class Datashare extends FFError {
 		return $results;
 
 	}
-	
 
+
+	// Get disk usage information by group.
+	function getDiskUsageByGroup($group_id, &$totalBytesInGroup, &$lastModifiedTimeInGroup) {
+
+		$totalBytesInGroup = 0;
+		$lastModifiedTimeInGroup = false;
+
+		$res = db_query_params("SELECT total_bytes, last_modified " .
+			"FROM plugin_datashare_diskusage " .
+			"WHERE group_id=$1",
+			array($group_id)
+		);
+		if (!$res || db_numrows($res) > 0) {
+			while ($arr = db_fetch_array($res)) {
+				$totalBytes = $arr['total_bytes'];
+				$lastModifiedTime = $arr['last_modified'];
+
+				$totalBytesInGroup += $totalBytes;
+				if (!$lastModifiedTimeInGroup || 
+					$lastModifiedTime > $lastModifiedTimeInGroup) {
+					$lastModifiedTimeInGroup = $lastModifiedTime;
+				}
+			}
+		}
+
+		db_free_result($res);
+	}
+
+	// Save disk usage information by group as retrieved from Data Share server
+	function saveDiskUsageByGroup($group_id) {
+
+		// Specify with dirname(__FILE__).
+		// Otherwise, the directory look up may fail if invoked from other locations.
+		include dirname(__FILE__) . "/../www/admin/server.php";
+
+		if (file_exists("/etc/gforge/config.ini.d/datashare.ini")) {
+			// The file datashare.ini is present.
+			$arrDatashareConfig = parse_ini_file("/etc/gforge/config.ini.d/datashare.ini");
+
+			// Check for each parameter's presence.
+			if (isset($arrDatashareConfig["datashare_server"])) {
+				$datashareServer = $arrDatashareConfig["datashare_server"];
+			}
+		}
+		if (!isset($datashareServer)) {
+			// Cannot get Data Share server.
+			return;
+		}
+
+		$totalBytesInGroup = 0;
+		$lastModifiedTimeInGroup = false;
+
+		$study_result = $this->getStudyByGroup($group_id);
+		if ($study_result) {
+			$context = array(
+				"ssl"=>array(
+					"verify_peer"=>false,
+					"verify_peer_name"=>false,
+				),
+			);
+			// Get each study id associated with the group.
+			foreach ($study_result as $result) {
+				$theStudyId = $result->study_id;
+
+				// Retrieve disk usage information from Data Share server.
+				$url = "https://$datashareServer/reports/getDataShareDiskUsage.php?" .
+					"apikey=$api_key&" .
+					"studyid=" . $theStudyId;
+				$response_json = file_get_contents($url, 
+					false, 
+					stream_context_create($context));
+				$response = json_decode($response_json);
+
+				$totalBytesInGroup = $response->total_bytes;
+				if (!$lastModifiedTimeInGroup || 
+					($response->last_modified && 
+					$response->last_modified > $lastModifiedTimeInGroup)) {
+					$lastModifiedTimeInGroup = $response->last_modified;
+				}
+
+				// Save disk usage info to db.
+				if ($totalBytesInGroup && $lastModifiedTimeInGroup) {
+					// Try update first.
+					$query = "UPDATE plugin_datashare_diskusage SET " .
+						"total_bytes=$1, " .
+						"last_modified=$2, " .
+						"group_id=$3, " .
+						"user_id=$4 " .
+						"WHERE study_id=$5";
+					$res = db_query_params($query,
+						array(
+							$totalBytesInGroup,
+							$lastModifiedTimeInGroup,
+							$group_id,
+							0,
+							$theStudyId
+						)
+					);
+					if (!$res || db_affected_rows($res) < 1) {
+						// Insert row.
+						$query = "INSERT INTO plugin_datashare_diskusage " .
+							"(study_id, group_id, total_bytes, last_modified, user_id) " .
+							"VALUES ($1,$2,$3,$4,$5)";
+						$res = db_query_params($query,
+							array(
+								$theStudyId,
+								$group_id,
+								$totalBytesInGroup,
+								$lastModifiedTimeInGroup,
+								0
+							)
+						);
+						if (!$res) {
+							// Cannot insert row.
+						}
+					}
+				}
+			}
+		}
+	}
+	
 	/**
 	 *	@return	boolean	success
 	*/

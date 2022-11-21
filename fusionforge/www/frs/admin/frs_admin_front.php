@@ -6,7 +6,7 @@
  * 
  * Front page of file downloads administration.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2022, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -66,13 +66,13 @@ function constructUI($HTML, $groupId, $groupObj, $thePackages, $package_id, $rel
 		"group_id=" . $groupId;
 	echo "<div style='margin-bottom:5px;'>";
 	echo '<span class="download_btn">' .
-		'<a class="btn-blue" href="' . $strCreatePackageLink . '">' .
+		'<a class="btn-blue theFieldSet" href="' . $strCreatePackageLink . '">' .
 		'Create New Package</a></span>&nbsp;';
 	echo '<span class="download_btn">' .
 		'<a class="btn-blue" href="' . $strArrangePackageLink . '">' .
 		'Arrange Package</a></span>&nbsp;';
 	echo '<span class="download_btn">' .
-		'<a class="btn-blue" href="' . $strUpdateOverviewAndNotesLink . '">' .
+		'<a class="btn-blue theFieldSet" href="' . $strUpdateOverviewAndNotesLink . '">' .
 		'Update Overview and Notes</a></span>&nbsp;';
 	echo "</div>";
 

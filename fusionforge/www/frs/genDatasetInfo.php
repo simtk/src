@@ -6,7 +6,7 @@
  * 
  * Generate the script that describes dataset in download packages.
  *
- * Copyright 2005-2021, SimTK Team
+ * Copyright 2005-2022, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -224,8 +224,8 @@ function genDatasetHeader($groupObj, $lastRelDate, $lastRelIds, $thePackages) {
 	}
 
 	$numPackages = count($thePackages);
-	$theDesc .= "\n\n<br/><br/>" . "This project includes the following software/data packages: \n<br/>";
-	$theDesc .= "\n<ul>";
+	$theDesc .= " \n \n <br/><br/>" . "This project includes the following software/data packages: \n <br/>";
+	$theDesc .= " \n <ul>";
 	foreach ($thePackages as $idxPack=>$packageInfo) {
 
 		if (!isset($lastRelIds[$idxPack])) {
@@ -238,18 +238,18 @@ function genDatasetHeader($groupObj, $lastRelDate, $lastRelIds, $thePackages) {
 			'/frs?group_id=' . $groupObj->getID();
 		if (isset($lastRelIds[$idxPack])) {
 			// Add latest release id of package.
- 			$packageURL .= '#' . $lastRelIds[$idxPack];
+ 			$packageURL .= '#pack_' . $packageInfo["package_id"];
 		}
 		$packageDesc = $packageInfo["description"];
 		if (trim($packageDesc) != "") {
-			$strPackage = '<a href="' . $packageURL . '">' . $packageName . '</a>' .
-				': ' . $packageDesc;
+			$strPackage = '<a href="' . $packageURL . '">' . $packageName . ' </a>' .
+				' : ' . $packageDesc;
 		}
 		else {
-			$strPackage = '<a href="' . $packageURL . '">' . $packageName . '</a>';
+			$strPackage = '<a href="' . $packageURL . '">' . $packageName . ' </a>';
 		}
 
-		$theDesc .= "<li>" . $strPackage . "</li>\n";
+		$theDesc .= " <li> " . $strPackage . " </li> \n ";
 	}
 
 	// Get Data Share studies.
@@ -269,16 +269,16 @@ function genDatasetHeader($groupObj, $lastRelDate, $lastRelIds, $thePackages) {
 							'/plugins/datashare?group_id=' . 
 							$groupObj->getID();
 						$studyDescription = $result->description;
-						$theDesc .= "<li>" . 
+						$theDesc .= " <li> " . 
 							'<a href="' . $studyURL . '">' . 
-							$studyTitle . '</a>' . 
-							": " . $studyDescription . "</li>\n";
+							$studyTitle . ' </a>' . 
+							" : " . $studyDescription . " </li> \n ";
 					}
 				}
 			}
 		}
 	}
-	$theDesc .= "\n</ul>";
+	$theDesc .= " \n </ul>";
 
 	$strDesc = htmlspecialchars($theDesc, ENT_QUOTES);
 	if (strlen($strDesc) >= 5000) {
@@ -303,8 +303,8 @@ function genDatasetHeader($groupObj, $lastRelDate, $lastRelIds, $thePackages) {
 		}
 
 		$numPackages = count($thePackages);
-		$theDesc .= "\n\n<br/><br/>" . "This project includes the following software/data packages: \n<br/>";
-		$theDesc .= "\n<ul>";
+		$theDesc .= " \n \n <br/><br/>" . "This project includes the following software/data packages: \n <br/>";
+		$theDesc .= " \n <ul>";
 		foreach ($thePackages as $idxPack=>$packageInfo) {
 
 			if (!isset($lastRelIds[$idxPack])) {
@@ -317,14 +317,14 @@ function genDatasetHeader($groupObj, $lastRelDate, $lastRelIds, $thePackages) {
 				'/frs?group_id=' . $groupObj->getID();
 			if (isset($lastRelIds[$idxPack])) {
 				// Add latest release id of package.
- 				$packageURL .= '#' . $lastRelIds[$idxPack];
+ 				$packageURL .= '#pack_' . $packageInfo["package_id"];
 			}
 			$packageDesc = $packageInfo["description"];
 
 			// Do not include description.
-			$strPackage = '<a href="' . $packageURL . '">' . $packageName . '</a>';
+			$strPackage = '<a href="' . $packageURL . '">' . $packageName . ' </a>';
 	
-			$theDesc .= "<li>" . $strPackage . "</li>\n";
+			$theDesc .= " <li> " . $strPackage . " </li> \n ";
 		}
 
 		// Get Data Share studies.
@@ -344,15 +344,15 @@ function genDatasetHeader($groupObj, $lastRelDate, $lastRelIds, $thePackages) {
 								'/plugins/datashare?group_id=' . 
 								$groupObj->getID();
 							$studyDescription = $result->description;
-							$theDesc .= "<li>" . 
+							$theDesc .= " <li> " . 
 								'<a href="' . $studyURL . '">' . 
-								$studyTitle . '</a>' . "</li>\n";
+								$studyTitle . ' </a>' . " </li> \n ";
 						}
 					}
 				}
 			}
 		}
-		$theDesc .= "\n</ul>";
+		$theDesc .= " \n </ul>";
 
 		$strDesc = htmlspecialchars($theDesc, ENT_QUOTES);
 	}
@@ -688,7 +688,7 @@ function genPackageDatasetDesc($groupObj, $packageInfo, $releaseInfo) {
 	$serverName = getServerName();
 	$strPackage .= '"contentURL": "' . 'https://' . $serverName .
 		'/frs?group_id=' . $groupObj->getID() .
-		'#' . $releaseInfo["release_id"] .
+		'#pack_' . $packageInfo["package_id"] .
 		'"';
 
 	$strPackage .= '}';
