@@ -9,7 +9,7 @@
  * Copyright (C) 2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2014, Franck Villaume - TrivialDev
  * http://fusionforge.org/
- * Copyright 2016-2022, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2023, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -95,13 +95,17 @@ if ($submitAndNotify || $submitNoNotify) {
 			exit_error(_('Attempted File Upload Attack'), 'frs');
 		}
 		if ($uploaded_notes['type'] !== 'text/plain') {
-			$error_msg .= _('Release Notes Are not in Text') . '<br/>';
+			$error_msg .= 'Release notes is not in text' . '<br/>';
 			$exec_changes = false;
 		}
 		else {
 			$notes = fread(fopen($uploaded_notes['tmp_name'], 'r'), $uploaded_notes['size']);
 			if (strlen($notes) < 20) {
-				$error_msg .= _('Release Notes Are Too Small') . '<br/>';
+				$error_msg .= 'Release notes is too short' . '<br/>';
+				$exec_changes = false;
+			}
+			if (strlen($notes) > 1048576) {
+				$error_msg .= 'Release notes is too long' . '<br/>';
 				$exec_changes = false;
 			}
 		}
@@ -116,13 +120,17 @@ if ($submitAndNotify || $submitNoNotify) {
 			exit_error(_('Attempted File Upload Attack'), 'frs');
 		}
 		if ($uploaded_changes['type'] !== 'text/plain') {
-			$error_msg .= _('Change Log Is not in Text') . '<br/>';
+			$error_msg .= 'Change log is not in text' . '<br/>';
 			$exec_changes = false;
 		}
 		else {
 			$changes = fread(fopen($uploaded_changes['tmp_name'], 'r'), $uploaded_changes['size']);
 			if (strlen($changes) < 20) {
-				$error_msg .= _('Change Log Is Too Small') . '<br/>';
+				$error_msg .= 'Change log is too short' . '<br/>';
+				$exec_changes = false;
+			}
+			if (strlen($changes) > 1048576) {
+				$error_msg .= 'Change log is too long' . '<br/>';
 				$exec_changes = false;
 			}
 		}
@@ -274,7 +282,8 @@ Edit the Release Notes or Change Log for this release of this package. These cha
 		<strong><?php echo _('Upload Release Notes')._(':'); ?></strong>
 		<?php echo('('._('max upload size: '.
 //			human_readable_bytes(util_get_maxuploadfilesize())).')') 
-			human_readable_bytes(getUploadFileSizeLimit($group_id))).')') 
+//			human_readable_bytes(getUploadFileSizeLimit($group_id))).')') 
+			human_readable_bytes(1048576)).')') 
 		?>
 	</td>
 </tr>
@@ -291,7 +300,8 @@ Edit the Release Notes or Change Log for this release of this package. These cha
 		<strong><?php echo _('Upload Change Log')._(':'); ?></strong>
 		<?php echo('('._('max upload size: '.
 //			human_readable_bytes(util_get_maxuploadfilesize())).')') 
-			human_readable_bytes(getUploadFileSizeLimit($group_id))).')') 
+//			human_readable_bytes(getUploadFileSizeLimit($group_id))).')') 
+			human_readable_bytes(1048576)).')') 
 		?>
 	</td>
 </tr>
