@@ -8,7 +8,7 @@
  * Copyright 2010-2011, Franck Villaume - Capgemini
  * Copyright 2011-2013, Franck Villaume - TrivialDev
  * Copyright (C) 2011-2012 Alain Peyrat - Alcatel-Lucent
- * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2023, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -32,6 +32,7 @@ require_once $gfcommon.'docman/Parsedata.class.php';
 require_once $gfcommon.'docman/DocumentManager.class.php';
 require_once $gfcommon.'docman/DocumentGroup.class.php';
 require_once $gfcommon.'docman/DocumentStorage.class.php';
+require_once $gfcommon.'docman/docmanUtils.php';
 
 class Document extends FFError {
 
@@ -1180,6 +1181,13 @@ class Document extends FFError {
 					$this->setOnUpdateError(db_error().print_r($qpa));
 					return false;
 				}
+
+				if ($column == "stateid" && $value == 2) {
+					// Document file deletion.
+					// Clean up the document file storage.
+					cleanupDeletedDocmanDocument($this->getID());
+				}
+
 				break;
 			}
 			default:
