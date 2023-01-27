@@ -8,7 +8,7 @@
  * Copyright 2010, Franck Villaume - Capgemini
  * Copyright (C) 2011-2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012-2013, Franck Villaume - TrivialDev
- * Copyright 2016-2021, SimTK Team
+ * Copyright 2016-2023, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -28,6 +28,7 @@
  */
 
 require_once $gfcommon.'include/FFError.class.php';
+require_once $gfcommon.'docman/docmanUtils.php';
 
 class DocumentGroup extends FFError {
 
@@ -880,6 +881,18 @@ class DocumentGroup extends FFError {
 					$this->setOnUpdateError(db_error().print_r($res));
 					return false;
 				}
+
+				if ($column == "stateid" && $value == 2) {
+					// Document group deletion.
+					// Examine all document group in this project group
+					// to clean up all document files storage.
+					// NOTE: There can be documents in subgroups 
+					// that are contained in this doc_group.
+					// Hence, all doc_groups in this project group 
+					// need to be examined.
+					cleanupAllDeletedDocmanDocuments($this->Group->getID());
+				}
+
 				break;
 			}
 			default:
