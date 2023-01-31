@@ -6,7 +6,7 @@
  * Copyright 2009, Roland Mas
  * Copyright (C) 2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012-2014, Franck Villaume - TrivialDev
- * Copyright 2016-2020, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2023, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -742,7 +742,7 @@ class FRSFile extends FFError {
 			// (Otherwise, release deletion has sendNotice() invocation already.
 			// Hence, no need to sendNotice().)
 			if ($emailChange == 1) {
-				$this->FRSRelease->sendNotice('UPDATE_RELEASE');
+				$this->FRSRelease->sendNotice('DELETE_FILE_RELEASE');
 			}
 		}
 

@@ -6,7 +6,7 @@
  * Copyright 2009, Roland Mas
  * Copyright (C) 2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2014, Franck Villaume - TrivialDev
- * Copyright 2016-2020, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2023, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -320,6 +320,8 @@ class FRSRelease extends FFError {
 		}
 		else if ($action == 'DELETE_RELEASE') {
 			$formatStr = 'Project %1$s (%2$s) has deleted release "%4$s" in package "%3$s".';
+		}else if ($action == 'DELETE_FILE_RELEASE'){
+			$formatStr = 'Project %1$s (%2$s) has deleted a file from release "%4s" in package "%3s".';
 		}
 		$content = sprintf($formatStr,
 			$this->FRSPackage->Group->getPublicName(),
@@ -334,19 +336,34 @@ class FRSRelease extends FFError {
 		if (trim($this->getChanges()) != "") {
 			$text .= "Change Log:\n" . $this->getChanges() . "\n\n";
 		}
-		$text .= "You can download it by following this link:\n" . 
+		// Action does not begin with DELETE_ we will exclude download link
+		$isDeleteAction = strpos($action, "DELETE_");
+		if($isDeleteAction === false ){
+			$text .= "You can download it by following this link:\n" . 
 			util_make_url("/frs/?group_id=". 
 				$this->FRSPackage->Group->getID() .
 				"&release_id=". $this->getID()) . 
-			"\n\n" . 
-			sprintf(_('You received this email because you requested to be notified when new ' . 
-				'versions of this package were released. If you don\'t wish to be ' . 
-				'notified in the future, please login to %s and click this link:'), 
-				forge_get_config('forge_name')) . 
-			"\n" . 
-			util_make_url("/frs/monitor.php?filemodule_id=".
-				$this->FRSPackage->getID() . "&group_id=" .
-				$this->FRSPackage->Group->getID() . "&stop=1");
+			"\n\n";
+		}
+		 
+		
+		$text .= 'You received this email because you requested to be notified when ';
+
+		if($isDeleteAction === false){
+			$text .= 'new versions of this package were released. ';
+		}else{
+			$text .= 'changes were made to this package. ';
+		}
+
+
+		
+		$text .= sprintf(_('If you don\'t wish to be notified in the future, '
+		. 'please login to %s and click this link:'),forge_get_config('forge_name')) 
+		. "\n"
+		. util_make_url("/frs/monitor.php?filemodule_id=".
+		$this->FRSPackage->getID() . "&group_id=" .
+		$this->FRSPackage->Group->getID() . "&stop=1");
+
 		if (count($arr)) {
 			util_handle_message(array_unique($arr),$subject,$text);
 		}
