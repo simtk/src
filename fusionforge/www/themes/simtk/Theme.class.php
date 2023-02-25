@@ -4,7 +4,7 @@
  *
  * Theme.class.php
  * 
- * Copyright 2005-2021, SimTK Team
+ * Copyright 2005-2023, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -1559,6 +1559,9 @@ echo $u->getFirstName();
 				break;
 			case "/project/admin/layout.php":
 				$pageTitle = "Project Admin: Main Page Layout";
+				break;
+			case "/project/admin/manageFunders.php":
+				$pageTitle = "Project Admin: Funder Information";
 				break;
 			case "/project/admin/settings.php":
 				$pageTitle = "Project Admin: Settings";
