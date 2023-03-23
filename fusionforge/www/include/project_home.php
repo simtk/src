@@ -8,7 +8,7 @@
  * Copyright 2010, FusionForge Team
  * Copyright (C) 2011-2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2013, Franck Villaume - TrivialDev
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2023, Henry Kwong, Tod Hing - SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -276,6 +276,40 @@ $project_admins = $group->getLeads();
 <?php } ?>
 
 <?php
+
+/**
+ * look to add funder info here
+ */
+if($group->getDisplayFunderInfo()){
+  $funders = $group->getFundersInfo();
+  $funders_count = 0;
+  if($funders){
+    $funders_count = count($funders);
+  }
+  echo '<div>';
+  echo '<h2>Funder Information </h2>';
+  if($funders_count > 0){
+      echo '<div style="margin: 24px 0;">';
+      echo 'This project is funded by ' . $funders[0]['funder_name'] .
+      ' ' . $funders[0]['award_number']  . ' ' . $funders[0]['award_title'];
+      for($i = 1; $i < $funders_count; $i++){
+          echo ", " .  $funders[$i]['funder_name'] .
+          ' ' . $funders[$i]['award_number'] . ' '  . $funders[$i]['award_title'];
+      }
+      echo '</div>';
+
+      echo '<div>';
+      foreach($funders as $funder){
+          if($funder['funder_description']){
+              echo '<p> ' . $funder['funder_description'] . '</p>';
+          }
+      }
+      echo '</div>';
+
+  }else{
+      echo '<p>No funder information has been added for this project.';
+  }
+}
 
 $rec_projects = $group->getRecommendedProjects(15);
 displayRecommendedProjects($group, $rec_projects);

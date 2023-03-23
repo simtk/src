@@ -4,7 +4,7 @@
  * 
  * Admin page for controlling project main page layout such as publication vs standard, etc.
  * 
- * Copyright 2005-2020, SimTK Team
+ * Copyright 2005-2023, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -61,8 +61,9 @@ if (getStringFromRequest('submit')) {
 	$display_download_pulldown = getStringFromRequest('form_display_download_pulldown');
 	$form_download_description = getStringFromRequest('form_download');
 	$form_layout = getStringFromRequest('form_layout');
+	$display_funderinfo = getStringFromRequest('display_funderinfo');
 
-	$res = $group->updateLayout(session_get_user(), $display_news, $display_related, $display_downloads, $display_download_pulldown, $form_download_description, $form_layout); 
+	$res = $group->updateLayout(session_get_user(), $display_news, $display_related, $display_downloads, $display_download_pulldown, $form_download_description, $form_layout, $display_funderinfo); 
 
 	if (!$res) {
 		$error_msg .= $group->getErrorMessage();
@@ -80,6 +81,7 @@ $display_downloads = $group->getDisplayDownloads();
 $display_related = $group->getDisplayRelated();
 $display_download_pulldown = $group->getDisplayDownloadPulldown();
 $layout = $group->getLayout();
+$display_funderinfo = $group->getDisplayFunderInfo();
 
 project_admin_header(array('title'=>'Admin','group'=>$group->getID()));
 
@@ -122,6 +124,13 @@ Layout of the Project's Overview
 <input type="radio" name="form_layout" value="1" <?php if ($layout == 1) { echo " checked";} ?> /> Publication <span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right"  title="Publication Project" data-content="A Publication Project will display the primary publication at the top of the project home page.  A primary publication must exist and the download description section must be completed.">?</a>
 </p>
 
+Display Funder Information
+
+<p>
+	<input type="radio" name="display_funderinfo" value="0" <?php if ($display_funderinfo == 0) { echo " checked";} ?> /> No <br />
+
+	<input type="radio" name="display_funderinfo" value="1" <?php if ($display_funderinfo == 1) { echo " checked";} ?> /> Yes <br />
+</p>
 
 <?php if ($group->usesFRS()) { ?>
 
