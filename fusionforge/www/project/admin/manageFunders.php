@@ -64,7 +64,7 @@ if($func == "delete_funder"){
 			$error_msg = "Funder Infromation not deleted: cannot read table";
 		}
 		else if (db_numrows($res) < 1) {
-			$error_msg = "Funder Information not deleted: the citation does not exist";
+			$error_msg = "Funder Information not deleted: the funder does not exist";
 		}else{
             db_begin();
             $res = db_query_params("DELETE FROM group_funderinfo where funder_id=$1 and group_id=$2",array($funder_id, $group_id));

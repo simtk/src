@@ -94,7 +94,7 @@ function sectionPopupMenuItems($sectionName, $groupId, &$menuTitles, &$menuUrls,
 			$menuUrls[] = '/project/admin/?group_id=' . $groupId;
 			$menuTitles[] = 'Team members';
 			$menuUrls[] = '/project/admin/users.php?group_id=' . $groupId;
-			$menuTitles[] = 'Funder Informaton';
+			$menuTitles[] = 'Funder Information';
 			$menuUrls[] = '/project/admin/manageFunders.php?group_id=' . $groupId;
 			$menuTitles[] = 'Tools';
 			$menuUrls[] = '/project/admin/tools.php?group_id=' . $groupId;
