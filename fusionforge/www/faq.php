@@ -1,4 +1,33 @@
 <?php
+
+/**
+ *
+ * Copyright 2005-2023, SimTK Team
+ *
+ * This file is part of the SimTK web portal originating from
+ * Simbios, the NIH National Center for Physics-Based
+ * Simulation of Biological Structures at Stanford University,
+ * funded under the NIH Roadmap for Medical Research, grant
+ * U54 GM072970, with continued maintenance and enhancement
+ * funded under NIH grants R01 GM107340 & R01 GM104139, and
+ * the U.S. Army Medical Research & Material Command award
+ * W81XWH-15-1-0232R01.
+ *
+ * SimTK is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ *
+ * SimTK is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with SimTK. If not, see
+ * <http://www.gnu.org/licenses/>.
+ */
+
 require_once 'env.inc.php';
 require_once $gfcommon.'include/pre.php';
 $HTML->header(array());
@@ -37,6 +66,14 @@ $HTML->header(array());
 <br/>
 
 <div>When you click the "Create Project" button, there is a checkbox that allows you to determine if the project is public or private. You can change this after you create the project. We recommend that individuals create public projects and instead opt to make certain sections of their project private. This enables others to learn the most about your project and encourages collaboration.</div>
+<br/>
+<br/>
+
+<b>I am a member of SimTK. Why am I unable to access content for a private project on the site?</b>
+<br/>
+<br/>
+
+<div>A private project is only accessible to members of that specific private project.<br/><br/>Being a member of the SimTK community is different from being a member of a specific project. A private project does not allow the general public or SimTK members who are not members of that private project to access its content.</div>
 <br/>
 <br/>
 
