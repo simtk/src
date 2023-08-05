@@ -1561,7 +1561,10 @@ echo $u->getFirstName();
 				$pageTitle = "Project Admin: Main Page Layout";
 				break;
 			case "/project/admin/manageFunders.php":
-				$pageTitle = "Project Admin: Funder Information";
+			case "/project/admin/updateFunder.php":
+			case "/project/admin/addFunder.php":
+			case "/project/admin/deleteFunder.php":
+				$pageTitle = "Project Admin: Funder Info";
 				break;
 			case "/project/admin/settings.php":
 				$pageTitle = "Project Admin: Settings";

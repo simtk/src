@@ -146,7 +146,7 @@ table>tbody>tr>td {
 	<td><textarea  rows='1' cols='60' name='award_title'></textarea></td>
 </tr>
 <tr>
-	<td><strong>Funder Description:&nbsp;</strong></td>
+	<td><strong>Additional Text to Acknowledge Funding:&nbsp;</strong></td>
 	<td><textarea rows='4' cols='60' name='funder_description'></textarea></td>
 </tr>
 <tr>

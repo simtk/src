@@ -62,13 +62,11 @@ echo '<div>';
 echo '<h2>Funder Information </h2>';
 if($funders_count > 0){
     echo '<div style="margin: 24px 0;">';
-    echo 'This project is funded by ' . $funders[0]['funder_name'] .
-    ' ' . $funders[0]['award_number'] . ' ' . $funders[0]['award_title'];
+    echo 'This project is funded by ' . build_funder_info($funders[0]);
     for($i = 1; $i < $funders_count; $i++){
-        echo ", " .  $funders[$i]['funder_name'] .
-        ' ' . $funders[$i]['award_number'] . ' ' . $funders[$i]['award_title'];
+        echo ", " .  build_funder_info($funders[$i]);
     }
-    echo '</div>';
+    echo '.</div>';
 
     echo '<div>';
     foreach($funders as $funder){
@@ -93,7 +91,11 @@ echo "</div><!--display table-->\n</div><!--project_overview_main-->\n";
 
 site_project_footer(array());
 
-
+function build_funder_info($funder_info){
+    $funder_info_string = $funder_info['funder_name'] .
+    ' ' . $funder_info['award_number']  . ' ' . $funder_info['award_title'];
+    return trim($funder_info_string);
+}
 // Retrieve the error message and names of components to flag.
 function retrieveErrorMessages($error_msg, &$arrErrors) {
 
