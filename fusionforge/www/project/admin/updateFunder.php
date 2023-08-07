@@ -63,7 +63,7 @@ if ($func == "update_funder") {
     $funder_description = htmlspecialchars(trim(getStringFromRequest('funder_description')));
 
     if($funder_name == "" || $award_number == "" ){
-        $error_msg = "Funder Information not updated: please complete required fields";
+        $error_msg = "Funder information not updated. Please fill in the required fields.";
     }else{
         $res = db_query_params("SELECT funder_id from group_funderinfo WHERE " .
         "funder_name=$1 AND " .
@@ -154,7 +154,7 @@ table>tbody>tr>td {
 	<td><textarea rows='1' cols='60' name='award_title'><?php echo htmlspecialchars(db_result($funder_info,0,'award_title')) ?></textarea></td>
 </tr>
 <tr>
-	<td><strong>Funder Description:&nbsp;</strong></td>
+	<td><strong>Additional Text to Acknowledge Funding:&nbsp;</strong></td>
 	<td><textarea rows='4' cols='60' name='funder_description'><?php echo htmlspecialchars(db_result($funder_info,0,'funder_description')) ?></textarea></td>
 </tr>
 <tr>
