@@ -124,7 +124,7 @@ Layout of the Project's Overview
 <input type="radio" name="form_layout" value="1" <?php if ($layout == 1) { echo " checked";} ?> /> Publication <span class="myPopOver"><a href="javascript://" class="popoverLic" data-html="true" data-toggle="popover" data-placement="right"  title="Publication Project" data-content="A Publication Project will display the primary publication at the top of the project home page.  A primary publication must exist and the download description section must be completed.">?</a>
 </p>
 
-Display Funder Information
+Display Funder Information [<a href="/project/admin/manageFunders.php?group_id=<?php echo $group->getID(); ?>">Add/Update Funder Information</a>]
 
 <p>
 	<input type="radio" name="display_funderinfo" value="0" <?php if ($display_funderinfo == 0) { echo " checked";} ?> /> No <br />
