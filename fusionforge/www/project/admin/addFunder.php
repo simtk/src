@@ -62,7 +62,7 @@ if ($func == "add_funder") {
     $award_number = htmlspecialchars(trim(getStringFromRequest('award_number')));
     $funder_description = htmlspecialchars(trim(getStringFromRequest('funder_description')));
 
-    if($funder_name == "" ||  $award_number == "" ){
+    if($funder_name == "" ){
         $error_msg = "Funder Information not added: please complete required fields";
     }else{
         $res = db_query_params("SELECT funder_id from group_funderinfo WHERE " .
@@ -139,7 +139,7 @@ table>tbody>tr>td {
 
 <tr>
 	<td><strong>Award Number:&nbsp;</strong></td>
-	<td><textarea class="required" rows='1' cols='60' name='award_number'></textarea></td>
+	<td><textarea rows='1' cols='60' name='award_number'></textarea></td>
 </tr>
 <tr>
 	<td><strong>Award Title:&nbsp;</strong></td>

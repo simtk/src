@@ -96,9 +96,16 @@ echo '<a class="btn-blue" ' .
 $funders = $group->getFundersInfo();
 
 echo '<div style="margin:25px 0 10px 0">';
-foreach ($funders as $funder){
-    echo '<div style="margin: 24px 0;  display:grid; grid-template-columns: .7fr 1fr">';
-    echo '<div>'. htmlspecialchars($funder['funder_name']) .', ' . htmlspecialchars($funder['award_number']) . '<br> ' . htmlspecialchars($funder['award_title']) .'</div>';
+ foreach ($funders as $funder){
+    echo '<div style="margin: 24px 0;  display:grid; grid-template-columns: 1fr 1fr; gap: 4px">';
+    echo '<div>'. htmlspecialchars($funder['funder_name']);
+	if($funder['award_number']){
+		echo ', ' . htmlspecialchars($funder['award_number']);
+	}
+	if($funder['award_title']){
+		echo '<br> ' . htmlspecialchars($funder['award_title']);
+	}
+	echo '</div>';
     echo '<div style="display:inline;">';
     echo '<a class="btn-blue" ' .
 						'href="/project/admin/updateFunder.php?' .
@@ -113,7 +120,7 @@ foreach ($funders as $funder){
 						'">Delete</a>';
     echo '</div>';
     echo '</div>';
-}
+ }
 echo '</div>';
 
 
