@@ -95,6 +95,7 @@ echo '<a class="btn-blue" ' .
 
 $funders = $group->getFundersInfo();
 
+if ($funders !== false) {
 echo '<div style="margin:25px 0 10px 0">';
  foreach ($funders as $funder){
     echo '<div style="margin: 24px 0;  display:grid; grid-template-columns: 1fr 1fr; gap: 4px">';
@@ -122,6 +123,7 @@ echo '<div style="margin:25px 0 10px 0">';
     echo '</div>';
  }
 echo '</div>';
+}
 
 
 
