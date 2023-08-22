@@ -6,7 +6,7 @@
  *
  * Contains functions to build project menu with links and titles.
  * 
- * Copyright 2005-2021, SimTK Team
+ * Copyright 2005-2023, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -94,6 +94,8 @@ function sectionPopupMenuItems($sectionName, $groupId, &$menuTitles, &$menuUrls,
 			$menuUrls[] = '/project/admin/?group_id=' . $groupId;
 			$menuTitles[] = 'Team members';
 			$menuUrls[] = '/project/admin/users.php?group_id=' . $groupId;
+			$menuTitles[] = 'Funder Information';
+			$menuUrls[] = '/project/admin/manageFunders.php?group_id=' . $groupId;
 			$menuTitles[] = 'Tools';
 			$menuUrls[] = '/project/admin/tools.php?group_id=' . $groupId;
 			$menuTitles[] = 'Categories';
@@ -278,7 +280,8 @@ function sectionPopupMenuItems($sectionName, $groupId, &$menuTitles, &$menuUrls,
 			
 		    $menuTitles[] = 'Project statistics';
 		    $menuUrls[] = '/plugins/reports/index.php?type=group&reports=reports&group_id=' . $groupId;
-			
+			$menuTitles[] = 'Funder Information';
+			$menuUrls[] = '/project/funderinfo.php?group_id=' . $groupId;
 			if ($groupObj->usesPlugin("publications")) {
 			   $menuTitles[] = 'Publications';
 			   $menuUrls[] = '/plugins/publications/index.php?type=group&id=' . $groupId .

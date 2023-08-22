@@ -6,7 +6,7 @@
  * Copyright 2002-2004 (c) GForge Team
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * http://fusionforge.org/
- * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2023, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -91,6 +91,12 @@ if (getStringFromRequest('submit')) {
 frs_admin_header(array('title'=>'Update Overview/Notes','group'=>$group_id));
 ?>
 
+<style>
+td {
+	padding-top:5px;
+	vertical-align:top;
+}
+</style>
 
 <form enctype="multipart/form-data" method="post" action="<?php echo "updateoverviewnotes.php?group_id=$group_id"; ?>">
 
@@ -106,7 +112,7 @@ Help people navigate your Downloads page by describing how you organized it. Thi
 <table>
 <th>Your downloads overview:</th>
 <tr>
-	<td colspan="2"><textarea class='' style='margin-top:5px;' rows='5' cols='60' name='overview'><?php echo $theGroupInfo["download_overview"]; ?></textarea></td>
+	<td colspan="2"><textarea class='' style='margin-top:5px;' rows='5' cols='60' name='overview'><?php print(htmlspecialchars($theGroupInfo["download_overview"])); ?></textarea></td>
 </tr>
 </table>
 
@@ -122,7 +128,7 @@ Provide general directions on using the downloads provided. These are especially
 </ol>
 </div>
 <table>
-<th>Your general instructions:</th>
+<th>Your general instructions: <span style="font-weight:normal;">(max upload size: 1 MiB)</span></th>
 </tr>
 <tr>
 	<td>Paste the text or import a <strong>TEXT file<strong></td>
@@ -130,7 +136,7 @@ Provide general directions on using the downloads provided. These are especially
 </tr>
 <tr>
 	<td colspan="2">
-		<textarea name="notes" rows="10" cols="60"><?php echo $theGroupInfo["download_notes"]; ?></textarea>
+		<textarea name="notes" rows="10" cols="60"><?php print(htmlspecialchars($theGroupInfo["download_notes"])); ?></textarea>
 	</td>
 </tr>
 <tr>

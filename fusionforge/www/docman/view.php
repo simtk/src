@@ -9,7 +9,7 @@
  * Copyright 2010-2011, Franck Villaume - Capgemini
  * Copyright (C) 2010-2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012,2014, Franck Villaume - TrivialDev
- * Copyright 2016-2021, Tod Hing - SimTK Team
+ * Copyright 2016-2023, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -36,6 +36,7 @@ require_once $gfcommon.'docman/Document.class.php';
 require_once $gfcommon.'docman/DocumentFactory.class.php';
 require_once $gfcommon.'docman/DocumentGroupFactory.class.php';
 require_once $gfcommon.'docman/include/utils.php';
+require_once $gfcommon.'docman/DocumentStorage.class.php';
 
 $sysdebug_enable = false;
 
@@ -70,6 +71,13 @@ if (is_numeric($docid)) {
 	} elseif ($d->isError()) {
 		exit_error($d->getErrorMessage(), 'docman');
 	}
+
+	$docStorage = DocumentStorage::instance();
+	$fullPath = $docStorage->get_storage($docid);
+	if (!file_exists($fullPath)) {
+                // File does not exist. Deleted already. Done.
+		exit_error("Document does not exist: " . $docid);
+        }
 
 	/**
 	 * except for active (1), we need more right access than just read

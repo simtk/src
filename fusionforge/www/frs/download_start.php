@@ -7,7 +7,7 @@
  * Copyright 2010 (c) FusionForge Team
  * Copyright 2013, Franck Villaume - TrivialDev
  * http://fusionforge.org/
- * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2022, Henry Kwong, Tod Hing - SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -63,7 +63,23 @@ function addMailListMembership($listName) {
 	$theUser = session_get_user();
 	$userEmail = escapeshellcmd($theUser->getEmail());
 	$userName = escapeshellcmd($theUser->getUnixName());
-	$cmdAddMember = "echo '$userName <$userEmail>' | /usr/lib/mailman/bin/add_members -d - -w y $listName";
+
+	$cmdGetMailingListDigestOption = "/usr/lib/mailman/bin/withlist --quiet -r get_digest_option " . $listName;
+	exec($cmdGetMailingListDigestOption, $arrOut);
+
+	$fp = fopen("/opt/tmp/MailingListSubscription.log", "a+");
+	if (isset($arrOut) && isset($arrOut[0]) && $arrOut[0] !== "True") {
+		// "No digest" option is set for the mailinag list.
+		fwrite($fp, "$listName (Regular): $userEmail at " . date('Y-m-d H:i:s') . "\n");
+		$cmdAddMember = "echo '$userName <$userEmail>' | /usr/lib/mailman/bin/add_members -r - -w y $listName";
+        }
+        else {
+		// "Digest" option is set for the mailinag list.
+		fwrite($fp, "$listName (Digest): $userEmail at " . date('Y-m-d H:i:s') . "\n");
+		$cmdAddMember = "echo '$userName <$userEmail>' | /usr/lib/mailman/bin/add_members -d - -w y $listName";
+        }
+	fclose($fp);
+
 	exec($cmdAddMember);
 }
 

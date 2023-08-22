@@ -4,7 +4,7 @@
  *
  * Theme.class.php
  * 
- * Copyright 2005-2021, SimTK Team
+ * Copyright 2005-2023, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -1037,7 +1037,7 @@ echo $u->getFirstName();
                 echo '</div>';
 
 		echo '<div style="font-size:12px;">';
-		echo 'Version 4.2.0. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 6.0.5.';
+		echo 'Version 4.2.1. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 6.0.5.';
                 echo '</div>';
 
             echo '</div>';
@@ -1559,6 +1559,12 @@ echo $u->getFirstName();
 				break;
 			case "/project/admin/layout.php":
 				$pageTitle = "Project Admin: Main Page Layout";
+				break;
+			case "/project/admin/manageFunders.php":
+			case "/project/admin/updateFunder.php":
+			case "/project/admin/addFunder.php":
+			case "/project/admin/deleteFunder.php":
+				$pageTitle = "Project Admin: Funder Info";
 				break;
 			case "/project/admin/settings.php":
 				$pageTitle = "Project Admin: Settings";
