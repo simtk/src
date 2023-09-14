@@ -9221,7 +9221,8 @@ Working with project HOME
   }
 }
 
-.three_cols > .two_third_col {
+.three_cols > .two_third_col,
+.three_cols > .one_third_col {
   padding-left: 0px;
 }
 
