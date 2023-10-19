@@ -76,7 +76,7 @@ function handlerDiskUsage(groupId) {
 
 	if (!ok_diskusage) {
 		if (total_bytes != false && allowed_bytes != false) {
-			$(".du_warning_msg").html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><b>Total disk space used (' + str_total_bytes + ') exceeds project quota (' + str_allowed_bytes + '). No more files can be added to this project.</b></div>');
+			$(".du_warning_msg").html('<div style="background-color:#ffd297;margin-top:5px;max-width:954px;" class="alert alert-custom alert-dismissible"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><b>Total disk space used (' + str_total_bytes + ') exceeds project quota (' + str_allowed_bytes + '). No more files can be added to this project. Please contact the <a href="https://<?php echo $domain_name ?>/sendmessage.php?recipient=admin">SimTK Webmaster</a></b></div>');
 			$(".du_warning_msg")[0].scrollIntoView(false);
 
 			if (typeof event != "undefined") {
