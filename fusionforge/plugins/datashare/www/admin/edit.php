@@ -6,7 +6,7 @@
  *
  * admin page for editing study.
  *
- * Copyright 2005-2022, SimTK Team
+ * Copyright 2005-2023, SimTK Team
  *
  * This file is part of the SimTK web portal originating from
  * Simbios, the NIH National Center for Physics-Based
@@ -219,7 +219,7 @@ if (session_loggedin()) {
 
 	echo '<p><strong>'._('Data Directory Structure Template')._(': ').'</strong> &nbsp; <a href="https://' .
 		$datashareServer .
-		'/apps/import/metadata.php#using" target="_blank">Learn more</a></p>';
+		'/apps/import/metadata_DirectoryTemplate.php" target="_blank">Learn more</a></p>';
 
 	echo '<p>Using Top Folder Template (default)</p>';
 
