@@ -9220,6 +9220,12 @@ Working with project HOME
     width: 33.33333333%;
   }
 }
+
+.three_cols > .two_third_col,
+.three_cols > .one_third_col {
+  padding-left: 0px;
+}
+
 /* 
     Created on : Nov 13, 2014, 8:50:50 PM
     Author     : dmitry
