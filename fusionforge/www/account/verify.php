@@ -8,7 +8,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2010, Franck Villaume - Capgemini
  * Copyright 2012,2014, Franck Villaume - TrivialDev
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2023, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -70,6 +70,9 @@ if (getStringFromRequest('submit')) {
 		$error_msg = _('Error while activating account')._(': ').$u->getErrorMessage();
 	} else {
 		// Success.
+
+		// Refresh mailing list subscription.
+		$u->refreshMailListSubscriptions();
 
 		// Add user to phpbb_users.
 		$theUserName = $u->getUnixName();
