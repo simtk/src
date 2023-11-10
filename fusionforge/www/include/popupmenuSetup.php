@@ -280,8 +280,10 @@ function sectionPopupMenuItems($sectionName, $groupId, &$menuTitles, &$menuUrls,
 			
 		    $menuTitles[] = 'Project statistics';
 		    $menuUrls[] = '/plugins/reports/index.php?type=group&reports=reports&group_id=' . $groupId;
-			$menuTitles[] = 'Funder Information';
-			$menuUrls[] = '/project/funderinfo.php?group_id=' . $groupId;
+			if($groupObj && ($groupObj->getDisplayFunderInfo() == 1)) {
+				$menuTitles[] = 'Funder Information';
+				$menuUrls[] = '/project/funderinfo.php?group_id=' . $groupId;
+			}
 			if ($groupObj->usesPlugin("publications")) {
 			   $menuTitles[] = 'Publications';
 			   $menuUrls[] = '/plugins/publications/index.php?type=group&id=' . $groupId .
