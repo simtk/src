@@ -4,7 +4,7 @@
  * 
  * Handle setting license.
  *
- * Copyright 2005-2020, SimTK Team
+ * Copyright 2005-2021, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -79,6 +79,9 @@ $(function() {
                         // Apache 2.0.
                         $(".license_preview").val('Copyright (c) [Insert Year(s)], [Insert organization or names of copyright holder(s)]\r\rLicensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.\nYou may obtain a copy of the License at\n\nhttp://www.apache.org/licenses/LICENSE-2.0\n\nUnless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the License for the specific language governing permissions and limitations under the License.');
                 }
+		else if (license == 8) {
+			$(".license_preview").val('Copyright (c) [Insert Year(s)], [Insert organization or names of copyright holder(s)]\r\rThis work is available under the Creative Commons Attribution-NonCommercial License, summarized below. For full legal text, please see http://creativecommons.org/licenses/by-nc/4.0/legalcode\r\rYou are free:\r* to Share (to copy, distribute, and transmit the work)\r* to Remix (to adapt the work)\r\rUnder the following conditions:\r* Attribution - You must attribute the work in the manner specified by the author or licensor (but not in any way that suggests that they endorse you or your use of the work).\r* Noncommercial - You may not use this work for commercial purposes.\r\rWith the understanding that:\r* Waiver - Any of the above conditions can be waived if you get permission from the copyright holder.\r* Public Domain - Where the work or any of its elements is in the public domain under applicable law, that status is in no way affected by the license.\r* Other Rights - In no way are any of the following rights affected by the license:\r      - Your fair dealing or fair use rights, or other applicable copyright exceptions and limitations;\r      - The moral rights of the author;\r      - Rights other persons may have either in the work itself or in how the work is used, such as publicity or privacy rights.\r* Notice - For any reuse or distribution, you must make clear to others the license terms of this work. The best way to do this is with a link to: http://creativecommons.org/licenses/by-nc/4.0/');
+		}
 		if (license == 1) {
 			// Custom.
 			var strLicense = $(".custom_license").val();

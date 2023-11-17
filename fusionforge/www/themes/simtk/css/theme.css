@@ -7304,6 +7304,9 @@ and open the template in the editor.
   padding-left: 15px;
   padding-right: 15px;
 }
+
+
+
 @media (min-width: 768px) {
   .two_third_col {
     float: left;
@@ -7348,13 +7351,15 @@ and open the template in the editor.
   float: right;
   width: 100%;
 }
+
 @media (max-width: 769px) {
   #searchBox-words {
     float: left;
-    //position: absolute;
+    /*position: absolute;*/
     width: 95%;
   }
 }
+
 #searchBox {
   width: 100%;
 }
@@ -8863,8 +8868,8 @@ a.share_text_link {
   margin-right: 10px;
 }
 .related_thumb img {
-  max-width: 86px; !important;
-  max-height: 86px; !important;
+  max-width: 86px !important;
+  max-height: 86px !important;
   width: 86px;
   height: 86px;
 }
@@ -8879,7 +8884,7 @@ a.share_text_link {
   margin: 0;
 }
 .three_cols {
-  margin-left: -15px;
+  margin-left: 0px;
   margin-right: -15px;
   /*
   overflow-wrap: break-word !important;
@@ -9219,6 +9224,11 @@ Working with project HOME
     float: left;
     width: 33.33333333%;
   }
+}
+
+.three_cols > .two_third_col,
+.three_cols > .one_third_col {
+  padding-left: 0px;
 }
 /* 
     Created on : Nov 13, 2014, 8:50:50 PM
@@ -10373,7 +10383,7 @@ fieldset[disabled] .navbar-simtk .btn-link:focus {
   }
   .project_representation .wrapper_img_lg img {
     width: 100px !important;
-    border-radius: 50px; !important;
+    border-radius: 50px !important;
   }
 }
 
@@ -10554,7 +10564,7 @@ h3.underlined {
   padding: 0 !important;
 }
 .news_representation a:link,
-.news_representation a:visited, {
+.news_representation a:visited {
   color: #428bca !important;
 }
 .news_representation a:hover,
