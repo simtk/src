@@ -7351,13 +7351,15 @@ and open the template in the editor.
   float: right;
   width: 100%;
 }
+
 @media (max-width: 769px) {
   #searchBox-words {
     float: left;
-    //position: absolute;
+    /*position: absolute;*/
     width: 95%;
   }
 }
+
 #searchBox {
   width: 100%;
 }
@@ -10381,7 +10383,7 @@ fieldset[disabled] .navbar-simtk .btn-link:focus {
   }
   .project_representation .wrapper_img_lg img {
     width: 100px !important;
-    border-radius: 50px; !important;
+    border-radius: 50px !important;
   }
 }
 
