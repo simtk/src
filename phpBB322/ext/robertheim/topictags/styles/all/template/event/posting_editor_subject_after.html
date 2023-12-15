@@ -42,6 +42,14 @@
 					{% include 'simple_tag.html' with {'NAME' : rh_topictags_whitelist.NAME, 'LINK' : rh_topictags_whitelist.LINK} only %}
 				<!-- END rh_topictags_whitelist -->
 			</div>
+			<!-- ELSE -->
+			<b>Select a tag related to this issue:<b>
+			<br/>
+			<div class="rh_topictags_whitelist">
+				<!-- BEGIN rh_topictags_whitelist -->
+					{% include 'simple_tag.html' with {'NAME' : rh_topictags_whitelist.NAME, 'LINK' : rh_topictags_whitelist.LINK} only %}
+				<!-- END rh_topictags_whitelist -->
+			</div>
 			<!-- ENDIF -->
 			<br/>
 			<b>Enter other tags below. Press return after typing a new tag. Tag length: 3-30 characters. Max: 8 tags</b>
