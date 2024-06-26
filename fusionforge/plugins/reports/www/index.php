@@ -4,7 +4,7 @@
  *
  * reports plugin main index file for displaying usage map and other statistics.
  * 
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2024, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -61,6 +61,23 @@ if (!$group->usesFRS()) {
 // Check permission and prompt for login if needed.
 session_require_perm('project_read', $group_id);
 
+$fromYear = getIntFromRequest('from_year');
+$fromMonth = getIntFromRequest('from_month');
+$fromDay = getIntFromRequest('from_day');
+if ($fromYear <= 0 || $fromYear > 2099) {
+	$fromYear = false;
+}
+if ($fromMonth <= 0 || $fromMonth > 12) {
+	$fromMonth = false;
+}
+if ($fromDay <= 0 || $fromMonth > 31) {
+	$fromDay = false;
+}
+if ($fromYear != false && $fromYear != false && $fromDay != false) {
+	$fromMonth = sprintf("%02d", $fromMonth);
+	$fromDay = sprintf("%02d", $fromDay);
+}
+
 reports_header(array('title'=>_('Downloads Summary')),$group_id);
 
 echo "\n";
@@ -77,7 +94,7 @@ echo "<div class=\"main_col\">\n";
 <?php 
 
     $reports = new Reports($group);    
-    $resultsDownloads = $reports->getDownloadsSummary($cntUsers,$cntUserfiles,$cntRecords,$cntLinks,$cntFiles,$packages,$packageCounts,$packageTotals,$packageDates,$packageStatus,$packageIsPublic,$releaseNames,$releaseDates,$releaseTotals,$releaseStatus,$packageArray);
+    $resultsDownloads = $reports->getDownloadsSummary($cntUsers,$cntUserfiles,$cntRecords,$cntLinks,$cntFiles,$packages,$packageCounts,$packageTotals,$packageDates,$packageStatus,$packageIsPublic,$releaseNames,$releaseDates,$releaseTotals,$releaseStatus,$packageArray,$fromYear,$fromMonth,$fromDay);
 ?>
     <?php //echo "cntUsers: " . number_format($cntUsers). "<br>"; ?>
 	<?php //echo "cntUserFiles: " . number_format($cntUserfiles). "<br>"; ?>

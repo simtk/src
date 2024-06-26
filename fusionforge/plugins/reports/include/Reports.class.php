@@ -3,7 +3,7 @@
  *
  * reports plugin Class
  * 
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2024, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -72,18 +72,24 @@ class Reports extends FFError {
 		return true;
 
     }
-	
-	function getDownloadsSummary(&$cntUsers,&$cntUserFiles,&$cntRecords,&$cntLinks,&$cntFiles,&$packages,&$packageCounts,&$packageTotals,&$packageDates,&$packageStatus,&$packageIsPublic,&$releaseNames,&$releaseDates,&$releaseTotals,&$releaseStatus,&$packageArray) {
-	  
-	    
-	    $users = array();
+
+	function getDownloadsSummary(&$cntUsers,&$cntUserFiles,&$cntRecords,&$cntLinks,&$cntFiles,&$packages,&$packageCounts,&$packageTotals,&$packageDates,&$packageStatus,&$packageIsPublic,&$releaseNames,&$releaseDates,&$releaseTotals,&$releaseStatus,&$packageArray,$fromYear=false,$fromMonth=false,$fromDay=false) {
+
+		$users = array();
 		$userfiles = array();
-		$res = db_query_params ('
-		   SELECT user_id, f.file_id AS file_id, type_id, a.release_id, package_id, simtk_filetype
-			FROM frs_dlstats_file d 
-			JOIN frs_file f ON f.file_id = d.file_id 
-			JOIN frs_frpg_view a ON a.file_id = d.file_id
-			WHERE group_id = $1', array ($this->group->getID()));
+		$strQuery = "SELECT user_id, f.file_id AS file_id, " .
+			"type_id, a.release_id, package_id, simtk_filetype " .
+			"FROM frs_dlstats_file d " .
+			"JOIN frs_file f " .
+			"ON f.file_id=d.file_id " .
+			"JOIN frs_frpg_view a " .
+			"ON a.file_id=d.file_id " .
+			"WHERE group_id=$1 ";
+		if ($fromYear != false && $fromMonth != false && $fromDay != false) {
+			$strQuery .= "AND ((month=$fromYear$fromMonth AND day>=$fromDay) 
+				OR (month>$fromYear$fromMonth)) ";
+		}
+		$res = db_query_params($strQuery, array ($this->group->getID()));
 		
 		//if ( $this->project->getType() == 2 )
 		//{
@@ -125,16 +131,31 @@ class Reports extends FFError {
 			
 		}
 		// This query is for the releases within the package.  Modified the order by release_id desc to show latest releases first - Tod Hing 12015-16
-		$resReleases = db_query_params ("SELECT p.package_id, a.release_id,
-			CASE WHEN simtk_filetype = 'URL' THEN 2 ELSE CASE WHEN type_id = 9997 THEN 1 ELSE 0 END END AS category, count( distinct user_id ) AS users
-			FROM frs_frpg_view a 
-			LEFT JOIN frs_dlstats_file d ON a.file_id = d.file_id 
-			LEFT JOIN frs_file f ON f.file_id = a.file_id
-			LEFT JOIN frs_package p ON a.package_id = p.package_id
-			WHERE a.group_id = $1 AND p.simtk_group_link IS NULL
-			GROUP BY category, a.release_id, p.package_id 
-			ORDER BY p.package_id, release_id desc, category",array($this->group->getID()));
-		
+		if ($fromYear != false && $fromMonth != false && $fromDay != false) {
+			$resReleases = db_query_params("SELECT p.package_id, a.release_id,
+				CASE WHEN simtk_filetype = 'URL' THEN 2 ELSE CASE WHEN type_id = 9997 THEN 1 ELSE 0 END END AS category, count( distinct user_id ) AS users
+				FROM frs_frpg_view a 
+				LEFT JOIN frs_dlstats_file d ON a.file_id = d.file_id 
+				LEFT JOIN frs_file f ON f.file_id = a.file_id
+				LEFT JOIN frs_package p ON a.package_id = p.package_id
+				WHERE a.group_id = $1 AND p.simtk_group_link IS NULL
+					AND ((month=$fromYear$fromMonth AND day>=$fromDay) 
+					OR (month>$fromYear$fromMonth)) 
+				GROUP BY category, a.release_id, p.package_id 
+				ORDER BY p.package_id, release_id desc, category",array($this->group->getID()));
+		}
+		else {
+			$resReleases = db_query_params("SELECT p.package_id, a.release_id,
+				CASE WHEN simtk_filetype = 'URL' THEN 2 ELSE CASE WHEN type_id = 9997 THEN 1 ELSE 0 END END AS category, count( distinct user_id ) AS users
+				FROM frs_frpg_view a 
+				LEFT JOIN frs_dlstats_file d ON a.file_id = d.file_id 
+				LEFT JOIN frs_file f ON f.file_id = a.file_id
+				LEFT JOIN frs_package p ON a.package_id = p.package_id
+				WHERE a.group_id = $1 AND p.simtk_group_link IS NULL
+				GROUP BY category, a.release_id, p.package_id 
+				ORDER BY p.package_id, release_id desc, category",array($this->group->getID()));
+		}
+
 		$packages = array();
 		$packageCounts = array();
 		$packageTotals = array();
@@ -160,15 +181,31 @@ class Reports extends FFError {
 
 		
 		
-		$resPackages = db_query_params ("SELECT package_id,
-			CASE WHEN simtk_filetype = 'URL' THEN 2 ELSE CASE WHEN type_id = 9997 THEN 1 ELSE 0 END END AS category,
-			count( distinct user_id ) AS users
-			FROM frs_frpg_view a 
-			LEFT JOIN frs_dlstats_file d ON a.file_id = d.file_id 
-			LEFT JOIN frs_file f ON f.file_id = a.file_id 
-			WHERE package_id IN ( " . implode( ",", array_keys( $packages ) )
-			. ") GROUP BY category, package_id 
-			ORDER BY package_id, category",array());
+		if ($fromYear != false && $fromMonth != false && $fromDay != false) {
+			$resPackages = db_query_params ("SELECT package_id,
+				CASE WHEN simtk_filetype = 'URL' THEN 2 ELSE CASE WHEN type_id = 9997 THEN 1 ELSE 0 END END AS category,
+				count( distinct user_id ) AS users
+				FROM frs_frpg_view a 
+				LEFT JOIN frs_dlstats_file d ON a.file_id = d.file_id 
+				LEFT JOIN frs_file f ON f.file_id = a.file_id 
+				WHERE package_id IN ( " . implode( ",", array_keys( $packages ) )
+				. ")
+					AND ((month=$fromYear$fromMonth AND day>=$fromDay) 
+					OR (month>$fromYear$fromMonth)) 
+				GROUP BY category, package_id 
+				ORDER BY package_id, category",array());
+		}
+		else {
+			$resPackages = db_query_params ("SELECT package_id,
+				CASE WHEN simtk_filetype = 'URL' THEN 2 ELSE CASE WHEN type_id = 9997 THEN 1 ELSE 0 END END AS category,
+				count( distinct user_id ) AS users
+				FROM frs_frpg_view a 
+				LEFT JOIN frs_dlstats_file d ON a.file_id = d.file_id 
+				LEFT JOIN frs_file f ON f.file_id = a.file_id 
+				WHERE package_id IN ( " . implode( ",", array_keys( $packages ) )
+				. ") GROUP BY category, package_id 
+				ORDER BY package_id, category",array());
+		}
 		
 		if ( $resPackages )
 		{
@@ -183,14 +220,29 @@ class Reports extends FFError {
 
 		
 		
-		$resReleaseTotal = db_query_params ("SELECT p.package_id AS package_id, r.release_id, count( distinct user_id ) AS users
-			FROM frs_file f 
-			JOIN frs_dlstats_file d ON f.file_id = d.file_id 
-			JOIN frs_release r ON f.release_id = r.release_id 
-			JOIN frs_package p ON r.package_id = p.package_id 
-			WHERE p.package_id IN ( " . implode( ",", array_keys( $packages ) )
-			. ") GROUP BY p.package_id, r.release_id
-			ORDER BY package_id, release_id",array());
+		if ($fromYear != false && $fromMonth != false && $fromDay != false) {
+			$resReleaseTotal = db_query_params ("SELECT p.package_id AS package_id, r.release_id, count( distinct user_id ) AS users
+				FROM frs_file f 
+				JOIN frs_dlstats_file d ON f.file_id = d.file_id 
+				JOIN frs_release r ON f.release_id = r.release_id 
+				JOIN frs_package p ON r.package_id = p.package_id 
+				WHERE p.package_id IN ( " . implode( ",", array_keys( $packages ) )
+				. ")
+					AND ((month=$fromYear$fromMonth AND day>=$fromDay) 
+					OR (month>$fromYear$fromMonth)) 
+				GROUP BY p.package_id, r.release_id
+				ORDER BY package_id, release_id",array());
+		}
+		else {
+			$resReleaseTotal = db_query_params ("SELECT p.package_id AS package_id, r.release_id, count( distinct user_id ) AS users
+				FROM frs_file f 
+				JOIN frs_dlstats_file d ON f.file_id = d.file_id 
+				JOIN frs_release r ON f.release_id = r.release_id 
+				JOIN frs_package p ON r.package_id = p.package_id 
+				WHERE p.package_id IN ( " . implode( ",", array_keys( $packages ) )
+				. ") GROUP BY p.package_id, r.release_id
+				ORDER BY package_id, release_id",array());
+		}
 		
 		if ( $resReleaseTotal )
 		{
@@ -225,14 +277,29 @@ class Reports extends FFError {
 			}
 		}
 		
-		$resPackageTotal = db_query_params ("SELECT p.package_id AS package_id, count( distinct user_id ) AS users
-			FROM frs_package p 
-			JOIN frs_release r ON r.package_id = p.package_id 
-			JOIN frs_file f ON f.release_id = r.release_id 
-			JOIN frs_dlstats_file d ON f.file_id = d.file_id
-			WHERE p.package_id IN ( " . implode( ",", array_keys( $packages ) )
-			. ") GROUP BY p.package_id
-			ORDER BY package_id",array());
+		if ($fromYear != false && $fromMonth != false && $fromDay != false) {
+			$resPackageTotal = db_query_params ("SELECT p.package_id AS package_id, count( distinct user_id ) AS users
+				FROM frs_package p 
+				JOIN frs_release r ON r.package_id = p.package_id 
+				JOIN frs_file f ON f.release_id = r.release_id 
+				JOIN frs_dlstats_file d ON f.file_id = d.file_id
+				WHERE p.package_id IN ( " . implode( ",", array_keys( $packages ) )
+				. ")
+					AND ((month=$fromYear$fromMonth AND day>=$fromDay) 
+					OR (month>$fromYear$fromMonth)) 
+				GROUP BY p.package_id
+				ORDER BY package_id",array());
+		}
+		else {
+			$resPackageTotal = db_query_params ("SELECT p.package_id AS package_id, count( distinct user_id ) AS users
+				FROM frs_package p 
+				JOIN frs_release r ON r.package_id = p.package_id 
+				JOIN frs_file f ON f.release_id = r.release_id 
+				JOIN frs_dlstats_file d ON f.file_id = d.file_id
+				WHERE p.package_id IN ( " . implode( ",", array_keys( $packages ) )
+				. ") GROUP BY p.package_id
+				ORDER BY package_id",array());
+		}
 		
 		if ( $resPackageTotal )
 		{
