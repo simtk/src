@@ -223,7 +223,7 @@ function HidePopup()
 </p>
 
 <h2><?php echo _('Summary'); ?></h2>
-<p>Your project summary appears on your project overview page and in the search results. <b>Restrictions:  10-255 characters</b></p>
+<p>Your project summary appears on your project overview page and in the search results. <b>Restrictions:  10-286 characters</b></p>
 
 <p>
 <textarea cols="80" rows="3" name="form_summary">
