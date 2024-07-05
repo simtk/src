@@ -67,7 +67,7 @@ $private = getStringFromRequest('private');
 $built_from_template = getIntFromRequest('built_from_template');
 //$summary = trim(getStringFromRequest('summary'));
 //$download_description = trim(getStringFromRequest('download_description'));
-$summary = substr($description, 0, 255);
+$summary = substr($description, 0, 286);
 $download_description = "";
 
 $index = 1;
