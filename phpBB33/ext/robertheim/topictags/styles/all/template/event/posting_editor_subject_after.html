@@ -1,0 +1,70 @@
+<!-- IF RH_TOPICTAGS_SHOW_FIELD -->
+<dl style="clear: left;">
+	<dt><label for="rh_topictags">{L_RH_TOPICTAGS}{L_COLON}</label></dt>
+	<dd>
+		<!-- IF S_RH_TOPICTAGS_WHITELIST_ENABLED -->
+			<!-- INCLUDEJS @robertheim_topictags/../whitelist.js -->
+			<!-- IF FORUM_NAME == "OpenSim" -->
+			<b>Indicate the version(s) of {FORUM_NAME} related to this issue:<b>
+			<div class="rh_topictags_whitelist_section_SwVer">
+				<!-- BEGIN rh_topictags_whitelist_SwVer -->
+					{% include 'simple_tag.html' with {'NAME' : rh_topictags_whitelist_SwVer.NAME, 'LINK' : rh_topictags_whitelist_SwVer.LINK} only %}
+				<!-- END rh_topictags_whitelist_SwVer -->
+			</div>
+			<br/>
+			<b>Select the interface(s) related to this issue:<b>
+			<div class="rh_topictags_whitelist_section_Interface">
+				<!-- BEGIN rh_topictags_whitelist_Interface -->
+					{% include 'simple_tag.html' with {'NAME' : rh_topictags_whitelist_Interface.NAME, 'LINK' : rh_topictags_whitelist_Interface.LINK} only %}
+				<!-- END rh_topictags_whitelist_Interface -->
+			</div>
+			<br/>
+			<b>Select the operating system(s) related to this issue:<b>
+			<div class="rh_topictags_whitelist_section_OS">
+				<!-- BEGIN rh_topictags_whitelist_OS -->
+					{% include 'simple_tag.html' with {'NAME' : rh_topictags_whitelist_OS.NAME, 'LINK' : rh_topictags_whitelist_OS.LINK} only %}
+				<!-- END rh_topictags_whitelist_OS -->
+			</div>
+			<!--
+			<br/>
+			<b>Select the category related to this issue:<b>
+			<div class="rh_topictags_whitelist_section_Category">
+				<!-- BEGIN rh_topictags_whitelist_Category -->
+					{% include 'simple_tag.html' with {'NAME' : rh_topictags_whitelist_Category.NAME, 'LINK' : rh_topictags_whitelist_Category.LINK} only %}
+				<!-- END rh_topictags_whitelist_Category -->
+			</div>
+			-->
+			<!-- ELSEIF FORUM_NAME == "OpenMM" -->
+			<b>Select a {FORUM_NAME} tag related to this issue:<b>
+			<br/>
+			<div class="rh_topictags_whitelist">
+				<!-- BEGIN rh_topictags_whitelist -->
+					{% include 'simple_tag.html' with {'NAME' : rh_topictags_whitelist.NAME, 'LINK' : rh_topictags_whitelist.LINK} only %}
+				<!-- END rh_topictags_whitelist -->
+			</div>
+			<!-- ENDIF -->
+			<br/>
+			<b>Enter other tags below. Press return after typing a new tag. Tag length: 3-30 characters. Max: 8 tags</b>
+		<!-- ELSE -->
+			{L_RH_TOPICTAGS_ALLOWED_TAGS}
+			{RH_TOPICTAGS_ALLOWED_TAGS_EXP}
+		<!-- ENDIF -->
+
+		<div ng-app="rhTopicTagsInputApp" ng-controller="rhTopicTagsInputCtrl" data-ng-init="init('{RH_TOPICTAGS}')">
+			<div id="rhTopicTagsInputAppScope"></div>
+			<tags-input ng-model="tags" max-tags="8" add-on-comma="false" replace-spaces-with-dashes="{RH_TOPICTAGS_CONVERT_SPACE_TO_MINUS}" placeholder="..." tabindex="2" enable-editing-last-tag="true" min-length="1" allowed-tags-pattern="{RH_TOPICTAGS_ALLOWED_TAGS_REGEX}">
+				<auto-complete source="loadTags($query)"></auto-complete>
+			</tags-input>
+			<input type="hidden" name="rh_topictags" id="rh_topictags" value="{[{ jsonRep }]}" />
+
+			<div class="warnTag" ng-hide="isValidTag" style="color: red; opacity: 0;">* Non-allowable characters used - Check tag</div>
+			<div class="duplicateTag" style="color: red; opacity: 0;">* Duplicate tags</div>
+			<div class="warnNumOfTags" ng-hide="isValidNumOfTags" style="color: red; opacity: 0;">* Exceeded maximum number of tags</div>
+
+		</div>
+
+	</dd>
+</dl>
+
+<!-- ENDIF -->
+
