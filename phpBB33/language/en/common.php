@@ -4,6 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @copyright 2016-2025, SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -62,6 +63,7 @@ $lang = array_merge($lang, array(
 
 	'ACCOUNT_ALREADY_ACTIVATED'		=> 'Your account has already been activated.',
 	'ACCOUNT_DEACTIVATED'			=> 'Your account has been manually deactivated and is only able to be reactivated by an administrator.',
+	'ACCOUNT_NOT_ACTIVATED'                 => 'Your account has not been activated yet.',
 	'ACP'							=> 'Administration Control Panel',
 	'ACP_SHORT'						=> 'ACP',
 	'ACTIVATION_ALREADY_SENT'		=> 'The activation email has already been sent to your email address. You can try again after 24 hours. If you continue to have problems activating your account, please contact a board administrator.',
@@ -147,13 +149,13 @@ $lang = array_merge($lang, array(
 	'BUTTON_EDIT'			=> 'Edit',
 	'BUTTON_FORUM_LOCKED'	=> 'Locked',
 	'BUTTON_INFORMATION'    => 'Information',
-	'BUTTON_NEW_TOPIC'		=> 'New Topic',
+	'BUTTON_NEW_TOPIC'		=> 'NEW TOPIC',
 	'BUTTON_PM'				=> 'PM',
 	'BUTTON_PM_FORWARD'		=> 'Forward',
 	'BUTTON_PM_NEW'			=> 'New PM',
 	'BUTTON_PM_REPLY'		=> 'Send Reply',
 	'BUTTON_PM_REPLY_ALL'	=> 'Reply All',
-	'BUTTON_POST_REPLY'		=> 'Post Reply',
+	'BUTTON_POST_REPLY'		=> 'POST REPLY',
 	'BUTTON_QUOTE'			=> 'Quote',
 	'BUTTON_REPORT'         => 'Report',
 	'BUTTON_TOPIC_LOCKED'	=> 'Locked',
@@ -320,6 +322,7 @@ $lang = array_merge($lang, array(
 	'GB'						=> 'GB',
 	'GIB'						=> 'GiB',
 	'GO'						=> 'Go',
+	'GOOGLEPLUS'				=> 'Google+',
 	'GOTO_FIRST_POST'			=> 'Go to first post',
 	'GOTO_LAST_POST'			=> 'Go to last post',
 	'GOTO_PAGE'					=> 'Go to page',
@@ -405,7 +408,7 @@ $lang = array_merge($lang, array(
 	'LOGIN_CONFIRM_EXPLAIN'				=> 'To prevent brute forcing accounts the board requires you to enter a confirmation code after a maximum amount of failed logins. The code is displayed in the image you should see below. If you are visually impaired or cannot otherwise read this code please contact the %sBoard Administrator%s.', // unused
 	'LOGIN_ERROR_ATTEMPTS'				=> 'You exceeded the maximum allowed number of login attempts. In addition to your username and password you now also have to pass the CAPTCHA test.',
 	'LOGIN_ERROR_EXTERNAL_AUTH_APACHE'	=> 'You have not been authenticated by Apache.',
-	'LOGIN_ERROR_OAUTH_SERVICE_DOES_NOT_EXIST'	=> 'A non-existent OAuth service has been requested.',
+	'LOGIN_ERROR_OAUTH_SERVICE_DOES_NOT_EXIST'	=> 'A non-existant OAuth service has been requested.',
 	'LOGIN_ERROR_PASSWORD'				=> 'You have specified an incorrect password. Please check your password and try again. If you continue to have problems please contact the %sBoard Administrator%s.',
 	'LOGIN_ERROR_PASSWORD_CONVERT'		=> 'It was not possible to convert your password when updating this bulletin board’s software. Please %srequest a new password%s. If you continue to have problems please contact the %sBoard Administrator%s.',
 	'LOGIN_ERROR_USERNAME'				=> 'You have specified an incorrect username. Please check your username and try again. If you continue to have problems please contact the %sBoard Administrator%s.',
@@ -543,7 +546,7 @@ $lang = array_merge($lang, array(
 	'NO_POSTS_TIME_FRAME'		=> 'No posts exist inside this topic for the selected time frame.',
 	'NO_FEED_ENABLED'			=> 'Feeds are not available on this board.',
 	'NO_FEED'					=> 'The requested feed is not available.',
-	'NO_STYLE_DATA'				=> 'Could not get style data for user_style %s and set for user_id %s',
+	'NO_STYLE_DATA'				=> 'Could not get style data',
 	'NO_STYLE_CFG'				=> 'Could not get the style configuration file for: %s',
 	'NO_SUBJECT'				=> 'No subject specified',								// Used for posts having no subject defined but displayed within management pages.
 	'NO_SUCH_SEARCH_MODULE'		=> 'The specified search backend doesn’t exist.',
@@ -754,9 +757,9 @@ $lang = array_merge($lang, array(
 	'SPLIT_TOPIC'				=> 'Split topic',
 	'SQL_ERROR_OCCURRED'		=> 'An SQL error occurred while fetching this page. Please contact the %sBoard Administrator%s if this problem persists.',
 	'STATISTICS'				=> 'Statistics',
-	'START_WATCHING_FORUM'		=> 'Subscribe forum',
+	'START_WATCHING_FORUM'		=> 'Follow forum',
 	'START_WATCHING_TOPIC'		=> 'Subscribe topic',
-	'STOP_WATCHING_FORUM'		=> 'Unsubscribe forum',
+	'STOP_WATCHING_FORUM'		=> 'Unfollow',
 	'STOP_WATCHING_TOPIC'		=> 'Unsubscribe topic',
 	'STRING_LIST_MULTI'			=> '%1$s, and %2$s',
 	'STRING_LIST_SIMPLE'		=> '%1$s and %2$s',

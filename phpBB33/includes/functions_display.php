@@ -4,6 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @copyright 2005-2025, SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -1360,7 +1361,7 @@ function watch_topic_forum($mode, &$s_watching, $user_id, $forum_id, $topic_id, 
 						$message .= '<br /><br />' . $user->lang('RETURN_' . strtoupper($mode), '<a href="' . $redirect_url . '">', '</a>');
 					}
 					meta_refresh(3, $redirect_url);
-					trigger_error($message);
+					//trigger_error($message);
 				}
 				else
 				{
@@ -1383,7 +1384,7 @@ function watch_topic_forum($mode, &$s_watching, $user_id, $forum_id, $topic_id, 
 					{
 						$confirm_box_message = $user->lang('UNWATCH_' . strtoupper($mode) . '_DETAILED', $item_title);
 					}
-					confirm_box(false, $confirm_box_message, build_hidden_fields($s_hidden_fields));
+					//confirm_box(false, $confirm_box_message, build_hidden_fields($s_hidden_fields));
 				}
 			}
 			else
@@ -1435,7 +1436,7 @@ function watch_topic_forum($mode, &$s_watching, $user_id, $forum_id, $topic_id, 
 						$message .= '<br /><br />' . $user->lang('RETURN_' . strtoupper($mode), '<a href="' . $redirect_url . '">', '</a>');
 					}
 					meta_refresh(3, $redirect_url);
-					trigger_error($message);
+					//trigger_error($message);
 				}
 				else
 				{
@@ -1451,7 +1452,7 @@ function watch_topic_forum($mode, &$s_watching, $user_id, $forum_id, $topic_id, 
 					}
 
 					$confirm_box_message = (($item_title == '') ? 'WATCH_' . strtoupper($mode) : $user->lang('WATCH_' . strtoupper($mode) . '_DETAILED', $item_title));
-					confirm_box(false, $confirm_box_message, build_hidden_fields($s_hidden_fields));
+					//confirm_box(false, $confirm_box_message, build_hidden_fields($s_hidden_fields));
 				}
 			}
 			else

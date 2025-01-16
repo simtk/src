@@ -4,6 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @copyright 2005-2025, SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -22,13 +23,37 @@ include($phpbb_root_path . 'includes/functions_posting.' . $phpEx);
 include($phpbb_root_path . 'includes/functions_display.' . $phpEx);
 include($phpbb_root_path . 'includes/message_parser.' . $phpEx);
 
+// Retrieve user id given the session id.
+function getUserIdFromSid($db, $theSid) {
+	$theUID = false;
+	$sqlQueryUID = "SELECT session_user_id FROM phpbb_sessions " .
+		"WHERE session_id='" . $theSid . "'";
+	$res = $db->sql_query($sqlQueryUID);
+	$theUID = $db->sql_fetchfield('session_user_id');
+	$db->sql_freeresult($res);
+
+	return $theUID;
+}
+
 
 // Start session management
 $user->session_begin();
 $auth->acl($user->data);
 
+$theUserName = $request->variable('forname', '');
+$thePassword = $request->variable('forpass', '');
+if (trim($theUserName) != '' && trim($thePassword) != '') {
+	$resLogin = $auth->login($theUserName, $thePassword);
+	if ($resLogin["status"] != LOGIN_SUCCESS) {
+		// Login failed.
+		login_box_parent('', "Please login to post to forum");
+	}
+}
 
 // Grab only parameters needed here
+$post_id	= $request->variable('p', 0);
+$topic_id	= $request->variable('t', 0);
+$forum_id	= $request->variable('f', 0);
 $draft_id	= $request->variable('d', 0);
 
 $preview	= (isset($_POST['preview'])) ? true : false;
@@ -41,81 +66,51 @@ $refresh	= (isset($_POST['add_file']) || isset($_POST['delete_file']) || $save |
 $submit = $request->is_set_post('post') && !$refresh && !$preview;
 $mode		= $request->variable('mode', '');
 
-// Only assign required URL parameters
-$forum_id = 0;
-$topic_id = 0;
-$post_id = 0;
+// Get the phpbb session_id.
+$the_sid = $request->variable('sid', "");
+$the_uid = getUserIdFromSid($db, $the_sid);
 
-switch ($mode)
-{
-	case 'popup':
-	case 'smilies':
-		$forum_id = $request->variable('f', 0);
-	break;
+$cur_uid = getUserIdFromSid($db, $_SID);
 
-	case 'post':
-		$forum_id = $request->variable('f', 0);
-		if (!$forum_id)
-		{
-			trigger_error('NO_FORUM');
-		}
-	break;
+if (!$the_uid && $cur_uid) {
 
-	case 'bump':
-	case 'reply':
-		$topic_id = $request->variable('t', 0);
-		if ($topic_id)
-		{
-			$sql = 'SELECT forum_id
-				FROM ' . TOPICS_TABLE . "
-				WHERE topic_id = $topic_id";
-			$result = $db->sql_query($sql);
-			$forum_id = (int) $db->sql_fetchfield('forum_id');
-			$db->sql_freeresult($result);
-		}
+	// User has logged in correctly.
+	// However, the phpbb session id is not given as parameter.
+	// The phpbb session id is not given as parameter.
+	// Need to reload this page with the phpbb session id ($_SID).
+	// Otherwise, the user information is not available and
+	// the UI does not behave correctly.
 
-		if (!$topic_id || !$forum_id)
-		{
-			trigger_error('NO_TOPIC');
-		}
-	break;
+	// Get URL of this page.
+	$the_url_self = $request->server('PHP_SELF');
 
-	case 'edit':
-	case 'delete':
-	case 'quote':
-	case 'soft_delete':
-		$post_id = $request->variable('p', 0);
-		if ($post_id)
-		{
-			$topic_forum = [];
+	// Append with forum, topic, and post ids.
+	$the_url_self .= "?f=" . $forum_id .
+		"&t=" . $topic_id .
+		"&mode=" . $mode;
+	if ($post_id != 0) {
+		$the_url_self .= "&p=" . $post_id;
+	}
 
-			$sql = 'SELECT t.topic_id, t.forum_id
-				FROM ' . TOPICS_TABLE . ' t, ' . POSTS_TABLE . ' p
-				WHERE p.post_id = ' . $post_id . '
-				AND t.topic_id = p.topic_id';
-			$result = $db->sql_query($sql);
-			$topic_forum = $db->sql_fetchrow($result);
-			$db->sql_freeresult($result);
-		}
+	// Add username and password if present.
+	if (isset($theUserName) && isset($thePassword)) {
+		$the_url_self .= "&forname=" . $theUserName . 
+			"&forpass=" . $thePassword;
+	}
 
-		if (!$post_id || !$topic_forum)
-		{
-			$user->setup('posting');
-			trigger_error('NO_POST');
-		}
+	// Reload this page, appended with the phpbb session id.
+	header("Location: " . $the_url_self . "&sid=" . $_SID);
+}
 
-		// Need to update session forum_id to valid value for proper viewonline information
-		if (!$forum_id)
-		{
-			$user->page['forum'] = (int) $topic_forum['forum_id'];
-			$user->update_session_page = true;
-			$user->update_session_infos();
-		}
-
-		$topic_id = (int) $topic_forum['topic_id'];
-		$forum_id = (int) $topic_forum['forum_id'];
-
-	break;
+// Check whether user is logged in to SimTK.
+// NOTE: If both $the_uid and $cur_uid are false, user is not logged in,
+// or the session_id is not present.
+// NOTE: Check whether user is not logged in for operation other than
+// submit/refresh/preview under edit.
+// If so, prompt user to log in.
+if (!$the_uid && !$cur_uid &&
+	!$submit && !$refresh && !$preview && $mode == 'edit') {
+	login_box_parent('', "Please login to post to forum");
 }
 
 // If the user is not allowed to delete the post, we try to soft delete it, so we overwrite the mode here.
@@ -450,7 +445,7 @@ if (!$is_authed || !empty($error))
 		));
 	}
 
-	login_box('', $message);
+	login_box_parent('', $message);
 }
 
 if ($config['enable_post_confirm'] && !$user->data['is_registered'])

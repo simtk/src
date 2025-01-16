@@ -14,11 +14,6 @@
 		</a>
 	</p>
 <!-- ELSE -->
-	<p class="advanced-search-link">
-		<a class="arrow-{S_CONTENT_FLOW_BEGIN}" href="{U_SEARCH}" title="{L_SEARCH_ADV}">
-			<i class="icon fa-angle-{S_CONTENT_FLOW_BEGIN} fa-fw icon-black" aria-hidden="true"></i><span>{L_GO_TO_SEARCH_ADV}</span>
-		</a>
-	</p>
 <!-- ENDIF -->
 
 <!-- EVENT search_results_header_after -->
@@ -34,9 +29,6 @@
 				<button class="button button-search" type="submit" title="{L_SEARCH}">
 					<i class="icon fa-search fa-fw" aria-hidden="true"></i><span class="sr-only">{L_SEARCH}</span>
 				</button>
-				<a href="{U_SEARCH}" class="button button-search-end" title="{L_SEARCH_ADV}">
-					<i class="icon fa-cog fa-fw" aria-hidden="true"></i><span class="sr-only">{L_SEARCH_ADV}</span>
-				</a>
 			</fieldset>
 			</form>
 		</div>
@@ -95,9 +87,9 @@
 								</a>
 							<!-- ENDIF -->
 							<!-- IF searchresults.S_TOPIC_DELETED -->
-								<a href="{searchresults.U_MCP_QUEUE}" title="{L_TOPIC_DELETED}">
+								<span title="{L_TOPIC_DELETED}">
 									<i class="icon fa-recycle fa-fw icon-green" aria-hidden="true"></i><span class="sr-only">{L_TOPIC_DELETED}</span>
-								</a>
+								</span>
 							<!-- ENDIF -->
 							<!-- IF searchresults.S_TOPIC_REPORTED -->
 								<a href="{searchresults.U_MCP_REPORT}" title="{L_TOPIC_REPORTED}">

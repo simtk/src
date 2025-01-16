@@ -308,6 +308,7 @@ class helper
 				'CREDIT_LINE'			=> $this->language->lang('POWERED_BY', '<a href="https://www.phpbb.com/">phpBB</a>&reg; Forum Software &copy; phpBB Limited'),
 
 				'U_ACP'					=> ($this->auth->acl_get('a_') && !empty($this->user->data['is_registered'])) ? append_sid("{$this->admin_path}index.{$this->php_ext}", false, true, $this->user->session_id) : '',
+				'TEST_ADMIN'		=> ($this->user->data['user_id'] == 2) ? true : false, // U_ACP check not sufficient; add TEST_ADMIN to verify user is "admin"
 		]);
 
 		if ($run_cron)

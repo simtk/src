@@ -4,6 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @copyright 2005-2025, SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -129,6 +130,28 @@ class user extends \phpbb\session
 			$user_lang_name = (file_exists($this->lang_path . $this->data['user_lang'] . "/common.$phpEx")) ? $this->data['user_lang'] : basename($config['default_lang']);
 			$user_date_format = $this->data['user_dateformat'];
 			$user_timezone = $this->data['user_timezone'];
+
+			try {
+				// Set user_timezone.
+				$user_timezone = $this->data['user_timezone'];
+
+				// Test if user_timezone is valid.
+				$test_timezone = new \DateTimeZone($user_timezone);
+			}
+			catch (\Exception $e) {
+				// Invalid user_timezone.
+				try {
+					// Use board_timezone.
+					$user_timezone = $config['board_timezone'];
+
+					// Test board_timezone.
+					$test_timezone = new \DateTimeZone($user_timezone);
+				}
+				catch (\Exception $ex) {
+					// If the board_timezone is invalid, use UTC.
+					$user_timezone = 'UTC';
+				}
+			}
 		}
 		else
 		{

@@ -4,6 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @copyright 2016-2025, SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -29,6 +30,26 @@ class postgres extends \phpbb\db\driver\driver
 	function sql_connect($sqlserver, $sqluser, $sqlpassword, $database, $port = false, $persistency = false, $new_link = false)
 	{
 		$connect_string = '';
+
+		// Override and use the database configuration parameters as specifed in
+		// the file phpBB.ini if the file is present and has the relevant parameters.
+		if (file_exists("/etc/fusionforge/config.ini.d/phpBB.ini")) {
+			// The file phpBB.ini is present.
+			$arrPhpbbConfig = parse_ini_file("/etc/fusionforge/config.ini.d/phpBB.ini");
+			// Check for each parameter's presence.
+			if (isset($arrPhpbbConfig["phpbb_host"])) {
+				$sqlserver = $arrPhpbbConfig["phpbb_host"];
+			}
+			if (isset($arrPhpbbConfig["phpbb_name"])) {
+				$database = $arrPhpbbConfig["phpbb_name"];
+			}
+			if (isset($arrPhpbbConfig["phpbb_user"])) {
+				$sqluser = $arrPhpbbConfig["phpbb_user"];
+			}
+			if (isset($arrPhpbbConfig["phpbb_password"])) {
+				$sqlpassword = $arrPhpbbConfig["phpbb_password"];
+			}
+		}
 
 		if ($sqluser)
 		{

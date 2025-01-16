@@ -4,6 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @copyright 2005-2025, SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -22,6 +23,22 @@ include($phpbb_root_path . 'includes/functions_display.' . $phpEx);
 include($phpbb_root_path . 'includes/bbcode.' . $phpEx);
 include($phpbb_root_path . 'includes/functions_user.' . $phpEx);
 
+// Retrieve user id given the session id.
+function getUserIdFromSid($db, $theSid) {
+	if (!ctype_alnum($theSid) && trim($theSid) != "") {
+		return false;
+	}
+
+	$theUID = false;
+	$sqlQueryUID = "SELECT session_user_id FROM phpbb_sessions " .
+		"WHERE session_id='" . $theSid . "'";
+	$res = $db->sql_query($sqlQueryUID);
+	$theUID = $db->sql_fetchfield('session_user_id');
+	$db->sql_freeresult($res);
+
+	return $theUID;
+}
+
 // Start session management
 $user->session_begin();
 $auth->acl($user->data);
@@ -34,9 +51,163 @@ $voted_id	= $request->variable('vote_id', array('' => 0));
 
 $voted_id = (count($voted_id) > 1) ? array_unique($voted_id) : $voted_id;
 
+$mywatch        = $request->variable('watch', '');
+$myunwatch      = $request->variable('unwatch', '');
 
 $start		= $request->variable('start', 0);
 $view		= $request->variable('view', '');
+
+// Get the phpbb session_id.
+$the_sid        = $request->variable('sid', "");
+
+// Check input parameters.
+if ((!ctype_alnum($mywatch) && trim($mywatch) != "") ||
+	(!ctype_alnum($myunwatch) && trim($myunwatch) != "") ||
+	(!ctype_alnum($view) && trim($view) != "") ||
+	(!ctype_alnum($the_sid) && trim($the_sid) != "") ||
+	!is_numeric($forum_id) ||
+	!is_numeric($topic_id) ||
+	!is_numeric($post_id) ||
+	!is_numeric($start)) {
+	trigger_error('Invalid parameters for forum topic.');
+}
+else {
+	foreach ($voted_id as $key=>$val) {
+		if (!is_numeric($key) || !is_numeric($val)) {
+			trigger_error('Invalid parameters for forum topic.');
+		}
+	}
+}
+
+if ($mywatch == '' && $myunwatch == '') {
+
+	// Neither "Subscribe topic" nor "Unsubscribe topic" is specified.
+	
+	$theUserName = $request->variable('forname', '');
+	$thePassword = $request->variable('forpass', '');
+	$resLogin = $auth->login($theUserName, $thePassword);
+	if ($resLogin["status"] != LOGIN_SUCCESS) {
+		// Login failed.
+		$user->session_kill();
+
+		// Restart session management
+		$user->session_begin();
+		$auth->acl($user->data);
+	}
+
+	if ($post_id != 0 && ($topic_id == 0 || $forum_id == 0)) {
+		// Try to fill in forum id and topic id if post id is known.
+		$sql = "SELECT forum_id, topic_id FROM " . POSTS_TABLE . " " .
+			"WHERE post_id = $post_id";
+		$result = $db->sql_query_limit($sql, 1);
+		$row = $db->sql_fetchrow($result);
+		$db->sql_freeresult($result);
+		if ($row != false) {
+			$fid = $row['forum_id'];
+			$tid = $row['topic_id'];
+			if ($forum_id != 0 && $fid != $forum_id) {
+				trigger_error("Forum mismatch for post #" . $post_id . ": " . $forum_id);
+			}
+			if ($topic_id != 0 && $tid != $topic_id) {
+				trigger_error("Topic mismatch for post #" . $post_id . ": " . $topic_id);
+			}
+			// Update forum id and topic id.
+			$forum_id = $fid;
+			$topic_id = $tid;
+		}
+	}
+
+	if ($topic_id != 0 && $forum_id == 0) {
+		// Try to fill in forum id if topic id is known.
+		$sql = "SELECT forum_id FROM " . TOPICS_TABLE . " " .
+			"WHERE topic_id = $topic_id";
+		$result = $db->sql_query_limit($sql, 1);
+		$row = $db->sql_fetchrow($result);
+		$db->sql_freeresult($result);
+		if ($row != false) {
+			$fid = $row['forum_id'];
+			if ($forum_id != 0 && $fid != $forum_id) {
+				trigger_error("Forum mismatch for post #" . $post_id . ": " . $forum_id);
+			}
+			// Update forum id.
+			$forum_id = $fid;
+		}
+	}
+
+	// Get the HTTP_REFERER URL to test if the URL of the page that contains
+	// this iframe is "viewtopicPhpbb.php".
+	// If not, update the URL to be "viewtopicPhpbb.php" such that 
+	// the page's URL can be copied and referrred upon.
+	// Otherwise, "indexPhpbb.php" may be shown instead, which does not show
+	// the more specific topic id in the forum.
+	$the_url_self = $request->server('HTTP_REFERER');
+	if (stripos($the_url_self, 'viewtopicPhpbb.php') === false) {
+		// No, update the URL.
+		$tmpScriptStr = '<script>top.window.location.href = "/plugins/phpBB/viewtopicPhpbb.php' .
+			'?f=' . $forum_id . 
+			'&t=' . $topic_id . 
+			'&p=' . $post_id .
+			'&start=' . $start .
+			'&view=' . $view;
+		if ($the_sid != "") {
+			// Pass along session_id if present.
+			$tmpScriptStr .= '&sid=' . $the_sid;
+		}
+		$tmpScriptStr .= '";</script>';
+		echo $tmpScriptStr;
+	}
+
+	$the_uid = getUserIdFromSid($db, $the_sid);
+	$cur_uid = getUserIdFromSid($db, $_SID);
+
+	if ($resLogin["status"] == LOGIN_SUCCESS && 
+		!$the_uid && $cur_uid) {
+
+		// User has logged in correctly.
+		// However, the phpbb session id is not given as parameter.
+		// Need to reload this page with the phpbb session id ($_SID).
+		// Otherwise, the user information is not available and
+		// the UI does not behave correctly.
+
+		// Get URL of this page.
+		$the_url_self = $request->server('PHP_SELF');
+
+		// Append with forum, topic, and post ids.
+		$the_url_self .= "?f=" . $forum_id .
+			"&t=" . $topic_id .
+			"&p=" . $post_id .
+			"&start=" . $start .
+			"&view=" . $view;
+
+		// Add username and password if present.
+		if (isset($theUserName) && isset($thePassword)) {
+			$the_url_self .= "&forname=" . $theUserName . 
+				"&forpass=" . $thePassword;
+		}
+
+		// Reload this page, appended with the phpbb session id.
+		header("Location: " . $the_url_self . "&sid=" . $_SID);
+	}
+}
+
+
+?>
+
+<script type="text/javascript" src="/scripts/jquery/jquery-3.5.1.min.js"></script>
+<script>
+// Post event to parent window with scroll height information.
+$(window).on("load", function() {
+	parent.postMessage(
+		{
+			event_id: "ScrollHeight",
+			scroll_height: document.body.scrollHeight
+		},
+		"*");
+});
+</script>
+
+<?php
+
 
 $default_sort_days	= (!empty($user->data['user_post_show_days'])) ? $user->data['user_post_show_days'] : 0;
 $default_sort_key	= (!empty($user->data['user_post_sortby_type'])) ? $user->data['user_post_sortby_type'] : 't';
@@ -661,10 +832,13 @@ $quickmod_array = array(
 	'merge'					=> array('MERGE_POSTS', $auth->acl_get('m_merge', $forum_id)),
 	'merge_topic'		=> array('MERGE_TOPIC', $auth->acl_get('m_merge', $forum_id)),
 	'fork'					=> array('FORK_TOPIC', $auth->acl_get('m_move', $forum_id)),
-	'make_normal'		=> array('MAKE_NORMAL', ($allow_change_type && $auth->acl_gets('f_sticky', 'f_announce', 'f_announce_global', $forum_id) && $topic_data['topic_type'] != POST_NORMAL)),
-	'make_sticky'		=> array('MAKE_STICKY', ($allow_change_type && $auth->acl_get('f_sticky', $forum_id) && $topic_data['topic_type'] != POST_STICKY)),
-	'make_announce'	=> array('MAKE_ANNOUNCE', ($allow_change_type && $auth->acl_get('f_announce', $forum_id) && $topic_data['topic_type'] != POST_ANNOUNCE)),
-	'make_global'		=> array('MAKE_GLOBAL', ($allow_change_type && $auth->acl_get('f_announce_global', $forum_id) && $topic_data['topic_type'] != POST_GLOBAL)),
+	//'make_normal'		=> array('MAKE_NORMAL', ($allow_change_type && $auth->acl_gets('f_sticky', 'f_announce', 'f_announce_global', $forum_id) && $topic_data['topic_type'] != POST_NORMAL)),
+	//'make_sticky'		=> array('MAKE_STICKY', ($allow_change_type && $auth->acl_get('f_sticky', $forum_id) && $topic_data['topic_type'] != POST_STICKY)),
+	//'make_announce'	=> array('MAKE_ANNOUNCE', ($allow_change_type && $auth->acl_get('f_announce', $forum_id) && $topic_data['topic_type'] != POST_ANNOUNCE)),
+	'make_normal'           => array('MAKE_NORMAL', ($allow_change_type && $auth->acl_gets('m_', $forum_id) && $topic_data['topic_type'] != POST_NORMAL)),
+	'make_sticky'           => array('MAKE_STICKY', ($allow_change_type && $auth->acl_get('m_', $forum_id) && $topic_data['topic_type'] != POST_STICKY)),
+	'make_announce' => array('MAKE_ANNOUNCE', ($allow_change_type && $auth->acl_get('m_', $forum_id) && $topic_data['topic_type'] != POST_ANNOUNCE)),
+	//'make_global'		=> array('MAKE_GLOBAL', ($allow_change_type && $auth->acl_get('f_announce_global', $forum_id) && $topic_data['topic_type'] != POST_GLOBAL)),
 	'topic_logs'			=> array('VIEW_TOPIC_LOGS', $auth->acl_get('m_', $forum_id)),
 );
 
@@ -851,7 +1025,7 @@ $template->assign_vars(array(
 	'S_BOOKMARKED_TOPIC'	=> ($user->data['is_registered'] && $config['allow_bookmarks'] && $topic_data['bookmarked']) ? true : false,
 
 	'U_POST_NEW_TOPIC' 		=> ($auth->acl_get('f_post', $forum_id) || $user->data['user_id'] == ANONYMOUS) ? append_sid("{$phpbb_root_path}posting.$phpEx", "mode=post&amp;f=$forum_id") : '',
-	'U_POST_REPLY_TOPIC' 	=> ($auth->acl_get('f_reply', $forum_id) || $user->data['user_id'] == ANONYMOUS) ? append_sid("{$phpbb_root_path}posting.$phpEx", "mode=reply&amp;t=$topic_id") : '',
+	'U_POST_REPLY_TOPIC' 	=> ($auth->acl_get('f_reply', $forum_id) || $user->data['user_id'] == ANONYMOUS) ? append_sid("{$phpbb_root_path}posting.$phpEx", "mode=reply&amp;f=$forum_id&amp;t=$topic_id") : '',
 	'U_BUMP_TOPIC'			=> (bump_topic_allowed($forum_id, $topic_data['topic_bumped'], $topic_data['topic_last_post_time'], $topic_data['topic_poster'], $topic_data['topic_last_poster_id'])) ? append_sid("{$phpbb_root_path}posting.$phpEx", "mode=bump&amp;t=$topic_id&amp;hash=" . generate_link_hash("topic_$topic_id")) : '')
 );
 
@@ -2037,7 +2211,7 @@ for ($i = 0, $end = count($post_list); $i < $end; ++$i)
 		'RANK_IMG_SRC'		=> $user_cache[$poster_id]['rank_image_src'],
 		'POSTER_JOINED'		=> $user_cache[$poster_id]['joined'],
 		'POSTER_POSTS'		=> $user_cache[$poster_id]['posts'],
-		'POSTER_AVATAR'		=> $user_cache[$poster_id]['avatar'],
+		'POSTER_AVATAR'         => "<img src='/userpics/" . $row['username'] . "_thumb' width='75' height='75' onError='this.src=" . '"' . "/userpics/user_profile.jpg" . '"' . ";' alt='User avatar'>",
 		'POSTER_WARNINGS'	=> $auth->acl_get('m_warn') ? $user_cache[$poster_id]['warnings'] : '',
 		'POSTER_AGE'		=> $user_cache[$poster_id]['age'],
 		'CONTACT_USER'		=> $user_cache[$poster_id]['contact_user'],

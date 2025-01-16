@@ -250,6 +250,170 @@ jQuery(function($) {
 
 		return true;
 	});
+
+	$('.default-submit-action').on('click', function(e) {
+
+		if ($('.duplicateTag').length > 0) {
+			// Has warning tag element for topic.
+			var elemWarning = $('.duplicateTag')[0];
+
+			for (var i = 0; i < elemWarning.attributes.length; i++) {
+				// Check whether the warning on tag element is up and visible
+				// by examining the presence of the class "DuplicateTag"
+				// in the element.
+				if (elemWarning.attributes[i].name == "class" &&
+					elemWarning.attributes[i].value.indexOf("DuplicateTag") != -1) {
+
+					// Yes, the warning for topic tag is up and visibile.
+					// Do not submit the form.
+					return false;
+				}
+			}
+		}
+
+		if ($('.warnNumOfTags').length > 0) {
+			// Has warning tag element for topic.
+			var elemWarning = $('.warnNumOfTags')[0];
+
+			for (var i = 0; i < elemWarning.attributes.length; i++) {
+				// Check whether the warning on number of tag elements is up and visible
+				// by examining the presence of the class "InvalidNumOfTags"
+				// in the element.
+				if (elemWarning.attributes[i].name == "class" &&
+					elemWarning.attributes[i].value.indexOf("InvalidNumOfTags") != -1) {
+
+					// Yes, the warning for number of topic tags is up and visibile.
+					// Do not submit the form.
+					return false;
+				}
+			}
+		}
+
+		// Check text in last edit element.
+		var elemLastEditText = $('.tags>span.input');
+		if (elemLastEditText.length > 0) {
+			// Has topic tag element.
+			// This class keeps track of the value of last edit.
+			var theText = elemLastEditText.text();
+
+			// Check characters in new tag.
+			// NOTE: Entry of "..." is ok.
+			var myPattern = /^[\- a-z0-9]+$/i;
+			if (!myPattern.test(theText) && theText != "...") {
+				// Failed regex test.
+
+				var elemWarning = $('.warnTag');
+				if (elemWarning.length > 0) {
+					// Has warning tag element for topic.
+					// Remove "InvalidTag" class and update CSS to not show the warning.
+					elemWarning.addClass("InvalidTag");
+					// Need to remove class "ng-hide". Otherwise, warning does not show up.
+					elemWarning.removeClass("ng-hide");
+					elemWarning.text("* Non-allowable characters used - Check tag");
+					elemWarning.css({"display": "block", "opacity": "1"});
+				}
+
+				return false;
+			}
+
+			var myPattern1 = /^[\- a-z0-9]{3,30}$/i;
+			if (!myPattern1.test(theText) && theText != "...") {
+				// Failed regex test.
+
+				var elemWarning = $('.warnTag');
+				if (elemWarning.length > 0) {
+					// Has warning tag element for topic.
+					// Remove "InvalidTag" class and update CSS to not show the warning.
+					elemWarning.addClass("InvalidTag");
+					// Need to remove class "ng-hide". Otherwise, warning does not show up.
+					elemWarning.removeClass("ng-hide");
+					elemWarning.text("* Invalid tag length");
+					elemWarning.css({"display": "block", "opacity": "1"});
+				}
+
+				return false;
+			}
+
+			// Check for duplicate tags.
+			if ($(".tag-list>.tag-item>span").length > 0) {
+				// Look up all existing tags.
+				var tagExists = false;
+				$(".tag-list>.tag-item>span").each(function (index, elem) {
+					var tagExisting = $(this).text();
+					if (tagExisting == theText) {
+						// Found a match.
+						tagExists = true;
+					}
+				});
+
+				if (tagExists) {
+					// Duplicated tag.
+					var elemWarning = $('.duplicateTag');
+					if (elemWarning.length > 0) {
+						// Has warning tag element for topic.
+						// Remove "InvalidTag" class and update CSS to not show the warning.
+						elemWarning.addClass("DuplicateTag");
+						elemWarning.css({"display": "block", "opacity": "1"});
+					}
+
+					// Tag exists already.
+					return false;
+				}
+			}
+		}
+
+		if ($('.warnTag').length > 0) {
+			// Has warning tag element for topic.
+			var elemWarning = $('.warnTag')[0];
+
+			for (var i = 0; i < elemWarning.attributes.length; i++) {
+				// Check whether the warning on tag element is up and visible
+				// by examining the presence of the class "InvalidTag"
+				// in the element.
+				if (elemWarning.attributes[i].name == "class" &&
+					elemWarning.attributes[i].value.indexOf("InvalidTag") != -1) {
+
+					// Yes, the warning for topic tag is up and visibile.
+					// Do not submit the form.
+					return false;
+				}
+			}
+		}
+
+		return true;
+	});
+
+	// Check all key up events.
+	$(document).keyup(function() {
+
+		var elemLastEditText = $('.tags>span.input');
+		if (elemLastEditText.length > 0) {
+			// Has topic tag element.
+			// This class keeps track of the value of last edit.
+			var theText = elemLastEditText.text();
+			if (theText == "...") {
+				// Content of "..." means the input is at the beginning and is empty.
+				// Remove warning message if present.
+				var elemWarning = $('.warnTag');
+				if (elemWarning.length > 0) {
+					// Has warning tag element for topic.
+					// Remove "InvalidTag" class and update CSS to not show the warning.
+					elemWarning.removeClass("InvalidTag");
+					elemWarning.css({"display": "none", "opacity": "0"});
+				}
+			}
+			// Remove warning message if present.
+			var elemWarning = $('.duplicateTag');
+			if (elemWarning.length > 0) {
+				// Has warning tag element for topic.
+				// Remove "DuplicateTag" class and update CSS to not show the warning.
+				elemWarning.removeClass("DuplicateTag");
+				elemWarning.css({"display": "none", "opacity": "0"});
+			}
+		}
+
+		return true;
+	});
 });
 
 /**

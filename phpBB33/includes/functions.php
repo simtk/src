@@ -4,6 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @copyright 2016-2025, SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -2583,6 +2584,367 @@ function login_box($redirect = '', $l_explain = '', $l_success = '', $admin = fa
 	page_footer();
 }
 
+/**             
+* Generate login box or verify password
+*                       
+* Note: This method is copied from login_box() except the last part starting from page_header().
+* Note: Use SimTK login prompt instead of phpBB's login box.
+*/              
+function login_box_parent($redirect = '', $l_explain = '', $l_success = '', $admin = false, $s_display = true)              
+{
+	global $user, $template, $auth, $phpEx, $phpbb_root_path, $config;
+	global $request, $phpbb_container, $phpbb_dispatcher, $phpbb_log;
+
+	$err = '';
+	$form_name = 'login';
+	$username = $autologin = false;
+
+	// Make sure user->setup() has been called
+	if (!$user->is_setup())
+	{
+		$user->setup();
+	}
+
+	/**
+	 * This event allows an extension to modify the login process
+	 *
+	 * @event core.login_box_before
+	 * @var string	redirect	Redirect string
+	 * @var string	l_explain	Explain language string
+	 * @var string	l_success	Success language string
+	 * @var	bool	admin		Is admin?
+	 * @var bool	s_display	Display full login form?
+	 * @var string	err			Error string
+	 * @since 3.1.9-RC1
+	 */
+	$vars = array('redirect', 'l_explain', 'l_success', 'admin', 's_display', 'err');
+	extract($phpbb_dispatcher->trigger_event('core.login_box_before', compact($vars)));
+
+	// Print out error if user tries to authenticate as an administrator without having the privileges...
+	if ($admin && !$auth->acl_get('a_'))
+	{
+		// Not authd
+		// anonymous/inactive users are never able to go to the ACP even if they have the relevant permissions
+		if ($user->data['is_registered'])
+		{
+			$phpbb_log->add('admin', $user->data['user_id'], $user->ip, 'LOG_ADMIN_AUTH_FAIL');
+		}
+		send_status_line(403, 'Forbidden');
+		trigger_error('NO_AUTH_ADMIN');
+	}
+
+	if (empty($err) && ($request->is_set_post('login') || ($request->is_set('login') && $request->variable('login', '') == 'external')))
+	{
+		// Get credential
+		if ($admin)
+		{
+			$credential = $request->variable('credential', '');
+
+			if (strspn($credential, 'abcdef0123456789') !== strlen($credential) || strlen($credential) != 32)
+			{
+				if ($user->data['is_registered'])
+				{
+					$phpbb_log->add('admin', $user->data['user_id'], $user->ip, 'LOG_ADMIN_AUTH_FAIL');
+				}
+				send_status_line(403, 'Forbidden');
+				trigger_error('NO_AUTH_ADMIN');
+			}
+
+			$password	= $request->untrimmed_variable('password_' . $credential, '', true);
+		}
+		else
+		{
+			$password	= $request->untrimmed_variable('password', '', true);
+		}
+
+		$username	= $request->variable('username', '', true);
+		$autologin	= $request->is_set_post('autologin');
+		$viewonline = (int) !$request->is_set_post('viewonline');
+		$admin 		= ($admin) ? 1 : 0;
+		$viewonline = ($admin) ? $user->data['session_viewonline'] : $viewonline;
+
+		// Check if the supplied username is equal to the one stored within the database if re-authenticating
+		if ($admin && utf8_clean_string($username) != utf8_clean_string($user->data['username']))
+		{
+			// We log the attempt to use a different username...
+			$phpbb_log->add('admin', $user->data['user_id'], $user->ip, 'LOG_ADMIN_AUTH_FAIL');
+
+			send_status_line(403, 'Forbidden');
+			trigger_error('NO_AUTH_ADMIN_USER_DIFFER');
+		}
+
+		// Check form key
+		if ($password && !defined('IN_CHECK_BAN') && !check_form_key($form_name))
+		{
+			$result = array(
+				'status' => false,
+				'error_msg' => 'FORM_INVALID',
+			);
+		}
+		else
+		{
+			// If authentication is successful we redirect user to previous page
+			$result = $auth->login($username, $password, $autologin, $viewonline, $admin);
+		}
+
+		// If admin authentication and login, we will log if it was a success or not...
+		// We also break the operation on the first non-success login - it could be argued that the user already knows
+		if ($admin)
+		{
+			if ($result['status'] == LOGIN_SUCCESS)
+			{
+				$phpbb_log->add('admin', $user->data['user_id'], $user->ip, 'LOG_ADMIN_AUTH_SUCCESS');
+			}
+			else
+			{
+				// Only log the failed attempt if a real user tried to.
+				// anonymous/inactive users are never able to go to the ACP even if they have the relevant permissions
+				if ($user->data['is_registered'])
+				{
+					$phpbb_log->add('admin', $user->data['user_id'], $user->ip, 'LOG_ADMIN_AUTH_FAIL');
+				}
+			}
+		}
+
+		// The result parameter is always an array, holding the relevant information...
+		if ($result['status'] == LOGIN_SUCCESS)
+		{
+			$redirect = $request->variable('redirect', "{$phpbb_root_path}index.$phpEx");
+
+			/**
+			* This event allows an extension to modify the redirection when a user successfully logs in
+			*
+			* @event core.login_box_redirect
+			* @var  string	redirect	Redirect string
+			* @var	bool	admin		Is admin?
+			* @var	array	result		Result from auth provider
+			* @since 3.1.0-RC5
+			* @changed 3.1.9-RC1 Removed undefined return variable
+			* @changed 3.2.4-RC1 Added result
+			*/
+			$vars = array('redirect', 'admin', 'result');
+			extract($phpbb_dispatcher->trigger_event('core.login_box_redirect', compact($vars)));
+
+			// append/replace SID (may change during the session for AOL users)
+			$redirect = reapply_sid($redirect);
+
+			// Special case... the user is effectively banned, but we allow founders to login
+			if (defined('IN_CHECK_BAN') && $result['user_row']['user_type'] != USER_FOUNDER)
+			{
+				return;
+			}
+
+			redirect($redirect);
+		}
+
+		// Something failed, determine what...
+		if ($result['status'] == LOGIN_BREAK)
+		{
+			trigger_error($result['error_msg']);
+		}
+
+		// Special cases... determine
+		switch ($result['status'])
+		{
+			case LOGIN_ERROR_PASSWORD_CONVERT:
+				$err = sprintf(
+					$user->lang[$result['error_msg']],
+					($config['email_enable']) ? '<a href="' . append_sid("{$phpbb_root_path}ucp.$phpEx", 'mode=sendpassword') . '">' : '',
+					($config['email_enable']) ? '</a>' : '',
+					'<a href="' . phpbb_get_board_contact_link($config, $phpbb_root_path, $phpEx) . '">',
+					'</a>'
+				);
+			break;
+
+			case LOGIN_ERROR_ATTEMPTS:
+
+				$captcha = $phpbb_container->get('captcha.factory')->get_instance($config['captcha_plugin']);
+				$captcha->init(CONFIRM_LOGIN);
+				// $captcha->reset();
+
+				$template->assign_vars(array(
+					'CAPTCHA_TEMPLATE'			=> $captcha->get_template(),
+				));
+			// no break;
+
+			// Username, password, etc...
+			default:
+				$err = $user->lang[$result['error_msg']];
+
+				// Assign admin contact to some error messages
+				if ($result['error_msg'] == 'LOGIN_ERROR_USERNAME' || $result['error_msg'] == 'LOGIN_ERROR_PASSWORD')
+				{
+					$err = sprintf($user->lang[$result['error_msg']], '<a href="' . append_sid("{$phpbb_root_path}memberlist.$phpEx", 'mode=contactadmin') . '">', '</a>');
+				}
+
+			break;
+		}
+
+		/**
+		 * This event allows an extension to process when a user fails a login attempt
+		 *
+		 * @event core.login_box_failed
+		 * @var array   result      Login result data
+		 * @var string  username    User name used to login
+		 * @var string  password    Password used to login
+		 * @var string  err         Error message
+		 * @since 3.1.3-RC1
+		 */
+		$vars = array('result', 'username', 'password', 'err');
+		extract($phpbb_dispatcher->trigger_event('core.login_box_failed', compact($vars)));
+	}
+
+	// Assign credential for username/password pair
+	$credential = ($admin) ? md5(unique_id()) : false;
+
+	$s_hidden_fields = array(
+		'sid'		=> $user->session_id,
+	);
+
+	if ($redirect)
+	{
+		$s_hidden_fields['redirect'] = $redirect;
+	}
+
+	if ($admin)
+	{
+		$s_hidden_fields['credential'] = $credential;
+	}
+
+	/* @var $provider_collection \phpbb\auth\provider_collection */
+	$provider_collection = $phpbb_container->get('auth.provider_collection');
+	$auth_provider = $provider_collection->get_provider();
+
+	$auth_provider_data = $auth_provider->get_login_data();
+	if ($auth_provider_data)
+	{
+		if (isset($auth_provider_data['VARS']))
+		{
+			$template->assign_vars($auth_provider_data['VARS']);
+		}
+
+		if (isset($auth_provider_data['BLOCK_VAR_NAME']))
+		{
+			foreach ($auth_provider_data['BLOCK_VARS'] as $block_vars)
+			{
+				$template->assign_block_vars($auth_provider_data['BLOCK_VAR_NAME'], $block_vars);
+			}
+		}
+
+		$template->assign_vars(array(
+			'PROVIDER_TEMPLATE_FILE' => $auth_provider_data['TEMPLATE_FILE'],
+		));
+	}
+
+	$s_hidden_fields = build_hidden_fields($s_hidden_fields);
+
+	/** @var \phpbb\controller\helper $controller_helper */
+	$controller_helper = $phpbb_container->get('controller.helper');
+
+	$login_box_template_data = array(
+		'LOGIN_ERROR'		=> $err,
+		'LOGIN_EXPLAIN'		=> $l_explain,
+
+		'U_SEND_PASSWORD' 		=> ($config['email_enable'] && $config['allow_password_reset']) ? $controller_helper->route('phpbb_ucp_forgot_password_controller') : '',
+		'U_RESEND_ACTIVATION'	=> ($config['require_activation'] == USER_ACTIVATION_SELF && $config['email_enable']) ? append_sid("{$phpbb_root_path}ucp.$phpEx", 'mode=resend_act') : '',
+		'U_TERMS_USE'			=> append_sid("{$phpbb_root_path}ucp.$phpEx", 'mode=terms'),
+		'U_PRIVACY'				=> append_sid("{$phpbb_root_path}ucp.$phpEx", 'mode=privacy'),
+		'UA_PRIVACY'			=> addslashes(append_sid("{$phpbb_root_path}ucp.$phpEx", 'mode=privacy')),
+
+		'S_DISPLAY_FULL_LOGIN'	=> ($s_display) ? true : false,
+		'S_HIDDEN_FIELDS' 		=> $s_hidden_fields,
+
+		'S_ADMIN_AUTH'			=> $admin,
+		'USERNAME'				=> ($admin) ? $user->data['username'] : '',
+
+		'USERNAME_CREDENTIAL'	=> 'username',
+		'PASSWORD_CREDENTIAL'	=> ($admin) ? 'password_' . $credential : 'password',
+	);
+
+	/**
+	 * Event to add/modify login box template data
+	 *
+	 * @event core.login_box_modify_template_data
+	 * @var	int		admin							Flag whether user is admin
+	 * @var	string	username						User name
+	 * @var	int		autologin						Flag whether autologin is enabled
+	 * @var string	redirect						Redirect URL
+	 * @var	array	login_box_template_data			Array with the login box template data
+	 * @since 3.2.3-RC2
+	 */
+	$vars = array(
+		'admin',
+		'username',
+		'autologin',
+		'redirect',
+		'login_box_template_data',
+	);
+	extract($phpbb_dispatcher->trigger_event('core.login_box_modify_template_data', compact($vars)));
+
+	$template->assign_vars($login_box_template_data);
+
+/*
+	page_header($user->lang['LOGIN']);
+
+	$template->set_filenames(array(
+		'body' => 'login_body.html')
+	);
+	make_jumpbox(append_sid("{$phpbb_root_path}viewforum.$phpEx"));
+
+	page_footer();
+*/
+
+	// Get forum id.
+	$forum_id = $request->variable('f', 0);
+
+	// Get topic id.
+	$topic_id = $request->variable('t', 0);
+
+	// Get mode of reply.
+	$the_mode = $request->variable('mode', "");
+
+	// Go to SimTK login page.
+	// Note: phpBB is a plugin; hence, need to use top window.
+	// Set return_to main page.
+	// Note: Need to use replace() method to not alter the history.
+	if ($the_mode == "reply" || $the_mode == "post") {
+		// Mode present for posting. Only 2 values of mode allowed.
+		if ($topic_id != 0) {
+			// topic_id is present: a reply to existing topic.
+			echo "<script>window.top.location.replace('" .
+				"/account/login.php?return_to=/plugins/phpBB/postingPhpbb.php?" . 
+				"f=" . $forum_id . 
+				"^t=" . $topic_id . 
+				"^mode=" . $the_mode .
+				"');</script>";
+		}
+		else {
+			// topic_id is not present: a new topic post.
+			echo "<script>window.top.location.replace('" .
+				"/account/login.php?return_to=/plugins/phpBB/postingPhpbb.php?" . 
+				"f=" . $forum_id . 
+				"^mode=" . $the_mode .
+				"');</script>";
+		}
+	}
+	else {
+		// Mode not present. View only.
+		if ($topic_id != 0) {
+			// topic_id is present. Send page to view topic.
+			echo "<script>window.top.location.replace('" .
+				"/account/login.php?return_to=/plugins/phpBB/viewtopicPhpbb.php?" . 
+				"f=" . $forum_id . "^t=" . $topic_id . "');</script>";
+		}
+		else {
+			// topic_id is not present. Send page to forum summary.
+			echo "<script>window.top.location.replace('" .
+				"/account/login.php?return_to=/plugins/phpBB/indexPhpbb.php?" . 
+				"group_id=" . $forum_id . "');</script>";
+		}
+	}
+	exit;
+}
+
 /**
 * Generate forum login box
 */
@@ -3921,6 +4283,28 @@ function page_header($page_title = '', $display_online_list = false, $item_id = 
 
 	// Negative forum and topic IDs are not allowed
 	$forum_id = max(0, $request->variable('f', 0));
+	if ($forum_id == 0) {
+		// Try retrieving forum_id from $user->data.
+		$arrSession = array();
+		// Decode URL first; even if URL is not encoded, decoding is OK.
+		$sessionPage = urldecode($user->data['session_page']);
+		// Get parameters from URL.
+		parse_str(parse_url($sessionPage, PHP_URL_QUERY), $arrSession);
+		// Get fid.
+		if (isset($arrSession["fid"])) {
+			if (is_array($arrSession["fid"])) {
+				// fid is an array. Get first element if present.
+				if (isset($arrSession["fid"][0])) {
+					$forum_id = (int) ($arrSession["fid"][0]);
+				}
+			}
+			else {
+				// fid is not an array.
+				$forum_id = (int) $arrSession["fid"];
+			}
+		}
+	}
+
 	$topic_id = max(0, $request->variable('t', 0));
 
 	$s_feed_news = false;
@@ -4098,6 +4482,7 @@ function page_header($page_title = '', $display_online_list = false, $item_id = 
 		'S_NEW_PM'				=> ($s_privmsg_new) ? 1 : 0,
 		'S_REGISTER_ENABLED'	=> ($config['require_activation'] != USER_ACTIVATION_DISABLE) ? true : false,
 		'S_FORUM_ID'			=> $forum_id,
+                'THE_FORUM_ID'                  => $forum_id,
 		'S_TOPIC_ID'			=> $topic_id,
 
 		'S_LOGIN_ACTION'		=> ((!defined('ADMIN_START')) ? append_sid("{$phpbb_root_path}ucp.$phpEx", 'mode=login') : append_sid("{$phpbb_admin_path}index.$phpEx", false, true, $user->session_id)),

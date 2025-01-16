@@ -4,6 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @copyright 2005-2025, SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -630,7 +631,8 @@ class messenger
 
 			if ($config['smtp_delivery'])
 			{
-				$result = smtpmail($this->addresses, mail_encode($this->subject), wordwrap(utf8_wordwrap($this->msg), 997, "\n", true), $err_msg, $headers);
+				//$result = smtpmail($this->addresses, mail_encode($this->subject), wordwrap(utf8_wordwrap($this->msg), 997, "\n", true), $err_msg, $headers);
+				$result = smtpmail($this->addresses, mail_encode($this->subject), $this->msg, $err_msg, $headers);
 			}
 			else
 			{
@@ -953,7 +955,8 @@ class queue
 
 							if ($config['smtp_delivery'])
 							{
-								$result = smtpmail($addresses, mail_encode($subject), wordwrap(utf8_wordwrap($msg), 997, "\n", true), $err_msg, $headers);
+								//$result = smtpmail($addresses, mail_encode($subject), wordwrap(utf8_wordwrap($msg), 997, "\n", true), $err_msg, $headers);
+								$result = smtpmail($addresses, mail_encode($subject), $msg, $err_msg, $headers);
 							}
 							else
 							{
@@ -1982,7 +1985,8 @@ function phpbb_mail($to, $subject, $msg, $headers, $eol, &$err_msg)
 	];
 	extract($phpbb_dispatcher->trigger_event('core.phpbb_mail_before', compact($vars)));
 
-	$result = mail($to, mail_encode($subject, ''), wordwrap(utf8_wordwrap($msg), 997, "\n", true), $headers, $additional_parameters);
+	//$result = mail($to, mail_encode($subject, ''), wordwrap(utf8_wordwrap($msg), 997, "\n", true), $headers, $additional_parameters);
+	$result = mail($to, mail_encode($subject, ''), $msg, $headers, $additional_parameters);
 
 	/**
 	 * Execute code after sending out emails with PHP's mail function

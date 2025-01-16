@@ -15,12 +15,7 @@
 	<dl>
 		<dt><label for="keywords">{L_SEARCH_KEYWORDS}{L_COLON}</label><br /><span>{L_SEARCH_KEYWORDS_EXPLAIN}</span></dt>
 		<dd><input type="search" class="inputbox" name="keywords" id="keywords" size="40" title="{L_SEARCH_KEYWORDS}" /></dd>
-		<dd><label for="terms1"><input type="radio" name="terms" id="terms1" value="all" checked="checked" /> {L_SEARCH_ALL_TERMS}</label></dd>
-		<dd><label for="terms2"><input type="radio" name="terms" id="terms2" value="any" /> {L_SEARCH_ANY_TERMS}</label></dd>
-	</dl>
-	<dl>
-		<dt><label for="author">{L_SEARCH_AUTHOR}{L_COLON}</label><br /><span>{L_SEARCH_AUTHOR_EXPLAIN}</span></dt>
-		<dd><input type="search" class="inputbox" name="author" id="author" size="40" title="{L_SEARCH_AUTHOR}" /></dd>
+		<input type="hidden" name="terms" id="terms1" value="all" />
 	</dl>
 	<!-- EVENT search_body_search_query_append -->
 	</fieldset>
@@ -34,13 +29,10 @@
 
 	<h3>{L_SEARCH_OPTIONS}</h3>
 
+	<input type="hidden" id="search_forum" name="fid[]" value="{THE_FORUM_ID}" />
 	<!-- EVENT search_body_search_options_before -->
 	<fieldset>
 	<!-- EVENT search_body_search_options_prepend -->
-	<dl>
-		<dt><label for="search_forum">{L_SEARCH_FORUMS}{L_COLON}</label><br /><span>{L_SEARCH_FORUMS_EXPLAIN}</span></dt>
-		<dd><select name="fid[]" id="search_forum" multiple="multiple" size="8" title="{L_SEARCH_FORUMS}">{S_FORUM_OPTIONS}</select></dd>
-	</dl>
 	<dl>
 		<dt><label for="search_child1">{L_SEARCH_SUBFORUMS}{L_COLON}</label></dt>
 		<dd>

@@ -18,17 +18,101 @@
 define('IN_PHPBB', true);
 $phpbb_root_path = (defined('PHPBB_ROOT_PATH')) ? PHPBB_ROOT_PATH : './';
 $phpEx = substr(strrchr(__FILE__, '.'), 1);
+include($phpbb_root_path . 'activatePhpbbForum.' . $phpEx);
 include($phpbb_root_path . 'common.' . $phpEx);
 include($phpbb_root_path . 'includes/functions_display.' . $phpEx);
+include($phpbb_root_path . 'includes/functions_user.' . $phpEx);
+include($phpbb_root_path . 'includes/functions_admin.' . $phpEx);
 
 // Start session
 $user->session_begin();
 $auth->acl($user->data);
 
 // Start initial var setup
-$forum_id	= $request->variable('f', 0);
+$in_forum_id	= $request->variable('fid', -1);
+$theUserName	= $request->variable('forname', '');
+$thePassword	= $request->variable('forpass', '');
+$resLogin = $auth->login($theUserName, $thePassword);
+if ($resLogin["status"] != LOGIN_SUCCESS) {
+	// Login failed.
+	$user->session_kill();
+
+	// Restart session management
+	$user->session_begin();
+	$auth->acl($user->data);
+}
+
+$in_forum_name  = $request->variable('fname', '');
 $mark_read	= $request->variable('mark', '');
 $start		= $request->variable('start', 0);
+
+// Check input parameters.
+if ((!preg_match('/^[0-9a-zA-Z_]+$/', $mark_read) && trim($mark_read) != "") ||
+	!is_numeric($in_forum_id) ||
+	!is_numeric($start)) {
+	trigger_error('Invalid parameters for forum view.');
+}
+
+// Get forum_id given the forum name.
+$forum_id = -1;
+// "'" is a delimiter in db. If there is "'" in forum name, escape it first.
+$in_forum_name = str_replace("'", "''", $in_forum_name);
+
+$sql = "SELECT forum_id, forum_name FROM phpbb_forums";
+$result = $db->sql_query($sql);
+while ($row = $db->sql_fetchrow($result)) {
+	$forum_name = $row['forum_name'];
+	if ($row['forum_name'] == $in_forum_name) {
+		$forum_id = $row['forum_id'];
+	}
+}
+$db->sql_freeresult($result);
+
+// Check if the user has actually sent a forum ID with his/her request
+// If not give them a nice error page.
+if ($forum_id == -1) {
+	//trigger_error('NO_FORUM');
+
+	// In some cases, a forum name is not the same as the group name.
+	// If the above lookup fails, try setting the forum id to be 
+	// the group_id (i.e. the forum_id passed in).
+	// We use this process here because in some cases, the forum_id 
+	// is not the same as the group_id.
+	// Given this problem, we try looking up a forum by group_name first.
+	// If it fails, we look up by group_id.
+	$sql = "SELECT forum_id FROM phpbb_forums WHERE forum_id=" . $in_forum_id . " limit 1";
+	$result = $db->sql_query($sql);
+	while ($row = $db->sql_fetchrow($result)) {
+		$forum_id = $row['forum_id'];
+	}
+	$db->sql_freeresult($result);
+}
+
+if ($forum_id == -1) {
+	// Forum not yet activated.
+	// Create the forum.
+	$status = activatePhpbbForum($in_forum_id, $auth);
+	if ($status !== false) {
+		// Just created a forum. Need to refresh this page to re-populate auth info.
+		echo "<meta http-equiv=\"refresh\" content=\"0\">";
+		return;
+	}
+}
+
+// Retry after forum activation.
+$sql = "SELECT forum_id, forum_name FROM phpbb_forums";
+$result = $db->sql_query($sql);
+while ($row = $db->sql_fetchrow($result)) {
+	$forum_name = $row['forum_name'];
+	if ($row['forum_name'] == $in_forum_name) {
+		$forum_id = $row['forum_id'];
+	}
+}
+$db->sql_freeresult($result);
+if ($forum_id == -1) {
+	echo "Forum not yet created";
+	return;
+}
 
 $default_sort_days	= (!empty($user->data['user_topic_show_days'])) ? $user->data['user_topic_show_days'] : 0;
 $default_sort_key	= (!empty($user->data['user_topic_sortby_type'])) ? $user->data['user_topic_sortby_type'] : 't';
@@ -37,45 +121,6 @@ $default_sort_dir	= (!empty($user->data['user_topic_sortby_dir'])) ? $user->data
 $sort_days	= $request->variable('st', $default_sort_days);
 $sort_key	= $request->variable('sk', $default_sort_key);
 $sort_dir	= $request->variable('sd', $default_sort_dir);
-
-$mywatch	= $request->variable('watch', '');
-$myunwatch	= $request->variable('unwatch', '');
-
-// Check input parameters.
-if (!is_numeric($forum_id) ||
-	!is_numeric($start) ||
-	!is_numeric($sort_days) ||
-	(!preg_match('/^[0-9a-zA-Z_]+$/', $sort_key) && trim($sort_key) != "") ||
-	(!ctype_alnum($sort_dir) && trim($sort_dir) != "") ||
-	(!ctype_alnum($mywatch) && trim($mywatch) != "") ||
-	(!ctype_alnum($myunwatch) && trim($myunwatch) != "")) {
-	trigger_error('Invalid parameters for forum view.');
-}
-
-
-$strPhpbbURL = "/plugins/phpBB/indexPhpbb.php?f=" . $forum_id;
-
-// Add parameters.
-if ($start != 0) {
-	$strPhpbbURL .= "&start=" . $start;
-}
-if ($sort_days != 0) {
-	$strPhpbbURL .= "&st=" . $sort_days;
-}
-if ($sort_key != "t") {
-	$strPhpbbURL .= "&sk=" . $sort_key;
-}
-if ($sort_dir != "d") {
-	$strPhpbbURL .= "&sd=" . $sort_dir;
-}
-
-if ($mywatch == '' && $myunwatch == '') {
-	// Neither "Follow forum" nor "Unfollow" is specified.
-	// Redirect to indexPhpbb.php, which has access control and header of the project.
-	echo '<script>top.window.location.href="' . $strPhpbbURL . '";</script>';
-	return;
-}
-
 
 /* @var $pagination \phpbb\pagination */
 $pagination = $phpbb_container->get('pagination');
@@ -180,6 +225,24 @@ if ($forum_data['forum_type'] == FORUM_LINK && $forum_data['forum_link'])
 	redirect($forum_data['forum_link'], false, true);
 	return;
 }
+
+?>
+
+<script type="text/javascript" src="/scripts/jquery/jquery-3.5.1.min.js"></script>
+<script>
+// Post event to parent window with scroll height information.
+$(window).on("load", function() {
+	parent.postMessage(
+		{
+			event_id: "ScrollHeight",
+			scroll_height: document.body.scrollHeight
+		},
+		"*");
+});
+</script>
+
+<?php
+
 
 // Build navigation links
 generate_forum_nav($forum_data);
@@ -361,6 +424,7 @@ $s_limit_days = $s_sort_key = $s_sort_dir = $u_sort_param = '';
 gen_sort_selects($limit_days, $sort_by_text, $sort_days, $sort_key, $sort_dir, $s_limit_days, $s_sort_key, $s_sort_dir, $u_sort_param, $default_sort_days, $default_sort_key, $default_sort_dir);
 
 // Limit topics to certain time frame, obtain correct topic count
+// NOTE: Only include approved topics in forum display.
 if ($sort_days)
 {
 	$min_post_time = time() - ($sort_days * 86400);
@@ -374,6 +438,7 @@ if ($sort_days)
 			AND (t.topic_last_post_time >= ' . $min_post_time . '
 				OR t.topic_type = ' . POST_ANNOUNCE . '
 				OR t.topic_type = ' . POST_GLOBAL . ')
+			AND t.topic_posts_approved != 0
 			AND ' . $phpbb_content_visibility->get_visibility_sql('topic', $forum_id, 't.'),
 	);
 
@@ -464,10 +529,14 @@ $template->assign_vars(array(
 
 	'L_NO_TOPICS' 			=> ($forum_data['forum_status'] == ITEM_LOCKED) ? $user->lang['POST_FORUM_LOCKED'] : $user->lang['NO_TOPICS'],
 
-	'S_DISPLAY_POST_INFO'	=> ($forum_data['forum_type'] == FORUM_POST && ($auth->acl_get('f_post', $forum_id) || $user->data['user_id'] == ANONYMOUS)) ? true : false,
+	// NOTE: Disabled f_post acl check.
+	//'S_DISPLAY_POST_INFO'	=> ($forum_data['forum_type'] == FORUM_POST && ($auth->acl_get('f_post', $forum_id) || $user->data['user_id'] == ANONYMOUS)) ? true : false,
+	'S_DISPLAY_POST_INFO'   => ($forum_data['forum_type'] == FORUM_POST) ? true : false,
 
 	'S_IS_POSTABLE'			=> ($forum_data['forum_type'] == FORUM_POST) ? true : false,
-	'S_USER_CAN_POST'		=> ($auth->acl_get('f_post', $forum_id)) ? true : false,
+	// NOTE: Disabled f_post acl check.
+	//'S_USER_CAN_POST'		=> ($auth->acl_get('f_post', $forum_id)) ? true : false,
+	'S_USER_CAN_POST'               => true,
 	'S_DISPLAY_ACTIVE'		=> $s_display_active,
 	'S_SELECT_SORT_DIR'		=> $s_sort_dir,
 	'S_SELECT_SORT_KEY'		=> $s_sort_key,
@@ -487,7 +556,9 @@ $template->assign_vars(array(
 	'S_VIEWFORUM'			=> true,
 
 	'U_MCP'				=> ($auth->acl_get('m_', $forum_id)) ? append_sid("{$phpbb_root_path}mcp.$phpEx", "f=$forum_id&amp;i=main&amp;mode=forum_view", true, $user->session_id) : '',
-	'U_POST_NEW_TOPIC'	=> ($auth->acl_get('f_post', $forum_id) || $user->data['user_id'] == ANONYMOUS) ? append_sid("{$phpbb_root_path}posting.$phpEx", 'mode=post&amp;f=' . $forum_id) : '',
+	// NOTE: Disabled f_post acl check.
+	//'U_POST_NEW_TOPIC'	=> ($auth->acl_get('f_post', $forum_id) || $user->data['user_id'] == ANONYMOUS) ? append_sid("{$phpbb_root_path}posting.$phpEx", 'mode=post&amp;f=' . $forum_id) : '',
+	'U_POST_NEW_TOPIC'      => append_sid("{$phpbb_root_path}posting.$phpEx", 'mode=post&amp;f=' . $forum_id),
 	'U_VIEW_FORUM'		=> append_sid("{$phpbb_root_path}viewforum.$phpEx", "f=$forum_id" . ((strlen($u_sort_param)) ? "&amp;$u_sort_param" : '') . (($start == 0) ? '' : "&amp;start=$start")),
 	'U_CANONICAL'		=> generate_board_url() . '/' . append_sid("viewforum.$phpEx", "f=$forum_id" . (($start) ? "&amp;start=$start" : ''), true, ''),
 	'U_MARK_TOPICS'		=> ($user->data['is_registered'] || $config['load_anon_lastread']) ? append_sid("{$phpbb_root_path}viewforum.$phpEx", 'hash=' . generate_link_hash('global') . "&amp;f=$forum_id&amp;mark=topics&amp;mark_time=" . time()) : '',
@@ -707,6 +778,7 @@ else
 }
 
 // Grab just the sorted topic ids
+// NOTE: Only include approved topics in forum display.
 $sql_ary = array(
 	'SELECT'	=> 't.topic_id',
 	'FROM'		=> array(
@@ -714,6 +786,7 @@ $sql_ary = array(
 	),
 	'WHERE'		=> "$sql_where
 		AND t.topic_type IN (" . POST_NORMAL . ', ' . POST_STICKY . ")
+		AND t.topic_posts_approved != 0
 		$sql_approved
 		$sql_limit_time",
 	'ORDER_BY'	=> 't.topic_type ' . ((!$store_reverse) ? 'DESC' : 'ASC') . ', ' . $sql_sort_order,

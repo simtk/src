@@ -4,6 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @copyright 2005-2025, SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -128,7 +129,10 @@ class content_visibility
 			return (int) $data[$mode . '_approved'];
 		}
 
-		return (int) $data[$mode . '_approved'] + (int) $data[$mode . '_unapproved'] + (int) $data[$mode . '_softdeleted'];
+		// ORIGINAL:
+		//return (int) $data[$mode . '_approved'] + (int) $data[$mode . '_unapproved'] + (int) $data[$mode . '_softdeleted'];
+		// NOTE: Do not include soft-deleted or unapproved topics in forum's display.
+		return (int) $data[$mode . '_approved'];
 	}
 
 
