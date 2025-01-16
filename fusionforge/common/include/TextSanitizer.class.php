@@ -4,6 +4,7 @@
  *
  * Copyright (C) 2005, Daniel Perez
  * Copyright (C) 2008-2009 Alcatel-Lucent
+ * Copyright 2016-2025, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -43,7 +44,6 @@
  * ALONE BASIS."
  */
 
-require_once 'HTMLPurifier.auto.php';
 
 class TextSanitizer extends FFError {
 

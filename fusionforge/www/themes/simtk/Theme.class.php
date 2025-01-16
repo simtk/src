@@ -4,7 +4,7 @@
  *
  * Theme.class.php
  * 
- * Copyright 2005-2023, SimTK Team
+ * Copyright 2005-2025, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -2084,12 +2084,7 @@ echo $u->getFirstName();
     function getSearchBox() {
 	global $words, $forum_id, $group_id, $group_project_id, $atid, $exact, $type_of_search;
 
-	if (get_magic_quotes_gpc()) {
-		$defaultWords = stripslashes($words);
-	}
-	else {
-		$defaultWords = $words;
-	}
+	$defaultWords = $words;
 	$defaultWords = htmlspecialchars($defaultWords);
 
 	// Look up current type of search.

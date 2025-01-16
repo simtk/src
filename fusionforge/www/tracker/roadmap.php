@@ -4,7 +4,7 @@
  *
  * Copyright 2011, Alcatel-Lucent
  * Copyright 2012,2014, Franck Villaume - TrivialDev
- * Copyright 2005-2021, SimTK Team
+ * Copyright 2016-2025, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -137,7 +137,9 @@ function color_gradient($colors, $nb_colors) {
 
 	$colors_start = array_map('hexdec', str_split($colors[0], 2));
 	$colors_end = array_map('hexdec', str_split($colors[1], 2));
-	$format_func = create_function('$val', 'return sprintf("%02s", $val);');
+	$format_func = function($val) {
+		return sprintf("%02s", $val);
+	};
 
 	$colors_comp = array();
 	for($i = 0; $i < 3; $i++) {

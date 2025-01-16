@@ -9,7 +9,7 @@
  *	Thorsten Glaser <t.glaser@tarent.de>
  * Copyright 2010-2012, Alain Peyrat - Alcatel-Lucent
  * Copyright 2013, Franck Villaume - TrivialDev
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2025, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -46,7 +46,7 @@ function htpasswd_apr1_md5($plainpasswd) {
 		$text .= substr($bin, 0, min(16, $i));
 	}
 	for ($i = $len; $i > 0; $i >>= 1) {
-		$text .= ($i & 1)? chr(0) : $plainpasswd{0};
+		$text .= ($i & 1)? chr(0) : $plainpasswd[0];
 	}
 	$bin = pack("H32", md5($text));
 	for ($i = 0; $i < 1000; $i++) {
@@ -988,6 +988,10 @@ function readfile_chunked($filename, $returnBytes = true) {
 	$buffer = '';
 	$byteCounter = 0;
 
+	if (!file_exists($filename)) {
+		// File does not exist.
+		return false;
+	}
 	$handle = fopen($filename, 'rb');
 	if ($handle === false) {
 		return false;
