@@ -1461,6 +1461,7 @@ function debug_string_backtrace() {
 function util_ini_get_bytes($id) {
 	$val = trim(ini_get($id));
 	$last = strtolower($val[strlen($val)-1]);
+	$val = intval($val);
 	switch ($last) {
 		case 'g':
 			$val *= 1024;
