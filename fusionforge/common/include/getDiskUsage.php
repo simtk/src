@@ -4,7 +4,7 @@
  *
  * getDiskUsage.php
  * 
- * Copyright 2005-2022, SimTK Team
+ * Copyright 2005-2025, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -194,7 +194,10 @@ function checkTotalDiskUsageByGroup($groupId, &$totalBytes, &$allowedBytes) {
 		$dsLastModifiedTime);
 
 	// Total usage in bytes converted to MB.
-	$totalBytes = $svnTotalBytes + $frsTotalBytes + $docTotalBytes + $dsTotalBytes;
+	$totalBytes = intval($svnTotalBytes) + 
+		intval($frsTotalBytes) + 
+		intval($docTotalBytes) + 
+		intval($dsTotalBytes);
 	$allowedBytes = getDiskQuotaByGroup($groupId) * 1024 * 1024;
 
 	if ($totalBytes > $allowedBytes) {
@@ -223,13 +226,16 @@ function statsTotalDiskUSageByGroup($groupId) {
 		$dsLastModifiedTime);
 
 	// Total usage in bytes converted to MB.
-	$totalBytes = $svnTotalBytes + $frsTotalBytes + $docTotalBytes + $dsTotalBytes;
+	$totalBytes = intval($svnTotalBytes) + 
+		intval($frsTotalBytes) + 
+		intval($docTotalBytes) + 
+		intval($dsTotalBytes);
 	$totalBytes = ceil($totalBytes/1024/1024);
 	echo $groupId . " | ";
 	echo $totalBytes . " | ";
 
 	if ($svnLastModifiedTime) {
-		echo ceil($svnTotalBytes/1024/1024) . " | ";
+		echo ceil(intval($svnTotalBytes)/1024/1024) . " | ";
 		echo date("Y-m-d", $svnLastModifiedTime) . " | ";
 	}
 	else {
@@ -237,7 +243,7 @@ function statsTotalDiskUSageByGroup($groupId) {
 		echo " | ";
 	}
 	if ($frsLastModifiedTime) {
-		echo ceil($frsTotalBytes/1024/1024) . " | ";
+		echo ceil(intval($frsTotalBytes)/1024/1024) . " | ";
 		echo date("Y-m-d", $frsLastModifiedTime) . " | ";
 	}
 	else {
@@ -245,7 +251,7 @@ function statsTotalDiskUSageByGroup($groupId) {
 		echo " | ";
 	}
 	if ($docLastModifiedTime) {
-		echo ceil($docTotalBytes/1024/1024) . " | ";
+		echo ceil(intval($docTotalBytes)/1024/1024) . " | ";
 		echo date("Y-m-d", $docLastModifiedTime) . " | ";
 	}
 	else {
@@ -253,7 +259,7 @@ function statsTotalDiskUSageByGroup($groupId) {
 		echo " | ";
 	}
 	if ($dsLastModifiedTime) {
-		echo ceil($dsTotalBytes/1024/1024) . " | ";
+		echo ceil(intval($dsTotalBytes)/1024/1024) . " | ";
 		echo date("Y-m-d", $dsLastModifiedTime) . " | ";
 	}
 	else {
@@ -282,6 +288,7 @@ function getDiskQuotaByGroup($theGroupId) {
 		// Found diskspace quota for project.
 		$maxBytes = trim($maxBytes);
 		$last = strtolower($maxBytes[strlen($maxBytes) - 1]);
+		$maxBytes = intval($maxBytes);
 		switch ($last) {
 		case 'g':
 			$maxBytes *= 1024;

@@ -4,6 +4,7 @@
  * https://github.com/blueimp/jQuery-File-Upload
  *
  * Copyright 2010, Sebastian Tschan
+ * Copyright 2016-2025, SimTK Team
  * https://blueimp.net
  *
  * Licensed under the MIT license:
@@ -354,6 +355,7 @@ class UploadHandler {
     function get_config_bytes($val) {
         $val = trim($val);
         $last = strtolower($val[strlen($val)-1]);
+	$val = intval($val);
         switch($last) {
             case 'g':
                 $val *= 1024;
