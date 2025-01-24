@@ -3,7 +3,7 @@
  * FusionForge escaping library
  *
  * Copyright 2003-2004, Guillaume Smet
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2025, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -380,9 +380,6 @@ function unescape( $str ) {
 	// The combination "\0" gets turned into the null character by stripslashes(),
 	// which signals a premature end of document to the XML parser
 	$str = preg_replace( "/\\\\0/", "", $str );
-	if ( get_magic_quotes_gpc() ) {
-		$str = stripslashes( $str );
-	}
 	// Adding this line because there's an exceptionally strange edge case
 	// where Acrobat, copy/paste, and IE7 can send low-range Unicode
 	// control characters signalling a premature end-of-file

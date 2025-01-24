@@ -9,6 +9,7 @@
  * http://codex.xerox.com
  *
  * Copyright 2012, Franck Villaume - TrivialDev
+ * Copyright 2016-2025, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -55,9 +56,6 @@ function viewcvs_is_html() {
  * @return string  The argument with dangerous shell characters escaped.
  */
 function make_arg_cmd_safe($arg) {
-    if (get_magic_quotes_gpc()) {
-        $arg = stripslashes($arg);
-    }
     return escapeshellcmd($arg);
 }
 

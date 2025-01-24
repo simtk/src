@@ -3,6 +3,7 @@
  * Module of support routines for Site Admin
  *
  * Copyright 1999-2001 (c) VA Linux Systems
+ * Copyright 2016-2025, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -25,9 +26,6 @@ function check_system() {
 
 	if (version_compare(PHP_VERSION, '5.1.0', '<')) {
 		$result[] = 'WARNING: Your php version must not be lower than 5.1.0, please upgrade';
-	}
-	if (get_magic_quotes_gpc()) {
-		$result[] = 'Error: Your installation is running with PHP magic_quotes_gpc ON, please change to OFF';
 	}
 	if (ini_get('register_globals')) {
 		$result[] = 'Error: Your installation is running with PHP register_globals ON, this is very unsecure, please change to OFF';
