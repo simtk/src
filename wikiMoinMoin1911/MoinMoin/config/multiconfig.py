@@ -5,6 +5,7 @@
     @copyright: 2000-2004 Juergen Hermann <jh@web.de>,
                 2005-2008 MoinMoin:ThomasWaldmann.
                 2008      MoinMoin:JohannesBerg
+                2005-2025 SimTK Team
     @license: GNU GPL, see COPYING for details.
 """
 
@@ -806,7 +807,7 @@ options_no_group_name = {
      ['xmlrpc',  # we do not want wiki admins unknowingly offering xmlrpc service
       'MyPages',  # only works when used with a non-default SecurityPolicy (e.g. autoadmin)
       'CopyPage',  # has questionable behaviour regarding subpages a user can't read, but can copy
-      ],
+     ],
      "Exclude unwanted actions (list of strings)"),
 
     ('allow_xslt', False,
@@ -938,7 +939,224 @@ options_no_group_name = {
      "Number of pages in the trail of visited pages"),
 
     ('page_footer1', '', "Custom HTML markup sent ''before'' the system footer."),
-    ('page_footer2', '', "Custom HTML markup sent ''after'' the system footer."),
+    ('page_footer2', 
+r"""
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<script type="text/javascript" src="/js/jquery-1.11.2.min.js"></script>
+<!-- Set up CSS for Wiki. Internet Explorer needs this CSS to work properly. -->
+<!-- Otherwise, the header may not show up in Internet Explorer. -->
+<link rel='stylesheet' href='/themes/simtk/css/wiki.css' type='text/css' />
+<script>
+// Insert header and footer.
+// NOTE: Use project overview page content to generate header and footer.
+// Get URL of this page.
+var thisURL = window.location.href;
+var idxStart = thisURL.indexOf("/plugins/moinmoin/");
+if (idxStart == -1) {
+	// Does not have "/plugins/moinmoin/" in URL string. Skip rest of script.
+	throw new Error("URL string: " + thisURL);
+}
+var tmpStr = thisURL.substring(idxStart + 18);
+// Get unix_group_name before next "/" delimiter.
+var idx = tmpStr.indexOf("/");
+if (idx == -1) {
+	// Cannot get unix project name. Skip rest of script.
+	throw new Error("project name: " + thisURL);
+}
+// Get unix project name.
+var projName = tmpStr.substring(0, idx);
+var strLeading = thisURL.substring(0, idxStart);
+// Set to wait cursor and hide page first.
+$("html").css("cursor", "progress");
+$("body").hide();
+// Get project overview page URL for loading header and footer.
+var newURL = strLeading + "/projects/" + projName;
+var myReq = $.ajax({url: newURL, async: true, type: "POST"});
+myReq.done(function(strPageData) {
+	// Received project overview content.
+	// Get header.
+	var idx = strPageData.indexOf('<div class="project_overview_main">');
+	if (idx == -1) {
+		// Cannot find "project_overview_main" DIV. Skip rest of script.
+		throw new Error("project_overview_main DIV not present");
+	}
+	var strLeadingPageData = strPageData.substring(0, idx);
+	// Add submenu box.
+	strLeadingPageData += '<ul class="submenu"><div class="project_submenubox"><div class="project_submenu">Wiki</div></div><div style="clear: both;"></div></ul>';
+	// Add style for Wiki.
+	strLeadingPageData += '<link rel="stylesheet" type="text/css" charset="utf-8" media="all" href="/moin_static194/modern/css/common.css">';
+	strLeadingPageData += '<link rel="stylesheet" type="text/css" charset="utf-8" media="screen" href="/moin_static194/modern/css/screen.css">';
+	strLeadingPageData += '<link rel="stylesheet" type="text/css" charset="utf-8" media="print" href="/moin_static194/modern/css/print.css">';
+	strLeadingPageData += '<link rel="stylesheet" type="text/css" charset="utf-8" media="projection" href="/moin_static194/modern/css/projection.css">';
+	strLeadingPageData += '<!-- css only for MS IE6/IE7 browsers -->';
+	strLeadingPageData += '<!--[if lt IE 8]>';
+	strLeadingPageData += '<link rel="stylesheet" type="text/css" charset="utf-8" media="all" href="/moin_static194/modern/css/msie.css">';
+	strLeadingPageData += '<![endif]-->';
+	// Needs try/catch block here because loading in through http sometimes has problems. 
+	try {
+		// Load header content before Wiki content.
+		$("body").prepend(strLeadingPageData);
+	}
+	catch (errPageLoad) {
+	}
+	// Get footer.
+	// Update style after including Wiki styling, which has 
+	// some general styling CSS affecting FusionForge.
+	// Footer links.
+	strEndPageData = '<style>.the_footer a {color: #f75236; text-decoration: none;}</style>';
+	// Follow and join links
+	strEndPageData += '<style>a.share_text_link {color: #505050}</style>';
+	strEndPageData += '<style>a.share_text_link:visited {color: #505050}</style>';
+	strEndPageData += '<style>a.share_text_link:hover {color: #505050}</style>';
+	// Project menu.
+	// Project menu labels.
+	strEndPageData += '<style>.project_menu a:visited {color: #3666a7}</style>';
+	// Project menu drop down.
+	strEndPageData += '<style>.project_menu li ul li a {color: #333333}</style>';
+	strEndPageData += '<style>.project_menu li ul li a:visited {color: #333333}</style>';
+	strEndPageData += '<style>.project_menu .btnDropdown:hover {color: orange}</style>';
+	// Hamburger container.
+	strEndPageData += '<style>.hamburgerContainer ul li a:hover {color: #f75236}</style>';
+	strEndPageData += '<style>.hamburgerContainer ul li a:visited {color: #f75236}</style>';
+	strEndPageData += '<style>.hamburgerContainer ul li a {color: #f75236; text-align: center}</style>';
+	strEndPageData += '<style>.hamburgerContainer ul li ul li a:hover {color: #333333}</style>';
+	strEndPageData += '<style>.hamburgerContainer ul li ul li a:visited {color: #333333}</style>';
+	strEndPageData += '<style>.hamburgerContainer ul li ul li a {color: #333333}</style>';
+	var idxFooter1 = strPageData.indexOf('<div class="the_footer">');
+	var idxFooter2 = strPageData.indexOf('<div class="feedback_button"');
+	if (idxFooter1 == -1 || idxFooter2 == -1) {
+		// Cannot find footer. Skip rest of script.
+		throw new Error("the_footer or feedback_button DIV not present ");
+	}
+	strEndPageData += strPageData.substring(idxFooter1, idxFooter2);
+	// Add feedback button.
+	strEndPageData += '<div class="feedback_button"><div class="text">Feedback</div></div>';
+	// Add footer content after footer id DIV.
+	$("#footer").after(strEndPageData);
+	// Set body background to white.
+	// Otherwise, a yellow background shows up.
+	$("body").css("background-color", "white");
+	// Restore to default cursor and show page.
+	$("body").show();
+	$("html").css("cursor", "default");
+	// Need to invoke resize() here, because upon loading of the wiki page,
+	// sometimes, the left and width dimensions are not available, but
+	// they are consistently available when the resize handler is invoked.
+	$(document).ready(function() {
+		// Invoke resize handler.
+		$("body").resize();
+		// Reduce padding below Wiki title.
+		$(".maindiv").css("padding-bottom", "5px");
+		// Omit page headers.
+		$("#logo").remove();
+		$("#pagelocation").remove();
+		$("#pagetrail").remove();
+		window.setTimeout(myresize, 300);
+		// Set up href for Contact page.
+		$(".contact_href").click(function(event) {
+			// Invoke event.preventDefault() first.
+			event.preventDefault();
+			// Get group_id if hidden DIV class "divGroupId" is present.
+			theGroupId = -1;
+			$(".divGroupId").each(function() {
+				theGroupId = $(this).text();
+			});
+			if (theGroupId != -1) {
+				// Has group_id.
+				location.href="/feedback.php?touser=101&group_id=" + theGroupId;
+			}
+			else {
+				// No group_id from class "divGroupId".
+				location.href="/feedback.php?touser=101";
+			}
+		});
+		// Scale image logos.
+		$("img").each(function() {
+			var theImage = new Image();
+			theImage.src = $(this).attr("src");
+			if (theImage.src.indexOf("/logos/") == -1 &&
+				theImage.src.indexOf("/logos-frs/") == -1) {
+				// Skip.
+				return;
+			}
+			var myThis = $(this);
+			theImage.onload = function() {
+				// Image loaded.
+				// Get element's dimenions.
+				var elemWidth = 86;
+				var elemHeight = 86;
+				// Get image file's dimensions.
+				var theNaturalWidth = theImage.width;
+				var theNaturalHeight =  theImage.height;
+				// Use the dimension that is constraining.
+				var ratioH = elemHeight / theNaturalHeight;
+				var ratioW = elemWidth / theNaturalWidth;
+				var theRatio = ratioH;
+				if (ratioH > ratioW) {
+					theRatio = ratioW;
+				}
+				// New dimensions of image.
+				var theScaledWidth = Math.floor(theRatio * theNaturalWidth);
+				var theScaledHeight = Math.floor(theRatio * theNaturalHeight);
+				// Add margin at top/bottom or left/right.
+				var marginTop = Math.floor((elemHeight - theScaledHeight)/2.0);
+				var marginLeft = Math.floor((elemWidth - theScaledWidth)/2.0);
+				// Set CSS for element with new dimensions with margin to center image.
+				myThis.css({
+					'width': theScaledWidth + 'px',
+					'height': theScaledHeight + 'px',
+					'margin-top': marginTop + 'px',
+					'margin-bottom': marginTop + 'px',
+					'margin-left': marginLeft + 'px',
+					'margin-right': marginLeft + 'px',
+				});
+			};
+		});
+	});
+	function myresize() {
+		$(window).resize();
+	}
+	// NOTE: left and width information are available only after 
+	// $(window).resize() is invoked!!!
+	// NOTE: Even after resize() has been invoked, in Internet Explorer, 
+	// @media max-width may still have 0px value after initial loading 
+	// of the Wiki page. However, user's subsequent manual resize actions of 
+	// Internet Explorer will give it the proper value.
+	$(window).resize(function() {
+		// For responsive change between hamburgerContainer and project_menu_row
+		// to work in Internet Explorer, the following check and CSS
+		// setting is needed.
+		var theWidth = $(".maindiv .submenu").width();
+		if (theWidth < 717) {
+			$(".maindiv .hamburgerContainer").css("display", "block");
+			$(".maindiv .project_menu_row").css("background-color", "white");
+			$(".maindiv .project_menu").css("display", "none");
+		}
+		else {
+			$(".maindiv .hamburgerContainer").css("display", "none");
+			$(".maindiv .project_menu").css("display", "block");
+			$(".maindiv .project_menu_row").css("background-color", "#f1f3f6");
+			$(".maindiv .project_menu_col").css({
+				"padding-left":"3px",
+				"padding-right":"3px",
+				"text-align":"left",
+			});
+		}
+		// Get left and width from submenu DIV.
+		var theLeft = $(".maindiv .submenu").offset().left;
+		$("#header").css("margin-left", theLeft + "px");
+		$("#header").css("max-width", theWidth + "px");
+		$("#page").css("margin-left", theLeft + "px");
+		$("#page").css("max-width", theWidth + "px");
+		$("#footer").css("margin-left", theLeft + "px");
+		$("#footer").css("max-width", theWidth + "px");
+	});
+});
+</script>
+""",
+"Custom HTML markup sent ''after'' the system footer."),
     ('page_header1', '', "Custom HTML markup sent ''before'' the system header / title area but after the body tag."),
     ('page_header2', '', "Custom HTML markup sent ''after'' the system header / title area (and body tag)."),
 
@@ -1103,8 +1321,12 @@ options_no_group_name = {
     ('tz_offset', 0.0,
      "default time zone offset in hours from UTC"),
 
-    ('userprefs_disabled', [],
+    ('userprefs_disabled', ["changepass", "prefs"],
      "Disable the listed user preferences plugins."),
+    ('require_email_verification', False ,
+     "Require verification of new user accounts."),
+    ('external_creation_check', None,
+     "Name of external program to call for checking new account creation."),
   )),
   # ==========================================================================
   'various': ('Various', None, (
@@ -1471,6 +1693,14 @@ def _add_options_to_defconfig(opts, addgroup=True):
 
 _add_options_to_defconfig(options)
 _add_options_to_defconfig(options_no_group_name, False)
+
+# Debian Specific:
+# Try to auto-detect if the package fckeditor is installed
+# (This can be overiden in the wiki configuration file).
+if not os.path.exists('/usr/share/fckeditor/fckeditor.js'):
+     setattr(DefaultConfig, 'editor_force', True)
+     setattr(DefaultConfig, 'editor_default', 'text')
+
 
 # remove the gettext pseudo function
 del _
