@@ -4,6 +4,7 @@
 * This file is part of the phpBB Forum Software package.
 *
 * @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @copyright 2016-2025, SimTK Team
 * @license GNU General Public License, version 2 (GPL-2.0)
 *
 * For full copyright and license information, please see
@@ -216,6 +217,18 @@ class topic extends \phpbb\notification\type\base
 			$username = $this->user_loader->get_username($this->get_data('poster_id'), 'username');
 		}
 
+		// Get users who desire receiving all replies.
+		$usersNotifyAll = array();
+		$sql = 'SELECT user_id FROM phpbb_users_notifyallreplies ' .
+			'WHERE forum_id=' . (int) $this->item_parent_id . ' ' .
+			'AND (topic_id=0 ' .
+			'OR topic_id=' . (int) $this->item_id . ')';
+		$result = $this->db->sql_query($sql);
+		while ($row = $this->db->sql_fetchrow($result)) {
+			$usersNotifyAll[] = (int) $row['user_id'];
+		}
+		$this->db->sql_freeresult($result);
+
 		return array(
 			'AUTHOR_NAME'				=> html_entity_decode($username, ENT_COMPAT),
 			'FORUM_NAME'				=> html_entity_decode($this->get_data('forum_name'), ENT_COMPAT),
@@ -225,6 +238,7 @@ class topic extends \phpbb\notification\type\base
 			'U_VIEW_TOPIC'				=> "{$board_url}/viewtopic.{$this->php_ext}?t={$this->item_id}",
 			'U_FORUM'					=> "{$board_url}/viewforum.{$this->php_ext}?f={$this->item_parent_id}",
 			'U_STOP_WATCHING_FORUM'		=> "{$board_url}/viewforum.{$this->php_ext}?uid={$this->user_id}&f={$this->item_parent_id}&unwatch=forum",
+			'USERS_NOTIFYALL' => $usersNotifyAll,
 		);
 	}
 
