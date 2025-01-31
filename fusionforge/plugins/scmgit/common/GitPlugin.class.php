@@ -7,7 +7,7 @@
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * Copyright © 2013
  *	Thorsten Glaser <t.glaser@tarent.de>
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2025, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge.
@@ -39,6 +39,8 @@ forge_define_config_item('use_ssl', 'scmgit', true);
 forge_set_config_item_bool('use_ssl', 'scmgit');
 
 class GitPlugin extends SCMPlugin {
+	var $text;
+
 	function __construct() {
 		parent::__construct();
 		$this->name = 'scmgit';
@@ -1187,7 +1189,7 @@ control over it to the project's administrator.");
 		echo $HTML->closeForm();
 	}
 
-	function getCommits($project, $user = null, $nb_commits) {
+	function getCommits($project, $user = null, $nb_commits=1) {
 		$commits = array();
 		if ($project->usesPlugin($this->name) && forge_check_perm('scm', $project->getID(), 'read')) {
 			// Grab&parse commit log

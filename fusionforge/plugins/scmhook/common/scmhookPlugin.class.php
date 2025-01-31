@@ -5,7 +5,7 @@
  * Copyright (C) 2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012-2013, Franck Villaume - TrivialDev
  * Copyright 2012, Benoit Debaenst - TrivialDev
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2025, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -24,6 +24,8 @@
  */
 
 class scmhookPlugin extends Plugin {
+	var $text;
+
 	function __construct() {
 		parent::__construct();
 		$this->name = 'scmhook';
