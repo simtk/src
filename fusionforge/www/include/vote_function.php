@@ -5,6 +5,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2010, FusionForge Team
  * Copyright 2013, Franck Villaume - TrivialDev
+ * Copyright 2016-2025, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -400,7 +401,10 @@ function vote_show_user_rate_box ($user_id, $by_id=0) {
 					array($by_id,
 					      $user_id));
 		$prev_vote = util_result_columns_to_assoc($res);
+		/*
 		while (list($k,$v) = each($prev_vote)) {
+		*/
+		foreach ($prev_vote as $k => $v) { 
 			if ($v == 0) {
 				$prev_vote[$k] = 0.1;
 			}

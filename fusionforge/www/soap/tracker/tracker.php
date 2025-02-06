@@ -4,6 +4,7 @@
  *
  * Copyright 2004 (c) GForge, LLC
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
+ * Copyright 2016-2025, SimTK Team
  * http://gforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -570,7 +571,10 @@ function arrangeExtraFields($extra_fields, $extra_field_info) {
 	$efields=array();
 	$fieldsdata=array();
 	if (is_array($extra_fields)) {
+		/*
 		while(list($eky,)=each($extra_fields)) {
+		*/
+		foreach ($extra_fields as $eky => $value) {
 			$efields=$extra_fields[$eky];
 			$efid = $efields['extra_field_id'];
 			$data = $efields['field_data'];
@@ -767,7 +771,10 @@ function artifacts_to_soap($at_arr) {
 				//** checks whether there is any extra fields data available for this artifact
 				//** and checks for the extra element data for the multiselect and checkbox type
 				if(is_array($extrafieldsdata) && count($extrafieldsdata)>0) {
+					/*
 					while(list($ky,$vl)=each($extrafieldsdata)) {
+					*/
+					foreach ($extrafieldsdata as $ky => $vl) {
 						$fldarr=array();
 						if(is_array($extrafieldsdata[$ky])) {
 							//** Retrieving the multiselect and checkbox type data element

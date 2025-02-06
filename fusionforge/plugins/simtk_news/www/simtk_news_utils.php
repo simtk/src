@@ -5,7 +5,7 @@
  * 
  * The main news utility file for simtk.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2025, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -565,7 +565,10 @@ function util_make_links2 ($data='', $escape=false) {
 			$newText = "";
 			$lines = explode("\n",$endTags[ count( $endTags ) - 1 ] );
 			//echo "line: " . $lines . "<br />";
+			/*
 			while ( list ($key,$line) = each ($lines)  ) {
+			*/
+			foreach ($lines as $key => $line) {
 				// When we come here, we usually have form input
 				// encoded in entities. Our aim is to NOT include
 				// angle brackets in the URL

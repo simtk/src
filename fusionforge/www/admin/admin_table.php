@@ -5,7 +5,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2010 (c) Franck Villaume - Capgemini
  * Copyright 2012,2014 Franck Villaume - TrivialDev
- * Copyright 2005-2021, SimTK Team
+ * Copyright 2005-2025, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -241,7 +241,10 @@ function admin_table_postedit($table, $unit, $primary_key, $id) {
 	$qpa = db_construct_qpa(array(), 'UPDATE ' . $table . ' SET ') ;
 
 	$i = 0 ;
+	/*
 	while (list($var, $val) = each($_POST)) {
+	*/
+	foreach ($$_POST as $var => $val) {
 		if ($i > 0) {
 			$qpa = db_construct_qpa($qpa, ', ') ;
 		}
