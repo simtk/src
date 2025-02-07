@@ -5,7 +5,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2010 (c) Franck Villaume - Capgemini
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
- * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2025, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -245,7 +245,7 @@ while ($row_grp = db_fetch_array($res_grp)) {
 
 //list of group_id's of pending projects
 $arr = util_result_column_to_array($res_grp, 0);
-$group_list = implode($arr, ',');
+$group_list = implode(',', $arr);
 
 echo '
 	<form action="'.getStringFromServer('PHP_SELF').'" method="post">
