@@ -9,7 +9,7 @@ SUBJECT=`hostname`": All projects and projects with public downloads or source r
 
 psql -h${db_server} -U${db_user} -d${db_name_ff} -f ${BASE_FILENAME}.sql >| ${BASE_FILENAME}.txt
 
-for x in webmaster@simtk.org ; do
+for x in rcvStats@simtk.org ; do
     echo 'See attached file.' | /usr/bin/mutt -a ${BASE_FILENAME}.txt -s "$SUBJECT" -- $x
 done
 
