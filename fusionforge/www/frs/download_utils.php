@@ -6,7 +6,7 @@
  * 
  * Utiliy to handle file downloads.
  *
- * Copyright 2005-2021, SimTK Team
+ * Copyright 2005-2025, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -68,7 +68,7 @@ function checkMailListMembership($groupListId, &$retListName) {
 		return false;
 	}
 
-	if ($groupListId == 0) {
+	if ($groupListId == false || $groupListId == "") {
 		// No mail list set up for this file.
 		return false;
 	}
