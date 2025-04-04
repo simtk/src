@@ -5,7 +5,7 @@
  * 
  * The class which contains all methods for the datashare plugin.
  *
- * Copyright 2005-2022, SimTK Team
+ * Copyright 2005-2025, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -426,11 +426,10 @@ class Datashare extends FFError {
 			"ORDER BY title",
 			array($group_id));
 
-		if (!$res || db_numrows($res) < 1) {
-			return false;
-		}
-
                 $results = array();
+		if (!$res || db_numrows($res) < 1) {
+			return $results;
+		}
 
                 while ($row = db_fetch_array($res)) {
                    $result = new DALQueryResultDS();
@@ -628,7 +627,7 @@ class Datashare extends FFError {
 		}
 
 		$result = $this->getStudyByGroup($group_id);
-		$rowcount=count($result);
+		$rowcount = count($result);
 		if ($rowcount < self::MAX_STUDIES) {
 
 			db_begin();
