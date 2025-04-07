@@ -10,6 +10,9 @@ DIRNAME=/usr/share/gforge/cronjobs/db
 FILENAME=getOpenSimDownloadStats.sql
 psql -h${db_server} -U${db_user} -d${db_name_ff} -f ${DIRNAME}/${FILENAME} >| ${DIRNAME}/statsOpenSim.txt
 
+FILENAME=getOpenSimAccDownloadStats.sql
+psql -h${db_server} -U${db_user} -d${db_name_ff} -f ${DIRNAME}/${FILENAME} >> ${DIRNAME}/statsOpenSim.txt
+
 FILENAME=getOpenSimForumStats.sql
 psql -h${db_server} -U${db_user} -d${db_name_forum} -f ${DIRNAME}/${FILENAME} >> ${DIRNAME}/statsOpenSim.txt
 
