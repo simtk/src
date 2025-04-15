@@ -48,7 +48,7 @@
 			<a href="/account/register.php">Join</a>
 		</div>
 	</div>
-	<div style="font-size:12px;">Version 5.0.0. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from FusionForge 6.0.5.
+	<div style="font-size:12px;">Version 5.0.0. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="https://github.com/fusionforge">FusionForge</a>.
 	</div>
 </div></div>
 
