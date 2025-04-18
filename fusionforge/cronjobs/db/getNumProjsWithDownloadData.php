@@ -35,11 +35,16 @@ require_once $gfcommon . 'include/getDiskUsage.php';
 // Get database connection.
 $dbConn = getDbConn();
 
+$arrProjs = array();
+
 // Get projects with downloads.
-getProjectsWithDownloads($dbConn);
+getProjectsWithDownloads($dbConn, $arrProjs);
 
 // Get projects with datashare.
-getProjectsWithDatashare($dbConn);
+getProjectsWithDatashare($dbConn, $arrProjs);
+
+echo "Projects with public non-empty downloads or non-empty datashare: " . 
+	count($arrProjs) . "\n";
 
 // Try getting a database connection given the credentials.
 function getDbConn() {
@@ -74,9 +79,9 @@ function getDbConn() {
 
 
 // Find projects with public downloads.
-function getProjectsWithDownloads($dbConn) {
+function getProjectsWithDownloads($dbConn, &$arrProjs) {
 
-	$arrProjs = array();
+	$cntProjs = 0;
 
 	$query = "SELECT group_id, unix_group_name, count(file_id) AS num_files
 		FROM
@@ -124,21 +129,21 @@ function getProjectsWithDownloads($dbConn) {
 
 		if ($frsTotalBytes != 0) {
 			//echo "$groupName Download: $frsTotalBytes bytes\n";
-			$arrProjs[] = $groupId;
+			$arrProjs[$groupId] = $groupId;
+			$cntProjs++;
 		}
 		else {
 			//echo "$groupName Download: empty\n";
 		}
 	}
 
-	echo "Projects with public non-empty downloads: " . count($arrProjs) . "\n";
-	return $arrProjs;
+	echo "Projects with public non-empty downloads: " . $cntProjs . "\n";
 }
 
 // Find projects with public datashare.
-function getProjectsWithDatashare($dbConn) {
+function getProjectsWithDatashare($dbConn, &$arrProjs) {
 
-	$arrProjs = array();
+	$cntProjs = 0;
 
 	$query = "SELECT group_id, unix_group_name, count(study_id) AS num_studies 
 		FROM
@@ -174,14 +179,14 @@ function getProjectsWithDatashare($dbConn) {
 
 		if ($dsTotalBytes != 0) {
 			//echo "$groupName Datashare: $dsTotalBytes bytes\n";
-			$arrProjs[] = $groupId;
+			$arrProjs[$groupId] = $groupId;
+			$cntProjs++;
 		}
 		else {
 			//echo "$groupName Datashare: empty\n";
 		}
 	}
 
-	echo "Projects with public non-empty datashare: " . count($arrProjs) . "\n";
-	return $arrProjs;
+	echo "Projects with public non-empty datashare: " . $cntProjs . "\n";
 }
 
