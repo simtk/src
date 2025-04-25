@@ -5,6 +5,7 @@
  * Copyright 2005, GForge, LLC
  * Copyright 2009-2010, Roland Mas
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
+ * Copyright 2016-2025, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -46,7 +47,7 @@ class GroupJoinRequest extends FFError {
 	 *
 	 * @var  array   $data_array.
 	 */
-	var $data_array;
+	var $data_array = false;
 
 	var $Group;
 
@@ -174,7 +175,12 @@ class GroupJoinRequest extends FFError {
 	 * @return	int	The group_id.
 	 */
 	function getID() {
-		return $this->data_array['group_id'];
+		if ($this->data_array && isset($this->data_array['group_id'])) {
+			return $this->data_array['group_id'];
+		}
+		else {
+			return 0;
+		}
 	}
 
 	/**
@@ -192,7 +198,12 @@ class GroupJoinRequest extends FFError {
 	 * @return	int	The field.
 	 */
 	function getUserId() {
-		return $this->data_array['user_id'];
+		if ($this->data_array && isset($this->data_array['user_id'])) {
+			return $this->data_array['user_id'];
+		}
+		else {
+			return 0;
+		}
 	}
 
 	/**
@@ -201,7 +212,12 @@ class GroupJoinRequest extends FFError {
 	 * @return	string	The field.
 	 */
 	function getComments() {
-		return $this->data_array['comments'];
+		if ($this->data_array && isset($this->data_array['comments'])) {
+			return $this->data_array['comments'];
+		}
+		else {
+			return "";
+		}
 	}
 
 	/**
@@ -210,7 +226,12 @@ class GroupJoinRequest extends FFError {
 	 * @return	int	The field.
 	 */
 	function getRequestDate() {
-		return $this->data_array['request_date'];
+		if ($this->data_array && isset($this->data_array['request_date'])) {
+			return $this->data_array['request_date'];
+		}
+		else {
+			return 0;
+		}
 	}
 
 	/**
@@ -230,7 +251,12 @@ class GroupJoinRequest extends FFError {
 				$user->getRealName(),
 				$user->getUnixName()
 			);
-			$comments = util_unconvert_htmlspecialchars($this->data_array["comments"]);
+			if ($this->data_array && isset($this->data_array['group_id'])) {
+				$comments = util_unconvert_htmlspecialchars($this->data_array["comments"]);
+			}
+			else {
+				$comments = "";
+			}
 			$body = sprintf(_('%1$s (%2$s) has requested to join your project.'),
 							 $user->getRealName(), $user->getUnixName());
 			$body .= "\n";
