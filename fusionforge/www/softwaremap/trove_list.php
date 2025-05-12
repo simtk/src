@@ -162,6 +162,9 @@ if ( $cat === 'c' ) {
 	print "&nbsp;";
 
 	for ($i = 0; $i < $folders_len; $i++) {
+		if (!isset($folders_ids[$i]) || !isset($folders[$i])) {
+			continue;
+		}
 		// no anchor for current cat
 		if ($folders_ids[$i] != $form_cat) {
 			print util_make_link('/softwaremap/trove_list.php?cat=c&form_cat=' .$folders_ids[$i].$discrim_url,

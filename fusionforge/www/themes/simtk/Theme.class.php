@@ -1803,8 +1803,8 @@ echo $u->getFirstName();
 				$theLink = str_ireplace("&amp;", "&", $theLink);
 			}
 			if (stripos($theUri, $theLink) !== false) {
-				// Found it.
 				if (isset($title_arr[$idx])) {
+					// Found it.
 					return $title_arr[$idx];
 				}
 				else {
@@ -1817,8 +1817,14 @@ echo $u->getFirstName();
 				// (because they mean the same.)
 				$tmpUri = str_replace("/index.php?", "/?", $theUri);
 				if (stripos($tmpUri, $theLink) !== false) {
-					// Found it.
-					return $title_arr[$idx];
+					if (isset($title_arr[$idx])) {
+						// Found it.
+						return $title_arr[$idx];
+					}
+					else {
+						// No subtitle available.
+						return "";
+					}
 				}
 				else {
 					// Try matching up to before "?"
@@ -1836,8 +1842,14 @@ echo $u->getFirstName();
 						$tmpLink = substr($tmpLink, 0, $idx2);
 					}
 					if (stripos($tmpUri, $tmpLink) !== false) {
-						// Found it.
-						return $title_arr[$idx];
+						if (isset($title_arr[$idx])) {
+							// Found it.
+							return $title_arr[$idx];
+						}
+						else {
+							// No subtitle available.
+							return "";
+						}
 					}
 				}
 			}
@@ -1936,7 +1948,8 @@ echo $u->getFirstName();
 		$this->headerHTMLDeclaration();
 
 		if (empty($_SERVER['HTTPS'])) {
-			$location = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+			$webHost = forge_get_config('web_host');
+			$location = 'https://' . $webHost . $_SERVER['REQUEST_URI'];
 			header('HTTP/1.1 301 Moved Permanently');
 			header('Location: ' . $location);
 		}

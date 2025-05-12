@@ -358,7 +358,7 @@ class Reports extends FFError {
 				$packageArray[$package]['name'] = $results[ 'name' ];
 				$packageArray[$package]['status'] = $results[ 'status' ];
 				$packageArray[$package]['is_public'] = $results[ 'is_public' ];
-				$packageArray[$package]['unique_users'] = $packageTotals[ $package ] ? $packageTotals[ $package ] : "0";
+				$packageArray[$package]['unique_users'] = isset($packageTotals[ $package ]) && $packageTotals[ $package ] ? $packageTotals[ $package ] : "0";
 				
 				//$xmlData .= "<id><![CDATA[" . $package . "]]></id>";
 				//$xmlData .= "<release_date><![CDATA[" . $results[ 'release_date' ] . "]]></release_date>";

@@ -4,7 +4,7 @@
  * https://github.com/blueimp/jQuery-File-Upload
  *
  * Copyright 2010, Sebastian Tschan
- * Copyright 2016-2029, SimTK Team
+ * Copyright 2016-2025, SimTK Team
  * https://blueimp.net
  *
  * Licensed under the MIT license:

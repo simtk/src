@@ -41,7 +41,7 @@ function util_gen_cross_ref ($text, $group_id) {
 	$myFunc2 = function($matches) {
 		return _taskid2url($matches[1],'.$group_id.');
 	};
-	$text = preg_replace_callback('/\[\T(\d+)\]/', $myFunc2, $text);
+	$text = preg_replace_callback('/\[T(\d+)\]/', $myFunc2, $text);
 
 	// Handle [wiki:<pagename>] syntax
 	$myFunc3 = function($matches) {

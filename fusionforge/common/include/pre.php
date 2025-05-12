@@ -6,6 +6,7 @@
  * Copyright 2010, Roland Mas <lolando@debian.org>
  * Copyright (C) 2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2013, Franck Villaume - TrivialDev
+ * Copyright 2016-2025, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -239,7 +240,7 @@ if (getenv('FUSIONFORGE_NO_DB') != 'true' and forge_get_config('database_name') 
 	if (isset($_SERVER['SERVER_SOFTWARE'])) { // We're on the web
 		// Detect upload larger that upload allowed size.
 		if ( $_SERVER['REQUEST_METHOD'] == 'POST' && empty($_POST) &&
-		     empty($_FILES) && $_SERVER['CONTENT_LENGTH'] > 0 )
+		     empty($_FILES) && isset($_SERVER['CONTENT_LENGTH']) && $_SERVER['CONTENT_LENGTH'] > 0 )
 		{
 			$error_msg = sprintf(_('Posted data is too large. %1$s exceeds the maximum size of %2$s'),
 					     human_readable_bytes($_SERVER['CONTENT_LENGTH']), human_readable_bytes(util_get_maxuploadfilesize()));
