@@ -5,6 +5,7 @@
  * Copyright 2002, GForge, LLC
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2014, Franck Villaume - TrivialDev
+ * Copyright 2016-2025, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -150,10 +151,12 @@ class ArtifactFactory extends FFError {
 				}
 			} elseif (isset($_COOKIE["GFTrackerQuery"])) {
 				$gf_tracker = unserialize($_COOKIE["GFTrackerQuery"]);
-				$query_id = (int)$gf_tracker[$this->ArtifactType->getID()];
-				if ($query_id) {
-					$this->query_type = 'query';
-					$this->query_id = $query_id;
+				if (isset($gf_tracker[$this->ArtifactType->getID()])) {
+					$query_id = (int)$gf_tracker[$this->ArtifactType->getID()];
+					if ($query_id) {
+						$this->query_type = 'query';
+						$this->query_id = $query_id;
+					}
 				}
 			}
 

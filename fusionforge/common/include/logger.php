@@ -2,7 +2,7 @@
 /**
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright (C) 2011-2012 Alain Peyrat - Alcatel-Lucent
- * Copyright 2016-2020, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2025, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -65,7 +65,8 @@ if (isset($group_id) && is_numeric($group_id) && $group_id) {
 		// Not set. Ignore.
 		return;
 	}
-	if (($expl_pathinfo[1]=='foundry') || ($expl_pathinfo[1]=='projects')) {
+	if ((($expl_pathinfo[1]=='foundry') || ($expl_pathinfo[1]=='projects')) &&
+		isset($expl_pathinfo[2])) {
 		$group_name = $expl_pathinfo[2];
 		if ($group_name) {
 			$res_grp = db_query_params ('
