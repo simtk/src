@@ -6,7 +6,7 @@
  * 
  * File to display search results of projects.
  * 
- * Copyright 2005-2020, SimTK Team
+ * Copyright 2005-2025, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -76,6 +76,7 @@ if ($strSort != "date" &&
 	$strSort = "relevance";
 }
 
+$typeSearch = SEARCH__TYPE_IS_SOFTWARE;
 $srch = "";
 if (isset($_GET["type_of_search"])) {
 	// Get search type.

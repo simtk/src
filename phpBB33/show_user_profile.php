@@ -69,6 +69,9 @@ if (checkUser($userName) !== false) {
 	echo "<script>window.top.location.replace('/users/" . $userName . "');</script>";
 }
 else {
+	if (!isset($_SERVER['HTTP_REFERER'])) {
+		exit;
+	}
 	// User is not active.
 	// Show alert message and send back to referring page.
 	$strURL = $_SERVER['HTTP_REFERER'];
