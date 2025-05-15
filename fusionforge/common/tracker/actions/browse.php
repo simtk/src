@@ -698,6 +698,9 @@ if ($art_arr && $art_cnt > 0) {
 	$voters = count($ath->getVoters());
 
 	for ($i=$start; $i<$max; $i++) {
+		if (!isset($art_arr[$i])) {
+			continue;
+		}
 		$extra_data = $art_arr[$i]->getExtraFieldDataText();
 		echo '
 		<tr class=priority'. $art_arr[$i]->getPriority().'>';

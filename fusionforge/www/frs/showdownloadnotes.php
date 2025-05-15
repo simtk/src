@@ -6,7 +6,7 @@
  * 
  * Display download notes.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2025, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -38,11 +38,20 @@ require_once $gfcommon.'frs/include/frs_utils.php';
 require_once 'frs_data_util.php';
 
 $group_id = getIntFromRequest('group_id');
-
 $theGroupInfo = getFrsGroupInfo($group_id);
-$is_public = $theGroupInfo['is_public'];
-$notes = $theGroupInfo['download_notes'];
-$preformatted = $theGroupInfo['preformatted'];
+
+$is_public = false;
+$notes = false;
+$preformatted = false;
+if (isset($theGroupInfo['is_public'])) {
+	$is_public = $theGroupInfo['is_public'];
+}
+if (isset($theGroupInfo['download_notes'])) {
+	$notes = $theGroupInfo['download_notes'];
+}
+if (isset($theGroupInfo['preformatted'])) {
+	$preformatted = $theGroupInfo['preformatted'];
+}
 
 //  Members of projects can see all packages
 //  Non-members can only see public packages
