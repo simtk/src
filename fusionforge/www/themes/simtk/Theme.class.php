@@ -4,7 +4,7 @@
  *
  * Theme.class.php
  * 
- * Copyright 2005-2023, SimTK Team
+ * Copyright 2005-2025, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -1037,7 +1037,7 @@ echo $u->getFirstName();
                 echo '</div>';
 
 		echo '<div style="font-size:12px;">';
-		echo 'Version 4.2.2. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="http://fusionforge.org">FusionForge</a> 6.0.5.';
+		echo 'Version 5.0.0. Website design by <a href="http://www.viewfarm.com/">Viewfarm</a>. Icons created by SimTK team using art by <a href="http://graphberry.com" title="GraphBerry">GraphBerry</a> from <a href="http://www.flaticon.com" title="Flaticon">www.flaticon.com</a> under a CC BY 3.0 license. Forked from <a href="https://github.com/fusionforge">FusionForge</a>.';
                 echo '</div>';
 
             echo '</div>';
@@ -1803,8 +1803,8 @@ echo $u->getFirstName();
 				$theLink = str_ireplace("&amp;", "&", $theLink);
 			}
 			if (stripos($theUri, $theLink) !== false) {
-				// Found it.
 				if (isset($title_arr[$idx])) {
+					// Found it.
 					return $title_arr[$idx];
 				}
 				else {
@@ -1817,8 +1817,14 @@ echo $u->getFirstName();
 				// (because they mean the same.)
 				$tmpUri = str_replace("/index.php?", "/?", $theUri);
 				if (stripos($tmpUri, $theLink) !== false) {
-					// Found it.
-					return $title_arr[$idx];
+					if (isset($title_arr[$idx])) {
+						// Found it.
+						return $title_arr[$idx];
+					}
+					else {
+						// No subtitle available.
+						return "";
+					}
 				}
 				else {
 					// Try matching up to before "?"
@@ -1836,8 +1842,14 @@ echo $u->getFirstName();
 						$tmpLink = substr($tmpLink, 0, $idx2);
 					}
 					if (stripos($tmpUri, $tmpLink) !== false) {
-						// Found it.
-						return $title_arr[$idx];
+						if (isset($title_arr[$idx])) {
+							// Found it.
+							return $title_arr[$idx];
+						}
+						else {
+							// No subtitle available.
+							return "";
+						}
 					}
 				}
 			}
@@ -1936,7 +1948,8 @@ echo $u->getFirstName();
 		$this->headerHTMLDeclaration();
 
 		if (empty($_SERVER['HTTPS'])) {
-			$location = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+			$webHost = forge_get_config('web_host');
+			$location = 'https://' . $webHost . $_SERVER['REQUEST_URI'];
 			header('HTTP/1.1 301 Moved Permanently');
 			header('Location: ' . $location);
 		}
@@ -2084,12 +2097,7 @@ echo $u->getFirstName();
     function getSearchBox() {
 	global $words, $forum_id, $group_id, $group_project_id, $atid, $exact, $type_of_search;
 
-	if (get_magic_quotes_gpc()) {
-		$defaultWords = stripslashes($words);
-	}
-	else {
-		$defaultWords = $words;
-	}
+	$defaultWords = $words;
 	$defaultWords = htmlspecialchars($defaultWords);
 
 	// Look up current type of search.

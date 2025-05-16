@@ -3,6 +3,7 @@
 /**
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2009, Roland Mas
+ * Copyright 2016-2025, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -116,7 +117,17 @@ function get_trove_sub_projects($cat_id) {
 	$count=isset($cat_counts[$cat_id][1]) ? $cat_counts[$cat_id][1] : 0;
 
 	//number of children of this trove_cat
+	/*
 	$rows=count( @$parent_list[$cat_id] );
+	*/
+	if (isset($parent_list) && 
+		is_array($parent_list) && 
+		isset($parent_list[$cat_id])) {
+		$rows=count($parent_list[$cat_id]);
+	}
+	else {
+		$rows = 0;
+	}
 
 	for ($i=0; $i<$rows; $i++) {
 		$count += get_trove_sub_projects( $parent_list[$cat_id][$i] );
@@ -139,7 +150,10 @@ db_query_params ('DELETE FROM trove_treesums',
 $err .= db_error();
 
 //$err .= "<table>";
+/*
 while (list($k,$v) = each($sum_totals)) {
+*/
+foreach ($sum_totals as $k => $v) {
 	$res = db_query_params ('INSERT INTO trove_treesums (trove_cat_id,subprojects)
 		VALUES ($1,$2)',
 				array($k,

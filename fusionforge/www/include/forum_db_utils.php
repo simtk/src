@@ -6,7 +6,7 @@
  * 
  * Utility file to handle forum access.
  *
- * Copyright 2005-2021, SimTK Team
+ * Copyright 2005-2025, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -423,7 +423,7 @@ function getModerators($groupId) {
 	$strQuery = 'SELECT DISTINCT pau.user_id, u.username FROM phpbb_acl_users pau ' .
 		'JOIN phpbb_users u ' .
 		'ON pau.user_id=u.user_id ' .
-		'WHERE forum_id=' . $groupId .
+		'WHERE forum_id=' . $groupId . ' ' .
 		'AND auth_role_id=10';
 
 	// Query forum database.

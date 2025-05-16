@@ -1,0 +1,13 @@
+Subject: Forum post notification - "{FORUM_NAME}"
+
+Hello {USERNAME},
+
+You are receiving this notification because you are watching the forum "{FORUM_NAME}" at "{SITENAME}". This forum has received a new reply to the topic "{TOPIC_TITLE}"<!-- IF AUTHOR_NAME != '' --> by {AUTHOR_NAME}<!-- ENDIF --> since your last visit. No more notifications will be sent until you visit the topic. You can use the following link to view the last unread reply: {U_NEWEST_POST}
+
+    View the topic for this post:
+{U_TOPIC}
+
+    View the forum for this post:
+{U_FORUM}
+
+{EMAIL_SIG}

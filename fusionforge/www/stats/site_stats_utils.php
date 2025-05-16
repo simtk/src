@@ -5,6 +5,7 @@
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2010 (c) FusionForge Team
  * Copyright 2013, Franck Villaume - TrivialDev
+ * Copyright 2016-2025, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -43,7 +44,10 @@ function stats_util_sum_array( $sum, $add ) {
 	if (!is_array($sum)) {
 		$sum = array();
 	}
+	/*
 	while( list( $key, $val ) = each( $add ) ) {
+	*/
+	foreach ($add as $key => $val) { 
 		if (!isset($sum[$key])) {
 			$sum[$key] = 0;
 		}

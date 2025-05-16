@@ -4,7 +4,7 @@
  *
  * index.php
  * 
- * Copyright 2005-2020, SimTK Team
+ * Copyright 2005-2024, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -64,6 +64,9 @@ $group = group_get_object($id);
 if (!$group) {
 	exit_error("Invalid Project", "Inexistent Project");
 }
+
+// Check permission and prompt for login if needed.
+session_require_perm('project_read', $group_id);
 
 if (!($group->usesPlugin($pluginname))) {
 	//check if the group has the Data Share plugin active

@@ -6,7 +6,7 @@
  * Copyright 2009, Roland Mas
  * Copyright (C) 2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012-2014, Franck Villaume - TrivialDev
- * Copyright 2016-2023, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2025, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -120,9 +120,9 @@ class FRSFile extends FFError {
 	 * @return	bool		success.
 	 */
 	function create($name, $file_location, $type_id, $processor_id, $release_time=false, 
-		$collect_info, $use_mail_list, $group_list_id, 
-		$show_notes, $show_agreement,
-		$file_desc="", $doi, $user_id, $url="", 
+		$collect_info=0, $use_mail_list=0, $group_list_id=0, 
+		$show_notes=0, $show_agreement=0,
+		$file_desc="", $doi=0, $user_id=0, $url="", 
 		$githubArchiveUrl="", $refreshArchive=0, $emailChange=1) {
 
 		if (strlen($name) < 3) {
@@ -760,9 +760,9 @@ class FRSFile extends FFError {
 	 * @return	boolean		success.
 	 */
 	function update($type_id, $processor_id, $release_time, $release_id=false, 
-		$collect_info, $use_mail_list, $group_list_id, $userfile, 
-		$show_notes, $show_agreement,
-		$file_desc='', $disp_name="", $doi, $user_id, $url="",
+		$collect_info=0, $use_mail_list=0, $group_list_id=0, $userfile=false, 
+		$show_notes=0, $show_agreement=0,
+		$file_desc='', $disp_name="", $doi=0, $user_id=0, $url="",
 		$githubArchiveUrl="", $refreshArchive=0, $emailChange=1) {
 
 		if (!forge_check_perm ('frs', $this->FRSRelease->FRSPackage->Group->getID(), 'write')) {

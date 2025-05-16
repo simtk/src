@@ -9,7 +9,7 @@
  * Copyright 2010, Alain Peyrat <aljeux@free.fr>
  * Copyright 2012-2014,2016, Franck Villaume - TrivialDev
  * Copyright 2013, French Ministry of National Education
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2025, SimTK Team
  *
  * This file is part of FusionForge.
  *
@@ -40,6 +40,10 @@ forge_define_config_item('anonsvn_login','scmsvn', 'anonsvn');
 forge_define_config_item('anonsvn_password','scmsvn', 'anonsvn');
 
 class SVNPlugin extends SCMPlugin {
+	var $text;
+	var $svn_root_fs;
+	var $svn_root_dav;
+
 	function __construct() {
 		parent::__construct();
 		$this->name = 'scmsvn';
@@ -581,7 +585,8 @@ class SVNPlugin extends SCMPlugin {
 			return false ;
 		}
 
-		$tmp = trim (`mktemp -d`) ;
+		//$tmp = trim (`mktemp -d`) ;
+		$tmp = trim (`mktemp -d --tmpdir=/var/tmp/svn_tmp_dir`) ;
 		if ($tmp == '') {
 			return false ;
 		}

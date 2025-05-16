@@ -8,7 +8,7 @@
  * Copyright 2010, FusionForge Team
  * Copyright (C) 2011-2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2013, Franck Villaume - TrivialDev
- * Copyright 2016-2023, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2025, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -78,34 +78,39 @@ $project_admins = $group->getLeads();
     <div style="display: table; width: 100%;"> 
         <div class="main_col">
 
-            <?php 
-			      if ($group->isPublicationProject()) { 
-				     $pub = New Publication($group);
-					 if (!$pub || !is_object($pub)) {
-                          exit_error('Error','Could Not Create Publication Object');
-                     } elseif ($pub->isError()) {
-                          exit_error('Error',$pub->getErrorMessage());
-                     }
-					 $res = $pub->getPrimary();
-				     echo "<i>" . $res['publication'] . " " . " (" . $res['publication_year'] . ")</i>";
-					
-                     if ($res['abstract'] != "") {
-					    echo "<div class=\"expand_content\">\n";
-                        echo "<div id='pub".$res['pub_id']."'>";
-					    echo "<a id=\"expander\" class=\"expander toggle\" href=\"#\">Abstract</a>";
-						if ($res['url'] != "") {
-                        echo "&nbsp;&nbsp;&nbsp;&nbsp;<a href='" . $res['url'] . "' target='_blank'>View</a>";			 
-					    } 
-						echo "<div class='content'><p>".$res['abstract']."</p></div></div></div><br />";
-                     } else if ($res['url'] != "") {
-                        echo "&nbsp;&nbsp;&nbsp;&nbsp;<a href='" . $res['url'] . "' target='_blank'>View</a>";			 
-                        echo '<br /><br />';
-					 } else {
-					    echo '<br /><br />';
-					 }
-				  }
-				  
-			?>
+            <?php
+		if ($group->isPublicationProject()) {
+			$pub = New Publication($group);
+			if (!$pub || !is_object($pub)) {
+				exit_error('Error','Could Not Create Publication Object');
+			}
+			elseif ($pub->isError()) {
+				exit_error('Error',$pub->getErrorMessage());
+			}
+			$res = $pub->getPrimary();
+			if ($res && isset($res['publication']) && isset($res['publication_year'])) {
+				echo "<i>" . $res['publication'] . " " . " (" . $res['publication_year'] . ")</i>";
+			}
+			if ($res && isset($res['abstract']) && $res['abstract'] != "") {
+				echo "<div class=\"expand_content\">\n";
+				if ($res && isset($res['pub_id'])) {
+					echo "<div id='pub".$res['pub_id']."'>";
+				}
+				echo "<a id=\"expander\" class=\"expander toggle\" href=\"#\">Abstract</a>";
+				if ($res && isset($res['url']) && $res['url'] != "") {
+					echo "&nbsp;&nbsp;&nbsp;&nbsp;<a href='" . $res['url'] . "' target='_blank'>View</a>";
+				}
+				echo "<div class='content'><p>".$res['abstract']."</p></div></div></div><br />";
+			}
+			else if ($res && isset($res['url']) && $res['url'] != "") {
+				echo "&nbsp;&nbsp;&nbsp;&nbsp;<a href='" . $res['url'] . "' target='_blank'>View</a>";
+				echo '<br /><br />';
+			}
+			else {
+				echo '<br /><br />';
+			}
+		}
+            ?>
 				
             <?php 
 /*

@@ -7,7 +7,7 @@
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2011, Franck Villaume - Capgemini
  * Copyright 2013-2014, Franck Villaume - TrivialDev
- * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2025, SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -661,6 +661,7 @@ function getUploadFileSizeLimit($theGroupId) {
 	$defaultUploadMaxFilesize = forge_get_config('default_upload_max_filesize');
 	if ($defaultUploadMaxFilesize === false || trim($defaultUploadMaxFilesize) == "") {
 		// Parameter not found. Set to 4M bytes.
+		$defaultUploadMaxFilesize = intval($defaultUploadMaxFilesize);
 		$defaultUploadMaxFilesize = 4 * 1024 * 1024;
 	}
 
@@ -677,6 +678,7 @@ function getUploadFileSizeLimit($theGroupId) {
 		// Found upload filesize for project.
 		$fileSizeLimit = trim($fileSizeLimit);
 		$last = strtolower($fileSizeLimit[strlen($fileSizeLimit) - 1]);
+		$fileSizeLimit = intval($fileSizeLimit);
 		switch ($last) {
 		case 'g':
 			$fileSizeLimit *= 1024;

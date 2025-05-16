@@ -1,0 +1,15 @@
+Subject: Topic reply notification - "{TOPIC_TITLE}"
+
+Hello {USERNAME},
+
+You are receiving this notification because you are watching the topic "{TOPIC_TITLE}" at "{SITENAME}". This topic has received a reply by {AUTHOR_NAME} since your last visit. No more notifications will be sent until you visit the topic.
+
+    View the newest post made since your last visit: {U_NEWEST_POST}
+
+    View the topic for this post:
+{U_TOPIC}
+
+    View the forum for this post:
+{U_FORUM}
+
+{EMAIL_SIG}

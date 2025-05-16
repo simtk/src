@@ -4,7 +4,7 @@
  *
  * Copyright 2004-2009, Roland Mas
  * Copyright 2013,2016, Franck Villaume - TrivialDev
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2025, SimTK Team
  *
  * This file is part of FusionForge.
  *
@@ -27,6 +27,7 @@ forge_define_config_item ('default_server', 'scmcvs', forge_get_config ('scm_hos
 forge_define_config_item ('repos_path', 'scmcvs', forge_get_config('chroot').'/scmrepos/cvs') ;
 
 class CVSPlugin extends SCMPlugin {
+	var $text;
 	function __construct () {
 		global $cvs_root;
 		global $gfconfig;

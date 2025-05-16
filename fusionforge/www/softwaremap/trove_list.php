@@ -6,6 +6,7 @@
  * Copyright 2009, Roland Mas
  * Copyright 2011, Franck Villaume - Capgemini
  * Copyright 2013-2014, Franck Villaume - TrivialDev
+ * Copyright 2005-2025, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -162,6 +163,9 @@ if ( $cat === 'c' ) {
 	print "&nbsp;";
 
 	for ($i = 0; $i < $folders_len; $i++) {
+		if (!isset($folders_ids[$i]) || !isset($folders[$i])) {
+			continue;
+		}
 		// no anchor for current cat
 		if ($folders_ids[$i] != $form_cat) {
 			print util_make_link('/softwaremap/trove_list.php?cat=c&form_cat=' .$folders_ids[$i].$discrim_url,

@@ -4,7 +4,7 @@
  *
  * Copyright 2004 (c) Tim Perdue - GForge LLC
  * Copyright 2010 (c) Franck Villaume - Capgemini
- * Copyright 2005-2021, SimTK Team
+ * Copyright 2005-2025, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -48,7 +48,7 @@ $accumulated_ids = htmlspecialchars(getStringFromRequest('accumulated_ids'));
 if (!$accumulated_ids) {
 	$accumulated_ids=array();
 } else {
-	$accumulated_ids =& explode(',',$accumulated_ids);
+	$accumulated_ids = explode(',',$accumulated_ids);
 }
 
 $newids = getArrayFromRequest('newids');
@@ -62,7 +62,7 @@ if (count($newids) > 0) {
 $accumulated_ids = array_unique($accumulated_ids);
 
 $tmpStr = htmlspecialchars(implode(',',$accumulated_ids));
-$accumulated_ids =& explode(',',$tmpStr);
+$accumulated_ids = explode(',',$tmpStr);
 
 if (getStringFromRequest('finished')) {
 	session_redirect('/project/admin/massfinish.php?group_id='.$group_id.'&accumulated_ids='.implode(',',$accumulated_ids));

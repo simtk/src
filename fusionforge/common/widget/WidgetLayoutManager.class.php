@@ -3,7 +3,7 @@
  * Copyright (c) Xerox Corporation, Codendi Team, 2001-2009. All rights reserved
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2013-2015, Franck Villaume - TrivialDev
- * Copyright 2005-2021, SimTK Team
+ * Copyright 2016-2025, SimTK Team
  *
  * This file is a part of Fusionforge.
  *
@@ -434,7 +434,12 @@ class WidgetLayoutManager {
 					$last_new_col_id = null;
 					reset($new['columns']);
 					foreach($old['columns'] as $old_col) {
+						/*
 						if (list(,$new_col) = each($new['columns'])) {
+							$last_new_col_id = $new_col['id'];
+						}
+						*/
+						foreach ($new['columns'] as $key => $new_col) {
 							$last_new_col_id = $new_col['id'];
 						}
 						$sql = "UPDATE layouts_contents
@@ -789,7 +794,7 @@ class WidgetLayoutManager {
 						} else {
 							$_and .= ' AND (';
 						}
-						$_and .= " (name = '".htmlspecialchars($name[1])."' AND content_id = ". $name[0] .") ";
+						$_and .= " (name = '".htmlspecialchars($name[1])."' AND content_id = ". intval($name[0]) .") ";
 					}
 					$_and .= ')';
 					$sql = "UPDATE layouts_contents
@@ -811,7 +816,7 @@ class WidgetLayoutManager {
 						} else {
 							$_and .= ' AND (';
 						}
-						$_and .= " (name = '".htmlspecialchars($name[1])."' AND content_id = ". $name[0] .") ";
+						$_and .= " (name = '".htmlspecialchars($name[1])."' AND content_id = ". intval($name[0]) .") ";
 					}
 					$_and .= ')';
 					//old and new column must be part of the same layout
@@ -844,8 +849,16 @@ class WidgetLayoutManager {
 		foreach($tab1 as $e1) {
 			$found = false;
 			reset($tab2);
+			/*
 			while(!$found && list(,$e2) = each($tab2)) {
 				$found = !count(array_diff($e1, $e2));
+			}
+			*/
+			foreach ($tab2 as $key => $e2) {
+				$found = !count(array_diff($e1, $e2));
+				if ($found) {
+					break;
+				}
 			}
 			if (!$found) {
 				$diff[] = $e1;

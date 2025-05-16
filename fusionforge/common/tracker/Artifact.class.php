@@ -8,7 +8,7 @@
  * Copyright (C) 2009-2013 Alain Peyrat, Alcatel-Lucent
  * Copyright 2012, Thorsten “mirabilos” Glaser <t.glaser@tarent.de>
  * Copyright 2014-2015, Franck Villaume - TrivialDev
- * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2025, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -330,7 +330,12 @@ class Artifact extends FFError {
 	 * @return	int	The artifact_id #.
 	 */
 	function getID() {
-		return $this->data_array['artifact_id'];
+		if ($this->data_array && isset($this->data_array['artifact_id'])) {
+			return $this->data_array['artifact_id'];
+		}
+		else {
+			return 0;
+		}
 	}
 
 	/**
@@ -339,7 +344,12 @@ class Artifact extends FFError {
 	 * @return	string	The artifact_id #.
 	 */
 	function getStringID() {
-		return '[#'.$this->data_array['artifact_id'].']';
+		if ($this->data_array && isset($this->data_array['artifact_id'])) {
+			return '[#'.$this->data_array['artifact_id'].']';
+		}
+		else {
+			return "";
+		}
 	}
 
 	/**
@@ -348,7 +358,12 @@ class Artifact extends FFError {
 	 * @return	int	Status: (1) Open, (2) Closed, (3) Deleted.
 	 */
 	function getStatusID() {
-		return $this->data_array['status_id'];
+		if ($this->data_array && isset($this->data_array['status_id'])) {
+			return $this->data_array['status_id'];
+		}
+		else {
+			return 1;
+		}
 	}
 
 	/**
@@ -357,7 +372,12 @@ class Artifact extends FFError {
 	 * @return	string	The status name.
 	 */
 	function getStatusName() {
-		return $this->data_array['status_name'];
+		if ($this->data_array && isset($this->data_array['status_name'])) {
+			return $this->data_array['status_name'];
+		}
+		else {
+			return "";
+		}
 	}
 
 	/**
@@ -384,7 +404,12 @@ class Artifact extends FFError {
 	 * @return	int	priority.
 	 */
 	function getPriority() {
-		return $this->data_array['priority'];
+		if ($this->data_array && isset($this->data_array['priority'])) {
+			return $this->data_array['priority'];
+		}
+		else {
+			return 3;
+		}
 	}
 
 	/**
@@ -393,7 +418,12 @@ class Artifact extends FFError {
 	 * @return	int	user_id of submitter.
 	 */
 	function getSubmittedBy() {
-		return $this->data_array['submitted_by'];
+		if ($this->data_array && isset($this->data_array['submitted_by'])) {
+			return $this->data_array['submitted_by'];
+		}
+		else {
+			return 0;
+		}
 	}
 
 	/**
@@ -402,7 +432,12 @@ class Artifact extends FFError {
 	 * @return	string	The email of submitter.
 	 */
 	function getSubmittedEmail() {
-		return $this->data_array['submitted_email'];
+		if ($this->data_array && isset($this->data_array['submitted_email'])) {
+			return $this->data_array['submitted_email'];
+		}
+		else {
+			return "";
+		}
 	}
 
 	/**
@@ -411,7 +446,12 @@ class Artifact extends FFError {
 	 * @return	string	The real name of submitter.
 	 */
 	function getSubmittedRealName() {
-		return $this->data_array['submitted_realname'];
+		if ($this->data_array && isset($this->data_array['submitted_realname'])) {
+			return $this->data_array['submitted_realname'];
+		}
+		else {
+			return "";
+		}
 	}
 
 	/**
@@ -420,7 +460,12 @@ class Artifact extends FFError {
 	 * @return	string	The unix name of submitter.
 	 */
 	function getSubmittedUnixName() {
-		return $this->data_array['submitted_unixname'];
+		if ($this->data_array && isset($this->data_array['submitted_unixname'])) {
+			return $this->data_array['submitted_unixname'];
+		}
+		else {
+			return "";
+		}
 	}
 
 	/**
@@ -429,7 +474,12 @@ class Artifact extends FFError {
 	 * @return	int	user_id of assignee.
 	 */
 	function getAssignedTo() {
-		return $this->data_array['assigned_to'];
+		if ($this->data_array && isset($this->data_array['assigned_to'])) {
+			return $this->data_array['assigned_to'];
+		}
+		else {
+			return 0;
+		}
 	}
 
 	/**
@@ -438,7 +488,12 @@ class Artifact extends FFError {
 	 * @return	string	The email of assignee.
 	 */
 	function getAssignedEmail() {
-		return $this->data_array['assigned_email'];
+		if ($this->data_array && isset($this->data_array['assigned_email'])) {
+			return $this->data_array['assigned_email'];
+		}
+		else {
+			return "";
+		}
 	}
 
 	/**
@@ -447,7 +502,12 @@ class Artifact extends FFError {
 	 * @return	string	The real name of assignee.
 	 */
 	function getAssignedRealName() {
-		return $this->data_array['assigned_realname'];
+		if ($this->data_array && isset($this->data_array['assigned_realname'])) {
+			return $this->data_array['assigned_realname'];
+		}
+		else {
+			return "";
+		}
 	}
 
 	/**
@@ -456,7 +516,12 @@ class Artifact extends FFError {
 	 * @return	string	The unix name of assignee.
 	 */
 	function getAssignedUnixName() {
-		return $this->data_array['assigned_unixname'];
+		if ($this->data_array && isset($this->data_array['assigned_unixname'])) {
+			return $this->data_array['assigned_unixname'];
+		}
+		else {
+			return "";
+		}
 	}
 
 	/**
@@ -465,7 +530,12 @@ class Artifact extends FFError {
 	 * @return	int	unix time.
 	 */
 	function getOpenDate() {
-		return $this->data_array['open_date'];
+		if ($this->data_array && isset($this->data_array['open_date'])) {
+			return $this->data_array['open_date'];
+		}
+		else {
+			return 0;
+		}
 	}
 
 	/**
@@ -474,7 +544,12 @@ class Artifact extends FFError {
 	 * @return	int	unix time.
 	 */
 	function getCloseDate() {
-		return $this->data_array['close_date'];
+		if ($this->data_array && isset($this->data_array['close_date'])) {
+			return $this->data_array['close_date'];
+		}
+		else {
+			return 0;
+		}
 	}
 
 	/**
@@ -492,7 +567,12 @@ class Artifact extends FFError {
 	 * @return	string	The summary (subject).
 	 */
 	function getSummary() {
-		return $this->data_array['summary'];
+		if ($this->data_array && isset($this->data_array['summary'])) {
+			return $this->data_array['summary'];
+		}
+		else {
+			return "";
+		}
 	}
 
 	/**
@@ -501,7 +581,12 @@ class Artifact extends FFError {
 	 * @return	string	The body (message).
 	 */
 	function getDetails() {
-		return $this->data_array['details'];
+		if ($this->data_array && isset($this->data_array['details'])) {
+			return $this->data_array['details'];
+		}
+		else {
+			return "";
+		}
 	}
 
 	/**
@@ -1540,6 +1625,9 @@ class Artifact extends FFError {
 						array ($this->getID())) ;
 			$ef = $this->ArtifactType->getExtraFields();
 			while ($arr = db_fetch_array($res)) {
+				if (!isset($ef[$arr['extra_field_id']])) {
+					continue;
+				}
 				$type=$ef[$arr['extra_field_id']]['field_type'];
 				if (($type == ARTIFACT_EXTRAFIELDTYPE_CHECKBOX) || ($type==ARTIFACT_EXTRAFIELDTYPE_MULTISELECT)) {
 					//accumulate a sub-array of values in cases where you may have multiple rows

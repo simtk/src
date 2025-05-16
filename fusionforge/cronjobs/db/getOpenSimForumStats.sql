@@ -1,0 +1,3 @@
+--
+
+SELECT 91 AS forum_id, * FROM (SELECT COUNT(DISTINCT p.topic_id) AS num_threads FROM (SELECT * FROM phpbb_topics WHERE topic_visibility=1) t JOIN (SELECT * FROM phpbb_posts WHERE post_visibility=1) p ON t.topic_id=p.topic_id WHERE t.forum_id=91 AND post_time<= TRUNC(extract(epoch from (date_trunc('month', CURRENT_DATE))))) threads, (SELECT COUNT(DISTINCT p.post_id) num_posts FROM (SELECT * FROM phpbb_topics WHERE topic_visibility=1) t JOIN (SELECT * FROM phpbb_posts WHERE post_visibility=1) p ON t.topic_id=p.topic_id WHERE t.forum_id=91 AND post_time<= TRUNC(extract(epoch from (date_trunc('month', CURRENT_DATE))))) posts;

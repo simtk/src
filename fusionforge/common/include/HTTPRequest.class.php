@@ -1,7 +1,7 @@
 <?php
 /**
  * Copyright (c) Xerox Corporation, Codendi Team, 2001-2009. All rights reserved
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2025, SimTK Team
  * http://fusionforge.org
  *
  * This file is a part of Fusionforge.
@@ -127,7 +127,7 @@ class HTTPRequest extends Codendi_Request {
 	 */
     function _get($variable, $array) {
         if ($this->_exist($variable, $array)) {
-            return (get_magic_quotes_gpc()?$this->_stripslashes($array[$variable]):$array[$variable]);
+            return $array[$variable];
         } else {
             return false;
         }

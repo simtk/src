@@ -6,6 +6,7 @@
  *
  * Copyright 1999-2001 (c) VA Linux Systems
  * Copyright 2002-2004 (c) GForge Team
+ * Copyright 2016-2025, SimTK Team
  * http://fusionforge.org/
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -46,7 +47,10 @@ if (getStringFromRequest('submit') && getStringFromRequest('root1')) {
 	$allroots = array();
 	$allroots = getStringFromRequest('root1');
 	//$eachroot = ;//must make this bypass because it wouldn't compile otherwise
+	/*
 	while (list($rootnode,$value) = each($allroots)) {
+	*/
+	foreach ($allroots as $rootnode => $value) { 
 		// check for array, then clear each root node for group
 		db_query_params ('
 			DELETE FROM trove_group_link
@@ -82,7 +86,10 @@ project_admin_header(array('title'=>_('Edit Trove Categorization'),'group'=>$gro
 <?php
 
 $CATROOTS = trove_getallroots();
+/*
 while (list($catroot,$fullname) = each($CATROOTS)) {
+*/
+foreach ($CATROOTS as $catroot => $fullname) { 
 	$res_cat = db_query_params ('SELECT * FROM trove_cat WHERE trove_cat_id=$1', array($catroot));
 	if (db_numrows($res_cat)>=1 && $use_tooltips) {
 		$title = db_result($res_cat, 0, 'description');

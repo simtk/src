@@ -1,7 +1,7 @@
 <?php
 /**
  * Copyright (c) STMicroelectronics, 2007. All Rights Reserved.
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2025, SimTK Team
  *
  * Originally written by Manuel VACELET, 2007.
  *
@@ -218,7 +218,12 @@ class Rule_Email extends Rule {
 			// If separator is defined, split the string and check each email.
 			$emails = split($this->separator, $val);
 			$valid = true;
+			/*
 			while((list($key,$email) = each($emails)) && $valid) {
+				$valid = $valid & $this->validEmail(trim(rtrim($email)));
+			}
+			*/
+			foreach ($emails as $key => $email) {
 				$valid = $valid & $this->validEmail(trim(rtrim($email)));
 			}
 		} else {

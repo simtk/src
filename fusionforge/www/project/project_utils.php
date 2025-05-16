@@ -6,7 +6,7 @@
  * 
  * Utility file to handle project display.
  *
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2025, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -362,6 +362,9 @@ function displayRecommendedProjects($groupObj, $rec_projects, $max_recs_per_slid
 function genProjectRecDisplay($projRec) {
 
 	$res = '';
+	if (!isset($projRec['unix_group_name'])) {
+		return $res;
+	}
 	$res .= '<div class="related_item">';
 
 	if (!empty($projRec['simtk_logo_file'])) {
