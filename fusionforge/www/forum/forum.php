@@ -8,7 +8,7 @@
  * Copyright (C) 2010-2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2013, French Ministry of National Education
  * Copyright 2014, Franck Villaume - TrivialDev
- * Copyright 2005-2021, SimTK Team
+ * Copyright 2005-2025, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -36,6 +36,9 @@ require_once $gfcommon.'forum/ForumMessageFactory.class.php';
 require_once $gfcommon.'forum/ForumMessage.class.php';
 require_once $gfcommon.'forum/AttachManager.class.php'; //attachment manager
 require_once $gfcommon.'include/TextSanitizer.class.php'; // to make the HTML input by the user safe to store
+
+// Not used.
+exit;
 
 $group_id = getIntFromRequest('group_id');
 $forum_id = getIntFromRequest('forum_id');

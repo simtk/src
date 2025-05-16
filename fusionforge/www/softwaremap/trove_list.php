@@ -6,6 +6,7 @@
  * Copyright 2009, Roland Mas
  * Copyright 2011, Franck Villaume - Capgemini
  * Copyright 2013-2014, Franck Villaume - TrivialDev
+ * Copyright 2005-2025, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
