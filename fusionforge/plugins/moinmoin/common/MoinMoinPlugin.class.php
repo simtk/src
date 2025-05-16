@@ -3,7 +3,7 @@
 /**
  * MoinMoinPlugin Class
  *
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2025, SimTK Team
  *
  * This file is part of FusionForge.
  *
@@ -27,10 +27,11 @@ forge_define_config_item('use_frame', 'moinmoin', false);
 forge_set_config_item_bool('use_frame', 'moinmoin');
 
 class MoinMoinPlugin extends Plugin {
+	var $text;
+
 	function __construct () {
 		parent::__construct() ;
 		$this->name = "moinmoin" ;
-		//$this->text = _("MoinMoinWiki") ; // To show in the tabs, use...
 		$this->text = _("Wiki") ; // To show in the tabs, use...
 		$this->pkg_desc =
 _("This plugin allows each project to embed MoinMoinWiki under a tab.");

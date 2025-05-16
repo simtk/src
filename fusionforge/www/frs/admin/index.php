@@ -9,7 +9,7 @@
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * http://fusionforge.org/
- * Copyright 2016-2022, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2025, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -323,7 +323,7 @@ frs_admin_header(array('title'=>_('Release Edit/File Releases'), 'group'=>$group
 
 $strQueryPackages = 'SELECT status_id, package_id, name AS package_name, is_public ' .
 	'FROM frs_package ' .
-	'WHERE group_id=$1' .
+	'WHERE group_id=$1 ' .
 	'ORDER BY status_id';
 $res = db_query_params($strQueryPackages, array($group_id));
 $rows = db_numrows($res);

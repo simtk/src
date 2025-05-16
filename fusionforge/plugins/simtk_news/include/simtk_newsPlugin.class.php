@@ -4,7 +4,7 @@
  *
  * news plugin Class - For Initialization in FusionForge
  * 
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2025, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -31,6 +31,8 @@
  */ 
 
 class simtk_newsPlugin extends Plugin {
+	var $text;
+
 	public function __construct($id=0) {
 		parent::__construct($id) ;
 		$this->name = "simtk_news";

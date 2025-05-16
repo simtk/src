@@ -9,7 +9,7 @@
  * Copyright 2011, Iñigo Martinez
  * Copyright 2012, Thorsten “mirabilos” Glaser <t.glaser@tarent.de>
  * Copyright 2014, Stéphane-Eymeric Bredthauer
- * Copyright 2016-2021, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2025, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -89,7 +89,9 @@ if (session_loggedin()) {
 	$_COOKIE["GFTrackerQuery"] = serialize($gf_tracker);
 } elseif (isset($_COOKIE["GFTrackerQuery"])) {
 	$gf_tracker = unserialize($_COOKIE["GFTrackerQuery"]);
-	$query_id = (int)$gf_tracker[$ath->getID()];
+	if (isset($gf_tracker[$ath->getID()])) {
+		$query_id = (int)$gf_tracker[$ath->getID()];
+	}
 }
 
 $af = new ArtifactFactory($ath);
@@ -696,6 +698,9 @@ if ($art_arr && $art_cnt > 0) {
 	$voters = count($ath->getVoters());
 
 	for ($i=$start; $i<$max; $i++) {
+		if (!isset($art_arr[$i])) {
+			continue;
+		}
 		$extra_data = $art_arr[$i]->getExtraFieldDataText();
 		echo '
 		<tr class=priority'. $art_arr[$i]->getPriority().'>';

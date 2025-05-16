@@ -7,6 +7,7 @@
  * File:        securimage.php<br />
  *
  * Copyright (c) 2013, Drew Phillips
+ * Copyright 2016-2025, SimTK Team
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -1435,7 +1436,7 @@ class Securimage
             $length = strlen($code['display']);
 
             for($i = 0; $i < $length; ++$i) {
-                $letter    = $code['display']{$i};
+                $letter    = $code['display'][$i];
                 $letters[] = $letter;
             }
         }

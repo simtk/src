@@ -6,7 +6,7 @@
  * 
  * File that handles download of file with confirmation.
  *
- * Copyright 2005-2021, SimTK Team
+ * Copyright 2005-2025, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -48,6 +48,9 @@ $listName = "";
 $normalized_urlprefix = normalized_urlprefix();
 $pathinfo = substr_replace(getStringFromServer('REQUEST_URI'), '', 0, strlen($normalized_urlprefix)-1);
 $expl_pathinfo = explode('/', $pathinfo);
+if (!isset($expl_pathinfo[3])) {
+	exit_error(_('Invalid download mode'));
+}
 
 // $mode is 'file', 'latestzip', 'latestfile', or 'release'.
 $mode = $expl_pathinfo[3];

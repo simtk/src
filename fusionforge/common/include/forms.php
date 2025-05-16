@@ -4,7 +4,7 @@
  *
  * Copyright 2005, GForge, LLC
  * Copyright 2009, Roland Mas
- * Copyright 2016-2020, SimTK Team
+ * Copyright 2016-2025, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -33,7 +33,7 @@ function form_generate_key() {
 	db_begin();
 	// there's about 99.999999999% probability this loop will run only once :)
 	while(!$is_new) {
-		$key = md5(microtime() + util_randbytes() + $_SERVER["REMOTE_ADDR"]);
+		$key = md5(microtime() . util_randbytes() . $_SERVER["REMOTE_ADDR"]);
 		$res = db_query_params ('SELECT * FROM form_keys WHERE key=$1', array ($key));
 		if (!db_numrows($res)) {
 			$is_new=true;

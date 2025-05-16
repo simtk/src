@@ -3,7 +3,7 @@
 /**
  * phpBBPlugin Class
  *
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2025, SimTK Team
  *
  * This file is part of FusionForge.
  *
@@ -22,6 +22,8 @@
  */
 
 class phpBBPlugin extends Plugin {
+	var $text;
+
 	public function __construct($id=0) {
 		parent::__construct($id) ;
 		$this->name = "phpBB";

@@ -28,6 +28,7 @@ class PluginManager extends FFError {
 	var $plugins_to_hooks;
 	var $hooks_to_plugins;
 	var $returned_values = array();
+	var $plugins_data = array();
 
 	/**
 	 * PluginManager() - constructor
@@ -54,7 +55,6 @@ class PluginManager extends FFError {
 	 * @return	array hash of plugin id => plugin names
 	 */
 	function GetPlugins() {
-		$this->plugins_data = array();
 		$res = db_query_params('SELECT plugin_id, plugin_name FROM plugins',
 				array());
 		$rows = db_numrows($res);

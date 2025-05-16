@@ -7,7 +7,7 @@
  * Copyright 2009, Roland Mas
  * Copyright 2013, Franck Villaume - TrivialDev
  * Copyright 2013, French Ministry of National Education
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2025, SimTK Team
  *
  * This file is part of FusionForge. FusionForge is free software;
  * you can redistribute it and/or modify it under the terms of the
@@ -106,7 +106,7 @@ class ForumMessage extends FFError {
 	 * @param 	int		$user_id		The id of the user that is posting the message
 	 * @return	boolean success.
 	 */
-	function insertmoderated($subject, $body, $thread_id=0, $is_followup_to=0,$user_id) {
+	function insertmoderated($subject, $body, $thread_id=0, $is_followup_to=0,$user_id=0) {
 		if (!$thread_id) {
 			$thread_id=$this->Forum->getNextThreadID();
 			$is_followup_to=0;
@@ -252,7 +252,7 @@ class ForumMessage extends FFError {
 	 * @return	boolean success.
 	 */
 	function insertmsg($subject, $body, $thread_id=0, $is_followup_to=0,
-					   $user_id, $has_attach=false, $timestamp=0) {
+					   $user_id=0, $has_attach=false, $timestamp=0) {
 		if ($timestamp == 0){
 			$timestamp = time();
 		}
@@ -775,7 +775,7 @@ Or reply to this e-mail entering your response between the following markers:
 							  db_int_array_to_any_clause ($ids))) ;
 		}
 
-		$BCC = implode(util_result_column_to_array($bccres),',').','.$this->Forum->getSendAllPostsTo();
+		$BCC = implode(',', util_result_column_to_array($bccres)).','.$this->Forum->getSendAllPostsTo();
 		$User = user_get_object($this->getPosterID());
 		//util_send_message('',$subject,$body,$User->getEmail(),$BCC,$this->getPosterRealName(),$extra_headers);
 		util_send_message('',$subject,$body,"noreply@".forge_get_config('web_host'),$BCC,'Forum',$extra_headers);
@@ -881,7 +881,7 @@ Or reply to this e-mail entering your response between the following markers:
 							   array ('A',
 								  db_int_array_to_any_clause ($ids))) ;
 			}
-			$BCC = implode(util_result_column_to_array($bccres),',').','.$this->Forum->getSendAllPostsTo();
+			$BCC = implode(',', util_result_column_to_array($bccres)).','.$this->Forum->getSendAllPostsTo();
 			$User = user_get_object($this->getPosterID());
 			util_send_message('',$subject,$body,"noreply@".forge_get_config('web_host'),$BCC,'Forum',$extra_headers);
 			return true;

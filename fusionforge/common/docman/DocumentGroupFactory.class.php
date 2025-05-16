@@ -10,7 +10,7 @@
  * Copyright 2010, Franck Villaume - Capgemini
  * Copyright 2012-2014, Franck Villaume - TrivialDev
  * Copyright (C) 2012 Alain Peyrat - Alcatel-Lucent
- * Copyright 2016-2019, Tod Hing - SimTK Team
+ * Copyright 2016-2025, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -81,6 +81,8 @@ class DocumentGroupFactory extends FFError {
 		if ($this->nested_groups) {
 			return $this->nested_groups;
 		}
+
+		$this->flat_groups = array();
 
 		$result = db_query_params('SELECT * FROM doc_groups WHERE group_id=$1 AND stateid=$2 ORDER BY groupname ASC',
 						array($this->Group->getID(), $stateid));

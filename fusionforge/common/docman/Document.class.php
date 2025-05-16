@@ -8,7 +8,7 @@
  * Copyright 2010-2011, Franck Villaume - Capgemini
  * Copyright 2011-2013, Franck Villaume - TrivialDev
  * Copyright (C) 2011-2012 Alain Peyrat - Alcatel-Lucent
- * Copyright 2016-2023, SimTK Team
+ * Copyright 2016-2025, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -340,7 +340,12 @@ class Document extends FFError {
 	 * @return	int	The docid.
 	 */
 	function getID() {
-		return $this->data_array['docid'];
+		if ($this->data_array && isset($this->data_array['docid'])) {
+			return $this->data_array['docid'];
+		}
+		else {
+			return 0;
+		}
 	}
 
 	/**
@@ -376,7 +381,12 @@ class Document extends FFError {
 	 * @return	boolean	is_url.
 	 */
 	function isURL() {
-		return ($this->data_array['filetype'] == 'URL');
+		if ($this->data_array && isset($this->data_array['filetype'])) {
+			return ($this->data_array['filetype'] == 'URL');
+		}
+		else {
+			return false;
+		}
 	}
 
 	/**
@@ -420,7 +430,12 @@ class Document extends FFError {
 	 * @return	int	The stateid.
 	 */
 	function getStateID() {
-		return $this->data_array['stateid'];
+		if ($this->data_array && isset($this->data_array['stateid'])) {
+			return $this->data_array['stateid'];
+		}
+		else {
+			return 0;
+		}
 	}
 
 	/**
@@ -492,7 +507,12 @@ class Document extends FFError {
 	 * @return	string	The filename.
 	 */
 	function getFileName() {
-		return $this->data_array['filename'];
+		if ($this->data_array && isset($this->data_array['filename'])) {
+			return $this->data_array['filename'];
+		}
+		else {
+			return "";
+		}
 	}
 
 	/**

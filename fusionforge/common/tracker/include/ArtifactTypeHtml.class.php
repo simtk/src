@@ -7,7 +7,7 @@
  * Copyright 2011, Franck Villaume - Capgemini
  * Copyright (C) 2011 Alain Peyrat - Alcatel-Lucent
  * Copyright 2014, Franck Villaume - TrivialDev
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2025, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -233,7 +233,10 @@ class ArtifactTypeHtml extends ArtifactType {
 								"<a href=\"\\1\" target=\"_blank\">\\1</a>", $value);
 				} elseif ($efarr[$i]['field_type'] == ARTIFACT_EXTRAFIELDTYPE_RELATION) {
 					// Convert artifact id to links.
-					$value = preg_replace_callback('/\b(\d+)\b/', create_function('$matches', 'return _artifactid2url($matches[1], \'title\');'), $value);
+					$myFunc1 = function($matches) {
+						return _artifactid2url($matches[1], 'title');
+					};
+					$value = preg_replace_callback('/\b(\d+)\b/', $myFunc1, $value);
 				}
 				$template = str_replace('{$PostName:'.$efarr[$i]['field_name'].'}', $post_name, $template);
 				$template = str_replace('{$'.$efarr[$i]['field_name'].'}', $value, $template);
@@ -682,7 +685,10 @@ class ArtifactTypeHtml extends ArtifactType {
 			$vals[$i]=$arr[$i]['element_name'];
 		}
 		// Convert artifact id to links.
-		$html_contents = preg_replace_callback('/\b(\d+)\b/', create_function('$matches', 'return _artifactid2url($matches[1], \'title\');'), $contents);
+		$myFunc2 = function($matches) {
+			return _artifactid2url($matches[1], 'title');
+		};
+		$html_contents = preg_replace_callback('/\b(\d+)\b/', $myFunc2, $contents);
 		$edit_contents = $this->renderTextField ($extra_field_id,$contents,$size,$maxlength);
 		return '
 			<div id="edit'.$extra_field_id.'" style="display: none;" title="'._('Tip: Enter a space-separated list of artifact ids ([#NNN] also accepted)').'" >'.$edit_contents.'</div>

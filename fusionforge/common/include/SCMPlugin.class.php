@@ -5,7 +5,7 @@
  * Copyright 2004-2009, Roland Mas
  * Copyright (C) 2011-2012 Alain Peyrat - Alcatel-Lucent
  * Copyright 2012,2014 Franck Villaume - TrivialDev
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2025, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -28,6 +28,9 @@ require_once $gfcommon.'include/scm.php';
 require_once $gfcommon.'include/SysTasksQ.class.php';
 
 abstract class SCMPlugin extends Plugin {
+
+	var $provides = array();
+
 	/**
 	 * SCMPlugin() - constructor
 	 *

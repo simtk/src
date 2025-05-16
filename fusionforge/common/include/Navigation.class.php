@@ -5,7 +5,7 @@
  * Copyright 2009 - 2010, Olaf Lenz
  * Copyright 2011-2012, Franck Villaume - TrivialDev
  * Copyright 2014, Stéphane-Eymeric Bredthauer
- * Copyright 2016-2019, Henry Kwong, Tod Hing - SimTK Team
+ * Copyright 2016-2025, SimTK Team
  * http://fusionforge.org
  *
  * This file is part of FusionForge. FusionForge is free software;
@@ -131,11 +131,7 @@ class Navigation extends FFError {
 		global $words, $forum_id, $group_id, $group_project_id, $atid, $exact, $type_of_search;
 
 		$res = "";
-		if (get_magic_quotes_gpc()) {
-			$defaultWords = stripslashes($words);
-		} else {
-			$defaultWords = $words;
-		}
+		$defaultWords = $words;
 
 		$defaultWords = htmlspecialchars($defaultWords);
 

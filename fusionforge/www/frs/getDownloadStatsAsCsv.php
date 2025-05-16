@@ -6,7 +6,7 @@
  * 
  * Get file downloads statistics.
  *
- * Copyright 2005-2021, SimTK Team
+ * Copyright 2005-2025, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -113,10 +113,10 @@ if ($res) {
 	  }    
 	  $newLine.=db_result($res, $i, "lab_name").", ";
 	  $newLine.=db_result($res, $i, "university_name").", ";
-      $newLine.=db_result($res, $i, "agreed_to_license").", ";
+      $newLine.=db_result($res, $i, "simtk_agreed_to_license").", ";
 
 
-      $expected_use=db_result($res, $i, "expected_use");
+      $expected_use=db_result($res, $i, "simtk_expected_use");
       $expected_use=preg_replace('/,/', ' ', $expected_use);
       $expected_use=preg_replace('/\n/', ' ', $expected_use);
       $expected_use=preg_replace('/\r/', ' ', $expected_use);
@@ -126,7 +126,7 @@ if ($res) {
 
       $downloadText.=$newLine;
    }
-   db_free_result($resDownloads);
+   db_free_result($res);
 } else {
    $downloadText="ERROR: ";
 }

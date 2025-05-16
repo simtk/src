@@ -6,7 +6,7 @@
  * 
  * ajax code to handle categories.
  * 
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2025, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -239,7 +239,7 @@ for ($i = 0; $i < $db_count; $i++) {
 	echo json_kv("downloads", $projectDownloads) . ",";
 	echo json_kv("group_name", $project->group_name). ",";
 	echo json_kv("logo_file", $project->simtk_logo_file) . ",";
-	echo json_kv("short_description", $project->simtk_summary) . ",";
+	echo json_kv("short_description", strip_tags(html_entity_decode(nl2br(util_make_clickable_links($project->simtk_summary))), "<b><br><br/><br /><em><i><p><pre><span><strong><small><sub><sup>")) . ",";
 	echo json_kv("long_description", $project->short_description) . ",";
 	echo json_kv("has_downloads", $project->has_public_package > 0) . ",";
 	// Check before filling in; keywords may not be present.

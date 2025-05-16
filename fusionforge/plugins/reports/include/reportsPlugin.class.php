@@ -4,7 +4,7 @@
  *
  * reports plugin Class - For initialization in FusionForge
  * 
- * Copyright 2005-2019, SimTK Team
+ * Copyright 2005-2025, SimTK Team
  *
  * This file is part of the SimTK web portal originating from        
  * Simbios, the NIH National Center for Physics-Based               
@@ -31,10 +31,11 @@
  */ 
 
 class reportsPlugin extends Plugin {
+	var $text;
+
 	public function __construct($id=0) {
 		parent::__construct($id) ;
 		$this->name = "reports";
-//		$this->text = "Reports"; // To show in the tabs, use...
 		$this->text = "Statistics"; // To show in the tabs, use...
 		$this->_addHook("user_personal_links");//to make a link to the user's personal part of the plugin
 		$this->_addHook("usermenu");
